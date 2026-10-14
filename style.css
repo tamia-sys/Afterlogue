@@ -859,11 +859,18 @@ nav a:hover {
 .rating-check {
   display: none;
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -50%);
   z-index: 3;
+
   color: #F4EADD;
-  font-size: 24px;
+  font-family: Arial, sans-serif;
+  font-size: 38px;
+  font-weight: 300;
+  line-height: 1;
+  pointer-events: none;
 }
 
 @media (max-width: 600px) {
