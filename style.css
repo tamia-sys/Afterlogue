@@ -762,3 +762,38 @@ nav a:hover {
     justify-content: center;
   }
 }
+/* AFTERLOGUE — COMPACT MOBILE LOG */
+
+@media (max-width: 600px) {
+  .log-page {
+    min-height: auto;
+    padding: 20px 6% 65px;
+  }
+
+  .log-eyebrow {
+    margin-bottom: 12px;
+  }
+
+  .log-page h2 {
+    font-size: 32px;
+    line-height: 1.12;
+    margin-bottom: 12px;
+  }
+
+  .log-description {
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .log-divider {
+    margin-bottom: 14px;
+  }
+
+  .log-film-section {
+    margin-top: 20px;
+  }
+
+  .log-section-heading {
+    margin-bottom: 18px;
+  }
+}
