@@ -473,3 +473,34 @@ nav a:hover {
     letter-spacing: 1px;
   }
 }
+/* Refine editorial divider */
+.editorial-divider {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 30px 7%;
+  background: #11100f;
+}
+
+.editorial-divider-top,
+.editorial-divider-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.editorial-divider-top {
+  padding-bottom: 18px;
+  border-bottom: 1px solid #51483e;
+}
+
+.editorial-divider-bottom {
+  padding-top: 18px;
+}
+
+@media (max-width: 600px) {
+  .editorial-divider-top,
+  .editorial-divider-bottom {
+    flex-wrap: wrap;
+  }
+}
