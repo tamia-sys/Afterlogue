@@ -85,77 +85,40 @@
   const posterRow = document.querySelector(".film-posters");
 
   if (posterRow) {
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    );
+    const cards = [...posterRow.querySelectorAll(".film-card")];
+    const centerImage = cards[2]?.querySelector("img");
 
-    let isRotating = false;
+    // Use the five movie posters already on the page
+    const films = cards.map(card => {
+      const image = card.querySelector("img");
+      return {
+        src: image.src,
+        alt: image.alt
+      };
+    });
 
-    function rotatePosters() {
-      if (isRotating) return;
-      isRotating = true;
+    let currentFilm = 2;
 
-      const posters = [...posterRow.querySelectorAll(".film-card")];
-      const firstPoster = posters[0];
+    if (centerImage && films.length === 5) {
+      centerImage.style.transition = "opacity 1.5s ease";
 
-      // Remember where the remaining posters started
-      const oldPositions = new Map();
+      setInterval(() => {
+        currentFilm = (currentFilm + 1) % films.length;
 
-      posters.slice(1).forEach((poster) => {
-        oldPositions.set(poster, poster.getBoundingClientRect());
-      });
+        const nextFilm = films[currentFilm];
 
-      // Hide the poster traveling from far left to far right
-      firstPoster.style.visibility = "hidden";
+        // Slowly fade out only the center poster
+        centerImage.style.opacity = "0";
 
-      // Move it to the end of the row
-      posterRow.appendChild(firstPoster);
+        setTimeout(() => {
+          centerImage.src = nextFilm.src;
+          centerImage.alt = nextFilm.alt;
 
-      // Change which poster is featured
-      const newOrder = [...posterRow.querySelectorAll(".film-card")];
-
-      newOrder.forEach((poster, index) => {
-        poster.classList.toggle("featured", index === 2);
-      });
-
-      if (reducedMotion.matches) {
-        firstPoster.style.visibility = "";
-        isRotating = false;
-        return;
-      }
-
-      // Smoothly slide the other four posters left
-      const animations = newOrder
-        .filter((poster) => poster !== firstPoster)
-        .map((poster) => {
-          const oldPosition = oldPositions.get(poster);
-          const newPosition = poster.getBoundingClientRect();
-
-          return poster.animate(
-            [
-              {
-                translate: `${oldPosition.left - newPosition.left}px ${oldPosition.top - newPosition.top}px`
-              },
-              {
-                translate: "0px 0px"
-              }
-            ],
-            {
-              duration: 1200,
-              easing: "ease-in-out"
-            }
-          );
-        });
-
-      // Reveal the far-right poster after the slide finishes
-      Promise.all(animations.map(animation => animation.finished))
-        .then(() => {
-          firstPoster.style.visibility = "";
-          isRotating = false;
-        });
+          // Slowly fade in the next film
+          centerImage.style.opacity = "1";
+        }, 1500);
+      }, 10000);
     }
-
-    setInterval(rotatePosters, 6000);
   }
 </script>
 </body>
