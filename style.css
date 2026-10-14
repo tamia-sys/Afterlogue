@@ -1,0 +1,134 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --background: #080808;
+  --cream: #F4EADD;
+  --champagne: #BFA58B;
+  --muted: #B8ADA1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--cream);
+  font-family: 'Inter', sans-serif;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 7%;
+  border-bottom: 1px solid #24201D;
+}
+
+header h1 {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 34px;
+  font-weight: 500;
+}
+
+nav {
+  display: flex;
+  gap: 32px;
+}
+
+nav a {
+  color: var(--cream);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s ease;
+}
+
+nav a:hover {
+  color: var(--champagne);
+}
+
+.hero {
+  min-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 80px 10%;
+}
+
+.hero h2 {
+  max-width: 720px;
+  margin: 0 0 22px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(52px, 7vw, 100px);
+  font-weight: 400;
+  line-height: 0.98;
+}
+
+.hero p {
+  max-width: 420px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.hero-buttons a {
+  padding: 15px 24px;
+  border-radius: 3px;
+  font-size: 13px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.primary-button {
+  background: var(--cream);
+  color: var(--background);
+}
+
+.primary-button:hover {
+  background: var(--champagne);
+}
+
+.secondary-button {
+  border: 1px solid var(--champagne);
+  color: var(--cream);
+}
+
+.secondary-button:hover {
+  background: #211B17;
+}
+
+@media (max-width: 650px) {
+  header {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .hero {
+    min-height: 65vh;
+    padding: 70px 7%;
+  }
+
+  .hero-buttons {
+    flex-wrap: wrap;
+  }
+}
