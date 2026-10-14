@@ -900,3 +900,20 @@ nav a:hover {
   width: 52px;
   height: 52px;
 }
+/* Saved impression beneath the checkmark */
+
+.rating-choice {
+  position: absolute;
+  top: calc(50% + 37px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+
+  color: #F4EADD;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
