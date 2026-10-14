@@ -884,3 +884,12 @@ nav a:hover {
     font-size: 11px;
   }
 }
+/* Keep rating options hidden after a film is rated */
+
+.log-poster-placeholder.is-rated .rating-overlay,
+.log-poster-placeholder.is-rated:hover .rating-overlay,
+.log-poster-placeholder.is-rated:focus-within .rating-overlay {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
