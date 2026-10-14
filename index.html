@@ -7,32 +7,7 @@
   <title>Afterlogue — There's always another story.</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<script>
-  const posterRow = document.querySelector(".film-posters");
 
-  if (posterRow) {
-    setInterval(() => {
-      // Fade the gallery briefly
-      posterRow.style.transition = "opacity 0.5s ease";
-      posterRow.style.opacity = "0";
-
-      setTimeout(() => {
-        // Move the first film to the far right
-        posterRow.appendChild(posterRow.firstElementChild);
-
-        // Enlarge whichever film is now in the center
-        const posters = posterRow.querySelectorAll(".film-card");
-
-        posters.forEach((poster, index) => {
-          poster.classList.toggle("featured", index === 2);
-        });
-
-        // Show the updated gallery
-        posterRow.style.opacity = "1";
-      }, 500);
-    }, 6000);
-  }
-</script>
 <body>
 
   <header>
@@ -106,6 +81,31 @@
 </section>
 </div>
   </main>
+<script>
+  const posterRow = document.querySelector(".film-posters");
 
+  if (posterRow) {
+    setInterval(() => {
+      // Fade out
+      posterRow.style.transition = "opacity 0.5s ease";
+      posterRow.style.opacity = "0";
+
+      setTimeout(() => {
+        // Move the first poster to the end
+        posterRow.appendChild(posterRow.firstElementChild);
+
+        // Enlarge the new center poster
+        const posters = posterRow.querySelectorAll(".film-card");
+
+        posters.forEach((poster, index) => {
+          poster.classList.toggle("featured", index === 2);
+        });
+
+        // Fade back in
+        posterRow.style.opacity = "1";
+      }, 500);
+    }, 6000);
+  }
+</script>
 </body>
 </html>
