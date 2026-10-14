@@ -65,6 +65,7 @@
     />
   </svg>
 </span>
+       <span class="rating-choice"></span>
        </div>
       <h4>Mean Girls</h4>
       <p>2004</p>
@@ -169,6 +170,7 @@
   const image = poster.querySelector("img");
   const overlay = poster.querySelector(".rating-overlay");
   const checkmark = poster.querySelector(".rating-check");
+  const ratingChoice = poster.querySelector(".rating-choice");
   const buttons = overlay.querySelectorAll("button");
 
   function showSavedRating(rating) {
@@ -179,6 +181,7 @@
     } else {
       image.style.filter = "";
       checkmark.style.display = "none";
+      ratingChoice.textContent = rating || "";
     }
   }
 
