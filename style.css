@@ -628,3 +628,14 @@ nav a:hover {
     gap: 26px 14px;
   }
 }
+/* Movie artwork inside the Log cards */
+.log-poster-placeholder {
+  overflow: hidden;
+}
+
+.log-poster-placeholder img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
