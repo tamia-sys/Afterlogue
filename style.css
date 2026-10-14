@@ -237,3 +237,13 @@ nav a:hover {
     max-width: 155px;
   }
 }
+/* Rotating featured film */
+.hero-layout .film-card {
+  position: relative;
+  transition: transform 0.8s ease;
+}
+
+.hero-layout .film-card.featured {
+  transform: scale(1.18);
+  z-index: 2;
+}
