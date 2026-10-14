@@ -251,3 +251,57 @@ nav a:hover {
 .hero-layout .film-posters {
   gap: 28px;
 }
+/* DISCOVERY INTRO */
+
+.discovery-section {
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 8%;
+  background: #11100F;
+  text-align: center;
+}
+
+.discovery-intro {
+  max-width: 680px;
+}
+
+.discovery-intro .eyebrow {
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #B9A58D;
+  margin-bottom: 30px;
+}
+
+.discovery-intro h2 {
+  font-family: Georgia, serif;
+  font-size: clamp(38px, 5vw, 64px);
+  font-weight: 400;
+  line-height: 1.15;
+  color: #F4EADD;
+  margin-bottom: 25px;
+}
+
+.discovery-intro > p:not(.eyebrow) {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #AAA29A;
+  max-width: 480px;
+  margin: 0 auto 35px;
+}
+
+.start-discovery {
+  background: #F4EADD;
+  color: #11100F;
+  border: none;
+  padding: 16px 36px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.start-discovery:hover {
+  background: #D7C4A9;
+}
