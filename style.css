@@ -504,3 +504,50 @@ nav a:hover {
     flex-wrap: wrap;
   }
 }
+/* AFTERLOGUE — THE LOG */
+
+.log-page {
+  min-height: 100vh;
+  padding: 90px 8% 120px;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.log-eyebrow {
+  color: #B9A58D;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 35px;
+}
+
+.log-page h2 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(42px, 5vw, 76px);
+  line-height: 1.12;
+  color: #F4EADD;
+  max-width: 850px;
+  margin-bottom: 25px;
+}
+
+.log-description {
+  color: #AAA29A;
+  font-size: 16px;
+  line-height: 1.8;
+  margin-bottom: 55px;
+}
+
+.log-divider {
+  height: 1px;
+  background: #51483E;
+  width: 100%;
+  margin-bottom: 22px;
+}
+
+.log-instruction {
+  color: #B9A58D;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
