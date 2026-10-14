@@ -247,3 +247,8 @@ nav a:hover {
   transform: scale(1.18);
   z-index: 2;
 }
+/* Extra breathing room around the featured poster */
+.hero-layout .film-card.featured {
+  margin-left: 16px;
+  margin-right: 16px;
+}
