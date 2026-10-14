@@ -176,18 +176,19 @@
   const ratingChoice = poster.querySelector(".rating-choice");
   const buttons = overlay.querySelectorAll("button");
 
-  function showSavedRating(rating) {
-    poster.classList.toggle("is-rated", Boolean(rating));
-    if (rating) {
+ function showSavedRating(rating) {
+  poster.classList.toggle("is-rated", Boolean(rating));
+
+  if (rating) {
     image.style.filter = "brightness(0.6)";
-      checkmark.style.display = "block";
-    } else {
-      image.style.filter = "";
-      checkmark.style.display = "none";
-      ratingChoice.textContent = rating || "";
-    }
+    checkmark.style.display = "block";
+  } else {
+    image.style.filter = "";
+    checkmark.style.display = "none";
   }
 
+  ratingChoice.textContent = rating || "";
+}
   const savedRating = localStorage.getItem("afterlogue-mean-girls");
   showSavedRating(savedRating);
 
