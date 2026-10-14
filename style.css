@@ -893,3 +893,10 @@ nav a:hover {
   visibility: hidden;
   pointer-events: none;
 }
+/* Thin centered checkmark */
+
+.rating-check svg {
+  display: block;
+  width: 52px;
+  height: 52px;
+}
