@@ -932,3 +932,12 @@ nav a:hover {
   outline: 1px solid #B9A58D;
   outline-offset: 5px;
 }
+/* AFTERLOGUE — MOBILE TAP RATINGS */
+
+@media (hover: none) {
+  .log-poster-placeholder.is-open:not(.is-rated) .rating-overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
