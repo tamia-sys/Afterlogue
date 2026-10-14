@@ -409,3 +409,27 @@ nav a:hover {
     padding: 75px 7%;
   }
 }
+/* Editorial details */
+
+.reading-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.reading-time svg {
+  flex-shrink: 0;
+}
+
+.still-identification {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+<p class="film-title">Carnival of Souls (1962)</p> {
+  color: #f4eadd;
+  font-size: 12px;
+  font-style: italic;
+  letter-spacing: 0.3px;
+}
