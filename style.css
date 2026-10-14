@@ -433,3 +433,43 @@ nav a:hover {
   font-style: italic;
   letter-spacing: 0.3px;
 }
+/* Editorial section divider */
+.editorial-divider {
+  padding: 24px 7% 30px;
+  background: #11100f;
+  color: #b9a58d;
+}
+
+.editorial-divider-top,
+.editorial-divider-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.editorial-divider-top {
+  padding-bottom: 18px;
+  border-bottom: 1px solid #51483e;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.editorial-divider-bottom {
+  padding-top: 18px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: #f4eadd;
+}
+
+.editorial-divider-bottom span:last-child {
+  font-size: 20px;
+  color: #b9a58d;
+}
+
+@media (max-width: 600px) {
+  .editorial-divider-top {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+}
