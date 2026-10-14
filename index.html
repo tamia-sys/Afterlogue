@@ -89,39 +89,56 @@
       "(prefers-reduced-motion: reduce)"
     );
 
-    function rotatePosters() {
-      const posters = [...posterRow.querySelectorAll(".film-card")];
+    let isRotating = false;
 
-      // Remember where every poster is now
+    function rotatePosters() {
+      if (isRotating) return;
+      isRotating = true;
+
+      const posters = [...posterRow.querySelectorAll(".film-card")];
+      const firstPoster = posters[0];
+
+      // Remember where the remaining posters started
       const oldPositions = new Map();
 
-      posters.forEach((poster) => {
+      posters.slice(1).forEach((poster) => {
         oldPositions.set(poster, poster.getBoundingClientRect());
       });
 
-      // Move the first poster to the last position
-      posterRow.appendChild(posters[0]);
+      // Hide the poster traveling from far left to far right
+      firstPoster.style.visibility = "hidden";
 
-      // Make the new center poster featured
+      // Move it to the end of the row
+      posterRow.appendChild(firstPoster);
+
+      // Change which poster is featured
       const newOrder = [...posterRow.querySelectorAll(".film-card")];
 
       newOrder.forEach((poster, index) => {
         poster.classList.toggle("featured", index === 2);
       });
 
-      // Animate each poster from its old position to its new one
-      if (!reducedMotion.matches) {
-        newOrder.forEach((poster) => {
+      if (reducedMotion.matches) {
+        firstPoster.style.visibility = "";
+        isRotating = false;
+        return;
+      }
+
+      // Smoothly slide the other four posters left
+      const animations = newOrder
+        .filter((poster) => poster !== firstPoster)
+        .map((poster) => {
           const oldPosition = oldPositions.get(poster);
           const newPosition = poster.getBoundingClientRect();
 
-          const moveX = oldPosition.left - newPosition.left;
-          const moveY = oldPosition.top - newPosition.top;
-
-          poster.animate(
+          return poster.animate(
             [
-              { translate: `${moveX}px ${moveY}px` },
-              { translate: "0px 0px" }
+              {
+                translate: `${oldPosition.left - newPosition.left}px ${oldPosition.top - newPosition.top}px`
+              },
+              {
+                translate: "0px 0px"
+              }
             ],
             {
               duration: 1200,
@@ -129,7 +146,13 @@
             }
           );
         });
-      }
+
+      // Reveal the far-right poster after the slide finishes
+      Promise.all(animations.map(animation => animation.finished))
+        .then(() => {
+          firstPoster.style.visibility = "";
+          isRotating = false;
+        });
     }
 
     setInterval(rotatePosters, 6000);
