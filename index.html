@@ -81,45 +81,6 @@
 </section>
 </div>
   </main>
-<script>
-  const posterRow = document.querySelector(".film-posters");
 
-  if (posterRow) {
-    const cards = [...posterRow.querySelectorAll(".film-card")];
-    const centerImage = cards[2]?.querySelector("img");
-
-    // Use the five movie posters already on the page
-    const films = cards.map(card => {
-      const image = card.querySelector("img");
-      return {
-        src: image.src,
-        alt: image.alt
-      };
-    });
-
-    let currentFilm = 2;
-
-    if (centerImage && films.length === 5) {
-      centerImage.style.transition = "opacity 1.5s ease";
-
-      setInterval(() => {
-        currentFilm = (currentFilm + 1) % films.length;
-
-        const nextFilm = films[currentFilm];
-
-        // Slowly fade out only the center poster
-        centerImage.style.opacity = "0";
-
-        setTimeout(() => {
-          centerImage.src = nextFilm.src;
-          centerImage.alt = nextFilm.alt;
-
-          // Slowly fade in the next film
-          centerImage.style.opacity = "1";
-        }, 1500);
-      }, 10000);
-    }
-  }
-</script>
 </body>
 </html>
