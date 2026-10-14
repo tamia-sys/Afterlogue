@@ -223,3 +223,17 @@ nav a:hover {
     width: auto;
   }
 }
+/* Homepage visual refinements — desktop */
+@media (min-width: 801px) {
+  .hero-layout {
+    grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
+  }
+
+  .hero-layout .hero h2 {
+    font-size: clamp(52px, 5.5vw, 82px);
+  }
+
+  .hero-layout .film-card {
+    max-width: 155px;
+  }
+}
