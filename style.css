@@ -655,3 +655,46 @@ nav a:hover {
 .log-film-section {
   margin-top: 28px;
 }
+/* Refine Log page proportions */
+.log-page {
+  padding-top: 35px;
+}
+
+.log-page h2 {
+  font-size: clamp(32px, 3.5vw, 52px);
+  margin-bottom: 12px;
+}
+
+.log-description {
+  margin-bottom: 22px;
+}
+
+.log-film-section {
+  margin-top: 22px;
+}
+
+/* Compact layout for phones */
+@media (max-width: 600px) {
+  .log-page {
+    padding: 30px 5% 70px;
+  }
+
+  .log-page h2 {
+    font-size: clamp(30px, 7vw, 38px);
+    line-height: 1.12;
+  }
+
+  .log-eyebrow {
+    margin-bottom: 18px;
+  }
+
+  .log-description {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .log-film-section {
+    margin-top: 22px;
+  }
+}
