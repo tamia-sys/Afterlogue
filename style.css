@@ -251,10 +251,3 @@ nav a:hover {
 .hero-layout .film-posters {
   gap: 28px;
 }
-.hero-layout .film-card:first-child {
-  transform: translateX(24px);
-}
-
-.hero-layout .film-card:last-child {
-  transform: translateX(-24px);
-}
