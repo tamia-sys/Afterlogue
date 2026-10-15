@@ -1561,3 +1561,30 @@ nav a:hover {
     gap: 20px;
   }
 }
+
+/* AFTERLOGUE — DISCOVER AGAIN BUTTON */
+
+.discover-again-button {
+  display: block;
+  width: fit-content;
+  margin: 48px auto 0;
+  padding: 14px 30px;
+
+  background: transparent;
+  border: 1px solid rgba(245, 241, 232, 0.45);
+  border-radius: 0;
+
+  color: #f5f1e8;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.discover-again-button:hover {
+  background: #f5f1e8;
+  color: #171715;
+}
