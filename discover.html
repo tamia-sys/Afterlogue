@@ -209,21 +209,55 @@ function displayDiscoveryRecommendations(category) {
   }
 
   selected.forEach(item => {
-    const card = document.createElement("article");
-    card.className = "discovery-card";
+  const card = document.createElement("article");
+  card.className = "discovery-card";
 
-    const title = document.createElement("h3");
-    title.textContent = item.title;
+  // Poster container
+  const poster = document.createElement("button");
+  poster.type = "button";
+  poster.className = "discovery-poster";
+  poster.setAttribute(
+    "aria-label",
+    `Why we recommend ${item.title}`
+  );
+  poster.setAttribute("aria-expanded", "false");
 
-    const year = document.createElement("p");
-    year.textContent = item.year;
+  // Artwork placeholder — real posters come next
+  const artwork = document.createElement("div");
+  artwork.className = "discovery-artwork-placeholder";
+  artwork.textContent = item.title;
 
-    const reason = document.createElement("p");
-    reason.textContent = item.reason;
+  // Description overlay
+  const overlay = document.createElement("div");
+  overlay.className = "discovery-reason";
 
-    card.append(title, year, reason);
-    container.appendChild(card);
+  const label = document.createElement("span");
+  label.className = "discovery-reason-label";
+  label.textContent = "WHY THIS STORY";
+
+  const explanation = document.createElement("span");
+  explanation.className = "discovery-reason-text";
+  explanation.textContent = item.reason;
+
+  overlay.append(label, explanation);
+  poster.append(artwork, overlay);
+
+  // Tap to reveal or hide the description
+  poster.addEventListener("click", () => {
+    const isOpen = poster.classList.toggle("is-open");
+    poster.setAttribute("aria-expanded", String(isOpen));
   });
+
+  const title = document.createElement("h3");
+  title.textContent = item.title;
+
+  const year = document.createElement("p");
+  year.className = "discovery-year";
+  year.textContent = item.year;
+
+  card.append(poster, title, year);
+  container.appendChild(card);
+});
 }
 
 // Display movie recommendations when the page first opens.
