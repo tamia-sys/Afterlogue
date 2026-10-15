@@ -167,7 +167,31 @@ if (!profile?.onboarding_completed) {
 }
 
 // Continue to Discovery.
-window.location.href = "discover.html";
+// AFTERLOGUE — ROUTE SIGNED-IN MEMBERS
+
+const { data: { user }, error: userError } =
+  await supabaseClient.auth.getUser();
+
+if (userError || !user) {
+  throw new Error("Unable to verify your account.");
+}
+
+const { data: memberProfile, error: memberError } =
+  await supabaseClient
+    .from("profiles")
+    .select("onboarding_completed")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+if (memberError) throw memberError;
+
+if (memberProfile?.onboarding_completed) {
+  // Returning member: go to personalized discovery.
+  window.location.href = "discover.html";
+} else {
+  // New member: continue onboarding.
+  window.location.href = "log.html";
+}
 
     } else {
       // New account
