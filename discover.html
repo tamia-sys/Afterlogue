@@ -96,6 +96,35 @@ document.getElementById("impression-count").textContent =
   impressionCount === 0
     ? "Your story begins here. Return to the Log to share your first impression."
     : `You've shared ${impressionCount} ${impressionCount === 1 ? "impression" : "impressions"}.`;
+  // AFTERLOGUE — MOVIES / TV SHOWS SWITCHER
+
+const categoryButtons = document.querySelectorAll(
+  ".discovery-category"
+);
+
+let selectedCategory = "movies";
+
+categoryButtons.forEach(button => {
+  button.addEventListener("click", () => {
+
+    selectedCategory = button.dataset.category;
+
+    categoryButtons.forEach(otherButton => {
+      const isSelected =
+        otherButton.dataset.category === selectedCategory;
+
+      otherButton.classList.toggle("active", isSelected);
+
+      otherButton.setAttribute(
+        "aria-pressed",
+        String(isSelected)
+      );
+    });
+
+    console.log("Selected category:", selectedCategory);
+
+  });
+});
 </script>
 </body>
 </html>
