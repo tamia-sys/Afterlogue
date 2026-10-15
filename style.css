@@ -1570,11 +1570,10 @@ nav a:hover {
   margin: 48px auto 0;
   padding: 14px 30px;
 
-  background: transparent;
-  border: 1px solid rgba(245, 241, 232, 0.45);
-  border-radius: 0;
-
-  color: #f5f1e8;
+ background: transparent;
+border: 1px solid #e8dfcc;
+border-radius: 999px;
+color: #e8dfcc;
   font-family: inherit;
   font-size: 11px;
   font-weight: 400;
@@ -1585,6 +1584,6 @@ nav a:hover {
 }
 
 .discover-again-button:hover {
-  background: #f5f1e8;
+  background: #e8dfcc;
   color: #171715;
 }
