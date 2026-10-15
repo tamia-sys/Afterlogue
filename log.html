@@ -231,6 +231,20 @@ document.querySelectorAll(".log-film-card").forEach(card => {
   const checkmark = poster.querySelector(".rating-check");
   const ratingChoice = poster.querySelector(".rating-choice");
   const buttons = overlay.querySelectorAll("button");
+  const backButton = document.createElement("button");
+backButton.type = "button";
+backButton.className = "rating-back";
+backButton.textContent = "Go back";
+poster.appendChild(backButton);
+
+backButton.addEventListener("click", event => {
+  event.stopPropagation();
+
+  localStorage.removeItem(filmKey);
+  showSavedRating(null);
+
+  poster.classList.add("is-open");
+});
 
   function showSavedRating(rating) {
     poster.classList.toggle("is-rated", Boolean(rating));
@@ -268,11 +282,9 @@ document.querySelectorAll(".log-film-card").forEach(card => {
   });
 
   // Prepare the poster for mobile tapping.
-  poster.addEventListener("click", () => {
-    if (!poster.classList.contains("is-rated")) {
-      poster.classList.toggle("is-open");
-    }
-  });
+ poster.addEventListener("click", () => {
+  poster.classList.toggle("is-open");
+});
 
 });
 </script>
