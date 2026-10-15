@@ -1702,3 +1702,40 @@ color: #e8dfcc;
     gap: 26px;
   }
 }
+
+/* AFTERLOGUE — WATCHED POSTER GALLERY */
+
+#watched {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 32px 22px;
+  align-items: start;
+}
+
+#watched > p {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #e8dfcc;
+}
+
+#watched > p img {
+  width: 100% !important;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  margin-bottom: 12px;
+  border-radius: 2px;
+}
+
+@media (max-width: 650px) {
+  #watched {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 16px;
+  }
+}
+
+#watched[hidden] {
+  display: none;
+}
