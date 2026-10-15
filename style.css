@@ -1176,3 +1176,30 @@ nav a:hover {
   letter-spacing: 0.3px;
   line-height: 1.7;
 }
+/* AFTERLOGUE — DISCOVERY CATEGORY BUTTONS */
+
+.discovery-category-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.discovery-category {
+  padding: 10px 24px;
+  border: 1px solid #B9A58D;
+  border-radius: 30px;
+  background: transparent;
+  color: #F4EADD;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.discovery-category.active {
+  background: #F4EADD;
+  color: #11100F;
+}
+
+.discovery-category:hover {
+  border-color: #F4EADD;
+}
