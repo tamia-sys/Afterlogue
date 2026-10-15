@@ -1203,3 +1203,10 @@ nav a:hover {
 .discovery-category:hover {
   border-color: #F4EADD;
 }
+.discovery-category-buttons {
+  margin-top: 24px;
+}
+
+.discovery-results {
+  margin-top: 32px;
+}
