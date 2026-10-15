@@ -48,6 +48,7 @@
   <div class="discovery-results" id="discovery-results">
     <!-- Personalized recommendations will appear here. -->
   </div>
+  <p id="impression-count" class="discovery-count"></p>
 
 </section>
   </main>
@@ -63,6 +64,14 @@
   }
 
   console.log("Afterlogue impressions:", savedImpressions);
+  const impressionCount = Object.values(savedImpressions)
+  .filter(rating => ["Loved", "Liked", "Okay", "Not for me"].includes(rating))
+  .length;
+
+document.getElementById("impression-count").textContent =
+  impressionCount === 0
+    ? "Your story begins here. Return to the Log to share your first impression."
+    : `You've shared ${impressionCount} ${impressionCount === 1 ? "impression" : "impressions"}.`;
 </script>
 </body>
 </html>
