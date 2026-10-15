@@ -941,3 +941,47 @@ nav a:hover {
     pointer-events: auto;
   }
 }
+/* AFTERLOGUE — EDIT SAVED IMPRESSIONS */
+
+.rating-back {
+  position: absolute;
+  top: calc(50% + 73px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+
+  padding: 8px 20px;
+  border: 1px solid #F4EADD;
+  border-radius: 30px;
+
+  background: rgba(17, 16, 15, 0.75);
+  color: #F4EADD;
+
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Show Go back when hovering over a rated poster */
+@media (hover: hover) {
+  .log-poster-placeholder.is-rated:hover .rating-back,
+  .rating-back:focus-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+/* Show Go back when tapping a rated poster */
+@media (hover: none) {
+  .log-poster-placeholder.is-rated.is-open .rating-back {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
