@@ -991,7 +991,7 @@ nav a:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 85px 20px 110px;
+  padding: 45px 20px 50px;
 }
 
 .log-continue-button {
