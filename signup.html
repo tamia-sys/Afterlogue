@@ -135,7 +135,39 @@ signupForm.addEventListener("submit", async (event) => {
 
       if (error) throw error;
 
-      window.location.href = "discover.html";
+      // Check whether this account finished onboarding.
+const { data: profile, error: profileError } =
+  await supabaseClient
+    .from("profiles")
+    .select("onboarding_completed")
+    .eq("user_id", (await supabaseClient.auth.getUser()).data.user.id)
+    .maybeSingle();
+
+if (profileError) throw profileError;
+
+// Only offer to import impressions for unfinished onboarding.
+if (!profile?.onboarding_completed) {
+  const validRatings = ["Loved", "Liked", "Okay", "Not for me"];
+
+  const savedCount = Object.keys(localStorage)
+    .filter(key =>
+      key.startsWith("afterlogue-") &&
+      validRatings.includes(localStorage.getItem(key))
+    ).length;
+
+  if (savedCount > 0) {
+    const shouldSave = window.confirm(
+      `Save ${savedCount} impressions from this browser to your Afterlogue account?`
+    );
+
+    if (shouldSave) {
+      await window.saveFirstImpressions(supabaseClient);
+    }
+  }
+}
+
+// Continue to Discovery.
+window.location.href = "discover.html";
 
     } else {
       // New account
