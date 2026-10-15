@@ -66,5 +66,61 @@
       });
     });
   </script>
+  
+<script>
+  /* AFTERLOGUE — LOAD WATCHED IMPRESSIONS */
+
+  async function loadWatchedImpressions() {
+    const watched = document.getElementById("watched");
+    watched.textContent = "Loading your impressions...";
+
+    try {
+      const client = window.afterlogueSupabase;
+
+      const { data: userData, error: userError } =
+        await client.auth.getUser();
+
+      if (userError || !userData.user) {
+        watched.textContent = "Please sign in to view your Log.";
+        return;
+      }
+
+      const { data: impressions, error } = await client
+        .from("impressions")
+        .select("title_key, rating")
+        .eq("user_id", userData.user.id)
+        .order("title_key");
+
+      if (error) throw error;
+
+      watched.replaceChildren();
+
+      if (!impressions || impressions.length === 0) {
+        watched.textContent = "No impressions yet.";
+        return;
+      }
+
+      impressions.forEach(item => {
+        const entry = document.createElement("p");
+
+        const title = item.title_key
+          .split("-")
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+
+        entry.textContent = `${title} — ${item.rating}`;
+        watched.appendChild(entry);
+      });
+
+    } catch (error) {
+      console.error("Log loading error:", error);
+      watched.textContent =
+        "Unable to load your impressions. Please refresh.";
+    }
+  }
+
+  loadWatchedImpressions();
+</script>
+
 </body>
 </html>
