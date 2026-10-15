@@ -86,5 +86,21 @@
 
   </main>
 
+<!-- AFTERLOGUE — SUPABASE CONNECTION -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<script>
+  const SUPABASE_URL = "https://lerrhzrabrqgogfnlsbd.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_4frMAHSyIeVNTbVC6umquQ_qsi-XAK4";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  console.log("Afterlogue: Supabase client initialized.");
+</script>
+
 </body>
 </html>
