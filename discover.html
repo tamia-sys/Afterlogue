@@ -209,9 +209,21 @@ tv: [
   ]
 };
 
+
 function getDiscoveryRecommendations(category) {
   return discoveryLibrary[category]
+    .filter(item => {
+      const titleKey = item.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+
+      return !["Loved", "Liked", "Okay", "Not for me"].includes(
+        savedImpressions["afterlogue-" + titleKey]
+      );
+    })
     .map(item => {
+
       let score = 0;
 
       item.matches.forEach(title => {
