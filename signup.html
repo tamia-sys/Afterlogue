@@ -100,6 +100,54 @@
   );
 
   console.log("Afterlogue: Supabase client initialized.");
+  
+/* AFTERLOGUE — EMAIL ACCOUNT CREATION */
+
+const signupForm = document.getElementById("signup-form");
+const signupMessage = document.getElementById("signup-message");
+
+signupForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const email = document.getElementById("signup-email").value.trim();
+  const password = document.getElementById("signup-password").value;
+  const submitButton = signupForm.querySelector(".signup-submit");
+
+  submitButton.disabled = true;
+  submitButton.textContent = "Creating account...";
+  signupMessage.textContent = "";
+
+  try {
+    const { data, error } = await supabaseClient.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        emailRedirectTo:
+          "https://tamia-sys.github.io/Afterlogue/signup.html"
+      }
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (data.session) {
+      signupMessage.textContent =
+        "Your account has been created successfully.";
+    } else {
+      signupMessage.textContent =
+        "Check your email for a confirmation link to finish creating your account.";
+    }
+
+  } catch (error) {
+    signupMessage.textContent =
+      error.message || "Something went wrong. Please try again.";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Create account →";
+  }
+});
+
 </script>
 
 </body>
