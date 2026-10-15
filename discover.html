@@ -399,7 +399,7 @@ function getDiscoveryRecommendations(category, page = 0) {
 .slice(page * 5, page * 5 + 5);
 }
 
-function displayDiscoveryRecommendations(category) {
+function displayDiscoveryRecommendations(category, page = 0) {
   const container = document.getElementById("discovery-results");
   const selected = getDiscoveryRecommendations(category, page);
 
