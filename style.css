@@ -1176,37 +1176,52 @@ nav a:hover {
   letter-spacing: 0.3px;
   line-height: 1.7;
 }
-/* AFTERLOGUE — DISCOVERY CATEGORY BUTTONS */
+
+/* AFTERLOGUE — FULL-WIDTH CATEGORY SELECTOR */
 
 .discovery-category-buttons {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 8px;
+  padding: 5px;
+  box-sizing: border-box;
+  background: transparent;
+  border-radius: 40px;
 }
 
 .discovery-category {
-  padding: 10px 24px;
-  border: 1px solid #B9A58D;
-  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-width: 0;
+  padding: 15px 20px;
+
+  border: none;
+  border-radius: 40px;
   background: transparent;
   color: #F4EADD;
-  font-size: 13px;
+
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
-.discovery-category.active {
-  background: #F4EADD;
-  color: #11100F;
-}
+/* Champagne pill appears on hover */
 
 .discovery-category:hover {
-  border-color: #F4EADD;
-}
-.discovery-category-buttons {
-  margin-top: 24px;
+  background: rgba(185, 165, 141, 0.35);
+  color: #F4EADD;
 }
 
-.discovery-results {
-  margin-top: 32px;
+/* Selected category */
+
+.discovery-category.active {
+  background: rgba(185, 165, 141, 0.5);
+  color: #F4EADD;
 }
