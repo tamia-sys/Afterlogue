@@ -129,7 +129,27 @@ if (response.ok) {
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
           .join(" ");
 
-        entry.textContent = `${title} — ${item.rating}`;
+        
+const titleElement = document.createElement("div");
+titleElement.className = "watched-title";
+titleElement.textContent = title;
+
+const impressionElement = document.createElement("div");
+impressionElement.className = "watched-impression";
+
+const impressionIcons = {
+  "Loved": "♥",
+  "Liked": "♡",
+  "Okay": "●",
+  "Not for me": "×"
+};
+
+const icon = impressionIcons[item.rating] || "•";
+impressionElement.textContent = `${icon} ${item.rating}`;
+
+entry.appendChild(titleElement);
+entry.appendChild(impressionElement);
+
         
 const poster = posterLookup.get(item.title_key);
 
