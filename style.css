@@ -1610,3 +1610,95 @@ color: #e8dfcc;
     gap: 32px;
   }
 }
+
+/* AFTERLOGUE — PERSONAL LOG */
+
+.personal-log {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 90px 30px 120px;
+}
+
+.personal-log-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: #d9c6ab;
+  margin-bottom: 24px;
+}
+
+.personal-log-title {
+  font-family: Georgia, serif;
+  font-size: clamp(48px, 7vw, 78px);
+  font-weight: 400;
+  color: #f5f1e8;
+  margin: 0 0 18px;
+}
+
+.personal-log-description {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #b9afa5;
+  max-width: 480px;
+}
+
+.personal-log-divider {
+  height: 1px;
+  background: rgba(232, 223, 204, 0.3);
+  margin: 45px 0 30px;
+}
+
+.personal-log-tabs {
+  display: flex;
+  gap: 36px;
+  align-items: center;
+  border-bottom: 1px solid rgba(232, 223, 204, 0.15);
+}
+
+.personal-log-tab {
+  position: relative;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0 0 18px;
+  color: #938b80;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.personal-log-tab:hover,
+.personal-log-tab.active {
+  color: #f5f1e8;
+}
+
+.personal-log-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #e8dfcc;
+}
+
+.personal-log-panel {
+  padding-top: 40px;
+  color: #b9afa5;
+  font-family: 'Inter', sans-serif;
+}
+
+.personal-log-panel[hidden] {
+  display: none;
+}
+
+@media (max-width: 650px) {
+  .personal-log {
+    padding: 60px 22px 90px;
+  }
+
+  .personal-log-tabs {
+    gap: 26px;
+  }
+}
