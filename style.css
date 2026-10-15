@@ -1587,3 +1587,26 @@ color: #e8dfcc;
   background: #e8dfcc;
   color: #171715;
 }
+
+/* AFTERLOGUE — DISCOVERY CARD REFINEMENTS */
+
+.discovery-card h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 12px 0 4px;
+  color: #F4EADD;
+}
+
+.discovery-year {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: #B9AFA5;
+}
+
+@media (min-width: 651px) {
+  .discovery-results {
+    gap: 32px;
+  }
+}
