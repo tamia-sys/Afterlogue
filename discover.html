@@ -125,6 +125,116 @@ categoryButtons.forEach(button => {
 
   });
 });
+  // AFTERLOGUE — PERSONALIZED DISCOVERY TEST
+
+const discoveryLibrary = {
+  movies: [
+    {
+      title: "The Farewell",
+      year: 2019,
+      matches: ["moonlight", "insecure", "gilmore-girls"],
+      reason: "For stories about family, identity, and the things left unsaid."
+    },
+    {
+      title: "Booksmart",
+      year: 2019,
+      matches: ["mean-girls", "little-miss-sunshine", "abbott-elementary"],
+      reason: "For humor, friendship, and the beautiful mess of growing up."
+    },
+    {
+      title: "Perfect Days",
+      year: 2023,
+      matches: ["nomadland", "moonlight", "the-truman-show"],
+      reason: "For quiet stories that find meaning in everyday life."
+    }
+  ],
+
+  tv: [
+    {
+      title: "Mindhunter",
+      year: 2017,
+      matches: ["criminal-minds", "get-out", "chernobyl"],
+      reason: "For psychological tension, mysteries, and complex characters."
+    },
+    {
+      title: "Fullmetal Alchemist: Brotherhood",
+      year: 2009,
+      matches: ["demon-slayer", "avatar-the-last-airbender"],
+      reason: "For adventurous worlds, loyalty, and emotional storytelling."
+    },
+    {
+      title: "Station Eleven",
+      year: 2021,
+      matches: ["stranger-things", "chernobyl", "jurassic-park"],
+      reason: "For imaginative stories about survival and human connection."
+    }
+  ]
+};
+
+function getDiscoveryRecommendations(category) {
+  return discoveryLibrary[category]
+    .map(item => {
+      let score = 0;
+
+      item.matches.forEach(title => {
+        const rating = savedImpressions["afterlogue-" + title];
+
+        if (rating === "Loved") score += 3;
+        if (rating === "Liked") score += 2;
+        if (rating === "Okay") score += 0;
+        if (rating === "Not for me") score -= 2;
+      });
+
+      return { ...item, score };
+    })
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+}
+
+function displayDiscoveryRecommendations(category) {
+  const container = document.getElementById("discovery-results");
+  const selected = getDiscoveryRecommendations(category);
+
+  container.replaceChildren();
+
+  if (selected.length === 0) {
+    const message = document.createElement("p");
+    message.className = "discovery-empty";
+    message.textContent =
+      "Share a few more impressions in your Log to discover stories selected for you.";
+
+    container.appendChild(message);
+    return;
+  }
+
+  selected.forEach(item => {
+    const card = document.createElement("article");
+    card.className = "discovery-card";
+
+    const title = document.createElement("h3");
+    title.textContent = item.title;
+
+    const year = document.createElement("p");
+    year.textContent = item.year;
+
+    const reason = document.createElement("p");
+    reason.textContent = item.reason;
+
+    card.append(title, year, reason);
+    container.appendChild(card);
+  });
+}
+
+// Display movie recommendations when the page first opens.
+displayDiscoveryRecommendations("movies");
+
+// Update the recommendations when a category is selected.
+document.querySelectorAll(".discovery-category").forEach(button => {
+  button.addEventListener("click", () => {
+    displayDiscoveryRecommendations(button.dataset.category);
+  });
+});
 </script>
 </body>
 </html>
