@@ -1726,7 +1726,7 @@ color: #e8dfcc;
   aspect-ratio: 2 / 3;
   object-fit: cover;
   margin-bottom: 12px;
-  border-radius: 2px;
+  border-radius: 4px;
 }
 
 @media (max-width: 650px) {
