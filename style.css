@@ -1103,3 +1103,18 @@ nav a:hover {
     line-height: 1.7;
   }
 }
+/* DISCOVERY PAGE — LOGO SIZE */
+
+.site-header .logo {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 42px !important;
+  font-weight: 400;
+  color: #F4EADD;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .site-header .logo {
+    font-size: 42px !important;
+  }
+}
