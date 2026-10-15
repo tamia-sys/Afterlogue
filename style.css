@@ -1028,3 +1028,77 @@ nav a:hover {
   font-size: 19px;
   line-height: 1;
 }
+/* AFTERLOGUE — DISCOVERY PAGE */
+
+.discover-page {
+  width: 100%;
+  min-height: 75vh;
+  box-sizing: border-box;
+  padding: 85px 8% 100px;
+  color: #F4EADD;
+}
+
+.discover-intro {
+  max-width: 850px;
+}
+
+.discover-eyebrow {
+  margin: 0 0 34px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: #B9A58D;
+}
+
+.discover-intro h1 {
+  margin: 0 0 26px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(38px, 5vw, 70px);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -1px;
+}
+
+.discover-description {
+  max-width: 580px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.8;
+  color: #B9AFA5;
+}
+
+/* Fix the Discovery page logo */
+
+.site-header .logo {
+  color: #F4EADD;
+  text-decoration: none;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+  .discover-page {
+    min-height: 70vh;
+    padding: 65px 6% 80px;
+  }
+
+  .discover-eyebrow {
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 28px;
+  }
+
+  .discover-intro h1 {
+    font-size: 42px;
+    line-height: 1.15;
+  }
+
+  .discover-description {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+}
