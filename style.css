@@ -1485,3 +1485,29 @@ nav a:hover {
     font-size: 12px;
   }
 }
+
+/* AFTERLOGUE — MOBILE POSTER INTERACTION */
+
+@media (hover: none) {
+  .discovery-poster:hover .discovery-reason,
+  .discovery-poster:focus-visible .discovery-reason {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .discovery-poster.is-open .discovery-reason {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* Hide placeholder title while explanation is open */
+.discovery-poster.is-open .discovery-artwork-placeholder {
+  opacity: 0;
+}
+
+@media (hover: hover) {
+  .discovery-poster:hover .discovery-artwork-placeholder {
+    opacity: 0;
+  }
+}
