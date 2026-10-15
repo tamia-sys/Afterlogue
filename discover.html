@@ -51,6 +51,18 @@
 
 </section>
   </main>
+<script>
+  const savedImpressions = {};
 
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+
+    if (key && key.startsWith("afterlogue-")) {
+      savedImpressions[key] = localStorage.getItem(key);
+    }
+  }
+
+  console.log("Afterlogue impressions:", savedImpressions);
+</script>
 </body>
 </html>
