@@ -985,3 +985,46 @@ nav a:hover {
     pointer-events: auto;
   }
 }
+/* AFTERLOGUE — CONTINUE BUTTON */
+
+.log-continue-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 85px 20px 110px;
+}
+
+.log-continue-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+
+  padding: 16px 42px;
+
+  border: 1px solid #B9A58D;
+  border-radius: 50px;
+
+  background: transparent;
+  color: #F4EADD;
+
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+
+  transition: background 0.25s ease,
+              color 0.25s ease,
+              transform 0.25s ease;
+}
+
+.log-continue-button:hover {
+  background: #F4EADD;
+  color: #11100F;
+  transform: translateY(-2px);
+}
+
+.log-continue-button span {
+  font-size: 19px;
+  line-height: 1;
+}
