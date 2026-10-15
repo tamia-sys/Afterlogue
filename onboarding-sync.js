@@ -58,5 +58,19 @@ window.saveFirstImpressions = async function (client) {
     if (saveError) throw saveError;
   }
 
-  return "impressions-saved";
+ // Mark onboarding complete after impressions are saved.
+
+const { error: completionError } = await client
+  .from("profiles")
+  .upsert({
+    user_id: user.id,
+    onboarding_completed: true,
+    onboarding_completed_at: new Date().toISOString()
+  }, {
+    onConflict: "user_id"
+  });
+
+if (completionError) throw completionError;
+
+return "onboarding-completed";
 };
