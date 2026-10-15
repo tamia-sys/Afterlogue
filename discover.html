@@ -368,8 +368,7 @@ tv: [
   ]
 };
 
-
-function getDiscoveryRecommendations(category) {
+function getDiscoveryRecommendations(category, page = 0) {
   return discoveryLibrary[category]
     .filter(item => {
       const titleKey = item.title
@@ -397,7 +396,7 @@ function getDiscoveryRecommendations(category) {
       return { ...item, score };
     })
    .sort((a, b) => b.score - a.score)
-.slice(0, 5);
+.slice(page * 5, page * 5 + 5);
 }
 
 function displayDiscoveryRecommendations(category) {
