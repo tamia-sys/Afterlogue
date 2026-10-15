@@ -100,6 +100,27 @@
         return;
       }
 
+const posterLookup = new Map();
+
+const response = await fetch("log.html");
+if (response.ok) {
+  const html = await response.text();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  doc.querySelectorAll(".log-film-card").forEach(card => {
+    const title = card.querySelector("h4")?.textContent.trim();
+    const poster = card.querySelector("img")?.getAttribute("src");
+
+    if (title && poster) {
+      const key = title.toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+
+      posterLookup.set(key, poster);
+    }
+  });
+}
+
       impressions.forEach(item => {
         const entry = document.createElement("p");
 
@@ -109,6 +130,22 @@
           .join(" ");
 
         entry.textContent = `${title} — ${item.rating}`;
+        
+const poster = posterLookup.get(item.title_key);
+
+if (poster) {
+  const image = document.createElement("img");
+  image.src = poster;
+  image.alt = `${title} poster`;
+  image.style.width = "140px";
+  image.style.aspectRatio = "2 / 3";
+  image.style.objectFit = "cover";
+  image.style.display = "block";
+  image.style.marginBottom = "10px";
+
+  entry.prepend(image);
+}
+
         watched.appendChild(entry);
       });
 
