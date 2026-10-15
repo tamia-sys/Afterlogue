@@ -106,6 +106,9 @@
 const signupForm = document.getElementById("signup-form");
 const signupMessage = document.getElementById("signup-message");
 
+  
+/* AFTERLOGUE — ACCOUNT CREATION AND SIGN IN */
+
 signupForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -113,41 +116,97 @@ signupForm.addEventListener("submit", async (event) => {
   const password = document.getElementById("signup-password").value;
   const submitButton = signupForm.querySelector(".signup-submit");
 
+  const signingIn = accountMode === "signin";
+
   submitButton.disabled = true;
-  submitButton.textContent = "Creating account...";
+  submitButton.textContent = signingIn
+    ? "Signing in..."
+    : "Creating account...";
+
   signupMessage.textContent = "";
 
   try {
-    const { data, error } = await supabaseClient.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        emailRedirectTo:
-          "https://tamia-sys.github.io/Afterlogue/signup.html"
-      }
-    });
+    if (signingIn) {
+      // Existing account
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    if (error) {
-      throw error;
-    }
+      if (error) throw error;
 
-    if (data.session) {
-      signupMessage.textContent =
-        "Your account has been created successfully.";
+      window.location.href = "discover.html";
+
     } else {
-      signupMessage.textContent =
-        "Check your email for a confirmation link to finish creating your account.";
+      // New account
+      const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo:
+            "https://tamia-sys.github.io/Afterlogue/signup.html"
+        }
+      });
+
+      if (error) throw error;
+
+      signupMessage.textContent = data.session
+        ? "Your account has been created successfully."
+        : "Check your email for a confirmation link to finish creating your account.";
     }
 
   } catch (error) {
     signupMessage.textContent =
       error.message || "Something went wrong. Please try again.";
+
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Create account →";
+    submitButton.textContent = signingIn
+      ? "Sign in →"
+      : "Create account →";
   }
 });
 
+/* AFTERLOGUE — SWITCH BETWEEN SIGN UP AND SIGN IN */
+
+const signinLink = document.getElementById("signin-link");
+const passwordField = document.getElementById("signup-password");
+const emailField = document.getElementById("signup-email");
+const signupSubmitButton = signupForm.querySelector(".signup-submit");
+const accountHeading = document.querySelector(".signup-container h1");
+const accountPrompt = document.querySelector(".signup-login");
+
+let accountMode = "signup";
+
+signinLink.addEventListener("click", (event) => {
+  event.preventDefault();
+
+  accountMode = accountMode === "signup" ? "signin" : "signup";
+
+  const signingIn = accountMode === "signin";
+
+  accountHeading.textContent = signingIn
+    ? "Welcome back."
+    : "Make it yours.";
+
+  signupSubmitButton.textContent = signingIn
+    ? "Sign in →"
+    : "Create account →";
+
+  passwordField.autocomplete = signingIn
+    ? "current-password"
+    : "new-password";
+
+  accountPrompt.firstChild.textContent = signingIn
+    ? "New to Afterlogue? "
+    : "Already have an account? ";
+
+  signinLink.textContent = signingIn
+    ? "Create account"
+    : "Sign in";
+
+  signupMessage.textContent = "";
+});
 </script>
 
 </body>
