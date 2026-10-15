@@ -1118,3 +1118,52 @@ nav a:hover {
     font-size: 42px !important;
   }
 }
+/* AFTERLOGUE — DISCOVERY SELECTIONS */
+
+.discovery-selections {
+  margin-top: 75px;
+  padding-bottom: 60px;
+}
+
+.discovery-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #51463D;
+}
+
+.discovery-section-header p {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 2.5px;
+  color: #B9A58D;
+}
+
+.discovery-section-header h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #F4EADD;
+}
+
+.discovery-results {
+  margin-top: 35px;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+  .discovery-selections {
+    margin-top: 55px;
+    padding-bottom: 40px;
+  }
+
+  .discovery-section-header h2 {
+    font-size: 26px;
+  }
+}
