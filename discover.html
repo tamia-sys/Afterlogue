@@ -235,6 +235,65 @@ document.querySelectorAll(".discovery-category").forEach(button => {
     displayDiscoveryRecommendations(button.dataset.category);
   });
 });
+  
+/* AFTERLOGUE — LOAD ACCOUNT IMPRESSIONS */
+
+async function loadAccountImpressions() {
+  try {
+    const client = window.afterlogueSupabase;
+
+    const { data: userData, error: userError } =
+      await client.auth.getUser();
+
+    if (userError || !userData.user) {
+      window.location.href = "signup.html";
+      return;
+    }
+
+    const { data: impressions, error } = await client
+      .from("impressions")
+      .select("title_key, rating")
+      .eq("user_id", userData.user.id);
+
+    if (error) throw error;
+
+    // Replace browser-based impressions with this account's data.
+    Object.keys(savedImpressions).forEach(key => {
+      delete savedImpressions[key];
+    });
+
+    const validRatings = ["Loved", "Liked", "Okay", "Not for me"];
+
+    impressions.forEach(item => {
+      if (validRatings.includes(item.rating)) {
+        savedImpressions["afterlogue-" + item.title_key] = item.rating;
+      }
+    });
+
+    const count = Object.keys(savedImpressions).length;
+
+    document.getElementById("impression-count").textContent =
+      `You've shared ${count} ${count === 1 ? "impression" : "impressions"}.`;
+
+    // Refresh the currently selected recommendation category.
+    const activeCategory =
+      document.querySelector(".discovery-category.active")
+        ?.dataset.category || "movies";
+
+    displayDiscoveryRecommendations(activeCategory);
+
+    console.log("Afterlogue: Account impressions loaded.");
+
+  } catch (error) {
+    console.error("Unable to load account impressions:", error);
+
+    document.getElementById("impression-count").textContent =
+      "We couldn't load your saved impressions. Please refresh the page.";
+  }
+}
+
+loadAccountImpressions();
+
 </script>
 </body>
 </html>
