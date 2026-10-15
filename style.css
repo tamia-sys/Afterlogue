@@ -1167,3 +1167,12 @@ nav a:hover {
     font-size: 18px;
   }
 }
+/* DISCOVERY — IMPRESSION COUNT */
+
+.discovery-count {
+  margin-top: 20px;
+  color: #B9AFA5;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  line-height: 1.7;
+}
