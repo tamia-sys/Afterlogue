@@ -142,6 +142,25 @@ if (response.ok) {
       impressions.forEach(item => {
         const entry = document.createElement("p");
 
+const tvTitles = new Set([
+  "malcolm-in-the-middle",
+  "abbott-elementary",
+  "gilmore-girls",
+  "insecure",
+  "bridgerton",
+  "gossip-girl",
+  "stranger-things",
+  "chernobyl",
+  "demon-slayer",
+  "avatar-the-last-airbender",
+  "love-island-usa",
+  "criminal-minds"
+]);
+
+entry.dataset.category = tvTitles.has(item.title_key)
+  ? "tv"
+  : "movies";
+
         const title = item.title_key
           .split("-")
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
