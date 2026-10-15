@@ -223,10 +223,16 @@ function displayDiscoveryRecommendations(category) {
   );
   poster.setAttribute("aria-expanded", "false");
 
-  // Artwork placeholder — real posters come next
-  const artwork = document.createElement("div");
-  artwork.className = "discovery-artwork-placeholder";
-  artwork.textContent = item.title;
+  // AFTERLOGUE — POSTER ARTWORK
+
+const artwork = document.createElement("img");
+artwork.src = item.poster || "";
+artwork.alt = `${item.title} poster`;
+artwork.className = "discovery-artwork";
+
+if (!item.poster) {
+  artwork.style.display = "none";
+}
 
   // Description overlay
   const overlay = document.createElement("div");
