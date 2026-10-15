@@ -187,9 +187,8 @@ function getDiscoveryRecommendations(category) {
 
       return { ...item, score };
     })
-    .filter(item => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+   .sort((a, b) => b.score - a.score)
+.slice(0, 3);
 }
 
 function displayDiscoveryRecommendations(category) {
