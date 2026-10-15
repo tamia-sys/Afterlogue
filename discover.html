@@ -401,7 +401,7 @@ function getDiscoveryRecommendations(category, page = 0) {
 
 function displayDiscoveryRecommendations(category) {
   const container = document.getElementById("discovery-results");
-  const selected = getDiscoveryRecommendations(category);
+  const selected = getDiscoveryRecommendations(category, page);
 
   container.replaceChildren();
 
@@ -473,15 +473,41 @@ if (!item.poster) {
 });
 }
 
-// Display movie recommendations when the page first opens.
+
+/* AFTERLOGUE — DISCOVER AGAIN */
+
+const discoveryPages = {
+  movies: 0,
+  tv: 0
+};
+
+// Display the first collection.
 displayDiscoveryRecommendations("movies");
 
-// Update the recommendations when a category is selected.
+// Switch between Movies and TV Shows.
 document.querySelectorAll(".discovery-category").forEach(button => {
   button.addEventListener("click", () => {
-    displayDiscoveryRecommendations(button.dataset.category);
+    const category = button.dataset.category;
+    displayDiscoveryRecommendations(category, discoveryPages[category]);
   });
 });
+
+// Show the next collection of five.
+document.getElementById("discover-again").addEventListener("click", () => {
+  const category =
+    document.querySelector(".discovery-category.active").dataset.category;
+
+  let nextPage = discoveryPages[category] + 1;
+
+  // Start again when there are no more recommendations.
+  if (getDiscoveryRecommendations(category, nextPage).length === 0) {
+    nextPage = 0;
+  }
+
+  discoveryPages[category] = nextPage;
+  displayDiscoveryRecommendations(category, nextPage);
+});
+
   
 /* AFTERLOGUE — LOAD ACCOUNT IMPRESSIONS */
 
