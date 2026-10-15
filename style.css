@@ -1533,3 +1533,19 @@ nav a:hover {
     justify-content: center;
   }
 }
+/* AFTERLOGUE — REAL DISCOVERY POSTERS */
+
+.discovery-artwork {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.discovery-poster {
+  position: relative;
+}
+
+.discovery-poster .discovery-reason {
+  z-index: 2;
+}
