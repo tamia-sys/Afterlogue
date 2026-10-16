@@ -485,6 +485,52 @@ bookmarkButton.setAttribute(
   `Save ${item.title} to Watchlist`
 );
 
+bookmarkButton.addEventListener("click", async () => {
+  const client = window.afterlogueSupabase;
+
+  bookmarkButton.disabled = true;
+
+  try {
+    const { data: userData, error: userError } =
+      await client.auth.getUser();
+
+    if (userError || !userData.user) {
+      alert("Please sign in to save to your Watchlist.");
+      return;
+    }
+
+    const titleKey = item.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    const { error } = await client
+      .from("watchlist")
+      .insert({
+        user_id: userData.user.id,
+        title_key: titleKey,
+        category: category
+      });
+
+    if (error) {
+      if (error.code === "23505") {
+        alert("Already in your Watchlist!");
+        return;
+      }
+
+      throw error;
+    }
+
+    alert(`${item.title} saved to your Watchlist!`);
+
+  } catch (error) {
+    console.error("Watchlist save error:", error);
+    alert("Couldn't save this title. Please try again.");
+  } finally {
+    bookmarkButton.disabled = false;
+  }
+});
+
 card.append(poster, title, year, bookmarkButton);
 container.appendChild(card);
 
