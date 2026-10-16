@@ -1853,3 +1853,7 @@ color: #e8dfcc;
 .discovery-bookmark {
   margin-top: auto;
 }
+#watched > p[hidden],
+#watchlist > p[hidden] {
+  display: none !important;
+}
