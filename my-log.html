@@ -249,11 +249,15 @@ if (poster) {
  
 /* AFTERLOGUE — LOG CATEGORY FILTER */
 
+
 function filterWatchedCategory(category) {
-  document.querySelectorAll("#watched > p[data-category]").forEach(entry => {
+  document.querySelectorAll(
+    "#watched > p[data-category], #watchlist > p[data-category]"
+  ).forEach(entry => {
     entry.hidden = entry.dataset.category !== category;
   });
 }
+
 
 document.querySelectorAll(".log-category-btn").forEach(button => {
   button.addEventListener("click", () => {
