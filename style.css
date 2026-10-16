@@ -1803,3 +1803,34 @@ color: #e8dfcc;
   color: #a99f94;
   margin-bottom: 6px;
 }
+
+/* AFTERLOGUE — DISCOVERY BOOKMARK */
+
+.discovery-bookmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  margin-top: 10px;
+
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #a99f94;
+
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.discovery-bookmark:hover {
+  color: #e8dfcc;
+  transform: translateY(-2px);
+}
+
+.discovery-bookmark:focus-visible {
+  outline: 1px solid #e8dfcc;
+  outline-offset: 3px;
+}
