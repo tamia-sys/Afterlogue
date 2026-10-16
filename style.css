@@ -1894,3 +1894,49 @@ color: #e8dfcc;
 #watchlist > p[hidden] {
   display: none !important;
 }
+
+/* AFTERLOGUE — LOG TAB BUBBLES */
+
+.personal-log-tabs {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(232, 223, 204, 0.15);
+}
+
+.personal-log-tab {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 24px;
+  color: #e8dfcc;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* Remove original underline */
+.personal-log-tab.active::after {
+  display: none;
+}
+
+/* Bubble appears on hover or when selected */
+.personal-log-tab:hover,
+.personal-log-tab.active {
+  background: #a69a82;
+  color: #171715;
+}
+
+@media (max-width: 650px) {
+  .personal-log-tabs {
+    gap: 4px;
+  }
+
+  .personal-log-tab {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+}
