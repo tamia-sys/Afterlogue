@@ -468,8 +468,19 @@ if (!item.poster) {
   year.className = "discovery-year";
   year.textContent = item.year;
 
-  card.append(poster, title, year);
-  container.appendChild(card);
+  
+const bookmarkButton = document.createElement("button");
+bookmarkButton.type = "button";
+bookmarkButton.className = "discovery-bookmark";
+bookmarkButton.textContent = "♡";
+bookmarkButton.setAttribute(
+  "aria-label",
+  `Save ${item.title} to Watchlist`
+);
+
+card.append(poster, title, year, bookmarkButton);
+container.appendChild(card);
+
 });
 }
 
