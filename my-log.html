@@ -13,11 +13,44 @@
     <h1>
       <a href="index.html" class="logo-link">afterlogue.</a>
     </h1>
-   <nav>
+ <nav>
   <a href="discover.html">Home</a>
   <a href="explore.html">Explore</a>
   <a href="my-log.html">Log</a>
   <a href="discuss.html">Discuss</a>
+
+  <details class="account-menu">
+    <summary aria-label="Open account menu">
+      <svg width="22" height="22"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="1.5"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="8" r="3"/>
+        <path d="M5.5 19a7 7 0 0 1 13 0"/>
+      </svg>
+    </summary>
+
+    <div class="account-dropdown">
+      <p class="account-heading">Your account</p>
+      <p id="account-email">Checking your account...</p>
+      <p id="account-status"></p>
+
+      <div class="account-divider"></div>
+
+      <p class="account-settings">
+        Account settings — Coming soon
+      </p>
+
+      <button type="button" id="account-signout">
+        Sign out
+      </button>
+    </div>
+  </details>
 </nav>
   </header>
 
