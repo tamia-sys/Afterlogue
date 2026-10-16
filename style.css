@@ -1837,6 +1837,19 @@ color: #e8dfcc;
 
 /* AFTERLOGUE — ALIGN DISCOVERY CARD DETAILS */
 
+
+/* Keep titles and years together,
+   with bookmarks aligned below */
+
+.discovery-card {
+  display: flex;
+  flex-direction: column;
+}
+
 .discovery-card h3 {
-  min-height: 4.2em;
+  min-height: 0;
+}
+
+.discovery-bookmark {
+  margin-top: auto;
 }
