@@ -121,6 +121,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script>
+  
+const isGuestMode =
+  new URLSearchParams(window.location.search).get("guest") === "1";
+
   const savedImpressions = {};
 
   for (let i = 0; i < localStorage.length; i++) {
@@ -654,9 +658,30 @@ document.getElementById("discover-again").addEventListener("click", () => {
   
 /* AFTERLOGUE — LOAD ACCOUNT IMPRESSIONS */
 
+
 async function loadAccountImpressions() {
   try {
+    if (isGuestMode) {
+      document.querySelector(".discover-eyebrow").textContent =
+        "AFTERLOGUE / DISCOVERY";
+
+      document.querySelector(".discover-intro h1").textContent =
+        "There's always another story.";
+
+      document.querySelector(".discover-description").textContent =
+        "Some stories find us when we least expect them.";
+
+      document.querySelector(".discovery-section-header p").textContent =
+        "CURATED / 001";
+
+      document.querySelector(".discovery-section-header h2").textContent =
+        "A place to begin.";
+
+      return;
+    }
+
     const client = window.afterlogueSupabase;
+
 
     const { data: userData, error: userError } =
       await client.auth.getUser();
