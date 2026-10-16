@@ -1857,3 +1857,40 @@ color: #e8dfcc;
 #watchlist > p[hidden] {
   display: none !important;
 }
+
+/* AFTERLOGUE — WATCHLIST POSTER GALLERY */
+
+#watchlist {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 32px 22px;
+  align-items: start;
+}
+
+#watchlist > p {
+  margin: 0;
+  min-width: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+#watchlist > p img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 650px) {
+  #watchlist {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 16px;
+  }
+}
+
+#watchlist[hidden],
+#watchlist > p[hidden] {
+  display: none !important;
+}
