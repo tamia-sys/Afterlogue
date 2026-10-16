@@ -2121,3 +2121,75 @@ color: #e8dfcc;
     right: -12px;
   }
 }
+
+/* AFTERLOGUE — ACCOUNT MENU ALIGNMENT FIX */
+
+.site-header nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.site-header nav .account-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.site-header nav .account-menu summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  list-style: none;
+  cursor: pointer;
+}
+
+.site-header nav .account-menu summary::marker {
+  content: "";
+}
+
+.site-header nav .account-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.site-header nav .account-menu summary svg {
+  display: block;
+}
+
+.site-header nav .account-dropdown {
+  position: absolute;
+  top: calc(100% + 20px);
+  right: 0;
+  z-index: 1000;
+  display: block;
+  width: 280px;
+  padding: 24px;
+  background: #212228;
+  border: 1px solid #51483e;
+  border-radius: 12px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+.site-header nav .account-dropdown p {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.site-header nav .account-dropdown button {
+  display: block;
+  background: transparent;
+  border: 0;
+  color: #f4eadd;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
