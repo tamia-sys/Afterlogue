@@ -485,6 +485,43 @@ bookmarkButton.setAttribute(
   `Save ${item.title} to Watchlist`
 );
 
+/* Check whether this story is already saved */
+(async () => {
+  try {
+    const client = window.afterlogueSupabase;
+    const { data: userData } = await client.auth.getUser();
+
+    if (!userData.user) return;
+
+    const titleKey = item.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    const { data, error } = await client
+      .from("watchlist")
+      .select("title_key")
+      .eq("user_id", userData.user.id)
+      .eq("title_key", titleKey)
+      .eq("category", category)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (data) {
+      bookmarkButton.querySelector("svg")
+        ?.setAttribute("fill", "currentColor");
+
+      bookmarkButton.setAttribute(
+        "aria-label",
+        `Saved ${item.title} to Watchlist`
+      );
+    }
+  } catch (error) {
+    console.error("Bookmark loading error:", error);
+  }
+})();
+
 bookmarkButton.addEventListener("click", async () => {
   const client = window.afterlogueSupabase;
 
