@@ -269,6 +269,16 @@ signinLink.addEventListener("click", (event) => {
     : "Sign in";
 
   signupMessage.textContent = "";
+  
+/* AFTERLOGUE — OPEN SIGN IN DIRECTLY */
+
+const requestedMode =
+  new URLSearchParams(window.location.search).get("mode");
+
+if (requestedMode === "signin") {
+  signinLink.click();
+}
+
 });
 </script>
 
