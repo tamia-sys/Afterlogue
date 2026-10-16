@@ -313,13 +313,53 @@ loadWatchedImpressions().then(() => {
         return;
       }
 
-      savedTitles.forEach(item => {
-        const title = item.title_key
-          .split("-")
-          .map(word =>
-            word.charAt(0).toUpperCase() + word.slice(1)
-          )
-          .join(" ");
+const watchlistCatalogue = {
+  "past-lives": {
+    title: "Past Lives",
+    year: 2023,
+    poster: "images/posters/PastLives.webp"
+  },
+  "severance": {
+    title: "Severance",
+    year: 2022,
+    poster: "images/posters/Severance.webp"
+  }
+};
+
+     
+savedTitles.forEach(item => {
+  const movie = watchlistCatalogue[item.title_key];
+
+  const title = movie?.title || item.title_key
+    .split("-")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  const entry = document.createElement("p");
+  entry.dataset.category = item.category;
+
+  if (movie?.poster) {
+    const image = document.createElement("img");
+    image.src = movie.poster;
+    image.alt = `${title} poster`;
+    entry.appendChild(image);
+  }
+
+  const titleElement = document.createElement("div");
+  titleElement.className = "watched-title";
+  titleElement.textContent = title;
+  entry.appendChild(titleElement);
+
+  if (movie?.year) {
+    const yearElement = document.createElement("div");
+    yearElement.className = "watched-year";
+    yearElement.textContent = movie.year;
+    entry.appendChild(yearElement);
+  }
+
+  section.appendChild(entry);
+});
+
 
         const entry = document.createElement("p");
         entry.dataset.category = item.category;
