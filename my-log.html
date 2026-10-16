@@ -276,5 +276,62 @@ loadWatchedImpressions().then(() => {
 
 </script>
 
+<script>
+  /* AFTERLOGUE — LOAD WATCHLIST */
+
+  async function loadMyWatchlist() {
+    const section = document.getElementById("watchlist");
+    section.textContent = "Loading your Watchlist...";
+
+    try {
+      const client = window.afterlogueSupabase;
+
+      const { data: userData, error: userError } =
+        await client.auth.getUser();
+
+      if (userError || !userData.user) {
+        section.textContent = "Please sign in to view your Watchlist.";
+        return;
+      }
+
+      const { data: savedTitles, error } = await client
+        .from("watchlist")
+        .select("title_key, category")
+        .eq("user_id", userData.user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      section.replaceChildren();
+
+      if (!savedTitles || savedTitles.length === 0) {
+        section.textContent = "Your Watchlist is empty.";
+        return;
+      }
+
+      savedTitles.forEach(item => {
+        const title = item.title_key
+          .split("-")
+          .map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1)
+          )
+          .join(" ");
+
+        const entry = document.createElement("p");
+        entry.dataset.category = item.category;
+        entry.textContent = title;
+
+        section.appendChild(entry);
+      });
+
+    } catch (error) {
+      console.error("Watchlist error:", error);
+      section.textContent = "Unable to load your Watchlist.";
+    }
+  }
+
+  loadMyWatchlist();
+</script>
+
 </body>
 </html>
