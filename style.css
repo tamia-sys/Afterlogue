@@ -2193,3 +2193,168 @@ color: #e8dfcc;
   font: inherit;
   cursor: pointer;
 }
+
+/* AFTERLOGUE — CINEMATIC LANDING PAGE */
+
+.hero-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  padding: 0;
+  gap: 0;
+  min-height: 680px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #080808;
+}
+
+/* Posters behind the headline */
+
+.hero-layout .film-gallery {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+.hero-layout .film-posters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+
+.hero-layout .film-card,
+.hero-layout .film-card.featured {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  height: 100%;
+  aspect-ratio: auto;
+  margin: 0;
+  transform: none;
+  overflow: hidden;
+}
+
+.hero-layout .film-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Light shading to keep text readable */
+
+.hero-layout .film-gallery::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.40) 35%,
+    rgba(0, 0, 0, 0.40) 65%,
+    rgba(0, 0, 0, 0.15)
+  );
+  pointer-events: none;
+}
+
+.hero-layout .gallery-indicators {
+  display: none;
+}
+
+/* Centered introduction */
+
+.hero-layout .hero {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-height: 680px;
+  margin: 0;
+  padding: 90px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.hero-layout .hero h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(48px, 6vw, 88px);
+  font-weight: 400;
+  line-height: 1.05;
+  max-width: 850px;
+  margin: 0 0 20px;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+}
+
+.hero-layout .hero p {
+  max-width: 520px;
+  margin: 0;
+  color: #F4EADD;
+  font-size: 15px;
+  line-height: 1.7;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+.hero-layout .hero-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.hero-layout .hero-buttons a {
+  border-radius: 999px;
+  padding: 15px 28px;
+}
+
+/* Mobile layout */
+
+@media (max-width: 650px) {
+  .hero-layout {
+    display: grid;
+    min-height: 580px;
+    padding: 0;
+  }
+
+  .hero-layout .film-posters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    overflow: hidden;
+  }
+
+  .hero-layout .film-card,
+  .hero-layout .film-card.featured {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    transform: none;
+  }
+
+  .hero-layout .hero {
+    display: flex;
+    min-height: 580px;
+    margin: 0;
+    padding: 65px 20px;
+  }
+
+  .hero-layout .hero h2 {
+    font-size: clamp(42px, 10vw, 58px);
+  }
+
+  .hero-layout .hero-buttons {
+    flex-wrap: wrap;
+  }
+}
