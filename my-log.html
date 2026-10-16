@@ -213,7 +213,34 @@ if (poster) {
     }
   }
 
-  loadWatchedImpressions();
+ 
+/* AFTERLOGUE — LOG CATEGORY FILTER */
+
+function filterWatchedCategory(category) {
+  document.querySelectorAll("#watched > p[data-category]").forEach(entry => {
+    entry.hidden = entry.dataset.category !== category;
+  });
+}
+
+document.querySelectorAll(".log-category-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    const category = button.dataset.category;
+
+    document.querySelectorAll(".log-category-btn").forEach(btn => {
+      const isActive = btn === button;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-pressed", String(isActive));
+    });
+
+    filterWatchedCategory(category);
+  });
+});
+
+// Load saved impressions before applying the default filter.
+loadWatchedImpressions().then(() => {
+  filterWatchedCategory("movies");
+});
+
 </script>
 
 </body>
