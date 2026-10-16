@@ -184,7 +184,40 @@ const impressionIcons = {
 const icon = impressionIcons[item.rating] || "•";
 impressionElement.textContent = `${icon} ${item.rating}`;
 
+
+const releaseYears = {
+  "mean-girls": 2004,
+  "moonlight": 2016,
+  "jurassic-park": 1993,
+  "the-sound-of-music": 1965,
+  "get-out": 2017,
+  "little-miss-sunshine": 2006,
+  "the-truman-show": 1998,
+  "spirited-away": 2001,
+  "parasite": 2019,
+  "titanic": 1997,
+  "ex-machina": 2014,
+  "shrek": 2001,
+  "malcolm-in-the-middle": 2000,
+  "abbott-elementary": 2021,
+  "gilmore-girls": 2000,
+  "insecure": 2016,
+  "bridgerton": 2020,
+  "gossip-girl": 2007,
+  "stranger-things": 2016,
+  "chernobyl": 2019,
+  "demon-slayer": 2019,
+  "avatar-the-last-airbender": 2005,
+  "love-island-usa": 2019,
+  "criminal-minds": 2005
+};
+
+const yearElement = document.createElement("div");
+yearElement.className = "watched-year";
+yearElement.textContent = releaseYears[item.title_key] || "";
+
 entry.appendChild(titleElement);
+entry.appendChild(yearElement);
 entry.appendChild(impressionElement);
 
         
