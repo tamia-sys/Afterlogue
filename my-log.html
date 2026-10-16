@@ -361,13 +361,6 @@ savedTitles.forEach(item => {
 });
 
 
-        const entry = document.createElement("p");
-        entry.dataset.category = item.category;
-        entry.textContent = title;
-
-        section.appendChild(entry);
-      });
-
     } catch (error) {
       console.error("Watchlist error:", error);
       section.textContent = "Unable to load your Watchlist.";
