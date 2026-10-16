@@ -521,6 +521,14 @@ bookmarkButton.addEventListener("click", async () => {
       throw error;
     }
 
+bookmarkButton.querySelector("svg")
+  ?.setAttribute("fill", "currentColor");
+
+bookmarkButton.setAttribute(
+  "aria-label",
+  `Saved ${item.title} to Watchlist`
+);
+
     alert(`${item.title} saved to your Watchlist!`);
 
   } catch (error) {
