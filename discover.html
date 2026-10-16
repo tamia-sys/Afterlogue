@@ -751,6 +751,30 @@ loadAccountImpressions();
     return;
   }
 
+  // AFTERLOGUE — GUEST ACCOUNT MENU
+  if (new URLSearchParams(window.location.search).get("guest") === "1") {
+    document.querySelector(".account-heading").textContent =
+      "Browsing as guest";
+
+    emailLabel.textContent =
+      "Enjoy a little look around Afterlogue.";
+
+    statusLabel.textContent =
+      "Create an account to save your stories.";
+
+    document.querySelector(".account-settings").textContent =
+      "Your personal Log awaits.";
+
+    signoutButton.textContent = "Sign in / Create account";
+    signoutButton.hidden = false;
+
+    signoutButton.addEventListener("click", () => {
+      window.location.href = "signup.html";
+    });
+
+    return;
+  }
+
   try {
     const { data, error } = await client.auth.getUser();
 
