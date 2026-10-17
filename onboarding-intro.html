@@ -70,5 +70,15 @@
       </div>
     </section>
   </main>
+  
+<script>
+  // Keep guest mode as visitors move into First Impressions.
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("guest") === "1") {
+    document.querySelector(".start-discovery").href = "log.html?guest=1";
+  }
+</script>
+
 </body>
 </html>
