@@ -16,6 +16,76 @@
     @media(max-width:850px){.intro{padding:64px 20px 50px}.features{grid-template-columns:repeat(2,1fr);row-gap:24px}.feature:nth-child(2){border-right:0}.steps{grid-template-columns:1fr;gap:32px;max-width:430px;margin:auto}.how{padding-bottom:50px}.poster{width:clamp(135px,35vw,205px)}}
     @media(max-width:500px){.welcome-header{padding:19px 18px 0}.brand{font-size:26px}.member-entry>span{display:none}.member-entry a{font-size:12px;padding:8px 16px}.intro{padding:59px 18px 55px}.intro h1{font-size:clamp(37px,9vw,48px);letter-spacing:-1.4px}.intro>p{max-width:315px;font-size:13px}.entry{max-width:330px;padding:12px}.poster{width:39vw;padding-right:9px}.feature-wrap{margin-top:25px;padding:18px 14px 25px}.feature{padding:14px 10px}.feature h2{font-size:18px}.feature p{font-size:12px}.icon-circle{width:44px;height:44px}.icon-circle svg{width:22px;height:22px}.how{padding:28px 20px 40px}.step-panel{height:242px}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rail-track{animation:none}.rail{overflow-x:auto;scroll-snap-type:x mandatory}.poster{scroll-snap-align:start}}
+  
+/* AFTERLOGUE — MINI DISCOVER AND LOG PREVIEWS */
+
+.mini-discover,
+.mini-log {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mini-discover-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.mini-discover-tab {
+  padding: 9px 5px;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 12px;
+  color: #e8d7b8;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.mini-discover-tab.active,
+.mini-discover-tab:hover {
+  background: rgba(190, 177, 151, 0.38);
+}
+
+.mini-discover-posters,
+.mini-log-posters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.mini-discover-posters img,
+.mini-log-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.mini-log-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.mini-log-item img {
+  flex: 1;
+  height: 0;
+}
+
+.mini-reaction {
+  color: #e8d7b8;
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+
   </style>
 </head>
 <body>
@@ -43,9 +113,70 @@
   <div class="feature"><div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2M16 4a4 4 0 0 1 0 8M17 15a7 7 0 0 1 5 6"/></svg></div><h2>A community</h2><p>Share, discuss, and discover together.</p></div>
 </div></section>
 <section class="how" aria-labelledby="how-heading"><h2 class="section-label" id="how-heading">HOW IT WORKS</h2><div class="steps">
-  <article class="step"><div class="step-head"><span>01</span><h3>Tell us what you like</h3></div><div class="step-panel"><div class="rating-images"><img src="https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg" alt="Moonlight"><img src="https://i0.wp.com/greenpointers.com/app/uploads/2014/07/Boyhood_Poster_Greenpointers_StephenF.jpg?fit=1000%2C1481&amp;ssl=1" alt="Boyhood"><img src="https://image.tmdb.org/t/p/original/w5O3VVeG3jIR62IVbNMvFKY0p1Q.jpg" alt="Severance"></div><div class="rating-row"><span><b>♥</b>Loved</span><span><b>♥</b>Liked</span><span><b>●</b>Okay</span><span><b>×</b>Not for me</span></div></div><p class="step-desc">Your first impressions guide your initial recommendations.</p></article>
-  <article class="step"><div class="step-head"><span>02</span><h3>Get recommendations</h3></div><div class="step-panel"><p class="recs-kicker">Based on your recent Log</p><div class="rec-picks"><img src="https://www.nippon.com/en/ncommon/contents/japan-topics/2541413/2541413.jpg" alt="Perfect Days"><img src="https://media.senscritique.com/media/000019931710/0/normal_people.jpg" alt="Normal People"><img src="https://slachtstraat.nl/content/uploads/sites/3/2025/11/Sentimental-Value_ps_1_jpg_sd-high_Photo-by-Kasper-Tuxen-729x1080.jpg" alt="Sentimental Value"></div><div class="mood-mini"><span>Explore by mood</span><span>Something for a rainy day</span></div></div><p class="step-desc">Thoughtful picks based on your taste, with mood exploration when you want it.</p></article>
-  <article class="step"><div class="step-head"><span>03</span><h3>The more you watch, the better it gets</h3></div><div class="step-panel"><div class="moments"><img src="https://m.media-amazon.com/images/M/MV5BZWU5NWQ2MWMtYmI4Ni00Yjk5LTk3ODktMDVlZGViNGUwN2M5XkEyXkFqcGdeQXVyNTAyODkwOQ%40%40._V1_FMjpg_UX1000_.jpg" alt="Three Colors: Blue"><img src="https://media.senscritique.com/media/000019931710/0/normal_people.jpg" alt="Normal People"><img src="https://www.tinymixtapes.com/sites/default/files/1611/manchester_0.jpg" alt="Manchester by the Sea"><img src="https://slachtstraat.nl/content/uploads/sites/3/2025/11/Sentimental-Value_ps_1_jpg_sd-high_Photo-by-Kasper-Tuxen-729x1080.jpg" alt="Sentimental Value"></div></div><p class="step-desc">As your Log grows, your recommendations evolve with you.</p></article>
+  <article class="step"><div class="step-head"><span>01</span><h3>Tell us what you like</h3></div><div class="step-panel"><div class="rating-images"><img src="https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg" alt="Moonlight"><img src="https://i0.wp.com/greenpointers.com/app/uploads/2014/07/Boyhood_Poster_Greenpointers_StephenF.jpg?fit=1000%2C1481&amp;ssl=1" alt="Boyhood"><img src="https://image.tmdb.org/t/p/original/w5O3VVeG3jIR62IVbNMvFKY0p1Q.jpg" alt="Severance"></div><div class="rating-row"><span><b>♥</b>Loved</span><span><b>♥</b>Liked</span><span><b>●</b>Okay</span><span><b>×</b>Not for me</span></div></div><p class="how-step-caption">
+  Your first impressions guide your personalized experience.
+</p></article>
+ 
+<!-- 02 — GET RECOMMENDATIONS -->
+<article class="step">
+  <div class="step-head">
+    <span>02</span>
+    <h3>Get recommendations</h3>
+  </div>
+
+  <div class="step-panel mini-discover">
+    <div class="mini-discover-tabs">
+      <div class="mini-discover-tab active">Movies</div>
+      <div class="mini-discover-tab">TV Shows</div>
+    </div>
+
+    <div class="mini-discover-posters">
+      <img src="https://www.nippon.com/en/ncommon/contents/japan-topics/2541413/2541413.jpg"
+           alt="Perfect Days">
+      <img src="https://slachtstraat.nl/content/uploads/sites/3/2025/11/Sentimental-Value_ps_1_jpg_sd-high_Photo-by-Kasper-Tuxen-729x1080.jpg"
+           alt="Sentimental Value">
+      <img src="https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg"
+           alt="Moonlight">
+    </div>
+  </div>
+
+  <p class="step-desc">
+    Thoughtful picks based on your taste, with mood exploration when you want it.
+  </p>
+</article>
+<!-- 03 — YOUR GROWING LOG -->
+<article class="step">
+  <div class="step-head">
+    <span>03</span>
+    <h3>The more you watch, the better it gets</h3>
+  </div>
+
+  <div class="step-panel mini-log">
+    <div class="mini-log-posters">
+      <div class="mini-log-item">
+        <img src="https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg"
+             alt="Moonlight">
+        <span class="mini-reaction">♥ Loved</span>
+      </div>
+
+      <div class="mini-log-item">
+        <img src="https://www.tinymixtapes.com/sites/default/files/1611/manchester_0.jpg"
+             alt="Manchester by the Sea">
+        <span class="mini-reaction">● Okay</span>
+      </div>
+
+      <div class="mini-log-item">
+        <img src="https://media.senscritique.com/media/000019931710/0/normal_people.jpg"
+             alt="Normal People">
+        <span class="mini-reaction">× Not for me</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="step-desc">
+    As your Log grows, your recommendations evolve with you.
+  </p>
+</article>
 </div></section>
 </main>
 <footer class="footer">The film ends. The conversation doesn't.</footer>
