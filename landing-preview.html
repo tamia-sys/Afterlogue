@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Afterlogue — Welcome Preview</title>
+  <style>
+    :root{--ink:#101113;--cream:#f2ddbd;--muted:#c9b8a0;--gold:#d9ae75;--border:#64533e;--line:rgba(218,175,113,.42)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse 32% 22% at 50% 17%,rgba(171,108,43,.13),transparent 95%),var(--ink);color:var(--cream);font-family:Arial,Helvetica,sans-serif}a{color:inherit}button{font:inherit}img{max-width:100%}
+    .welcome-header{display:flex;justify-content:space-between;align-items:center;max-width:1450px;margin:auto;padding:24px 5% 0;gap:16px}.brand{font:normal clamp(29px,3vw,40px) Georgia,serif;text-decoration:none;letter-spacing:-1.6px}.member-entry{display:flex;align-items:center;gap:16px;font:13px Georgia,serif}.member-entry a{border:1px solid var(--gold);border-radius:999px;padding:10px 24px;text-decoration:none}.member-entry a:hover,.member-entry a:focus-visible{background:var(--gold);color:#14100b}
+    .intro{text-align:center;padding:62px 20px 66px;position:relative}.intro::before{content:"";position:absolute;z-index:-1;inset:70px 25% 10px;background:radial-gradient(ellipse,rgba(200,134,65,.18),transparent 70%);filter:blur(38px);pointer-events:none}.intro h1{font:normal clamp(38px,5vw,70px)/1.08 Georgia,serif;letter-spacing:-2px;margin:0 0 13px}.intro>p{font-size:clamp(13px,1.5vw,17px);line-height:1.6;margin:0 auto 26px;color:var(--muted);max-width:570px}.entry{width:min(365px,100%);margin:auto;padding:16px;border-radius:20px;background:rgba(22,21,20,.67);border:1px solid rgba(188,149,100,.18);box-shadow:0 0 55px rgba(181,112,49,.11);display:flex;flex-direction:column;gap:10px}.entry a,.entry button{min-height:40px;width:100%;display:flex;align-items:center;justify-content:center;gap:12px;border-radius:999px;text-decoration:none;border:1px solid #79664f;background:#141414;color:var(--cream);font-size:13px;cursor:pointer}.entry a:hover,.entry button:hover,.entry a:focus-visible,.entry button:focus-visible{border-color:var(--gold)}.entry .or{display:flex;gap:12px;align-items:center;justify-content:center;text-transform:uppercase;font-size:10px;letter-spacing:1.5px;color:#b7a58b}.or::before,.or::after{content:"";height:1px;background:var(--border);flex:1}.entry .create{border-color:var(--gold)}.entry .guest{border:0;background:transparent;margin-top:2px;min-height:30px}.gmark{font-weight:bold;font-size:20px;color:#4285f4}.apple{font-size:20px}.preview-note{display:block;color:#9e917c;font-size:10px;margin:8px auto 0;max-width:340px}
+    .rail{overflow:hidden;position:relative;max-width:100%;padding:2px 0 0}.rail::before,.rail::after{content:"";position:absolute;top:0;bottom:0;width:38px;z-index:2;pointer-events:none}.rail::before{left:0;background:linear-gradient(90deg,var(--ink),transparent)}.rail::after{right:0;background:linear-gradient(-90deg,var(--ink),transparent)}.rail-track{display:flex;gap:0;width:max-content;animation:marquee 110s linear infinite;will-change:transform}.rail:hover .rail-track,.rail:focus-within .rail-track{animation-play-state:paused}.poster{width:clamp(105px,calc((100vw - 80px)/6),220px);padding-right:12px;margin:0;flex-shrink:0}.poster .poster-image{height:auto;aspect-ratio:2/3;border-radius:4px;background:#292724;overflow:hidden}.poster img{display:block;width:100%;height:100%;object-fit:cover}.poster figcaption{text-align:center;padding:9px 2px 0;font-size:11px;line-height:1.35;color:var(--cream);min-height:49px}.poster .year{display:block;color:var(--muted);margin-top:4px}.poster .year::after{content:"";display:block;width:38px;height:1px;background:var(--gold);margin:8px auto 0}@keyframes marquee{to{transform:translateX(-50%)}}
+    .feature-wrap{max-width:1300px;margin:32px auto 0;padding:25px 5% 26px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.features{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}.feature{text-align:center;padding:10px 22px;border-right:1px solid rgba(211,174,117,.23)}.feature:last-child{border:0}.icon-circle{border:1px solid var(--gold);width:55px;height:55px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;color:var(--gold)}.icon-circle svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}.feature h2{font:normal 22px Georgia,serif;margin:0 0 8px}.feature p{margin:0 auto;color:var(--muted);font-size:13px;line-height:1.45;max-width:210px}
+    .how{max-width:1330px;margin:0 auto;padding:32px 5% 84px}.section-label{text-align:center;color:var(--gold);letter-spacing:3px;font-size:11px;margin:0 0 24px}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.step-head{display:flex;align-items:baseline;gap:13px;margin-bottom:12px}.step-head span{font:normal 23px Georgia,serif;color:var(--gold)}.step-head h3{font:normal clamp(15px,1.6vw,20px) Georgia,serif;margin:0}.step-panel{border:1px solid var(--border);border-radius:12px;padding:12px;height:250px;background:rgba(25,24,24,.76);overflow:hidden}.step-desc{text-align:center;font:15px/1.45 Georgia,serif;color:var(--muted);margin:10px auto 0;max-width:330px}.rating-images{display:flex;gap:8px;height:160px}.rating-images img{width:33.33%;height:100%;object-fit:cover;border-radius:5px;min-width:0}.rating-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}.rating-row span{border:1px solid var(--border);border-radius:8px;text-align:center;padding:10px 2px;font:11px Arial,sans-serif;white-space:nowrap}.rating-row b{display:block;font-size:14px;margin-bottom:3px;color:var(--cream)}.recs-kicker{font-size:13px;font-family:Georgia,serif;margin:0 0 8px}.rec-picks{display:flex;gap:8px;height:145px}.rec-picks img{width:33.33%;min-width:0;object-fit:cover;border-radius:6px}.mood-mini{margin-top:11px;display:flex;gap:7px}.mood-mini span{font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:7px 8px;flex:1;text-align:center}.moments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;height:100%}.moments img{width:100%;height:108px;object-fit:cover;border-radius:5px}.footer{text-align:center;border-top:1px solid var(--line);padding:26px 20px 35px;color:#978972;font:12px Georgia,serif}
+    @media(max-width:850px){.intro{padding:64px 20px 50px}.features{grid-template-columns:repeat(2,1fr);row-gap:24px}.feature:nth-child(2){border-right:0}.steps{grid-template-columns:1fr;gap:32px;max-width:430px;margin:auto}.how{padding-bottom:50px}.poster{width:clamp(135px,35vw,205px)}}
+    @media(max-width:500px){.welcome-header{padding:19px 18px 0}.brand{font-size:26px}.member-entry>span{display:none}.member-entry a{font-size:12px;padding:8px 16px}.intro{padding:59px 18px 55px}.intro h1{font-size:clamp(37px,9vw,48px);letter-spacing:-1.4px}.intro>p{max-width:315px;font-size:13px}.entry{max-width:330px;padding:12px}.poster{width:39vw;padding-right:9px}.feature-wrap{margin-top:25px;padding:18px 14px 25px}.feature{padding:14px 10px}.feature h2{font-size:18px}.feature p{font-size:12px}.icon-circle{width:44px;height:44px}.icon-circle svg{width:22px;height:22px}.how{padding:28px 20px 40px}.step-panel{height:242px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rail-track{animation:none}.rail{overflow-x:auto;scroll-snap-type:x mandatory}.poster{scroll-snap-align:start}}
+  </style>
+</head>
+<body>
+<header class="welcome-header"><a class="brand" href="landing-preview.html">afterlogue.</a><div class="member-entry"><span>Already a member?</span><a href="signup.html">Sign in</a></div></header>
+<main>
+<section class="intro" aria-labelledby="welcome-title">
+  <h1 id="welcome-title">Welcome to Afterlogue.</h1>
+  <p>A film and TV space shaped by what you watch, love, and feel.</p>
+  <div class="entry" aria-label="Entry options">
+    <button type="button" onclick="alert('Google sign-in will be connected after this design is approved.')"><span class="gmark">G</span>Continue with Google</button>
+    <button type="button" onclick="alert('Apple sign-in will be connected after this design is approved.')"><span class="apple">●</span>Continue with Apple</button>
+    <div class="or">or</div>
+    <a class="create" href="signup.html">Create an account</a>
+    <a class="guest" href="index.html#discover">Continue as guest →</a>
+  </div>
+  <span class="preview-note">Design preview — final sign-in and guest routing come next.</span>
+</section>
+<section class="rail" aria-label="Selected film and television posters; moving slowly">
+  <div class="rail-track" id="rail-track"></div>
+</section>
+<section class="feature-wrap" aria-label="What you can do on Afterlogue"><div class="features">
+  <div class="feature"><div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></div><h2>Personalized</h2><p>Recommendations that evolve with you.</p></div>
+  <div class="feature"><div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12"/><circle cx="4" cy="5" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="19" r="1"/></svg></div><h2>Log</h2><p>Save what you watch and how you feel.</p></div>
+  <div class="feature"><div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 6 6"/></svg></div><h2>Explore</h2><p>Discover new titles through your mood.</p></div>
+  <div class="feature"><div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2M16 4a4 4 0 0 1 0 8M17 15a7 7 0 0 1 5 6"/></svg></div><h2>A community</h2><p>Share, discuss, and discover together.</p></div>
+</div></section>
+<section class="how" aria-labelledby="how-heading"><h2 class="section-label" id="how-heading">HOW IT WORKS</h2><div class="steps">
+  <article class="step"><div class="step-head"><span>01</span><h3>Tell us what you like</h3></div><div class="step-panel"><div class="rating-images"><img src="https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg" alt="Moonlight"><img src="https://i0.wp.com/greenpointers.com/app/uploads/2014/07/Boyhood_Poster_Greenpointers_StephenF.jpg?fit=1000%2C1481&amp;ssl=1" alt="Boyhood"><img src="https://image.tmdb.org/t/p/original/w5O3VVeG3jIR62IVbNMvFKY0p1Q.jpg" alt="Severance"></div><div class="rating-row"><span><b>♥</b>Loved</span><span><b>♥</b>Liked</span><span><b>●</b>Okay</span><span><b>×</b>Not for me</span></div></div><p class="step-desc">Your first impressions guide your initial recommendations.</p></article>
+  <article class="step"><div class="step-head"><span>02</span><h3>Get recommendations</h3></div><div class="step-panel"><p class="recs-kicker">Based on your recent Log</p><div class="rec-picks"><img src="https://www.nippon.com/en/ncommon/contents/japan-topics/2541413/2541413.jpg" alt="Perfect Days"><img src="https://media.senscritique.com/media/000019931710/0/normal_people.jpg" alt="Normal People"><img src="https://slachtstraat.nl/content/uploads/sites/3/2025/11/Sentimental-Value_ps_1_jpg_sd-high_Photo-by-Kasper-Tuxen-729x1080.jpg" alt="Sentimental Value"></div><div class="mood-mini"><span>Explore by mood</span><span>Something for a rainy day</span></div></div><p class="step-desc">Thoughtful picks based on your taste, with mood exploration when you want it.</p></article>
+  <article class="step"><div class="step-head"><span>03</span><h3>The more you watch, the better it gets</h3></div><div class="step-panel"><div class="moments"><img src="https://m.media-amazon.com/images/M/MV5BZWU5NWQ2MWMtYmI4Ni00Yjk5LTk3ODktMDVlZGViNGUwN2M5XkEyXkFqcGdeQXVyNTAyODkwOQ%40%40._V1_FMjpg_UX1000_.jpg" alt="Three Colors: Blue"><img src="https://media.senscritique.com/media/000019931710/0/normal_people.jpg" alt="Normal People"><img src="https://www.tinymixtapes.com/sites/default/files/1611/manchester_0.jpg" alt="Manchester by the Sea"><img src="https://slachtstraat.nl/content/uploads/sites/3/2025/11/Sentimental-Value_ps_1_jpg_sd-high_Photo-by-Kasper-Tuxen-729x1080.jpg" alt="Sentimental Value"></div></div><p class="step-desc">As your Log grows, your recommendations evolve with you.</p></article>
+</div></section>
+</main>
+<footer class="footer">The film ends. The conversation doesn't.</footer>
+<script>
+const titles = [
+ ["Moonlight","2016","https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg"],
+ ["Manchester by the Sea","2016","https://www.tinymixtapes.com/sites/default/files/1611/manchester_0.jpg"],
+ ["Boyhood","2014","https://i0.wp.com/greenpointers.com/app/uploads/2014/07/Boyhood_Poster_Greenpointers_StephenF.jpg?fit=1000%2C1481&ssl=1"],
+ ["Three Colors: Blue","1993","https://m.media-amazon.com/images/M/MV5BZWU5NWQ2MWMtYmI4Ni00Yjk5LTk3ODktMDVlZGViNGUwN2M5XkEyXkFqcGdeQXVyNTAyODkwOQ%40%40._V1_FMjpg_UX1000_.jpg"],
+ ["Perfect Days","2023","https://www.nippon.com/en/ncommon/contents/japan-topics/2541413/2541413.jpg"],
+ ["Severance","2022","https://image.tmdb.org/t/p/original/w5O3VVeG3jIR62IVbNMvFKY0p1Q.jpg"],
+ ["Normal People","2020","https://media.senscritique.com/media/000019931710/0/normal_people.jpg"],
+ ["My Brilliant Friend","2018","https://m.media-amazon.com/images/M/MV5BMzJkOWNjZDUtODkwZi00NGVjLTk0ZjUtMTNlYmYxZDcxMDEyXkEyXkFqcGc%40._V1_.jpg"],
+ ["The Leftovers","2014","https://static.cinemagia.ro/img/db/movie/59/09/91/the-leftovers-906948l.jpg"],
+ ["Memoir of a Snail","2024","https://pics.filmaffinity.com/memoir_of_a_snail-469448562-large.jpg"],
+ ["Sentimental Value","2025","https://slachtstraat.nl/content/uploads/sites/3/2025/11/Sentimental-Value_ps_1_jpg_sd-high_Photo-by-Kasper-Tuxen-729x1080.jpg"],
+ ["The Worst Person in the World","2021","https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg"]
+];
+const track=document.getElementById('rail-track');
+for (let cycle=0;cycle<2;cycle++) for(const [name,year,url] of titles){
+  const fig=document.createElement('figure');fig.className='poster';if(cycle)fig.setAttribute('aria-hidden','true');
+  const wrap=document.createElement('div');wrap.className='poster-image';
+  const img=document.createElement('img');img.src=url;img.alt=cycle?'':name+' poster';img.loading=cycle?'lazy':'eager';img.onerror=()=>{img.style.display='none';wrap.style.background='linear-gradient(145deg,#354147,#382721)';wrap.textContent=name;wrap.style.cssText+='display:grid;place-items:center;text-align:center;padding:12px;font:17px Georgia,serif;';};
+  wrap.appendChild(img);const cap=document.createElement('figcaption');cap.textContent=name;const yr=document.createElement('span');yr.className='year';yr.textContent=year;cap.appendChild(yr);fig.append(wrap,cap);track.appendChild(fig);
+}
+</script>
+</body>
+</html>
