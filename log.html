@@ -422,5 +422,15 @@ backButton.addEventListener("click", event => {
 });
 </script>
 
+<script>
+  // Keep guest mode when moving from First Impressions to Home.
+  const onboardingParams = new URLSearchParams(window.location.search);
+
+  if (onboardingParams.get("guest") === "1") {
+    document.querySelector(".log-continue-button").href =
+      "discover.html?guest=1";
+  }
+</script>
+
 </body>
 </html>
