@@ -280,6 +280,16 @@ if (requestedMode === "signin") {
 }
 
 });
+  
+/* AFTERLOGUE — OPEN THE CORRECT ACCOUNT MODE */
+
+const requestedMode =
+  new URLSearchParams(window.location.search).get("mode");
+
+if (requestedMode === "signin" && accountMode !== "signin") {
+  signinLink.click();
+}
+
 </script>
 
 </body>
