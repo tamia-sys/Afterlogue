@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting to Know You — Afterlogue</title>
+  <!-- Uses the SAME stylesheet as the original cinematic introduction. -->
+  <link rel="stylesheet" href="style.css?v=onboarding-1">
+  <style>
+    /* Small page-only adjustments; member Home and Log are unaffected. */
+    body.onboarding-intro-page { background: #11100f; }
+    .onboarding-intro-page .onboarding-brand {padding:22px 7% 12px; background:#11100f;}
+    .onboarding-intro-page .onboarding-brand a {color:#f4eadd;text-decoration:none;font:normal 30px Georgia,serif;}
+    .onboarding-intro-page .editorial-divider {padding-top:16px;padding-bottom:14px;}
+    .onboarding-intro-page .discovery-section {min-height:calc(100vh - 190px);display:flex;align-items:center;width:100%;}
+    .onboarding-intro-page .discovery-shell {width:100%;}
+    @media (max-width:800px){
+      .onboarding-intro-page .discovery-section{min-height:auto;display:block;}
+      .onboarding-intro-page .onboarding-brand{padding:16px 7% 8px;}
+    }
+  </style>
+</head>
+<body class="onboarding-intro-page">
+  <div class="onboarding-brand"><a href="index.html" aria-label="Afterlogue home">afterlogue.</a></div>
+  <main>
+    <div class="editorial-divider">
+      <div class="editorial-divider-top">
+        <span>AFTERLOGUE — VOL. 001</span>
+        <span>AN EXERCISE IN DISCOVERY</span>
+      </div>
+      <div class="editorial-divider-bottom">
+        <span>THE STORIES THAT STAY WITH US.</span>
+        <span aria-hidden="true">↘</span>
+      </div>
+    </div>
+
+    <section id="discover" class="discovery-section">
+      <div class="discovery-shell">
+        <div class="discovery-copy">
+          <p class="section-kicker">01 / DISCOVERY</p>
+          <p class="section-label">AFTERLOGUE / GETTING TO KNOW YOU</p>
+          <h2>It starts with what stays with you.</h2>
+          <p class="discovery-text">
+            A scene. A face. A feeling you couldn't quite explain.
+            Tell us what moved you, and we'll help you discover what might move you next.
+          </p>
+          <div class="discovery-meta">
+            <span>Find your perspective.</span>
+            <span class="reading-time">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>
+              </svg>
+              About 2 minutes
+            </span>
+          </div>
+          <a href="log.html" class="start-discovery">Begin the Log</a>
+        </div>
+        <div class="discovery-visual">
+          <div class="still-frame">
+            <img src="images/still-01.jpg" alt="Film still from Carnival of Souls (1962)">
+          </div>
+          <div class="still-caption">
+            <div class="still-identification">
+              <p class="still-number">STILL / 001</p>
+              <p class="film-title">Carnival of Souls (1962)</p>
+            </div>
+            <p class="still-note">The stories we return to often say something about how we see the world.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
