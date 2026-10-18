@@ -8,9 +8,10 @@
   <title>Discover — Afterlogue</title>
 
   <link rel="stylesheet" href="style.css?v=27">
+  <link rel="stylesheet" href="discover-home.css?v=1">
 </head>
 
-<body>
+<body class="discovery-home-page">
 
  
 <header class="site-header">
@@ -61,62 +62,40 @@
 
 
   <main class="discover-page">
+    <section class="discover-hero" aria-labelledby="discover-home-title">
+      <div class="discover-hero-photo" aria-hidden="true"></div>
+      <div class="discover-intro">
+        <p class="discover-eyebrow">AFTERLOGUE / YOUR DISCOVERY</p>
+        <h1 id="discover-home-title">A world of stories awaits.</h1>
+        <p class="discover-description">
+          Five films or shows chosen with your impressions in mind.
+          Discover new perspectives, one selection at a time.
+        </p>
+        <div class="discover-hero-actions">
+          <button type="button" id="discover-again" class="discover-again-button">
+            Discover again <span aria-hidden="true">→</span>
+          </button>
+          <span class="discover-hero-note">PERSONALIZED / FIVE AT A TIME</span>
+        </div>
+      </div>
+    </section>
 
-  
-<div class="discover-intro">
-  <p class="discover-eyebrow">AFTERLOGUE / HOME</p>
-
-  <h1>Good to have you back.</h1>
-
-  <p class="discover-description">
-    Settle in. We've found a few stories
-    we think you'll want to stay with.
-  </p>
-</div>
-
-<section class="discovery-selections">
-
-
-<div class="discovery-section-header">
-  <p>SELECTED / 001</p>
-  <h2>A little something for you.</h2>
-</div>
-
-
-  <p id="impression-count" class="discovery-count"></p>
-<div class="discovery-category-buttons"
-     role="group"
-     aria-label="Choose what to discover">
-
-  <button
-    type="button"
-    class="discovery-category active"
-    data-category="movies"
-    aria-pressed="true">
-    Movies
-  </button>
-
-  <button
-    type="button"
-    class="discovery-category"
-    data-category="tv"
-    aria-pressed="false">
-    TV Shows
-  </button>
-
-</div>
-  <div class="discovery-results" id="discovery-results">
-    <!-- Personalized recommendations will appear here. -->
-  </div>
-  
-<button
-  type="button"
-  id="discover-again"
-  class="discover-again-button">
-  DISCOVER AGAIN ↗
-</button>
-
-</section>
+    <section class="discovery-selections" id="discovery-selections" aria-labelledby="discovery-heading">
+      <div class="discovery-top">
+        <div class="discovery-section-header">
+          <p>SELECTED / 001</p>
+          <h2 id="discovery-heading">Your next five.</h2>
+        </div>
+        <div class="discovery-category-buttons" role="group" aria-label="Choose what to discover">
+          <button type="button" class="discovery-category active" data-category="movies" aria-pressed="true">Movies</button>
+          <button type="button" class="discovery-category" data-category="tv" aria-pressed="false">TV Shows</button>
+        </div>
+      </div>
+      <p id="impression-count" class="discovery-count"></p>
+      <div class="discovery-results" id="discovery-results" aria-live="polite">
+        <!-- The existing recommendation engine renders five personalized picks here. -->
+      </div>
+    </section>
   </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
@@ -479,6 +458,7 @@ function displayDiscoveryRecommendations(category, page = 0) {
   const poster = document.createElement("button");
   poster.type = "button";
   poster.className = "discovery-poster";
+  poster.style.setProperty("--afterlogue-poster", `url("${item.poster}")`);
   poster.setAttribute(
     "aria-label",
     `Why we recommend ${item.title}`
@@ -522,7 +502,7 @@ if (!item.poster) {
 
   const year = document.createElement("p");
   year.className = "discovery-year";
-  year.textContent = item.year;
+  year.textContent = `${item.year} · ${category === "tv" ? "TV" : "Film"}`;
 
   
 const bookmarkButton = document.createElement("button");
@@ -656,20 +636,36 @@ document.querySelectorAll(".discovery-category").forEach(button => {
   });
 });
 
-// Show the next collection of five.
-document.getElementById("discover-again").addEventListener("click", () => {
+// Discover again: members see another set of five; guests may only see
+// their first five films and first five TV shows, until they create an account.
+const discoverAgainButton = document.getElementById("discover-again");
+if (isGuestMode) {
+  discoverAgainButton.innerHTML = 'Create an account for more <span aria-hidden="true">→</span>';
+  document.querySelector(".discover-hero-note").textContent = "YOUR FIRST FIVE PICKS ARE FREE TO EXPLORE";
+}
+discoverAgainButton.addEventListener("click", () => {
+  if (isGuestMode) {
+    window.location.assign("signup.html?mode=signup");
+    return;
+  }
+
   const category =
     document.querySelector(".discovery-category.active").dataset.category;
 
   let nextPage = discoveryPages[category] + 1;
-
-  // Start again when there are no more recommendations.
   if (getDiscoveryRecommendations(category, nextPage).length === 0) {
     nextPage = 0;
   }
-
   discoveryPages[category] = nextPage;
   displayDiscoveryRecommendations(category, nextPage);
+
+  const label = document.querySelector(".discovery-section-header p");
+  label.textContent = "SELECTED / " + String(nextPage + 1).padStart(3, "0");
+  document.getElementById("discovery-selections").scrollIntoView({
+    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? "auto" : "smooth",
+    block: "start"
+  });
 });
 
   
@@ -680,19 +676,19 @@ async function loadAccountImpressions() {
   try {
     if (isGuestMode) {
       document.querySelector(".discover-eyebrow").textContent =
-        "AFTERLOGUE / DISCOVERY";
+        "AFTERLOGUE / FIRST DISCOVERIES";
 
       document.querySelector(".discover-intro h1").textContent =
-        "There's always another story.";
+        "A world of stories awaits.";
 
       document.querySelector(".discover-description").textContent =
-        "Some stories find us when we least expect them.";
+        "Your first impressions have opened the door. Explore five films or shows chosen to get you started.";
 
       document.querySelector(".discovery-section-header p").textContent =
-        "CURATED / 001";
+        "SELECTED / 001";
 
       document.querySelector(".discovery-section-header h2").textContent =
-        "A place to begin.";
+        "Your first five.";
 
       return;
     }
