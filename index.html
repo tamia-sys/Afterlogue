@@ -120,7 +120,12 @@
         <div class="journey-top"><span class="journey-eyebrow">01 — Films</span></div>
         <div class="journey-posters">
           <div class="journey-poster"><img src="https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg" alt="Moonlight poster"></div>
-          <div class="journey-poster is-selected"><img src="https://i0.wp.com/greenpointers.com/app/uploads/2014/07/Boyhood_Poster_Greenpointers_StephenF.jpg?fit=1000%2C1481&amp;ssl=1" alt="Boyhood poster"><span class="journey-check" aria-label="Selected">✓</span></div>
+          
+<div class="journey-poster is-selected">
+  <img src="boyhood.jpg" alt="Boyhood poster">
+  <span class="journey-check" aria-label="Selected">✓</span>
+</div>
+
           <div class="journey-poster"><img src="https://www.tinymixtapes.com/sites/default/files/1611/manchester_0.jpg" alt="Manchester by the Sea poster"></div>
         </div>
         <div class="journey-bottom four" aria-label="Example impression choices">
@@ -142,7 +147,11 @@
         <div class="journey-top"><div class="journey-tabs" aria-label="Recommendation type preview"><span class="journey-tab active">Movies</span><span class="journey-tab">TV Shows</span></div></div>
         <div class="journey-posters">
           <div class="journey-poster"><img src="https://www.nippon.com/en/ncommon/contents/japan-topics/2541413/2541413.jpg" alt="Perfect Days poster"></div>
-          <div class="journey-poster"><img src="https://slachtstraat.nl/content/uploads/sites/3/2025/11/Sentimental-Value_ps_1_jpg_sd-high_Photo-by-Kasper-Tuxen-729x1080.jpg" alt="Sentimental Value poster"></div>
+         
+<div class="journey-poster">
+  <img src="sentimental-value.jpg" alt="Sentimental Value poster">
+</div>
+
           <div class="journey-poster"><img src="https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg" alt="The Worst Person in the World poster"></div>
         </div>
         <div class="journey-bottom journey-label">SELECTED / 001</div>
@@ -174,16 +183,16 @@
 const titles = [
  ["Moonlight","2016","https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg"],
  ["Manchester by the Sea","2016","https://www.tinymixtapes.com/sites/default/files/1611/manchester_0.jpg"],
- ["Boyhood","2014","https://i0.wp.com/greenpointers.com/app/uploads/2014/07/Boyhood_Poster_Greenpointers_StephenF.jpg?fit=1000%2C1481&ssl=1"],
+ ["Boyhood","2014","boyhood.jpg"],
  ["Three Colors: Blue","1993","https://m.media-amazon.com/images/M/MV5BZWU5NWQ2MWMtYmI4Ni00Yjk5LTk3ODktMDVlZGViNGUwN2M5XkEyXkFqcGdeQXVyNTAyODkwOQ%40%40._V1_FMjpg_UX1000_.jpg"],
  ["Perfect Days","2023","https://www.nippon.com/en/ncommon/contents/japan-topics/2541413/2541413.jpg"],
  ["Severance","2022","https://image.tmdb.org/t/p/original/w5O3VVeG3jIR62IVbNMvFKY0p1Q.jpg"],
  ["Normal People","2020","https://media.senscritique.com/media/000019931710/0/normal_people.jpg"],
  ["My Brilliant Friend","2018","https://m.media-amazon.com/images/M/MV5BMzJkOWNjZDUtODkwZi00NGVjLTk0ZjUtMTNlYmYxZDcxMDEyXkEyXkFqcGc%40._V1_.jpg"],
- ["The Leftovers","2014","https://static.cinemagia.ro/img/db/movie/59/09/91/the-leftovers-906948l.jpg"],
- ["Memoir of a Snail","2024","https://pics.filmaffinity.com/memoir_of_a_snail-469448562-large.jpg"],
- ["Sentimental Value","2025","https://slachtstraat.nl/content/uploads/sites/3/2025/11/Sentimental-Value_ps_1_jpg_sd-high_Photo-by-Kasper-Tuxen-729x1080.jpg"],
- ["The Worst Person in the World","2021","https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg"]
+ ["The Leftovers","2014","leftovers.jpg"],
+["Memoir of a Snail","2024","memoir-of-a-snail.jpg"],
+["Sentimental Value","2025","sentimental-value.jpg"],
+  ["The Worst Person in the World","2021","https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg"],
 ];
 const track=document.getElementById('rail-track');
 for (let cycle=0;cycle<2;cycle++) for(const [name,year,url] of titles){
