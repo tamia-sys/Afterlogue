@@ -14,7 +14,7 @@
 
  
 <header class="site-header">
-  <a href="discover.html" class="logo">afterlogue.</a>
+<a href="index.html" class="logo">afterlogue.</a>
 
  
 <nav>
@@ -124,6 +124,17 @@
   
 const isGuestMode =
   new URLSearchParams(window.location.search).get("guest") === "1";
+  
+if (isGuestMode) {
+  const homeLink = document.querySelector(
+    'nav a[href="discover.html"]'
+  );
+
+  if (homeLink) {
+    homeLink.href = "discover.html?guest=1";
+  }
+}
+
 
   const savedImpressions = {};
 
