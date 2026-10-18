@@ -161,13 +161,24 @@ body {
   margin: 0 auto 18px;
 }
 
-/* TEMPORARY TEST — DISABLE POSTER ANIMATION */
+
+/* AFTERLOGUE — SMOOTHER POSTER CAROUSEL */
 
 .rail-track {
-  animation: none !important;
-  transform: none !important;
+  animation: afterlogue-scroll 150s linear infinite !important;
   will-change: auto;
 }
+
+@keyframes afterlogue-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 
 </style>
 </head>
