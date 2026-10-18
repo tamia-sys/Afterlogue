@@ -2382,3 +2382,26 @@ body > header:not(.site-header) .logo-link {
     align-items: flex-start;
   }
 }
+
+
+/* AFTERLOGUE — CURRENT PAGE NAVIGATION */
+body > header.site-header nav > a[aria-current="page"] {
+  position: relative;
+  color: #F4EADD;
+  text-decoration: none;
+}
+
+body > header.site-header nav > a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 1px;
+  background: #D4B487;
+  pointer-events: none;
+}
+
+body > header.site-header nav > a[hidden] {
+  display: none !important;
+}
