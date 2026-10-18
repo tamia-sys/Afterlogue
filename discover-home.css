@@ -223,7 +223,7 @@ body.discovery-home-page {
 .discovery-home-page .discovery-poster::before {
   content: "";
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   inset: -12px;
   background-image: var(--afterlogue-poster);
   background-size: cover;
