@@ -27,6 +27,20 @@
         })
     : Promise.resolve(null);
 
+  // Mark the current destination without moving any header elements.
+  // Onboarding (log.html) is separate from the member's personal Log.
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  const currentLink =
+    page === "discover.html" ? homeLink :
+    page === "explore.html" ? exploreLink :
+    page === "my-log.html" ? logLink :
+    page === "discuss.html" ? discussLink : null;
+
+  for (const link of navLinks) {
+    if (link === currentLink) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  }
+
   function updateNavigation(user) {
     const isMember = Boolean(user);
     if (logo) {
