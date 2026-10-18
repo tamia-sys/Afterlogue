@@ -1,0 +1,349 @@
+/* AFTERLOGUE — EDITORIAL HOME / DISCOVER
+   Content-only visual redesign; site header and account menu are untouched.
+   Hero photograph: Elizeu Dias / Unsplash (temporary, replace when approved).
+*/
+body.discovery-home-page {
+  background: #0d0f0e;
+}
+.discovery-home-page .discover-page {
+  width: min(1520px, 100%);
+  max-width: none;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 20px clamp(18px, 4.8vw, 76px) 95px;
+}
+.discovery-home-page .discover-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: clamp(375px, 35vw, 530px);
+  isolation: isolate;
+  overflow: hidden;
+  background: #211c17;
+  border-radius: 5px;
+  border: 1px solid rgba(194, 164, 126, .16);
+}
+.discovery-home-page .discover-hero-photo {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background-color: #34261d;
+  background-image: url("https://images.unsplash.com/photo-1689217463356-612369f0d15b?auto=format&fit=crop&w=1800&q=82");
+  background-size: cover;
+  background-position: 65% 49%;
+  filter: saturate(.75) sepia(.12) brightness(.78);
+}
+.discovery-home-page .discover-hero::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(5,6,6,.97) 0%,rgba(7,7,7,.89) 28%,rgba(10,9,8,.46) 58%,rgba(9,8,7,.05) 100%),
+    linear-gradient(0deg,rgba(5,5,5,.27),transparent 45%);
+}
+.discovery-home-page .discover-intro {
+  position: relative;
+  max-width: min(670px, 62%);
+  padding: clamp(30px,6vw,88px) clamp(20px,4.1vw,66px);
+}
+.discovery-home-page .discover-eyebrow {
+  margin: 0 0 23px;
+  color: #DEC099;
+  font: 600 10px/1.5 Arial,Helvetica,sans-serif;
+  letter-spacing: .20em;
+}
+.discovery-home-page .discover-intro h1 {
+  max-width: 640px;
+  margin: 0 0 22px;
+  color: #F4EADD;
+  font: 400 clamp(42px,5.15vw,78px)/1.065 Georgia,"Times New Roman",serif;
+  letter-spacing: -.038em;
+  text-wrap: balance;
+}
+.discovery-home-page .discover-description {
+  margin: 0;
+  max-width: 490px;
+  color: #E0D0B9;
+  font: 15px/1.75 Arial,Helvetica,sans-serif;
+  text-wrap: pretty;
+}
+.discovery-home-page .discover-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px 24px;
+  margin-top: 29px;
+}
+.discovery-home-page .discover-again-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  min-width: min(320px,100%);
+  width: auto;
+  margin: 0;
+  padding: 13px 31px;
+  border: 1px solid #EFE3CF;
+  border-radius: 999px;
+  background: #F4EADD;
+  color: #161412;
+  font: 500 14px/1.4 Arial,Helvetica,sans-serif;
+  letter-spacing: .015em;
+  text-transform: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+.discovery-home-page .discover-again-button:hover,
+.discovery-home-page .discover-again-button:focus-visible {
+  background: #D4B487;
+  color: #100d0b;
+  border-color: #D4B487;
+}
+.discovery-home-page .discover-again-button:focus-visible {
+  outline: 2px solid #FFF5E4;
+  outline-offset: 3px;
+}
+.discovery-home-page .discover-hero-note {
+  color: #E5D4C0;
+  font: 11px/1.5 Arial,Helvetica,sans-serif;
+  letter-spacing: .07em;
+}
+.discovery-home-page .discovery-selections {
+  padding: 0;
+  margin: 30px 0 0;
+}
+.discovery-home-page .discovery-top {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 0 17px;
+  border-bottom: 1px solid rgba(209,178,134,.30);
+}
+.discovery-home-page .discovery-section-header {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: block;
+  min-width: 0;
+}
+.discovery-home-page .discovery-section-header p {
+  margin: 0 0 9px;
+  color: #D4B487;
+  font: 600 10px/1.5 Arial,sans-serif;
+  letter-spacing: .17em;
+}
+.discovery-home-page .discovery-section-header h2 {
+  margin: 0;
+  color: #F4EADD;
+  font: 400 clamp(28px,2.7vw,42px)/1.17 Georgia,serif;
+  letter-spacing: -.02em;
+}
+.discovery-home-page .discovery-count {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: #B8AC9B;
+  font: 12px/1.6 Arial,Helvetica,sans-serif;
+}
+.discovery-home-page [hidden] {
+  display: none !important;
+}
+.discovery-home-page .discovery-category-buttons {
+  width: auto;
+  min-width: 232px;
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.discovery-home-page .discovery-category {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 35px;
+  width: auto;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: #D2C1AC;
+  background: none;
+  font: 12px/1.25 Arial,Helvetica,sans-serif;
+  white-space: nowrap;
+}
+.discovery-home-page .discovery-category:hover,
+.discovery-home-page .discovery-category:focus-visible {
+  color: #F4EADD;
+  border-color: #A78B67;
+  background: rgba(218,178,116,.12);
+}
+.discovery-home-page .discovery-category.active {
+  background: #C6AA83;
+  border-color: #C6AA83;
+  color: #171310;
+}
+.discovery-home-page .discovery-results {
+  display: grid;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  max-width: none;
+  width: 100%;
+  justify-content: stretch;
+  align-items: stretch;
+  gap: clamp(12px,1.5vw,23px);
+  margin: 24px 0 0;
+}
+.discovery-home-page .discovery-card {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0;
+  background: #191b19;
+  border: 1px solid rgba(209,185,149,.18);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.discovery-home-page .discovery-poster {
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1.04;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(210,186,149,.12);
+  border-radius: 0;
+  background: #282923;
+}
+.discovery-home-page .discovery-poster::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -12px;
+  background-image: var(--afterlogue-poster);
+  background-size: cover;
+  background-position: center;
+  filter: blur(19px) brightness(.45) saturate(.75);
+  transform: scale(1.13);
+}
+.discovery-home-page .discovery-poster .discovery-artwork {
+  position: relative;
+  z-index: 1;
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.discovery-home-page .discovery-reason {
+  z-index: 2;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 13px;
+  padding: 18px;
+  background: rgba(8,9,8,.94);
+  text-align: left;
+}
+.discovery-home-page .discovery-reason-label {
+  color: #D5B588;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .17em;
+}
+.discovery-home-page .discovery-reason-text {
+  font: 12px/1.56 Arial,Helvetica,sans-serif;
+}
+.discovery-home-page .discovery-card h3 {
+  min-height: 0;
+  padding: 0 29px 0 0;
+  margin: 14px 13px 6px;
+  color: #F4EADD;
+  font: 400 clamp(13px,1.3vw,17px)/1.36 Georgia,serif;
+}
+.discovery-home-page .discovery-year {
+  padding: 0 36px 0 0;
+  margin: auto 13px 15px;
+  color: #AE9F8B;
+  font: 11px/1.5 Arial,Helvetica,sans-serif;
+  letter-spacing: .01em;
+}
+.discovery-home-page .discovery-bookmark {
+  position: absolute;
+  right: 7px;
+  bottom: 9px;
+  z-index: 4;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 5px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #D7BE99;
+}
+.discovery-home-page .discovery-bookmark:hover,
+.discovery-home-page .discovery-bookmark:focus-visible {
+  transform: none;
+  color: #F4EADD;
+  border-color: rgba(215,190,153,.7);
+}
+.discovery-home-page .discovery-empty {
+  grid-column: 1/-1;
+  padding: 30px 0 70px;
+  color: #B8AC9B;
+}
+@media(max-width:1100px) {
+  .discovery-home-page .discovery-results {gap: 13px}
+  .discovery-home-page .discovery-card h3 {font-size: 14px}
+}
+@media(max-width:900px) {
+  .discovery-home-page .discover-page {padding: 16px 4.5% 75px}
+  .discovery-home-page .discover-hero {min-height: 400px}
+  .discovery-home-page .discover-intro {max-width: 70%}
+  .discovery-home-page .discovery-results {grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .discovery-home-page .discovery-card h3 {font-size:16px}
+}
+@media(max-width:650px) {
+  .discovery-home-page .discover-page {padding: 12px 0 65px}
+  .discovery-home-page .discover-hero {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+    min-height: 490px;
+    align-items: flex-end;
+  }
+  .discovery-home-page .discover-hero-photo {
+    background-position: 61% center;
+  }
+  .discovery-home-page .discover-hero::after {
+    background:
+      linear-gradient(0deg,rgba(4,5,4,.98) 0%,rgba(6,5,5,.91) 24%,rgba(9,8,7,.22) 88%),
+      linear-gradient(90deg,rgba(0,0,0,.32),transparent);
+  }
+  .discovery-home-page .discover-intro {
+    padding: 58px 6% 38px;
+    max-width: 100%;
+  }
+  .discovery-home-page .discover-eyebrow {margin-bottom: 13px;font-size:9px}
+  .discovery-home-page .discover-intro h1 {font-size:clamp(40px,10vw,56px);line-height:1.06;margin-bottom:14px;max-width:420px}
+  .discovery-home-page .discover-description {font-size:13px;line-height:1.55;max-width:360px}
+  .discovery-home-page .discover-hero-actions {margin-top:21px;gap:9px}
+  .discovery-home-page .discover-again-button {width:auto;min-width:0;min-height:44px;padding:11px 25px;font-size:13px}
+  .discovery-home-page .discover-hero-note {font-size:10px}
+  .discovery-home-page .discovery-selections {margin:29px 0 0;padding:0 5%}
+  .discovery-home-page .discovery-top {flex-direction:column;align-items:flex-start;gap:18px;padding-bottom:15px}
+  .discovery-home-page .discovery-section-header h2 {font-size:31px}
+  .discovery-home-page .discovery-category-buttons {min-width:0}
+  .discovery-home-page .discovery-results {grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+  .discovery-home-page .discovery-card h3 {margin:10px 10px 6px;font-size:14px}
+  .discovery-home-page .discovery-year {margin: auto 10px 14px;font-size:10px}
+  .discovery-home-page .discovery-reason {padding:12px}
+  .discovery-home-page .discovery-reason-text {font-size:11px}
+}
+@media (prefers-reduced-motion: reduce) {
+  .discovery-home-page .discover-again-button {transition:none}
+}
