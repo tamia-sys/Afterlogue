@@ -197,21 +197,6 @@ body {
 /* Show complete artwork instead of cropping poster titles and faces. */
 .how .journey-poster img { object-fit: contain; }
 
-/* EXTENDED THIRD-COLUMN SEPARATOR — desktop only */
-@media (min-width: 1000px) {
-  .how .step:last-child { position: relative; }
-  .how .step:last-child::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: -11px;
-    width: 1px;
-    background: rgba(217,174,117,.33);
-    pointer-events: none;
-  }
-}
-
 /* MATCH FIRST IMPRESSIONS CHECKMARK */
 
 .how .journey-check {
