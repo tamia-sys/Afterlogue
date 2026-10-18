@@ -1,7 +1,7 @@
 /* AFTERLOGUE — HOME / DISCOVER VISUALS
    Scoped to this page. Global header, account controls, and authentication
    keep their existing styles and behavior.
-   The current hero photo is temporary; replace with the chosen still later.
+   Hero still: Aux garçons de mon âge (2026), from Wikimedia Commons.
 */
 body.discovery-home-page {
   background: #0d0f0e;
@@ -35,9 +35,9 @@ body.discovery-home-page {
   z-index: -2;
   inset: 0;
   background-color: #22201d;
-  background-image: url("https://images.unsplash.com/photo-1689217463356-612369f0d15b?auto=format&fit=crop&w=1800&q=82");
+  background-image: url("https://upload.wikimedia.org/wikipedia/commons/e/e8/Aux_gar%C3%A7ons_de_mon_%C3%A2ge_-_Still_4.jpg");
   background-size: cover;
-  background-position: 67% 48%;
+  background-position: 70% 48%;
   filter: saturate(.72) brightness(.80);
 }
 
@@ -366,7 +366,7 @@ body.discovery-home-page {
     border-radius: 0;
   }
   .discovery-home-page .discover-hero-photo {
-    background-position: 61% 50%;
+    background-position: 66% 50%;
   }
   .discovery-home-page .discover-hero::after {
     background:
