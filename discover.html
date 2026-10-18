@@ -133,6 +133,11 @@ if (isGuestMode) {
   if (homeLink) {
     homeLink.href = "discover.html?guest=1";
   }
+
+  const exploreLink = document.querySelector('nav a[href="explore.html"]');
+  if (exploreLink) {
+    exploreLink.href = "explore.html?guest=1";
+  }
 }
 
 
