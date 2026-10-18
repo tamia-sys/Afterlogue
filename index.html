@@ -180,6 +180,8 @@ body {
   will-change: auto !important;
 }
 .rail .poster { scroll-snap-align: start; }
+ /* Avoid scrolled edge masks overlapping posters (visible as a dark seam). */
+.rail::before, .rail::after { display: none !important; }
 
 
 /* HOW IT WORKS — RESTORE THE ORIGINAL CARD PROPORTIONS */
@@ -195,10 +197,19 @@ body {
 /* Show complete artwork instead of cropping poster titles and faces. */
 .how .journey-poster img { object-fit: contain; }
 
-/* A quiet, longer horizontal divider beneath the Log column. */
-.how .step:last-child .log-collections {
-  border-bottom: 1px solid rgba(217,174,117,.36);
-  padding-bottom: 16px;
+/* EXTENDED THIRD-COLUMN SEPARATOR — desktop only */
+@media (min-width: 1000px) {
+  .how .step:last-child { position: relative; }
+  .how .step:last-child::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -11px;
+    width: 1px;
+    background: rgba(217,174,117,.33);
+    pointer-events: none;
+  }
 }
 
 /* MATCH FIRST IMPRESSIONS CHECKMARK */
@@ -378,12 +389,42 @@ const titles = [
   ["The Worst Person in the World","2021","https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg"],
 ];
 const track=document.getElementById('rail-track');
-for (let cycle=0;cycle<1;cycle++) for(const [name,year,url] of titles){
+for (let cycle=0;cycle<2;cycle++) for(const [name,year,url] of titles){
   const fig=document.createElement('figure');fig.className='poster';if(cycle)fig.setAttribute('aria-hidden','true');
   const wrap=document.createElement('div');wrap.className='poster-image';
   const img=document.createElement('img');img.src=url;img.alt=cycle?'':name+' poster';img.loading=cycle?'lazy':'eager';img.onerror=()=>{img.style.display='none';wrap.style.background='linear-gradient(145deg,#354147,#382721)';wrap.textContent=name;wrap.style.cssText+='display:grid;place-items:center;text-align:center;padding:12px;font:17px Georgia,serif;';};
   wrap.appendChild(img);const cap=document.createElement('figcaption');cap.textContent=name;const yr=document.createElement('span');yr.className='year';yr.textContent=year;cap.appendChild(yr);fig.append(wrap,cap);track.appendChild(fig);
 }
+/* SAFARI-FRIENDLY CAROUSEL: one poster at a time using native scrolling.
+   No continuously animated transforms, which caused page-wide flickering. */
+const posterRail = document.querySelector(".rail");
+let railIsPaused = false;
+let resumeRailTimer;
+const prefersLessMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+posterRail.addEventListener("pointerenter", () => { railIsPaused = true; });
+posterRail.addEventListener("pointerleave", () => { railIsPaused = false; });
+posterRail.addEventListener("focusin", () => { railIsPaused = true; });
+posterRail.addEventListener("focusout", () => { railIsPaused = false; });
+posterRail.addEventListener("touchstart", () => {
+  railIsPaused = true;
+  clearTimeout(resumeRailTimer);
+}, { passive: true });
+posterRail.addEventListener("touchend", () => {
+  clearTimeout(resumeRailTimer);
+  resumeRailTimer = setTimeout(() => { railIsPaused = false; }, 8000);
+}, { passive: true });
+setInterval(() => {
+  if (railIsPaused || document.hidden || prefersLessMotion.matches) return;
+  const first = track.querySelector(".poster");
+  if (!first) return;
+  const step = first.getBoundingClientRect().width;
+  const repeatPoint = step * titles.length;
+  // Both sets are identical; resetting at the duplicate boundary is invisible.
+  if (posterRail.scrollLeft >= repeatPoint - 1) {
+    posterRail.scrollLeft -= repeatPoint;
+  }
+  posterRail.scrollTo({ left: posterRail.scrollLeft + step, behavior: "smooth" });
+}, 5000);
 // Preserve a polished layout even if an external poster image does not load.
 document.querySelectorAll('.journey-poster img').forEach(img => {
   img.addEventListener('error', () => {
