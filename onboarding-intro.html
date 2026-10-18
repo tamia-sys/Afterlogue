@@ -1,107 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Getting to Know You — Afterlogue</title>
-  <!-- Uses the SAME stylesheet as the original cinematic introduction. -->
-  <link rel="stylesheet" href="style.css?v=onboarding-1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>First Impressions — Afterlogue</title>
   <style>
-    /* Small page-only adjustments; member Home and Log are unaffected. */
-    body.onboarding-intro-page { background: #11100f; }
-    .onboarding-intro-page .onboarding-brand {padding:22px 7% 12px; background:#11100f;}
-    .onboarding-intro-page .onboarding-brand a {color:#f4eadd;text-decoration:none;font:normal 30px Georgia,serif;}
-    .onboarding-intro-page .editorial-divider {padding-top:16px;padding-bottom:14px;}
-    .onboarding-intro-page .discovery-section {min-height:calc(100vh - 190px);display:flex;align-items:center;width:100%;}
-    .onboarding-intro-page .discovery-shell {width:100%;}
-    @media (max-width:800px){
-      .onboarding-intro-page .discovery-section{min-height:auto;display:block;}
-      .onboarding-intro-page .onboarding-brand{padding:16px 7% 8px;}
-    }
-    
-/* CINEMATIC INTRO — BLACK BACKGROUND */
-
-body.onboarding-intro-page,
-.onboarding-intro-page .editorial-divider,
-.onboarding-intro-page .discovery-section {
-  background: #000000;
-}
-
-/* MATCH THE AFTERLOGUE LOGO */
-
-.onboarding-intro-page .onboarding-brand {
-  padding: 24px 5% 12px;
-  background: #000000;
-}
-
-.onboarding-intro-page .onboarding-brand a {
-  font: normal 32px/1 Georgia, "Times New Roman", serif;
-  letter-spacing: -1px;
-  color: #F4EADD;
-  text-decoration: none;
-}
-
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#000;color:#F4EADD;font-family:Georgia,serif;text-align:center;padding:24px;box-sizing:border-box}
+    a{color:#D4B487}
   </style>
 </head>
-<body class="onboarding-intro-page">
-  <div class="onboarding-brand"><a href="index.html" aria-label="Afterlogue home">afterlogue.</a></div>
+<body>
   <main>
-    <div class="editorial-divider">
-      <div class="editorial-divider-top">
-        <span>AFTERLOGUE — VOL. 001</span>
-        <span>AN EXERCISE IN DISCOVERY</span>
-      </div>
-      <div class="editorial-divider-bottom">
-        <span>THE STORIES THAT STAY WITH US.</span>
-        <span aria-hidden="true">↘</span>
-      </div>
-    </div>
-
-    <section id="discover" class="discovery-section">
-      <div class="discovery-shell">
-        <div class="discovery-copy">
-          <p class="section-kicker">01 / DISCOVERY</p>
-          <p class="section-label">AFTERLOGUE / GETTING TO KNOW YOU</p>
-          <h2>It starts with what stays with you.</h2>
-          <p class="discovery-text">
-            A scene. A face. A feeling you couldn't quite explain.
-            Tell us what moved you, and we'll help you discover what might move you next.
-          </p>
-          <div class="discovery-meta">
-            <span>Find your perspective.</span>
-            <span class="reading-time">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>
-              </svg>
-              About 2 minutes
-            </span>
-          </div>
-          <a href="log.html" class="start-discovery">Begin the Log</a>
-        </div>
-        <div class="discovery-visual">
-          <div class="still-frame">
-            <img src="images/still-01.jpg" alt="Film still from Carnival of Souls (1962)">
-          </div>
-          <div class="still-caption">
-            <div class="still-identification">
-              <p class="still-number">STILL / 001</p>
-              <p class="film-title">Carnival of Souls (1962)</p>
-            </div>
-            <p class="still-note">The stories we return to often say something about how we see the world.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    <p>First Impressions has a new home.</p>
+    <a id="continue" href="log.html">Continue to First Impressions →</a>
   </main>
-  
-<script>
-  // Keep guest mode as visitors move into First Impressions.
-  const params = new URLSearchParams(window.location.search);
-
-  if (params.get("guest") === "1") {
-    document.querySelector(".start-discovery").href = "log.html?guest=1";
-  }
-</script>
-
+  <script>
+    const destination = "log.html" + window.location.search + window.location.hash;
+    document.getElementById("continue").href = destination;
+    window.location.replace(destination);
+  </script>
 </body>
 </html>
