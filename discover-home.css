@@ -38,7 +38,7 @@ body.discovery-home-page {
   background-image: url("https://upload.wikimedia.org/wikipedia/commons/e/e8/Aux_gar%C3%A7ons_de_mon_%C3%A2ge_-_Still_4.jpg");
   background-size: cover;
   background-position: 70% 48%;
-  filter: saturate(.72) brightness(.80);
+  filter: saturate(.92) brightness(.75);
 }
 
 .discovery-home-page .discover-hero::after {
@@ -48,8 +48,8 @@ body.discovery-home-page {
   z-index: -1;
   inset: 0;
   background:
-    linear-gradient(90deg,#0d0f0e 0%,rgba(13,15,14,.98) 13%,rgba(13,15,14,.79) 35%,rgba(13,15,14,.20) 76%,rgba(13,15,14,.12) 100%),
-    linear-gradient(0deg,#0d0f0e 0%,transparent 22%,transparent 80%,rgba(13,15,14,.75) 100%);
+    linear-gradient(90deg,rgba(13,15,14,.88) 0%,rgba(13,15,14,.77) 13%,rgba(13,15,14,.56) 35%,rgba(13,15,14,.10) 76%,rgba(13,15,14,.04) 100%),
+    linear-gradient(0deg,#0d0f0e 0%,transparent 17%,transparent 87%,rgba(13,15,14,.35) 100%);
 }
 
 .discovery-home-page .discover-intro {
@@ -370,8 +370,8 @@ body.discovery-home-page {
   }
   .discovery-home-page .discover-hero::after {
     background:
-      linear-gradient(0deg,#0d0f0e 0%,rgba(13,15,14,.92) 17%,rgba(13,15,14,.32) 78%,rgba(13,15,14,.33) 100%),
-      linear-gradient(90deg,rgba(13,15,14,.38),transparent 85%);
+      linear-gradient(0deg,#0d0f0e 0%,rgba(13,15,14,.78) 17%,rgba(13,15,14,.14) 78%,rgba(13,15,14,.10) 100%),
+      linear-gradient(90deg,rgba(13,15,14,.23),transparent 85%);
   }
   .discovery-home-page .discover-intro {
     max-width: 100%;
