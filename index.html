@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>Welcome to afterlogue — Discover what stays with you</title>
+  
+/* LANDING PAGE — MATCH GLOBAL LOGO */
+
+.welcome-header {
+  max-width: none;
+  margin: 0;
+  padding: 24px 5% 0;
+}
+
+.welcome-header .brand {
+  font: normal 32px/1 Georgia, "Times New Roman", serif;
+  letter-spacing: -1px;
+  color: #F4EADD;
+  text-decoration: none;
+}
+
   <style>
     :root{--ink:#101113;--cream:#f2ddbd;--muted:#c9b8a0;--gold:#d9ae75;--border:#64533e;--line:rgba(218,175,113,.42)}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse 32% 22% at 50% 17%,rgba(171,108,43,.13),transparent 95%),var(--ink);color:var(--cream);font-family:Arial,Helvetica,sans-serif}a{color:inherit}button{font:inherit}img{max-width:100%}
@@ -70,7 +86,16 @@
 </style>
 </head>
 <body>
-<header class="welcome-header"><a class="brand" <a href="index.html" class="site-logo">afterlogue.</a><div class="member-entry"><span>Already a member?</span><a href="signup.html?mode=signin">Sign in</a></div></header>
+
+<header class="welcome-header">
+  <a href="index.html" class="brand">afterlogue.</a>
+
+  <div class="member-entry">
+    <span>Already a member?</span>
+    <a href="signup.html?mode=signin">Sign in</a>
+  </div>
+</header>
+
 <main>
 <section class="intro" aria-labelledby="welcome-title">
   <h1 id="welcome-title">Welcome to Afterlogue.</h1>
