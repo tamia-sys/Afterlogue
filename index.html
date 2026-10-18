@@ -99,6 +99,57 @@ body {
   display: none;
 }
 
+/* AFTERLOGUE — SIMPLIFIED WELCOME BUTTONS */
+
+.welcome-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 30px auto 0;
+}
+
+.welcome-actions a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 46px;
+  padding: 12px 26px;
+  border-radius: 999px;
+  font-size: 13px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.welcome-create {
+  background: #F4EADD;
+  color: #111111;
+}
+
+.welcome-guest {
+  border: 1px solid #8A7559;
+  color: #F4EADD;
+}
+
+.welcome-create:hover {
+  background: #D7C4A9;
+}
+
+.welcome-guest:hover {
+  background: #24201D;
+}
+
+@media (max-width: 500px) {
+  .welcome-actions {
+    flex-direction: column;
+  }
+
+  .welcome-actions a {
+    width: min(280px, 100%);
+  }
+}
+
 </style>
 </head>
 <body>
@@ -114,16 +165,19 @@ body {
 
 <main>
 <section class="intro" aria-labelledby="welcome-title">
-  <h1 id="welcome-title">Welcome to Afterlogue.</h1>
+<h1 id="welcome-title">Welcome to afterlogue.</h1>
   <p>A film and TV space shaped by what you watch, love, and feel.</p>
-  <div class="entry" aria-label="Entry options">
-    <button type="button" disabled aria-label="Google sign-in is being set up" title="Google sign-in is being set up"><span class="gmark">G</span>Continue with Google</button>
-    <button type="button" disabled aria-label="Apple sign-in is being set up" title="Apple sign-in is being set up"><span class="apple">●</span>Continue with Apple</button>
-    <small class="preview-note">Google and Apple sign-in coming soon.</small>
-    <div class="or">or</div>
-    <a class="create" href="signup.html?mode=signup">Create an account</a>
-    <a class="guest" href="onboarding-intro.html?guest=1">Continue as guest →</a>
-  </div>
+ 
+<div class="welcome-actions">
+  <a class="welcome-create" href="signup.html?mode=signup">
+    Create an account →
+  </a>
+
+  <a class="welcome-guest" href="onboarding-intro.html?guest=1">
+    Continue as guest
+  </a>
+</div>
+
 </section>
 <section class="rail" aria-label="Selected film and television posters; moving slowly">
   <div class="rail-track" id="rail-track"></div>
