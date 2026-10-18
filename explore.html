@@ -196,14 +196,14 @@ function view(section) {
   gallery.hidden = section !== "gallery";
   experience.hidden = section !== "experience";
   results.hidden = section !== "results";
-  window.scrollTo({top:0,behavior:"instant"});
+  window.scrollTo({top:0,behavior:"auto"});
 }
 function start(mood) {
   if (!data.moods[mood]) return;
   Object.assign(state,{mood,stage:0,format:null,pace:null,offset:0,randomPick:false});
   renderQuestion();
   view("experience");
-  $("explore-mood-title").focus?.();
+
 }
 function choices(items) {
   const host = $("explore-choices");
@@ -262,7 +262,7 @@ function ratedTitles() {
   try {
     for(let i=0;i<localStorage.length;i++){
       const key=localStorage.key(i);
-      if(key?.startsWith("afterlogue-") && impressionRatings.has(localStorage.getItem(key))) out.add(key.slice(10));
+      if(key?.startsWith("afterlogue-") && impressionRatings.has(localStorage.getItem(key))) out.add(key.slice("afterlogue-".length));
     }
   } catch(e) { /* Browsing still works with storage disabled. */ }
   return out;
@@ -279,8 +279,8 @@ function selectedCandidates() {
       const key=localStorage.key(i);
       if(!key?.startsWith("afterlogue-")) continue;
       const rating=localStorage.getItem(key);
-      if(rating==="Loved"||rating==="Liked") love.add(key.slice(10));
-      if(rating==="Not for me") avoid.add(key.slice(10));
+      if(rating==="Loved"||rating==="Liked") love.add(key.slice("afterlogue-".length));
+      if(rating==="Not for me") avoid.add(key.slice("afterlogue-".length));
     }
   } catch(e){}
   const wanted = state.format==="either"?["movies","tv"]:[state.format];
@@ -325,6 +325,7 @@ function displayResults(){
     $("explore-results-label").textContent="AFTERLOGUE / SURPRISE ME";
     $("explore-adjust").hidden=true;
     $("explore-again").textContent="Another surprise ↗";
+    $("explore-again").disabled=false;
   } else {
     const five=selected.slice(state.offset,state.offset+5);
     if(five.length===0) {
