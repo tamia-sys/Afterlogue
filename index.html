@@ -162,39 +162,43 @@ body {
 }
 
 
-/* AFTERLOGUE — SMOOTHER POSTER CAROUSEL */
-
+/* AFTERLOGUE — STABLE, SWIPEABLE POSTER RAIL
+   Safari's continuously animated rail caused repeated whole-page flicker.
+   Keep the artwork accessible by scrolling rather than auto-transforming it. */
+.rail {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.rail::-webkit-scrollbar { display: none; }
 .rail-track {
-  animation: afterlogue-scroll 150s linear infinite !important;
-  will-change: auto;
+  animation: none !important;
+  transform: none !important;
+  will-change: auto !important;
 }
-
-@keyframes afterlogue-scroll {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
-}
+.rail .poster { scroll-snap-align: start; }
 
 
-/* WIDER HOW IT WORKS LAYOUT */
-
+/* HOW IT WORKS — RESTORE THE ORIGINAL CARD PROPORTIONS */
 @media (min-width: 1000px) {
   .how {
-    max-width: 1600px;
-    padding: 36px 3.5% 70px;
+    max-width: 1330px;
+    padding: 32px 5% 84px;
   }
+  .how .steps { gap: 20px; }
+  .how .step-intro { min-height: 127px; }
+}
 
-  .how .steps {
-    gap: clamp(32px, 4vw, 60px);
-  }
+/* Show complete artwork instead of cropping poster titles and faces. */
+.how .journey-poster img { object-fit: contain; }
 
-  .how .step-intro {
-    min-height: 112px;
-  }
+/* A quiet, longer horizontal divider beneath the Log column. */
+.how .step:last-child .log-collections {
+  border-bottom: 1px solid rgba(217,174,117,.36);
+  padding-bottom: 16px;
 }
 
 /* MATCH FIRST IMPRESSIONS CHECKMARK */
@@ -250,7 +254,7 @@ body {
 </div>
 
 </section>
-<section class="rail" aria-label="Selected film and television posters; moving slowly">
+<section class="rail" aria-label="Selected film and television posters; scroll or swipe horizontally to explore" tabindex="0">
   <div class="rail-track" id="rail-track"></div>
 </section>
 <section class="feature-wrap" aria-label="What you can do on Afterlogue">
@@ -266,7 +270,7 @@ body {
       <p>Find something for your mood, the moment, or the season.</p>
     </div>
     <div class="feature">
-      <div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2M16 4a4 4 0 0 0 0 8M17 15a7 7 0 0 1 5 6"/></svg></div>
+      <div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5c0 4-3.7 7.3-8.5 7.3-1.2 0-2.3-.2-3.4-.6L4 20l1.2-3.5a7 7 0 0 1-1.7-5c0-4 3.8-7.3 8.5-7.3s8.5 3.3 8.5 7.3Z"/><path d="M8 10.5h8M8 13.5h5"/></svg></div>
       <h2>Discuss</h2>
       <p>Talk about films and shows with other viewers.</p>
     </div>
@@ -374,7 +378,7 @@ const titles = [
   ["The Worst Person in the World","2021","https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg"],
 ];
 const track=document.getElementById('rail-track');
-for (let cycle=0;cycle<2;cycle++) for(const [name,year,url] of titles){
+for (let cycle=0;cycle<1;cycle++) for(const [name,year,url] of titles){
   const fig=document.createElement('figure');fig.className='poster';if(cycle)fig.setAttribute('aria-hidden','true');
   const wrap=document.createElement('div');wrap.className='poster-image';
   const img=document.createElement('img');img.src=url;img.alt=cycle?'':name+' poster';img.loading=cycle?'lazy':'eager';img.onerror=()=>{img.style.display='none';wrap.style.background='linear-gradient(145deg,#354147,#382721)';wrap.textContent=name;wrap.style.cssText+='display:grid;place-items:center;text-align:center;padding:12px;font:17px Georgia,serif;';};
