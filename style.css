@@ -2358,3 +2358,27 @@ color: #e8dfcc;
     flex-wrap: wrap;
   }
 }
+
+/* AFTERLOGUE — CONSISTENT LOGO */
+
+body > header {
+  padding: 24px 5%;
+}
+
+body > header.site-header .logo,
+body > header.site-header .logo-link,
+body > header:not(.site-header) .logo-link {
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 32px !important;
+  font-weight: 400 !important;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: #F4EADD;
+  text-decoration: none;
+}
+
+@media (max-width: 650px) {
+  body > header {
+    align-items: flex-start;
+  }
+}
