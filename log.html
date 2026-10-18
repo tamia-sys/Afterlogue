@@ -35,11 +35,12 @@
 .afterlogue-onboarding .impressions-forward a{color:#E5C9A2;border-bottom:1px solid #A78B67;padding:8px 0;text-decoration:none;font:12px Inter,Arial,sans-serif}
 .afterlogue-onboarding .impressions-forward a:hover{color:#fff}
 .afterlogue-onboarding .log-continue-section{padding:40px 0 12px}
-.afterlogue-onboarding .log-continue-button{background:#D4B487;color:#130f0c;border-color:#D4B487;min-width:260px}
+.afterlogue-onboarding .log-continue-button{background:transparent;color:#F4EADD;border:1px solid #B9A58D;min-width:0;padding:14px 36px;transition:background .2s ease,color .2s ease}
+.afterlogue-onboarding .log-continue-button:hover,.afterlogue-onboarding .log-continue-button:focus-visible,.afterlogue-onboarding .log-continue-button:active{background:#D4B487;color:#130f0c;border-color:#D4B487}
 @media(max-width:1260px){.afterlogue-onboarding .log-film-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:1000px){.afterlogue-onboarding .log-film-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:800px){.afterlogue-onboarding .impressions-hero{grid-template-columns:1fr;gap:23px}.afterlogue-onboarding .impressions-visual{order:-1}.afterlogue-onboarding .impressions-visual img{height:clamp(240px,53vw,380px)}.afterlogue-onboarding .log-film-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:600px){.afterlogue-onboarding>header{flex-direction:row;padding:20px 5%}.afterlogue-onboarding>header nav{display:none}.afterlogue-onboarding .log-page{padding:15px 5% 55px}.afterlogue-onboarding .impressions-hero{padding-bottom:26px;gap:21px}.afterlogue-onboarding .impressions-visual img{height:54vw;min-height:190px}.afterlogue-onboarding .impressions-copy h1{font-size:clamp(34px,8.2vw,47px)}.afterlogue-onboarding .impressions-description{font-size:13px}.afterlogue-onboarding .log-film-section{margin-top:27px}.afterlogue-onboarding .log-section-heading h3{font-size:23px}.afterlogue-onboarding .log-section-heading span{font-size:9px;letter-spacing:1px}.afterlogue-onboarding .log-film-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:23px 12px}.afterlogue-onboarding .log-film-card h4{font-size:13px}.afterlogue-onboarding .rating-overlay{gap:4px;padding:6px}.afterlogue-onboarding .rating-overlay button{font-size:10px;min-height:26px;padding:5px}.afterlogue-onboarding .rating-overlay p{font-size:8px;margin:0 0 3px}.afterlogue-onboarding .log-continue-button{width:100%}}
+@media(max-width:600px){.afterlogue-onboarding>header{flex-direction:row;padding:20px 5%}.afterlogue-onboarding>header nav{display:none}.afterlogue-onboarding .log-page{padding:15px 5% 55px}.afterlogue-onboarding .impressions-hero{padding-bottom:26px;gap:21px}.afterlogue-onboarding .impressions-visual img{height:54vw;min-height:190px}.afterlogue-onboarding .impressions-copy h1{font-size:clamp(34px,8.2vw,47px)}.afterlogue-onboarding .impressions-description{font-size:13px}.afterlogue-onboarding .log-film-section{margin-top:27px}.afterlogue-onboarding .log-section-heading h3{font-size:23px}.afterlogue-onboarding .log-section-heading span{font-size:9px;letter-spacing:1px}.afterlogue-onboarding .log-film-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:23px 12px}.afterlogue-onboarding .log-film-card h4{font-size:13px}.afterlogue-onboarding .rating-overlay{gap:4px;padding:6px}.afterlogue-onboarding .rating-overlay button{font-size:10px;min-height:26px;padding:5px}.afterlogue-onboarding .rating-overlay p{font-size:8px;margin:0 0 3px}.afterlogue-onboarding .log-continue-button{width:auto;max-width:100%;padding:13px 32px}}
 </style>
 </head>
 
@@ -51,7 +52,7 @@
     <nav>
       <a href="index.html">Home</a>
      
-<a href="discover.html">Explore</a>
+<a href="explore.html">Explore</a>
 
       <a href="log.html">Log</a>
       <a href="index.html#discuss">Discuss</a>
@@ -62,7 +63,7 @@
     <section class="impressions-hero" aria-labelledby="impressions-title">
       <div class="impressions-copy">
         <p class="impressions-kicker">AFTERLOGUE / 01 — FIRST IMPRESSIONS</p>
-        <h1 id="impressions-title">It starts with what stays with you.</h1>
+        <h1 id="impressions-title">The stories you know.</h1>
         <p class="impressions-description">Choose the films and shows you know. Your reactions help us find stories you'll want to watch next. No reviews required.</p>
         <p class="impressions-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>About 2 minutes</p>
       </div>
@@ -309,7 +310,7 @@
 </section>
     <div class="log-continue-section">
   <a href="discover.html" class="log-continue-button">
-    See my recommendations
+    Continue
     <span aria-hidden="true">→</span>
   </a>
 </div>
