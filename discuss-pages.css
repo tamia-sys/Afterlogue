@@ -570,3 +570,13 @@
     min-width: 116px;
   }
 }
+
+/* Compact editorial discussion layout: conversation left, visual right. */
+.discuss-thread-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,32%);gap:clamp(22px,4vw,56px);align-items:start;margin-top:22px}
+.discuss-thread-copy{min-width:0}
+.discuss-thread-layout .discuss-article-figure{grid-column:2;grid-row:1;margin:0;width:100%;max-width:none}
+.discuss-thread-layout .discuss-article-figure img{display:block;width:100%;height:clamp(155px,19vw,245px);object-fit:cover;border-radius:5px}
+.discuss-thread-layout .discuss-article-body{grid-column:1;grid-row:1;margin:0;min-width:0}
+.discuss-thread-layout .discuss-article-figure figcaption{font-size:11px;line-height:1.5;margin-top:8px}
+@media(max-width:680px){.discuss-thread-layout{grid-template-columns:minmax(0,1fr) 34%;gap:14px}.discuss-thread-layout .discuss-article-figure img{height:125px}.discuss-thread-layout .discuss-article-figure figcaption{font-size:10px}}
+@media(max-width:420px){.discuss-thread-layout{grid-template-columns:minmax(0,1fr) 36%;gap:12px}.discuss-thread-layout .discuss-article-figure img{height:105px}}
