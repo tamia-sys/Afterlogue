@@ -1,7 +1,8 @@
 
-/* Afterlogue / Personal Log — approved charcoal archive, no card glow */
-body.archive-body { background: #111110; color: #f3eadc; min-height: 100vh; }
-body.archive-body > header.site-header { background: #111110; border-bottom: 1px solid #34312e; }
+/* Afterlogue / Personal Log — true black background and restrained editorial cards */
+html:has(body.archive-body) { background: #000; }
+body.archive-body { background: #000; color: #f3eadc; min-height: 100vh; }
+body.archive-body > header.site-header { background: #000; border-bottom: 1px solid #34312e; }
 body.archive-body > header.site-header nav { gap: clamp(16px,2.2vw,34px); }
 body.archive-body button { font-family: 'Inter', Arial, sans-serif; }
 body.archive-body [hidden] { display: none !important; }
@@ -10,33 +11,37 @@ body.archive-body [hidden] { display: none !important; }
 .archive-page .archive-title { font: 400 clamp(48px,5vw,76px)/1.03 Georgia, serif; letter-spacing: -.035em; margin: 0 0 6px; color: #f4eadc; }
 .archive-page .archive-subtitle { margin: 0; color: #b9b0a5; font: 13px/1.65 'Inter', sans-serif; }
 .archive-page .archive-toolbar { display: flex; gap: 18px; justify-content: space-between; align-items: end; padding-top: 30px; flex-wrap: wrap; }
-.archive-page .archive-tabs { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.archive-page .archive-tab { appearance: none; border: 1px solid rgba(191,165,139,.17); border-radius: 999px; background: #1a1917; color: #b6aba0; padding: 10px 22px; min-width: 102px; font-size: 12px; cursor: pointer; transition: background .17s, color .17s, border-color .17s; }
+.archive-page .archive-tabs { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.archive-page .archive-primary-tabs { display: inline-flex; align-items: center; gap: 2px; padding: 3px; background: #161514; border: 1px solid #4c4034; border-radius: 999px; }
+.archive-page .archive-tab { appearance: none; border: 1px solid transparent; border-radius: 999px; background: transparent; color: #b6aba0; padding: 10px 23px; min-width: 100px; font-size: 12px; cursor: pointer; transition: background .17s, color .17s, border-color .17s; }
+.archive-page .archive-tab-favorites { border-color: #4c4034; background: #161514; min-width: 107px; }
 .archive-page .archive-tab:hover { color: #f4eadc; border-color: #a99376; }
-.archive-page .archive-tab.active { color: #1b1916; background: #dec49e; border-color: #dec49e; }
+.archive-page .archive-tab.active { color: #1b1916; background: #dec49e; border-color: #dec49e; box-shadow: none; }
 .archive-page .archive-categories { display: inline-flex; align-items: center; gap: 2px; background: #1d1b19; border: 1px solid #50463a; border-radius: 999px; padding: 3px; }
 .archive-page .archive-category { padding: 8px 19px; font-size: 11px; color: #bcb2a6; background: transparent; border: 0; border-radius: 999px; cursor: pointer; white-space: nowrap; }
 .archive-page .archive-category.active { color: #1b1916; background: #dec49e; }
 .archive-page .archive-rule { height: 1px; background: #38332c; margin: 21px 0 23px; }
 .archive-page .archive-count { font-size: 11px; color: #978b7d; letter-spacing: .09em; margin: 0 0 16px; }
-.archive-page .archive-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 15px; align-items: stretch; }
-.archive-page .archive-card { display: grid; grid-template-columns: 37% minmax(0,1fr); min-height: 221px; padding: 9px; gap: 13px; background: #211f1c; border: 1px solid #554c40; border-radius: 10px; overflow: hidden; box-shadow: none !important; }
+.archive-page .archive-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); column-gap: 29px; row-gap: 34px; align-items: stretch; }
+.archive-page .archive-card { display: grid; grid-template-columns: 35% minmax(0,1fr); min-height: 205px; padding: 8px; gap: 10px; position: relative; background: #1f1d1b; border: 1px solid #4c4236; border-radius: 9px; box-shadow: none !important; }
+/* Delicate dividers sit in the black gutters, not on top of the artwork. */
+.archive-page .archive-card:not(:nth-child(3n))::after { content: ''; pointer-events: none; position: absolute; top: 10%; bottom: 10%; right: -15px; width: 1px; background: rgba(193,162,124,.26); }
 .archive-page .archive-poster { min-width: 0; background: #2c2925; position: relative; border-radius: 5px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .archive-page .archive-poster img { display: block; width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
 .archive-page .archive-poster-fallback { color: #9d8b77; font: 18px Georgia, serif; text-align: center; padding: 8px; }
 .archive-page .archive-card-body { display: flex; flex-direction: column; min-width: 0; padding: 5px 2px 5px 0; }
 .archive-page .archive-card-heading { display: flex; align-items: start; gap: 5px; justify-content: space-between; }
-.archive-page .archive-card-title { margin: 0; color: #f5eee3; font: 600 clamp(12px,1.18vw,15px)/1.3 'Inter',Arial,sans-serif; overflow-wrap: anywhere; }
+.archive-page .archive-card-title { margin: 0; color: #f5eee3; font: 600 clamp(11px,1.15vw,14px)/1.3 'Inter',Arial,sans-serif; overflow-wrap: anywhere; }
 .archive-page .archive-favorite { flex: none; appearance: none; background: none; border: 0; color: #b4a18c; cursor: pointer; font-size: 19px; line-height: 1; padding: 0 2px; }
 .archive-page .archive-favorite[aria-pressed="true"] { color: #e2b988; }
-.archive-page .archive-meta { margin: 4px 0 11px; font-size: 10px; color: #b0a69c; }
-.archive-page .archive-rating { font-size: 11px; color: #d8b486; min-height: 20px; margin-bottom: 10px; }
+.archive-page .archive-meta { margin: 3px 0 8px; font-size: 10px; color: #b0a69c; }
+.archive-page .archive-rating { font-size: 10px; color: #d8b486; min-height: 18px; margin-bottom: 8px; }
 .archive-page .archive-rating .archive-rating-icon { font-size: 14px; padding-right: 4px; }
 .archive-page .archive-rating.is-neutral { color: #b4aba0; }
 .archive-page .archive-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.archive-page .archive-action { appearance: none; color: #d9c6aa; background: transparent; border: 1px solid #675743; border-radius: 5px; font-size: 10px; min-height: 29px; padding: 5px 9px; cursor: pointer; white-space: nowrap; }
+.archive-page .archive-action { appearance: none; color: #d9c6aa; background: transparent; border: 1px solid #675743; border-radius: 5px; font-size: 9px; min-height: 27px; padding: 5px 7px; cursor: pointer; white-space: nowrap; }
 .archive-page .archive-action:hover { background: #393126; }
-.archive-page .archive-note { margin-top: auto; border-top: 1px solid #51483c; padding-top: 10px; padding-bottom: 1px; min-width: 0; cursor: pointer; }
+.archive-page .archive-note { margin-top: auto; border-top: 1px solid #51483c; padding-top: 8px; padding-bottom: 1px; min-width: 0; cursor: pointer; }
 .archive-page .archive-note-label { color: #bda181; display: block; font-size: 8px; font-weight: 600; letter-spacing: .15em; margin-bottom: 4px; }
 .archive-page .archive-note-text { margin: 0; color: #c5bbb0; font-size: 10px; line-height: 1.5; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
 .archive-page .archive-empty { margin: 0; max-width: 620px; padding: 55px 0 80px; color: #c4b7a8; font-size: 14px; line-height: 1.7; }
@@ -60,7 +65,8 @@ body.archive-body [hidden] { display: none !important; }
 .archive-dialog .dialog-remove { margin-right: auto; background: transparent; border: 0; color: #c9a28b; text-decoration: underline; font-size: 11px; cursor: pointer; }
 .archive-dialog .dialog-error { color: #f6b6a8; font-size: 12px; margin: 12px 0 0; }
 .archive-dialog button:focus-visible, .archive-page button:focus-visible { outline: 2px solid #e2c39e; outline-offset: 3px; }
-@media (max-width: 1160px) { .archive-page .archive-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .archive-page .archive-card-title { font-size: 14px; } }
+@media (max-width: 899px) { .archive-page .archive-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .archive-page .archive-card:not(:nth-child(3n))::after { display: none; } .archive-page .archive-card:nth-child(odd):not(:last-child)::after { display: block; } .archive-page .archive-card-title { font-size: 14px; } }
+@media (min-width: 900px) and (max-width: 1130px) { .archive-page .archive-card { gap: 8px; padding: 7px; min-height: 194px; } .archive-page .archive-note-text { font-size: 9px; } .archive-page .archive-action { font-size: 9px; padding: 4px 5px; } }
 @media (max-width: 735px) {
   body.archive-body > header.site-header { padding: 19px 5%; align-items: center; flex-direction: row; gap: 8px; flex-wrap: wrap; }
   body.archive-body > header.site-header nav { gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
@@ -69,9 +75,12 @@ body.archive-body [hidden] { display: none !important; }
   .archive-page { padding: 31px 5% 90px; }
   .archive-page .archive-title { font-size: 55px; }
   .archive-page .archive-toolbar { padding-top: 24px; align-items: start; }
-  .archive-page .archive-tabs { width: 100%; }
+  .archive-page .archive-tabs { width: 100%; gap: 9px; }
+  .archive-page .archive-primary-tabs { flex: 1 1 auto; }
   .archive-page .archive-tab { min-width: 0; flex: 1; padding: 10px 8px; }
+  .archive-page .archive-tab-favorites { flex: 0 1 100px; }
   .archive-page .archive-grid { grid-template-columns: 1fr; }
+  .archive-page .archive-card:not(:last-child)::after { display: block; top: auto; right: 5%; left: 5%; bottom: -18px; width: auto; height: 1px; background: rgba(193,162,124,.26); }
   .archive-page .archive-card { grid-template-columns: 35% minmax(0,1fr); min-height: 210px; }
   .archive-page .archive-card-title { font-size: 14px; }
   .archive-page .archive-card .archive-meta { font-size: 10px; }
