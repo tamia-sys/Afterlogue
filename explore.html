@@ -113,6 +113,63 @@ body.explore-body>header{padding:19px 5%;align-items:center}
 .explore-results-head .explore-button{margin-top:20px}
 }
 @media(prefers-reduced-motion:reduce){.mood-card .mood-image,.explore-art img,.explore-pick-info{transition:none}}
+
+/* Quiet photographic collections; search before the gallery, no second hero. */
+.explore-shell{padding-top:32px}
+.explore-top{margin-bottom:22px;padding-bottom:8px;border-bottom:0}
+.explore-top h1{font-size:clamp(36px,4.1vw,61px);margin:9px 0 9px}
+.explore-lead{font-size:13px;max-width:600px}
+.explore-browse{margin-bottom:34px}
+.explore-search{height:48px;border:1px solid #695946;background:#11100e;display:flex;align-items:center;gap:13px;padding:0 16px}
+.explore-search:focus-within{border-color:#D4B487}
+.explore-search svg{width:19px;height:19px;fill:none;stroke:#D4B487;stroke-width:1.6;stroke-linecap:round;flex:none}
+.explore-search input{flex:1;min-width:0;height:100%;outline:0;border:0;background:transparent;color:#F4EADD;font:13px Inter,Arial,sans-serif}
+.explore-search input::placeholder{color:#AB9E8D}
+.explore-search>span{font:600 9px Inter,Arial,sans-serif;letter-spacing:.16em;color:#BAA58A}
+.explore-filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:11px}
+.explore-filters label{height:36px;padding:0 11px;border:1px solid #4C4135;display:flex;gap:9px;align-items:center;color:#BFB09E;font:11px Inter,Arial,sans-serif}
+.explore-filters select{max-width:170px;min-width:0;background:#000;border:0;outline:0;color:#F4EADD;font:11px Inter,Arial,sans-serif;cursor:pointer}
+.explore-filters label:focus-within{border-color:#D4B487}
+#explore-clear{border:0;background:none;color:#D4B487;padding:7px;font:11px Inter,Arial,sans-serif;cursor:pointer}
+#explore-browse-note{color:#988A78;font:11px/1.5 Inter,Arial,sans-serif;margin:10px 0 0}
+.explore-gallery{grid-template-columns:repeat(3,minmax(0,1fr));gap:29px 22px}
+.mood-card{background:transparent;border:0;min-height:0;aspect-ratio:auto;overflow:visible;display:flex;flex-direction:column;isolation:auto}
+.mood-card::after{display:none}
+.mood-card .mood-image{position:relative;inset:auto;width:100%;aspect-ratio:1.43/1;display:block;flex:none;filter:saturate(.7) brightness(.84)}
+.mood-card-body{position:relative;left:auto;right:auto;bottom:auto;padding-top:12px;display:block}
+.mood-card .mood-number{display:none}
+.mood-card .mood-title{max-width:none;font-size:clamp(19px,2vw,26px);line-height:1.23}
+.mood-card .mood-bottom{font:11px/1.5 Inter,Arial,sans-serif;color:#A99B87;margin-top:6px}
+.mood-card .mood-arrow{font-size:17px;color:#D4B487}
+.mood-card[hidden]{display:none}
+.explore-mystery{margin-top:36px;padding:19px 0}
+.explore-mystery h2{font-size:23px}
+.explore-search-results{margin:0 0 35px;padding:0 0 28px;border-bottom:1px solid #3C3229}
+.explore-search-results[hidden],#explore-no-matches[hidden]{display:none}
+.explore-search-results .explore-picks{gap:19px 14px}
+.explore-search-results .explore-pick{max-width:225px}
+#explore-no-matches{font:13px/1.6 Inter,Arial,sans-serif;color:#C5B5A1}
+.explore-art{border:0;border-radius:2px}
+.explore-pick h3{font:500 14px/1.4 Inter,Arial,sans-serif}
+.explore-pick .explore-year{font:11px Inter,Arial,sans-serif}
+@media(max-width:1000px){.explore-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){
+.explore-shell{padding-top:25px}
+.explore-top{padding-bottom:7px;margin-bottom:18px}
+.explore-top h1{font-size:clamp(34px,9vw,46px)}
+.explore-search{height:45px;padding:0 12px}
+.explore-search>span{display:none}
+.explore-filters{gap:7px}
+.explore-filters label{flex:1 1 calc(50% - 7px);justify-content:space-between;padding:0 8px}
+.explore-filters select{max-width:110px;font-size:10px}
+.explore-gallery{gap:23px 12px}
+.mood-card{min-height:0}
+.mood-card .mood-image{aspect-ratio:1.05/1}
+.mood-card-body{padding-top:9px}
+.mood-card .mood-title{font-size:19px}
+.mood-card .mood-bottom{font-size:10px}
+.explore-search-results .explore-picks{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 </head>
 <body class="explore-body">
@@ -134,12 +191,32 @@ body.explore-body>header{padding:19px 5%;align-items:center}
   <div class="explore-top">
     <div>
       <p class="explore-eyebrow">AFTERLOGUE / 02 — EXPLORE</p>
-      <h1 id="explore-title">What are you in the mood for?</h1>
-      <p class="explore-lead">Some stories are better found by feeling. Start wherever you are.</p>
+      <h1 id="explore-title">There's something for everything.</h1>
+      <p class="explore-lead">A story for whatever you're feeling. Follow a mood, or search for something specific.</p>
     </div>
     <p class="explore-aside">A different kind of search.<br>Follow the feeling.</p>
   </div>
-  <div class="explore-group-label"><p>01 — FOLLOW A FEELING</p><span>Choose a mood to begin</span></div>
+  <section class="explore-browse" aria-label="Search and filter stories">
+  <label class="explore-search" for="explore-search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.1"/><path d="M16.2 16.2 21 21"/></svg>
+    <input id="explore-search" type="search" placeholder="Search a mood, theme, or title..." autocomplete="off" aria-controls="explore-search-results explore-gallery">
+    <span>SEARCH</span>
+  </label>
+  <div class="explore-filters">
+    <label>Genre <select id="explore-genre"><option value="all">All genres</option></select></label>
+    <label>Year <select id="explore-year"><option value="all">Any decade</option></select></label>
+    <label>Country <select id="explore-country"><option value="all">All countries</option></select></label>
+    <label>Format <select id="explore-format"><option value="all">Movies &amp; TV</option><option value="movies">Movies</option><option value="tv">TV Shows</option></select></label>
+    <button type="button" id="explore-clear" hidden>Clear ×</button>
+  </div>
+  <p id="explore-browse-note">Search and filter our curated starter catalog.</p>
+</section>
+<section id="explore-search-results" class="explore-search-results" hidden aria-live="polite">
+  <div class="explore-group-label"><p>MATCHING STORIES</p><span id="explore-matches-count"></span></div>
+  <div class="explore-picks" id="explore-match-picks"></div>
+  <p id="explore-no-matches" hidden>No matches yet in our starter catalog. Try a broader search.</p>
+</section>
+<div class="explore-group-label"><p>01 — A LITTLE SOMETHING FOR...</p><span>Choose a collection to begin</span></div>
   <div class="explore-gallery">
     <button type="button" class="mood-card" data-mood="yearning"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">001 / FEELING</span><span class="mood-title">Something for yearning.</span><span class="mood-bottom"><span>Longing &amp; what could have been</span><span class="mood-arrow">↗</span></span></span></button>
     <button type="button" class="mood-card" data-mood="winding"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">002 / MOMENT</span><span class="mood-title">Something for winding down.</span><span class="mood-bottom"><span>For slower evenings</span><span class="mood-arrow">↗</span></span></span></button>
@@ -175,7 +252,7 @@ body.explore-body>header{padding:19px 5%;align-items:center}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=2"></script>
-<script src="explore-data.js"></script>
+<script src="explore-data.js?v=2"></script>
 <script>
 (() => {
 "use strict";
