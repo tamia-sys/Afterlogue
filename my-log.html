@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Log — Afterlogue</title>
   <link rel="stylesheet" href="style.css?v=29">
-  <link rel="stylesheet" href="my-log.css?v=2">
+  <link rel="stylesheet" href="my-log.css?v=3">
 </head>
 <body class="archive-body">
   <header class="site-header">
@@ -27,7 +27,8 @@
           <p id="account-email">Checking your account…</p>
           <p id="account-status"></p>
           <div class="account-divider"></div>
-          <p class="account-settings">Account settings — Coming soon</p>
+          <button type="button" class="archive-settings-open" id="log-sharing-settings-open">Note sharing settings</button>
+          <p class="account-settings">Other account settings — Coming soon</p>
           <button type="button" id="account-signout" hidden>Sign out</button>
         </div>
       </details>
@@ -83,7 +84,15 @@
         <label class="dialog-field" for="dialog-note">Private note
           <textarea id="dialog-note" name="note" maxlength="4000" placeholder="The scenes, feelings, or details you want to remember…"></textarea>
         </label>
-        <p class="dialog-privacy">Only you can view this note. Sharing a title does not share your note.</p>
+        <label class="dialog-field" for="dialog-share-preference">When sharing this story
+          <select id="dialog-share-preference" name="sharePreference">
+            <option value="inherit">Use my account preference</option>
+            <option value="ask">Ask me each time</option>
+            <option value="include">Include my note automatically</option>
+            <option value="exclude">Never include my note</option>
+          </select>
+        </label>
+        <p class="dialog-privacy">Your note is private until you choose to include it in a share. This setting affects only this story.</p>
         <p class="dialog-error" id="dialog-error" role="alert"></p>
         <div class="dialog-controls">
           <button type="button" class="dialog-remove" id="dialog-remove-watchlist" hidden>Remove from Watchlist</button>
@@ -93,9 +102,59 @@
     </div>
   </dialog>
 
+  <dialog class="archive-dialog archive-share-dialog" id="archive-share-dialog" aria-labelledby="share-dialog-title">
+    <div class="dialog-content">
+      <div class="dialog-top">
+        <div>
+          <p class="dialog-eyebrow">AFTERLOGUE / SHARE</p>
+          <h2 id="share-dialog-title">Share this story.</h2>
+        </div>
+        <button type="button" class="dialog-close" id="share-dialog-close" aria-label="Cancel sharing">×</button>
+      </div>
+      <p class="archive-share-explanation">Your note stays private unless you include it.</p>
+      <label class="archive-share-check">
+        <input type="checkbox" id="share-include-note">
+        <span>Include my personal note</span>
+      </label>
+      <p class="dialog-eyebrow archive-preview-label">SHARE PREVIEW</p>
+      <div class="archive-share-preview" id="share-preview"></div>
+      <div class="dialog-controls">
+        <button type="button" class="archive-secondary-button" id="share-dialog-cancel">Cancel</button>
+        <button type="button" class="dialog-save" id="share-dialog-confirm">Share</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="archive-dialog archive-settings-dialog" id="archive-settings-dialog" aria-labelledby="share-settings-title">
+    <div class="dialog-content">
+      <div class="dialog-top">
+        <div>
+          <p class="dialog-eyebrow">AFTERLOGUE / ACCOUNT SETTINGS</p>
+          <h2 id="share-settings-title">Sharing preferences.</h2>
+        </div>
+        <button type="button" class="dialog-close" id="share-settings-close" aria-label="Close sharing preferences">×</button>
+      </div>
+      <form id="archive-settings-form">
+        <label class="dialog-field" for="account-note-share-default">When I share a story with a personal note
+          <select id="account-note-share-default" name="accountNoteDefault">
+            <option value="ask">Ask me every time (recommended)</option>
+            <option value="include">Never ask — include my note</option>
+            <option value="exclude">Never ask — keep my note private</option>
+          </select>
+        </label>
+        <p class="dialog-privacy">Your notes are private by default. You can override this preference for individual stories in Details. Choosing automatic inclusion will share the note when you press Share.</p>
+        <p class="dialog-error" id="share-settings-error" role="alert"></p>
+        <div class="dialog-controls">
+          <button type="button" class="archive-secondary-button" id="share-settings-cancel">Cancel</button>
+          <button type="submit" class="dialog-save" id="share-settings-save">Save preference</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script src="site-navigation.js?v=2"></script>
-  <script src="my-log.js?v=1"></script>
+  <script src="my-log.js?v=2"></script>
 </body>
 </html>
