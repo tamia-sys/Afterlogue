@@ -60,6 +60,34 @@
 #preview-image-figure{margin:0;min-width:0}
 #preview-image{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:50% 50%;border-radius:5px}
 @media(max-width:650px){.discuss-preview-editor{grid-template-columns:1fr}.discuss-live-preview{grid-template-columns:minmax(0,1fr) 35%;gap:12px}.discuss-live-preview .discuss-form-heading{font-size:23px}}
+
+
+/* Full-width editorial preview, matching the published conversation proportions. */
+.discuss-compose-page #compose-preview{
+  display:block; width:100%; max-width:none; box-sizing:border-box;
+  margin:24px 0 0; padding:24px 28px; background:#12100e;
+}
+.discuss-compose-page #compose-preview[hidden]{display:none!important}
+.discuss-compose-page .discuss-preview-editor{
+  display:grid; grid-template-columns:minmax(0,1fr) 170px minmax(0,1.15fr);
+  gap:22px; align-items:start; margin-bottom:22px;
+}
+.discuss-compose-page .discuss-live-preview{
+  display:grid; width:100%; grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+  gap:30px; align-items:start;
+}
+.discuss-compose-page .discuss-live-copy{min-width:0}
+.discuss-compose-page #preview-image-figure{margin:0; width:100%; min-width:0}
+.discuss-compose-page #preview-image{width:100%;height:auto;object-fit:cover}
+.discuss-compose-page #preview-heading{max-width:none;line-height:1.1}
+.discuss-compose-page .discuss-title-size-tool label{display:block;color:#d6b58c}
+.discuss-compose-page .discuss-title-size-tool input{width:100%;accent-color:#d8b68d;margin-top:12px}
+.discuss-compose-page .discuss-title-size-tool output{color:#f4eadd}
+@media(max-width:650px){
+.discuss-compose-page #compose-preview{padding:16px}
+.discuss-compose-page .discuss-preview-editor{grid-template-columns:1fr}
+.discuss-compose-page .discuss-live-preview{grid-template-columns:minmax(0,1fr) 43%;gap:12px}
+}
 </style></head>
 <body class="discuss-body discuss-compose-page">
 <header class="site-header">
