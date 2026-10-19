@@ -115,24 +115,50 @@
     }
   }
 
+  const previewTitle = $('preview-title-edit');
+  const frame = $('preview-image-frame'), cropX = $('preview-crop-x'), cropY = $('preview-crop-y');
+  function updatePreviewImage() {
+    const figure = $('preview-image-figure'), image = $('preview-image');
+    figure.hidden = !objectUrl;
+    $('preview-image-tools').hidden = !objectUrl;
+    if (!objectUrl) return;
+    image.src = objectUrl;
+    image.alt = imageAlt.value.trim() || 'Conversation image';
+    image.style.aspectRatio = frame.value === 'square' ? '1/1' : frame.value === 'wide' ? '2/1' : '16/9';
+    image.style.objectPosition = cropX.value + '% ' + cropY.value + '%';
+  }
   function renderPreview() {
+    $('preview-heading').textContent = $('compose-title').value.trim() || 'Your conversation title';
     previewBody.replaceChildren();
-    if ($('compose-has-spoilers').checked) {
-      const warning = document.createElement('p');
-      warning.className = 'discuss-form-help';
-      warning.textContent = 'This conversation is marked as containing spoilers.';
-      previewBody.appendChild(warning);
-    }
-    if (objectUrl) {
-      const visual = document.createElement('img');
-      visual.src = objectUrl;
-      visual.alt = imageAlt.value.trim() || 'Selected conversation visual';
-      visual.className = 'discuss-embedded-image';
-      previewBody.appendChild(visual);
-    }
     const text = document.createElement('div');
     showSpoilerText(text,bodyText() || 'Your words will appear here.');
     previewBody.appendChild(text);
+    updatePreviewImage();
+  }
+  previewTitle.addEventListener('input', () => {
+    $('compose-title').value = previewTitle.value;
+    $('preview-heading').textContent = previewTitle.value || 'Your conversation title';
+  });
+  [frame,cropX,cropY].forEach(el=>el.addEventListener('input',updatePreviewImage));
+  function preparedImage() {
+    if (!selectedFile) return Promise.resolve(null);
+    return new Promise((resolve,reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = frame.value === 'square' ? 1 : frame.value === 'wide' ? 2 : 16/9;
+        const sw = Math.min(img.naturalWidth,img.naturalHeight*ratio);
+        const sh = sw/ratio;
+        const sx = (img.naturalWidth-sw)*(Number(cropX.value)/100);
+        const sy = (img.naturalHeight-sh)*(Number(cropY.value)/100);
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1,1600/sw);
+        canvas.width = Math.round(sw*scale); canvas.height = Math.round(sh*scale);
+        canvas.getContext('2d').drawImage(img,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Could not crop image')),'image/jpeg',0.9);
+      };
+      img.onerror = () => reject(new Error('Image could not be read'));
+      img.src = objectUrl;
+    });
   }
   $('compose-kind').addEventListener('change',workFields);
   $('compose-save').addEventListener('click',saveDraft);
@@ -141,7 +167,7 @@
     preview.hidden = !opening;
     $('compose-preview-toggle').textContent = opening ? 'Close preview' : 'Preview';
     if (!opening) return;
-    $('preview-heading').textContent = $('compose-title').value.trim() || 'Your conversation title';
+    previewTitle.value = $('compose-title').value;
     renderPreview();
   });
 
@@ -169,9 +195,10 @@
     try {
       if (selectedFile) {
         status.textContent = 'Uploading your image…';
-        uploadedPath = member.id + '/' + crypto.randomUUID() + '.' + allowedTypes[selectedFile.type];
-        const result = await bucket.upload(uploadedPath,selectedFile,{
-          cacheControl:'3600', contentType:selectedFile.type, upsert:false
+        const croppedImage = await preparedImage();
+        uploadedPath = member.id + '/' + crypto.randomUUID() + '.jpg';
+        const result = await bucket.upload(uploadedPath,croppedImage,{
+          cacheControl:'3600', contentType:'image/jpeg', upsert:false
         });
         if (result.error) throw result.error;
       }
