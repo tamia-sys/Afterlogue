@@ -540,3 +540,33 @@
   color: #f4eadd;
   text-decoration: none;
 }
+
+
+/* Keep both visual-edit actions exactly equal in size and styling. */
+.discuss-compose-page .discuss-image-action-row > button.discuss-quiet-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 124px;
+  min-width: 124px;
+  min-height: 34px;
+  padding: 7px 10px !important;
+  border: 1px solid #826548 !important;
+  border-radius: 999px;
+  background: transparent;
+  color: #dfb48e !important;
+  font: 400 11px/1.25 Inter, Arial, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.discuss-compose-page .discuss-image-action-row > button.discuss-quiet-button:hover {
+  background: #2b2018;
+  color: #f4eadd !important;
+}
+@media (max-width: 360px) {
+  .discuss-compose-page .discuss-image-action-row > button.discuss-quiet-button {
+    width: 116px;
+    min-width: 116px;
+  }
+}
