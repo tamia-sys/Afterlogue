@@ -194,3 +194,68 @@ body.discuss-body>header.site-header{background:#000}
   .discuss-tabs .discuss-tab { padding: 10px 14px; }
   .discuss-rules { margin-top: 52px; }
 }
+
+
+/* DISCUSS / SPACING + FEATURED PHOTOGRAPH — compact editorial card */
+.discuss-shell { padding-top: 28px; }
+.discuss-introduction { padding-bottom: 2px; }
+.discuss-introduction .discuss-eyebrow { margin-bottom: 6px; }
+.discuss-introduction .discuss-title { font-size: clamp(48px,5.2vw,69px); }
+.discuss-introduction .discuss-subtitle { margin: 5px 0 19px; }
+.discuss-feature {
+  grid-template-columns: minmax(0,1.45fr) minmax(220px,.55fr);
+  align-items: stretch;
+}
+.discuss-feature-copy {
+  padding: clamp(18px,2.25vw,30px) clamp(24px,3.4vw,44px);
+}
+.discuss-feature .discuss-kicker { margin-bottom: 12px; }
+.discuss-feature h2 { font-size: clamp(29px,3.3vw,45px); margin-bottom: 7px; }
+.discuss-feature p:not(.discuss-kicker) { line-height: 1.5; }
+.discuss-feature .discuss-feature-button { margin-top: 16px; padding: 10px 17px; }
+.discuss-feature-art {
+  position: relative;
+  isolation: isolate;
+  min-height: 205px;
+  padding: 17px;
+  background: #171411;
+  overflow: hidden;
+}
+.discuss-feature-photograph {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 46%;
+  filter:saturate(.67) brightness(.68);
+  z-index:-2;
+}
+.discuss-feature-art::after {
+  content:'';
+  position:absolute; inset:0;
+  background: linear-gradient(180deg,rgba(0,0,0,.24),transparent 37%,rgba(0,0,0,.55));
+  pointer-events:none;
+  z-index:-1;
+}
+.discuss-feature-art-top,.discuss-feature-art-bottom {
+  color:#f1dab9; text-shadow:0 2px 8px rgba(0,0,0,.6);
+}
+.discuss-tools { margin-top: 34px; }
+@media (max-width:850px) {
+  .discuss-feature { grid-template-columns: minmax(0,1.25fr) minmax(165px,.75fr); }
+  .discuss-feature-art { min-height: 192px; }
+}
+@media (max-width:650px) {
+  .discuss-shell { padding-top: 23px; }
+  .discuss-introduction .discuss-title { font-size: 53px; }
+  .discuss-introduction .discuss-subtitle { margin: 7px 0 17px; }
+  .discuss-feature { display:grid; grid-template-columns: minmax(0,1fr) 94px; }
+  .discuss-feature-copy { padding: 19px 15px; }
+  .discuss-feature h2 { font-size:clamp(27px,7vw,35px); }
+  .discuss-feature .discuss-kicker { font-size: 9px; }
+  .discuss-feature .discuss-feature-button { margin-top:14px; padding:9px 13px; }
+  .discuss-feature-art { display:flex; min-height: 195px; padding: 8px; }
+  .discuss-feature-art-top,.discuss-feature-art-bottom { display:none; }
+  .discuss-tools { margin-top: 34px; }
+}
