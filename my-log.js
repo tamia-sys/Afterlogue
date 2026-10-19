@@ -170,6 +170,8 @@
       function () { openDetails(record); }));
     controls.appendChild(action('♧ Share', 'Share ' + record.title,
       function () { shareTitle(record); }));
+    controls.appendChild(action('↗ Discuss', 'Start a discussion about ' + record.title,
+      function () { discussFromLog(record); }));
     body.appendChild(controls);
 
     const note = el('div', 'archive-note');
@@ -538,6 +540,32 @@
       settingsSave.disabled = false;
       settingsSave.textContent = 'Save preference';
     }
+  }
+
+  function discussFromLog(record) {
+    if (!state.user) {
+      window.location.assign('signup.html?mode=signin');
+      return;
+    }
+    const rated = impression(record.key);
+    const extra = metadata(record.key);
+    const personalNote = extra && extra.private_note ? extra.private_note.trim() : '';
+    const includeNote = Boolean(personalNote) && window.confirm(
+      'Would you like to include your personal Log note in the discussion draft?\n\n' +
+      'OK = include note. Cancel = keep it private.\n\nNothing will be published until you review and submit the draft.'
+    );
+    const draft = {
+      kind: 'title',
+      work: record.title,
+      heading: 'Thoughts on ' + record.title,
+      body: [
+        rated ? 'My impression: ' + rated.rating + '.' : '',
+        includeNote ? personalNote : ''
+      ].filter(Boolean).join('\n\n')
+    };
+    try { sessionStorage.setItem('afterlogue-discuss-draft', JSON.stringify(draft)); }
+    catch (e) { console.warn('Could not save discussion draft', e); }
+    window.location.assign('discuss.html?compose=1');
   }
 
   async function loadAccount() {
