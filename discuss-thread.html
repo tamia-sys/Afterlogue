@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#000000">
+<title>Conversation — Afterlogue</title>
+<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="discuss.css?v=2">
+<link rel="stylesheet" href="discuss-pages.css?v=1">
+<link rel="stylesheet" href="mobile-header.css?v=3">
+</head>
+<body class="discuss-body">
+<header class="site-header">
+<a href="index.html" class="logo">afterlogue.</a>
+<nav aria-label="Main navigation">
+<a href="discover.html">Home</a><a href="explore.html">Explore</a>
+<a href="my-log.html">Log</a><a href="discuss.html" aria-current="page">Discuss</a>
+<details class="account-menu">
+<summary aria-label="Open account menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/></svg></summary>
+<div class="account-dropdown">
+<p class="account-heading">Your account</p><p id="account-email">Checking your account...</p>
+<p id="account-status"></p><div class="account-divider"></div>
+<p class="account-settings">Account settings — Coming soon</p>
+<button type="button" id="account-signout" hidden>Sign out</button>
+<a id="account-signin" href="signup.html?mode=signin" hidden>Sign in / Create account</a>
+</div></details>
+</nav></header><main class="discuss-interior">
+<a href="discuss.html" class="discuss-back">← Back to Discuss</a>
+<p id="thread-status" class="discuss-full-status" role="status" aria-live="polite">Opening conversation…</p>
+<section id="member-only" class="discuss-guest-cta" hidden>
+<p>Film and television-specific conversations are reserved for Afterlogue members.</p>
+<a href="signup.html?mode=signin">Sign in to read →</a>
+</section>
+<article id="conversation-article" class="discuss-article" hidden>
+<p id="thread-eyebrow" class="discuss-inner-eyebrow">AFTERLOGUE / IN CONVERSATION</p>
+<h1 id="thread-heading"></h1>
+<div class="discuss-article-meta">
+<span id="thread-category" class="tag"></span><span id="thread-byline"></span><span id="thread-date"></span>
+<span class="tag" id="thread-spoiler-label" hidden>Spoilers</span>
+</div>
+<div id="thread-content" class="discuss-article-body"></div>
+<div id="spoiler-warning" class="discuss-warning" hidden>
+<p>This conversation may reveal plot details. Choose when you’re ready to read.</p>
+<button type="button" id="reveal-thread" class="discuss-primary">Reveal conversation</button>
+</div>
+<div class="discuss-article-actions">
+<button type="button" id="report-conversation" class="discuss-quiet-button" hidden>Report conversation</button>
+</div>
+</article>
+<section id="comments-section" class="discuss-comments" hidden aria-labelledby="comments-heading">
+<div class="discuss-comments-heading">
+<h2 id="comments-heading">Responses.</h2><span id="comment-count"></span>
+</div>
+<div id="comment-list" aria-live="polite"><p class="discuss-no-comments">Loading responses…</p></div>
+<div class="discuss-reply-section">
+<form id="reply-form" hidden>
+<h3>Join the conversation.</h3>
+<label for="reply-text" class="discuss-entry-label">Your response
+<textarea class="discuss-entry-textarea" id="reply-text" minlength="2" maxlength="2000" required placeholder="Add your perspective…"></textarea></label>
+<div class="discuss-post-actions">
+<label class="discuss-checkbox-row"><input type="checkbox" id="reply-is-spoiler">This response contains spoilers</label>
+<button type="submit" class="discuss-primary" id="reply-send">Post response <span aria-hidden="true">↗</span></button>
+</div>
+<p id="reply-message" role="status" class="discuss-status-message" aria-live="polite"></p>
+</form>
+<div class="discuss-guest-cta" id="guest-reply" hidden>
+<p>Have something to add? Join Afterlogue to share your perspective.</p>
+<a href="signup.html?mode=signin">Sign in to respond →</a>
+</div></div>
+</section></main>
+<dialog id="report-dialog" class="discuss-report-dialog" aria-labelledby="report-heading">
+<form id="report-form"><h2 id="report-heading">Report conversation.</h2>
+<label for="report-reason">Why are you reporting this?
+<select id="report-reason" required><option value="spoiler">Unmarked spoilers</option><option value="harassment">Harassment</option><option value="spam">Spam</option><option value="other">Other concern</option></select></label>
+<p id="report-message" class="discuss-status-message" role="status"></p>
+<div class="discuss-post-actions"><button type="button" class="discuss-cancel" id="report-cancel">Cancel</button><button type="submit" class="discuss-primary" id="report-submit">Submit report</button></div>
+</form></dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="site-navigation.js?v=2"></script>
+<script src="discuss-common.js?v=1"></script>
+<script src="discuss-thread.js?v=1"></script>
+</body></html>
