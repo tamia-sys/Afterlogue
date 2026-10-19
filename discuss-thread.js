@@ -31,7 +31,7 @@
     const figure = $('thread-image-figure');
     figure.hidden = true;
     body.replaceChildren();
-    const parts = String(t.body || '').replace(/^\[\[afterlogue:title-size:\d{2}\]\]/,'').split(IMAGE_TOKEN);
+    const parts = String(t.body || '').replace(/^\[\[afterlogue:title-size:\d{2}\]\]/,'').replace(/^\[\[afterlogue:visual:\d{2},-?\d{1,3},\d{2,3}\]\]/,'').split(IMAGE_TOKEN);
     parts.forEach((part,index) => {
       if (part) {
         const block = make('div','discuss-article-text');
@@ -187,6 +187,16 @@
     const title = t.title || 'Conversation';
     document.title = (t.has_spoilers ? 'Spoiler-marked conversation' : title) + ' — Afterlogue';
     $('thread-heading').textContent = t.has_spoilers ? 'A conversation with spoilers.' : title;
+    const visualMatch = String(t.body || '').match(/\[\[afterlogue:visual:(\d{2}),(-?\d{1,3}),(\d{2,3})\]\]/);
+    const layout = document.querySelector('.discuss-thread-copy');
+    if (visualMatch && layout) {
+      const width = Math.max(30,Math.min(49,Number(visualMatch[1])));
+      const offset = Math.max(-120,Math.min(180,Number(visualMatch[2])));
+      const ratio = Math.max(.6,Math.min(2.4,Number(visualMatch[3])/100));
+      layout.style.setProperty('--visual-width',width+'%');
+      layout.style.setProperty('--visual-offset',offset+'px');
+      layout.style.setProperty('--visual-ratio',String(ratio));
+    }
     const titleMatch = String(t.body || '').match(/^\[\[afterlogue:title-size:(\d{2})\]\]/);
     $('thread-heading').style.setProperty('--conversation-title-size', (titleMatch ? Math.min(48,Math.max(24,Number(titleMatch[1]))) : 36) + 'px');
     $('thread-category').textContent =
