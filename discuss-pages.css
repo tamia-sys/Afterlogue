@@ -517,3 +517,26 @@
     max-height: 94px;
   }
 }
+
+
+/* Paired, understated controls below the compact image preview. */
+.discuss-compose-page .discuss-image-action-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.discuss-compose-page .discuss-image-action-row .discuss-quiet-button {
+  margin: 0;
+}
+.discuss-compose-page .discuss-change-visual {
+  color: #dfb48e;
+  border: 1px solid #826548;
+  border-radius: 999px;
+  padding: 7px 13px;
+}
+.discuss-compose-page .discuss-change-visual:hover {
+  background: #2b2018;
+  color: #f4eadd;
+  text-decoration: none;
+}
