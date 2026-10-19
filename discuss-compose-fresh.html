@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#000000">
+<title>Start a conversation — Afterlogue (Latest)</title>
+<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="discuss.css?v=3">
+<link rel="stylesheet" href="discuss-pages.css?v=20261019-17">
+<link rel="stylesheet" href="mobile-header.css?v=3">
+
+<style id="discuss-visual-controls-fix">
+/* Inline to avoid a stale styles cache during the deployment transition. */
+.discuss-compose-page .discuss-image-action-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+.discuss-compose-page .discuss-image-action-row #compose-image-change-button,
+.discuss-compose-page .discuss-image-action-row #compose-image-remove {
+  appearance: none !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 124px !important;
+  min-width: 124px !important;
+  height: 35px !important;
+  min-height: 35px !important;
+  margin: 0 !important;
+  padding: 7px 10px !important;
+  border: 1px solid #826548 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: #dfb48e !important;
+  font: 400 11px/1.25 Inter,Arial,sans-serif !important;
+  white-space: nowrap !important;
+}
+.discuss-compose-page .discuss-image-action-row #compose-image-change-button:hover,
+.discuss-compose-page .discuss-image-action-row #compose-image-remove:hover { background: #2b2018 !important; }
+@media (max-width: 360px) {
+  .discuss-compose-page .discuss-image-action-row #compose-image-change-button,
+  .discuss-compose-page .discuss-image-action-row #compose-image-remove {
+    width: 116px !important;
+    min-width: 116px !important;
+  }
+}
+</style>
+</head>
+<body class="discuss-body discuss-compose-page">
+<header class="site-header">
+<a href="index.html" class="logo">afterlogue.</a>
+<nav aria-label="Main navigation">
+<a href="discover.html">Home</a><a href="explore.html">Explore</a>
+<a href="my-log.html">Log</a><a href="discuss.html" aria-current="page">Discuss</a>
+<details class="account-menu">
+<summary aria-label="Open account menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/></svg></summary>
+<div class="account-dropdown">
+<p class="account-heading">Your account</p><p id="account-email">Checking your account...</p>
+<p id="account-status"></p><div class="account-divider"></div>
+<p class="account-settings">Account settings — Coming soon</p>
+<button type="button" id="account-signout" hidden>Sign out</button>
+<a id="account-signin" href="signup.html?mode=signin" hidden>Sign in / Create account</a>
+</div></details>
+</nav></header><main class="discuss-interior">
+<a href="discuss.html" class="discuss-back">← Back to Discuss</a>
+<p class="discuss-inner-eyebrow">AFTERLOGUE / 04 — YOUR PERSPECTIVE</p>
+<h1 class="discuss-compose-heading">Start a conversation.</h1>
+<p class="discuss-subtitle">Every story can lead somewhere unexpected. Begin with a thought worth sharing.</p>
+<p id="compose-loading" class="discuss-full-status" role="status">Preparing your writing space…</p>
+<div id="compose-gate" class="discuss-guest-cta" hidden>
+<p>Members can start conversations. You’re welcome to browse the public discussions first.</p>
+<a href="signup.html?mode=signin">Sign in to write →</a>
+</div>
+<form id="compose-form" hidden>
+<div class="discuss-form-layout">
+<div class="discuss-form-main">
+<div class="discuss-upload-panel" id="compose-upload-panel">
+  <p class="discuss-entry-label">Start with a visual <span class="discuss-form-help">(optional)</span></p>
+  <label for="compose-image" class="discuss-image-drop" id="compose-image-drop">
+    <span class="discuss-upload-placeholder">
+      <span aria-hidden="true" class="discuss-image-plus">＋</span>
+      Add an image to inspire your story
+      <small>JPG, PNG, or WebP · up to 5 MB</small>
+    </span>
+  </label>
+  <div id="compose-image-selected" class="discuss-selected-image-box" hidden>
+    <img id="compose-image-preview" class="discuss-upload-preview" alt="Selected visual preview">
+  </div>
+  <input id="compose-image" type="file" accept="image/jpeg,image/png,image/webp"
+     class="discuss-file-input" aria-describedby="compose-image-help">
+  <div id="compose-image-attachment" class="discuss-image-attachment" hidden>
+    <div class="discuss-image-action-row">
+      <button type="button" id="compose-image-change-button" class="discuss-quiet-button discuss-change-visual">Change image</button>
+      <button type="button" id="compose-image-remove" class="discuss-quiet-button discuss-remove-visual">Remove image ×</button>
+    </div>
+    <label for="compose-image-alt" class="discuss-entry-label">Describe this image
+      <input id="compose-image-alt" class="discuss-entry-input" maxlength="180" placeholder="What does this image show?">
+    </label>
+  </div>
+  <p id="compose-image-help" class="discuss-form-help">Your image stays here, above the conversation. You can write separately below.</p>
+</div>
+
+<label for="compose-kind" class="discuss-entry-label">Conversation type
+<select class="discuss-entry-select" id="compose-kind">
+<option value="general">General — open for everyone to read</option>
+<option value="title">About a film or show — members only</option>
+</select></label>
+<div id="compose-title-fields" class="discuss-form-work" hidden>
+<label for="compose-work" class="discuss-entry-label">Film or show
+<input class="discuss-entry-input" id="compose-work" maxlength="120" placeholder="Which story?" autocomplete="off"></label>
+<label for="compose-work-type" class="discuss-entry-label">Format
+<select class="discuss-entry-select" id="compose-work-type"><option value="film">Film</option><option value="tv">TV show</option></select></label>
+</div>
+<label for="compose-title" class="discuss-entry-label">Conversation title
+<input class="discuss-entry-input" id="compose-title" minlength="5" maxlength="160" required placeholder="What's something you've been thinking about?" autocomplete="off"></label>
+<label class="discuss-entry-label" for="compose-content">Your conversation
+<textarea class="discuss-entry-textarea discuss-writing-textarea" id="compose-content" required minlength="10" maxlength="4000" placeholder="Take your time. What would you like people to think about?"></textarea></label>
+
+<label class="discuss-checkbox-row"><input type="checkbox" id="compose-has-spoilers">This post contains spoilers</label>
+<p class="discuss-form-help">For just one spoiler passage, surround the text with ||double bars||. Your Log notes will never post without you reviewing this page.</p>
+<p class="discuss-status-message" id="compose-message" aria-live="polite" role="status"></p>
+<div class="discuss-submit-row">
+<button type="button" id="compose-save" class="discuss-quiet-button">Save draft</button>
+<button type="button" id="compose-preview-toggle" class="discuss-quiet-button">Preview</button>
+<button type="submit" id="compose-publish" class="discuss-primary">Publish conversation <span aria-hidden="true">↗</span></button>
+</div>
+<section id="compose-preview" class="discuss-warning" aria-label="Post preview" hidden>
+<p class="discuss-inner-eyebrow">PREVIEW / ONLY YOU CAN SEE THIS</p><h2 id="preview-heading" class="discuss-form-heading"></h2><div id="preview-body" class="discuss-article-body"></div>
+</section>
+</div>
+<aside class="discuss-form-sidebar">
+<p class="discuss-inner-eyebrow">BEFORE YOU PUBLISH</p>
+<h2>Good conversations begin with curiosity.</h2>
+<p>General topics are open to guests and members alike. Discussions devoted to a particular film or show are reserved for members.</p>
+<p>Mark spoilers, remain respectful, and make space for different interpretations. Comments are open to members once you publish.</p>
+</aside>
+</div>
+</form></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="site-navigation.js?v=3"></script>
+<script src="discuss-common.js?v=1"></script>
+<script src="discuss-compose.js?v=20261019-17"></script>
+</body></html>
