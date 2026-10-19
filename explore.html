@@ -1244,7 +1244,8 @@ function renderPinnedCollections() {
 }
 function reportPin(message){pinStatus.textContent=message;}
 async function initializeCollectionPins(){
-  pinCards.forEach(card=>{card.querySelector(".mood-pin").disabled=true;});
+  /* Keep the star as the click target while authentication loads, rather
+     than allowing a disabled button's click to fall through to the card. */
   try {
     if(!isGuest && window.afterlogueSupabase){
       const client=window.afterlogueSupabase;
@@ -1276,11 +1277,14 @@ async function initializeCollectionPins(){
   }finally{
     renderPinnedCollections();
     pinReady=true;
-    pinCards.forEach(card=>{card.querySelector(".mood-pin").disabled=false;});
   }
 }
 async function toggleCollectionPin(mood,button){
-  if(!pinReady||!pinCardMap.has(mood)||button.disabled)return;
+  if(!pinReady){
+    reportPin("Your collection pins are loading. Try again in a moment.");
+    return;
+  }
+  if(!pinCardMap.has(mood)||button.disabled)return;
   const wasPinned=pinnedMoods.includes(mood);
   const previous=[...pinnedMoods];
   pinnedMoods=wasPinned?pinnedMoods.filter(value=>value!==mood):[mood,...pinnedMoods];
