@@ -12,6 +12,37 @@
   let user = null;
   let currentThread = null;
   let busy = false;
+  let imageUrl = null;
+  const joinButton = $('join-conversation');
+  const replySection = $('reply-section');
+
+  joinButton.addEventListener('click', () => {
+    const opening = replySection.hidden;
+    replySection.hidden = !opening;
+    $('reply-form').hidden = !opening;
+    joinButton.setAttribute('aria-expanded', String(opening));
+    joinButton.textContent = opening ? 'Close reply ×' : 'Join the conversation ↘';
+    if (opening) $('reply-text').focus();
+  });
+
+  async function showDiscussionImage(t) {
+    const figure = $('thread-image-figure');
+    figure.hidden = true;
+    if (!t.image_path) return;
+    try {
+      // Storage read permissions enforce guest/public versus member-only threads.
+      const signed = await client.storage.from('discussion-images').createSignedUrl(t.image_path, 3600);
+      if (signed.error || !signed.data || !signed.data.signedUrl) throw signed.error || Error('Image unavailable');
+      imageUrl = signed.data.signedUrl;
+      $('thread-image').src = imageUrl;
+      $('thread-image').alt = t.image_alt || 'Image accompanying this conversation';
+      $('thread-image-caption').textContent = t.image_alt || '';
+      figure.hidden = false;
+    } catch (error) {
+      console.warn('Could not display discussion image', error);
+      figure.hidden = true;
+    }
+  }
 
   function displayStatus(message) {
     status.textContent = message;
@@ -81,12 +112,20 @@
       showSpoilerText(content, t.body);
       content.hidden = false;
       $('spoiler-warning').hidden = true;
+      comments.hidden = false;
+      joinButton.hidden = !user;
+      $('join-signin').hidden = Boolean(user);
+      showDiscussionImage(t);
     }, { once: true });
     $('report-conversation').hidden = !user;
-    $('reply-form').hidden = !user;
-    $('guest-reply').hidden = Boolean(user);
+    $('reply-form').hidden = true;
+    replySection.hidden = true;
+    joinButton.setAttribute('aria-expanded', 'false');
+    joinButton.hidden = !user || t.has_spoilers;
+    $('join-signin').hidden = Boolean(user) || t.has_spoilers;
     thread.hidden = false;
-    comments.hidden = false;
+    comments.hidden = Boolean(t.has_spoilers);
+    if (!t.has_spoilers) showDiscussionImage(t);
     displayStatus('');
   }
 
@@ -156,7 +195,7 @@
       return;
     }
     const {data, error} = await client.from('discussion_threads')
-      .select('id,author_id,kind,work_title,work_type,title,body,has_spoilers,is_featured,created_at')
+      .select('id,author_id,kind,work_title,work_type,title,body,has_spoilers,is_featured,image_path,image_alt,created_at')
       .eq('id', id).eq('is_hidden', false).maybeSingle();
     if (error) throw error;
     if (!data) {
