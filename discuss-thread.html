@@ -33,6 +33,16 @@
 .discuss-interior #comments-heading{font-size:clamp(23px,2.5vw,31px)!important}
 @media(max-width:680px){.discuss-thread-copy{grid-template-columns:minmax(0,1fr) 35%!important;column-gap:12px!important}.discuss-thread-copy .discuss-article-figure img{height:115px!important}.discuss-article #thread-heading{font-size:clamp(28px,7vw,37px)!important}}
 @media(max-width:420px){.discuss-thread-copy{grid-template-columns:minmax(0,1fr) 36%!important}.discuss-thread-copy .discuss-article-figure img{height:100px!important}}
+
+/* Published article uses the same proportions as the writing preview. */
+.discuss-article #thread-heading{font-size:36px!important}
+.discuss-thread-copy{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)!important;column-gap:30px!important}
+.discuss-thread-copy .discuss-article-figure img{width:100%!important;height:auto!important;aspect-ratio:auto!important;max-height:none!important;object-fit:cover!important}
+.discuss-thread-copy .discuss-article-actions{grid-column:1!important;grid-row:2!important;margin-top:12px!important}
+@media(max-width:680px){
+.discuss-thread-copy{grid-template-columns:minmax(0,1fr) 43%!important;column-gap:12px!important}
+.discuss-thread-copy .discuss-article-figure img{height:auto!important}
+}
 </style></head>
 <body class="discuss-body">
 <header class="site-header">
@@ -103,5 +113,5 @@
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=3"></script>
 <script src="discuss-common.js?v=1"></script>
-<script src="discuss-thread.js?v=7"></script>
+<script src="discuss-thread.js?v=8"></script>
 </body></html>
