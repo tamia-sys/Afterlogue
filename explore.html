@@ -506,9 +506,17 @@ body.explore-body>header{padding:19px 5%;align-items:center}
     <a href="explore.html" aria-current="page">Explore</a>
     <a id="explore-log" href="my-log.html">Log</a>
     <a href="discuss.html">Discuss</a>
-    <details class="explore-account">
-      <summary aria-label="Account"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/></svg></summary>
-      <div class="explore-account-panel"><span id="explore-account-label">Your Afterlogue account</span><a id="explore-account-link" href="signup.html?mode=signin">Sign in / Create account</a></div>
+    <details class="account-menu">
+      <summary aria-label="Open account menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/></svg></summary>
+      <div class="account-dropdown">
+        <p class="account-heading">Your account</p>
+        <p id="account-email">Checking your account...</p>
+        <p id="account-status"></p>
+        <div class="account-divider"></div>
+        <p class="account-settings">Account settings — Coming soon</p>
+        <button type="button" id="account-signout" hidden>Sign out</button>
+        <a id="account-signin" href="signup.html?mode=signin" hidden>Sign in / Create account</a>
+      </div>
     </details>
   </nav>
 </header>
@@ -542,8 +550,15 @@ body.explore-body>header{padding:19px 5%;align-items:center}
   <div class="explore-picks" id="explore-match-picks"></div>
   <p id="explore-no-matches" hidden>No matches yet in our starter catalog. Try a broader search.</p>
 </section>
-<div class="explore-group-label"><p>01 — A LITTLE SOMETHING FOR...</p><span>Choose a collection to begin</span></div>
-  <div class="explore-gallery" id="explore-gallery">
+<div class="explore-group-label explore-rail-head">
+    <p>01 — A LITTLE SOMETHING FOR...</p>
+    <div class="explore-rail-tools">
+      <span>Scroll to explore</span>
+      <button type="button" id="explore-rail-prev" class="explore-rail-nav" aria-label="Previous collections" disabled>‹</button>
+      <button type="button" id="explore-rail-next" class="explore-rail-nav" aria-label="More collections">›</button>
+    </div>
+  </div>
+  <div class="explore-gallery" id="explore-gallery" role="region" aria-label="Browse Something for collections" tabindex="0">
     <article class="mood-card" data-mood="yearning">
       <button type="button" class="mood-open" aria-label="Explore Something for yearning"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">001 / FEELING</span><span class="mood-title">Something for yearning.</span><span class="mood-bottom"><span>Longing &amp; what could have been</span></span></span></button>
       <button type="button" class="mood-pin" data-pin="yearning" aria-label="Pin Something for yearning" aria-pressed="false" title="Pin collection">
@@ -625,10 +640,52 @@ const impressionRatings = new Set(["Loved","Liked","Okay","Not for me"]);
 if (isGuest) {
   $("explore-home").href = "discover.html?guest=1";
   $("explore-log").href = "signup.html?mode=signup";
-  $("explore-account-label").textContent = "Browsing as guest";
-  $("explore-account-link").textContent = "Create an account";
-  $("explore-account-link").href = "signup.html?mode=signup";
+  $("account-email").textContent = "Browsing as guest";
+  $("account-status").textContent = "Create an account to sync your pinned collections.";
+  $("account-signin").textContent = "Create an account";
+  $("account-signin").href = "signup.html?mode=signup";
+  $("account-signin").hidden = false;
 }
+
+async function setupExploreAccountMenu(){
+  if(isGuest)return;
+  const client=window.afterlogueSupabase;
+  const email=$("account-email"),status=$("account-status");
+  const signin=$("account-signin"),signout=$("account-signout");
+  if(!client){email.textContent="Account unavailable";status.textContent="Please reload to try again.";return;}
+  try {
+    const {data:auth,error}=await client.auth.getUser();
+    if(error)throw error;
+    if(auth?.user){
+      email.textContent=auth.user.email||"Afterlogue member";
+      status.textContent="● Signed in";
+      signout.hidden=false;
+      signin.hidden=true;
+    }else{
+      email.textContent="Browsing as guest";
+      status.textContent="Sign in to access your collection.";
+      signin.hidden=false;
+    }
+  }catch(error){
+    console.warn("Afterlogue: account menu unavailable",error);
+    email.textContent="Account unavailable";
+    status.textContent="Try refreshing this page.";
+    signin.hidden=false;
+  }
+  signout.addEventListener("click",async()=>{
+    signout.disabled=true;
+    try{
+      const {error}=await client.auth.signOut();
+      if(error)throw error;
+      location.replace("index.html");
+    }catch(error){
+      signout.disabled=false;
+      status.textContent="Couldn't sign out. Please try again.";
+    }
+  });
+}
+setupExploreAccountMenu();
+
 function view(section) {
   gallery.hidden = section !== "gallery";
   experience.hidden = section !== "experience";
@@ -749,6 +806,7 @@ function drawPick(item){
   card.append(art,h,year);return card;
 }
 function displayResults(){
+  results.classList.toggle("is-surprise",state.randomPick);
   const selected=selectedCandidates();
   const host=$("explore-picks");host.replaceChildren();
   if(state.randomPick) {
@@ -824,6 +882,7 @@ function updateBrowse(){
   const resultTitles=query && moodMatches.length
     ?filtered.filter(item=>direct.includes(item)||moodMatches.some(m=> (data.pools[m][item.media]||[]).includes(item.title)))
     :direct;
+  document.body.classList.toggle("explore-search-active",enabled);
   const panel=$("explore-search-results");panel.hidden=!enabled;
   const host=$("explore-match-picks");host.replaceChildren();
   resultTitles.slice(0,10).forEach(item=>host.append(drawPick(item)));
@@ -840,6 +899,7 @@ function updateBrowse(){
     card.hidden=!filtered.some(item=>titles.includes(item.title))
       ||(Boolean(query)&&!matchesMood(key,query)&&!resultTitles.some(item=>titles.includes(item.title)));
   }
+  requestAnimationFrame(refreshExploreRail);
 }
 searchField.addEventListener("input",updateBrowse);
 Object.values(filterControls).forEach(el=>el.addEventListener("change",updateBrowse));
@@ -849,6 +909,28 @@ $("explore-clear").addEventListener("click",()=>{
   updateBrowse();
 });
 
+
+
+function refreshExploreRail(){
+  const track=$("explore-gallery"),prev=$("explore-rail-prev"),next=$("explore-rail-next");
+  if(!track||!prev||!next)return;
+  const max=Math.max(0,track.scrollWidth-track.clientWidth);
+  prev.disabled=track.scrollLeft<=2;
+  next.disabled=max<=2||track.scrollLeft>=max-2;
+}
+function shiftExploreRail(direction){
+  const track=$("explore-gallery");
+  const firstVisible=[...track.querySelectorAll(".mood-card")].find(c=>!c.hidden);
+  const cardWidth=firstVisible?.getBoundingClientRect().width||track.clientWidth/4;
+  const gap=parseFloat(getComputedStyle(track).columnGap)||14;
+  track.scrollBy({left:direction*2*(cardWidth+gap),behavior:"smooth"});
+}
+$("explore-rail-prev").addEventListener("click",()=>shiftExploreRail(-1));
+$("explore-rail-next").addEventListener("click",()=>shiftExploreRail(1));
+$("explore-gallery").addEventListener("scroll",refreshExploreRail,{passive:true});
+window.addEventListener("resize",refreshExploreRail);
+window.addEventListener("load",refreshExploreRail);
+refreshExploreRail();
 
 /* Save "Something for..." collections separately from film watchlists.
    Guests have browser-only pins. Member pins sync privately across devices. */
@@ -934,6 +1016,7 @@ async function toggleCollectionPin(mood,button){
   const previous=[...pinnedMoods];
   pinnedMoods=wasPinned?pinnedMoods.filter(value=>value!==mood):[mood,...pinnedMoods];
   renderPinnedCollections();
+  pinGallery.scrollTo({left:0,behavior:"smooth"});
   const cached=cachePins();
   reportPin(wasPinned?"Removed from pinned collections.":"Pinned collection moved to the beginning.");
   if(pinnedAccount){
@@ -958,7 +1041,12 @@ async function toggleCollectionPin(mood,button){
 }
 pinCards.forEach(card=>{
   const button=card.querySelector(".mood-pin");
-  button.addEventListener("click",()=>toggleCollectionPin(card.dataset.mood,button));
+  button.addEventListener("pointerdown",event=>event.stopPropagation());
+  button.addEventListener("click",event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    toggleCollectionPin(card.dataset.mood,button);
+  });
 });
 initializeCollectionPins();
 
