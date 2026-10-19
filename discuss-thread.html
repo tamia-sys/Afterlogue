@@ -6,7 +6,7 @@
 <title>Conversation — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="discuss.css?v=3">
-<link rel="stylesheet" href="discuss-pages.css?v=7">
+<link rel="stylesheet" href="discuss-pages.css?v=16">
 <link rel="stylesheet" href="mobile-header.css?v=3">
 </head>
 <body class="discuss-body">
@@ -38,8 +38,8 @@
 <span id="thread-category" class="tag"></span><span id="thread-byline"></span><span id="thread-date"></span>
 <span class="tag" id="thread-spoiler-label" hidden>Spoilers</span>
 </div>
-<div id="thread-content" class="discuss-article-body"></div>
-<figure id="thread-image-figure" class="discuss-article-figure" hidden><img id="thread-image" alt="" loading="lazy"><figcaption id="thread-image-caption"></figcaption></figure>
+<div class="discuss-thread-layout"><div class="discuss-thread-copy"><div id="thread-content" class="discuss-article-body"></div>
+<figure id="thread-image-figure" class="discuss-article-figure" hidden><img id="thread-image" alt="" loading="lazy"><figcaption id="thread-image-caption"></figcaption></figure></div>
 <div id="spoiler-warning" class="discuss-warning" hidden>
 <p>This conversation may reveal plot details. Choose when you’re ready to read.</p>
 <button type="button" id="reveal-thread" class="discuss-primary">Reveal conversation</button>
@@ -48,7 +48,7 @@
 <button type="button" id="report-conversation" class="discuss-quiet-button" hidden>Report conversation</button>
 <button type="button" id="join-conversation" class="discuss-primary" hidden aria-expanded="false" aria-controls="reply-form">Join the conversation <span aria-hidden="true">↘</span></button>
 <a id="join-signin" class="discuss-primary" href="signup.html?mode=signin" hidden>Sign in to join <span aria-hidden="true">↗</span></a>
-</div>
+</div></div>
 <div class="discuss-reply-section" id="reply-section" hidden>
 <form id="reply-form" hidden>
 <h3>Add your perspective.</h3>
@@ -78,5 +78,5 @@
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=3"></script>
 <script src="discuss-common.js?v=1"></script>
-<script src="discuss-thread.js?v=6"></script>
+<script src="discuss-thread.js?v=7"></script>
 </body></html>
