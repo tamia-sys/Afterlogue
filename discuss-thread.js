@@ -31,7 +31,7 @@
     const figure = $('thread-image-figure');
     figure.hidden = true;
     body.replaceChildren();
-    const parts = String(t.body || '').replace(/^\\[\\[afterlogue:title-size:\\d{2}\\]\\]/,'').split(IMAGE_TOKEN);
+    const parts = String(t.body || '').replace(/^\[\[afterlogue:title-size:\d{2}\]\]/,'').split(IMAGE_TOKEN);
     parts.forEach((part,index) => {
       if (part) {
         const block = make('div','discuss-article-text');
@@ -187,8 +187,8 @@
     const title = t.title || 'Conversation';
     document.title = (t.has_spoilers ? 'Spoiler-marked conversation' : title) + ' — Afterlogue';
     $('thread-heading').textContent = t.has_spoilers ? 'A conversation with spoilers.' : title;
-    const titleMatch = String(t.body || '').match(/^\\[\\[afterlogue:title-size:(\\d{2})\\]\\]/);
-    if (titleMatch) $('thread-heading').style.fontSize = 'clamp(24px, '+Math.min(48,Math.max(24,Number(titleMatch[1])))+'px, 48px)';
+    const titleMatch = String(t.body || '').match(/^\[\[afterlogue:title-size:(\d{2})\]\]/);
+    $('thread-heading').style.setProperty('font-size', (titleMatch ? Math.min(48,Math.max(24,Number(titleMatch[1]))) : 36) + 'px', 'important');
     $('thread-category').textContent =
       t.kind === 'general' ? 'Open conversation' :
       (t.work_type === 'tv' ? 'TV' : 'Film') + ' · ' + (t.work_title || '');
