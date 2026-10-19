@@ -876,6 +876,21 @@ body.explore-body > header.site-header {
     flex: 0 0 auto;
   }
 }
+/* Landscape tablets can use four narrower cards per row, preserving both
+   collection rows in a shorter Safari viewport without enlarging the page. */
+@media (min-width: 900px) and (max-width: 1100px) and (orientation: landscape) {
+  .explore-gallery,
+  .explore-search-active .explore-gallery {
+    grid-template-columns: repeat(4, minmax(0,1fr));
+  }
+  .explore-body .explore-gallery .mood-image {
+    aspect-ratio: 2.25 / 1;
+  }
+  .explore-gallery {
+    row-gap: 13px;
+  }
+}
+
 /* Smaller iPad landscape / laptop heights: save room for both rows rather
    than sacrificing the second row to the viewport crop. */
 @media (min-width: 700px) and (max-height: 900px) {
