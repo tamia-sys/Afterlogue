@@ -6,7 +6,7 @@
 <title>Start a conversation — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="discuss.css?v=3">
-<link rel="stylesheet" href="discuss-pages.css?v=9">
+<link rel="stylesheet" href="discuss-pages.css?v=10">
 <link rel="stylesheet" href="mobile-header.css?v=3">
 </head>
 <body class="discuss-body discuss-compose-page">
@@ -38,17 +38,25 @@
 <div class="discuss-form-layout">
 <div class="discuss-form-main">
 <div class="discuss-upload-panel" id="compose-upload-panel">
-  <div class="discuss-image-heading"><p class="discuss-entry-label">Start with a visual <span class="discuss-form-help">(optional)</span></p><button type="button" id="compose-image-remove-top" class="discuss-quiet-button discuss-remove-visual" hidden>Remove visual ×</button></div>
-  <label for="compose-image" class="discuss-image-drop"><span aria-hidden="true">＋</span> Add an image to inspire your story <small>JPG, PNG, or WebP · up to 5 MB</small></label>
-  <input id="compose-image" type="file" accept="image/jpeg,image/png,image/webp" class="discuss-file-input" aria-describedby="compose-image-help">
-  <p id="compose-image-help" class="discuss-form-help">Place your cursor anywhere in the writing area first, or choose an image now to begin with it.</p>
-  <div class="discuss-image-attachment" id="compose-image-attachment" hidden>
-    <p class="discuss-form-help">Your image appears inside the writing area, exactly where you insert it.</p><button type="button" id="compose-image-move" class="discuss-quiet-button">Move image to cursor ↗</button>
+  <p class="discuss-entry-label">Start with a visual <span class="discuss-form-help">(optional)</span></p>
+  <label for="compose-image" class="discuss-image-drop" id="compose-image-drop">
+    <span id="compose-image-placeholder" class="discuss-upload-placeholder">
+      <span aria-hidden="true" class="discuss-image-plus">＋</span>
+      Add an image to inspire your story
+      <small>JPG, PNG, or WebP · up to 5 MB</small>
+    </span>
+    <img id="compose-image-preview" class="discuss-upload-preview" alt="Selected visual preview" hidden>
+    <span id="compose-image-change" class="discuss-image-change" hidden>Change image <span aria-hidden="true">↗</span></span>
+  </label>
+  <input id="compose-image" type="file" accept="image/jpeg,image/png,image/webp"
+     class="discuss-file-input" aria-describedby="compose-image-help">
+  <div id="compose-image-attachment" class="discuss-image-attachment" hidden>
+    <button type="button" id="compose-image-remove" class="discuss-quiet-button discuss-remove-visual">Remove image ×</button>
     <label for="compose-image-alt" class="discuss-entry-label">Describe this image
       <input id="compose-image-alt" class="discuss-entry-input" maxlength="180" placeholder="What does this image show?">
     </label>
-    <button type="button" id="compose-image-remove" class="discuss-quiet-button">Remove image ×</button>
   </div>
+  <p id="compose-image-help" class="discuss-form-help">Your image stays here, above the conversation. You can write separately below.</p>
 </div>
 
 <label for="compose-kind" class="discuss-entry-label">Conversation type
@@ -64,8 +72,8 @@
 </div>
 <label for="compose-title" class="discuss-entry-label">Conversation title
 <input class="discuss-entry-input" id="compose-title" minlength="5" maxlength="160" required placeholder="What's something you've been thinking about?" autocomplete="off"></label>
-<div class="discuss-entry-label"><span id="compose-content-label">Your conversation</span>
-<div class="discuss-rich-editor discuss-entry-textarea" id="compose-content" contenteditable="true" role="textbox" aria-labelledby="compose-content-label" aria-multiline="true" data-placeholder="Take your time. What would you like people to think about?"></div></div>
+<label class="discuss-entry-label" for="compose-content">Your conversation
+<textarea class="discuss-entry-textarea discuss-writing-textarea" id="compose-content" required minlength="10" maxlength="4000" placeholder="Take your time. What would you like people to think about?"></textarea></label>
 
 <label class="discuss-checkbox-row"><input type="checkbox" id="compose-has-spoilers">This post contains spoilers</label>
 <p class="discuss-form-help">For just one spoiler passage, surround the text with ||double bars||. Your Log notes will never post without you reviewing this page.</p>
@@ -91,5 +99,5 @@
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=3"></script>
 <script src="discuss-common.js?v=1"></script>
-<script src="discuss-compose.js?v=6"></script>
+<script src="discuss-compose.js?v=7"></script>
 </body></html>
