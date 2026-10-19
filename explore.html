@@ -363,11 +363,11 @@ function selectedCandidates() {
       if(rating==="Not for me") avoid.add(key.slice("afterlogue-".length));
     }
   } catch(e){}
-  const wanted = state.format==="either"?["movies","tv"]:[state.format];
+  const wanted = browseState.format!=="all" ? [browseState.format] : (state.format==="either"?["movies","tv"]:[state.format]);
   const indexed = [];
   wanted.forEach(media=>(pool?.[media]||[]).forEach((name,rank)=>{
     const item=catalog.find(x=>x.title===name&&x.media===media);
-    if(item&&!rated.has(slug(item.title))){
+    if(item&&matchesFilters(item)&&!rated.has(slug(item.title))){
       const shared=item.matches.filter(x=>love.has(x)).length;
       const disliked=item.matches.filter(x=>avoid.has(x)).length;
       const pace=data.paces[state.pace]?.includes(item.title)? 3:0;
@@ -422,6 +422,76 @@ function displayResults(){
   }
   view("results");
 }
+
+/* Explore browsing tools. All queries are matched against a curated, local
+   30-title starter catalog. This does not claim unlimited global search. */
+const searchField=$("explore-search");
+const filterControls={
+  genre:$("explore-genre"),
+  year:$("explore-year"),
+  country:$("explore-country"),
+  format:$("explore-format")
+};
+const browseState={genre:"all",year:"all",country:"all",format:"all"};
+const foldText=v=>String(v||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
+const addFilterOption=(el,val,name)=>{const opt=document.createElement("option");opt.value=val;opt.textContent=name;el.append(opt);};
+const uniqueValues=values=>[...new Set(values)].sort((a,b)=>String(a).localeCompare(String(b)));
+uniqueValues(data.titles.flatMap(x=>x.genres||[])).forEach(v=>addFilterOption(filterControls.genre,v,v));
+uniqueValues(data.titles.flatMap(x=>x.countries||[])).forEach(v=>addFilterOption(filterControls.country,v,v));
+uniqueValues(data.titles.map(x=>Math.floor(x.year/10)*10)).sort((a,b)=>b-a)
+  .forEach(v=>addFilterOption(filterControls.year,String(v),v+"s"));
+function matchesFilters(item){
+  return (browseState.genre==="all"||(item.genres||[]).includes(browseState.genre))
+    && (browseState.year==="all"||Math.floor(item.year/10)*10===Number(browseState.year))
+    && (browseState.country==="all"||(item.countries||[]).includes(browseState.country))
+    && (browseState.format==="all"||item.media===browseState.format);
+}
+function matchesText(item,query){
+  if(!query)return true;
+  const values=[item.title,item.year,Math.floor(item.year/10)*10+"s",item.reason,
+    item.media==="tv"?"tv shows":"movies",...(item.genres||[]),...(item.countries||[]),...(item.topics||[])];
+  return values.some(v=>foldText(v).includes(query));
+}
+function matchesMood(mood,query){
+  const info=data.moods[mood],words=[info.label,info.short,info.intro,...(data.collectionTopics?.[mood]||[])];
+  return words.some(v=>foldText(v).includes(query));
+}
+function updateBrowse(){
+  const query=foldText(searchField.value.trim());
+  Object.entries(filterControls).forEach(([key,control])=>browseState[key]=control.value);
+  const enabled=Boolean(query)||Object.values(browseState).some(v=>v!=="all");
+  $("explore-clear").hidden=!enabled;
+  const filtered=data.titles.filter(matchesFilters);
+  const direct=filtered.filter(item=>matchesText(item,query));
+  const moodMatches=Object.keys(data.moods).filter(mood=>query&&matchesMood(mood,query));
+  const resultTitles=query && moodMatches.length
+    ?filtered.filter(item=>direct.includes(item)||moodMatches.some(m=> (data.pools[m][item.media]||[]).includes(item.title)))
+    :direct;
+  const panel=$("explore-search-results");panel.hidden=!enabled;
+  const host=$("explore-match-picks");host.replaceChildren();
+  resultTitles.slice(0,10).forEach(item=>host.append(drawPick(item)));
+  const count=resultTitles.length;
+  $("explore-matches-count").textContent=count+" "+(count===1?"story":"stories");
+  $("explore-no-matches").hidden=count!==0;
+  $("explore-browse-note").textContent=enabled
+    ?count+" matching "+(count===1?"story":"stories")+" in our curated starter catalog."
+    :"Search and filter our curated starter catalog.";
+  for(const card of document.querySelectorAll(".mood-card")){
+    if(!enabled){card.hidden=false;continue;}
+    const key=card.dataset.mood;
+    const titles=[...(data.pools[key]?.movies||[]),...(data.pools[key]?.tv||[])];
+    card.hidden=!filtered.some(item=>titles.includes(item.title))
+      ||(Boolean(query)&&!matchesMood(key,query)&&!resultTitles.some(item=>titles.includes(item.title)));
+  }
+}
+searchField.addEventListener("input",updateBrowse);
+Object.values(filterControls).forEach(el=>el.addEventListener("change",updateBrowse));
+$("explore-clear").addEventListener("click",()=>{
+  searchField.value="";
+  Object.values(filterControls).forEach(el=>el.value="all");
+  updateBrowse();
+});
+
 document.querySelectorAll("[data-mood]").forEach(b=>b.addEventListener("click",()=>start(b.dataset.mood)));
 $("explore-back").addEventListener("click",()=>view("gallery"));
 $("explore-results-back").addEventListener("click",()=>view("gallery"));
