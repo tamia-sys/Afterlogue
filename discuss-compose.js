@@ -14,7 +14,6 @@
   let selectedFile = null, objectUrl = null;
   const photoPreview = $('compose-image-preview');
   const placeholder = $('compose-image-placeholder');
-  const changeHint = $('compose-image-change');
 
   function clearImage() {
     selectedFile = null;
@@ -25,7 +24,6 @@
     photoPreview.hidden = true;
     photoPreview.removeAttribute('src');
     placeholder.hidden = false;
-    changeHint.hidden = true;
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     objectUrl = null;
   }
@@ -45,7 +43,6 @@
     photoPreview.alt = 'Preview of your selected image';
     photoPreview.hidden = false;
     placeholder.hidden = true;
-    changeHint.hidden = false;
     attachment.hidden = false;
     imageAlt.required = true;
     status.textContent = '';
