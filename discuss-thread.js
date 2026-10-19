@@ -40,7 +40,7 @@
       }
       if (index < parts.length - 1 && t.image_path) body.appendChild(figure);
     });
-    if (!parts.length || !t.body.includes(IMAGE_TOKEN)) body.appendChild(figure);
+    if (!t.body.includes(IMAGE_TOKEN)) body.prepend(figure);
     if (t.image_path) showDiscussionImage(t);
   }
 
