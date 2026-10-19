@@ -6,7 +6,7 @@
 <title>Start a conversation — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="discuss.css?v=3">
-<link rel="stylesheet" href="discuss-pages.css?v=5">
+<link rel="stylesheet" href="discuss-pages.css?v=6">
 <link rel="stylesheet" href="mobile-header.css?v=3">
 </head>
 <body class="discuss-body discuss-compose-page">
@@ -64,8 +64,8 @@
 </div>
 <label for="compose-title" class="discuss-entry-label">Conversation title
 <input class="discuss-entry-input" id="compose-title" minlength="5" maxlength="160" required placeholder="What's something you've been thinking about?" autocomplete="off"></label>
-<label for="compose-content" class="discuss-entry-label">Your conversation
-<div class="discuss-rich-editor discuss-entry-textarea" id="compose-content" contenteditable="true" role="textbox" aria-label="Your conversation" aria-multiline="true" data-placeholder="Take your time. What would you like people to think about?"></div></label>
+<div class="discuss-entry-label"><span id="compose-content-label">Your conversation</span>
+<div class="discuss-rich-editor discuss-entry-textarea" id="compose-content" contenteditable="true" role="textbox" aria-labelledby="compose-content-label" aria-multiline="true" data-placeholder="Take your time. What would you like people to think about?"></div></div>
 
 <label class="discuss-checkbox-row"><input type="checkbox" id="compose-has-spoilers">This post contains spoilers</label>
 <p class="discuss-form-help">For just one spoiler passage, surround the text with ||double bars||. Your Log notes will never post without you reviewing this page.</p>
@@ -91,5 +91,5 @@
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=3"></script>
 <script src="discuss-common.js?v=1"></script>
-<script src="discuss-compose.js?v=4"></script>
+<script src="discuss-compose.js?v=5"></script>
 </body></html>
