@@ -395,3 +395,19 @@
   .discuss-compose-page .discuss-image-drop {min-height:112px;}
   .discuss-rich-editor {min-height:200px;}
 }
+
+
+/* Place conversation reading and writing on the same left-aligned editorial axis. */
+.discuss-body .discuss-interior {
+  width: 100%;
+  max-width: 1500px;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+.discuss-body .discuss-article { max-width: 1120px; }
+.discuss-body .discuss-comments { max-width: 1030px; }
+@media(max-width:650px) {
+  .discuss-body .discuss-interior { padding-left:5%; padding-right:5%; }
+}
