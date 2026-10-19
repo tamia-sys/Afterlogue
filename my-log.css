@@ -87,3 +87,70 @@ body.archive-body [hidden] { display: none !important; }
   .archive-page .archive-categories { margin-left: auto; }
 }
 @media (max-width: 390px) { .archive-page .archive-card { gap: 9px; grid-template-columns: 33% minmax(0,1fr); } .archive-page .archive-card-body { padding-top: 2px; } .archive-page .archive-action { padding: 5px 7px; } }
+
+
+/* Log Sharing — quiet privacy-first dialogs, keeping the existing black/champagne design */
+body.archive-body > header.site-header .account-dropdown .archive-settings-open {
+  display: block;
+  padding: 8px 0;
+  margin: 0 0 9px;
+  border: 0;
+  background: none;
+  color: #ead2b1;
+  text-align: left;
+  font: 12px/1.5 'Inter',Arial,sans-serif;
+  cursor: pointer;
+}
+body.archive-body > header.site-header .account-dropdown .archive-settings-open:hover {
+  color: #fff1de;
+}
+.archive-share-dialog .archive-share-explanation {
+  color: #beb2a4;
+  font: 12px/1.6 'Inter',Arial,sans-serif;
+  margin: 5px 0 20px;
+}
+.archive-share-dialog .archive-share-check {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #64513b;
+  border-radius: 7px;
+  background: #181715;
+  padding: 12px;
+  font: 13px/1.4 'Inter',Arial,sans-serif;
+  cursor: pointer;
+}
+.archive-share-dialog .archive-share-check input {
+  width: 17px;
+  height: 17px;
+  accent-color: #c6a679;
+  flex: none;
+}
+.archive-share-dialog .archive-preview-label {
+  margin: 22px 0 8px;
+}
+.archive-share-dialog .archive-share-preview {
+  max-height: min(31vh,220px);
+  overflow: auto;
+  padding: 12px;
+  background: #151412;
+  border: 1px solid #4f4437;
+  border-radius: 5px;
+  color: #e9dccc;
+  font: 12px/1.65 'Inter',Arial,sans-serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.archive-dialog .archive-secondary-button {
+  appearance: none;
+  border: 1px solid #6f5e4d;
+  color: #e0d1c0;
+  border-radius: 5px;
+  background: transparent;
+  padding: 11px 18px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.archive-dialog .archive-secondary-button:hover {
+  background: #393127;
+}
