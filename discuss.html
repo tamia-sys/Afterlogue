@@ -1,39 +1,72 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Discuss — Afterlogue</title>
-<link rel="stylesheet" href="style.css?v=29"><link rel="stylesheet" href="discuss.css?v=1"><link rel="stylesheet" href="mobile-header.css?v=3">
-</head><body class="discuss-body">
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#000000"><title>Discuss — Afterlogue</title>
+<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="discuss.css?v=2">
+<link rel="stylesheet" href="mobile-header.css?v=3">
+</head>
+<body class="discuss-body">
 <header class="site-header">
 <a href="index.html" class="logo">afterlogue.</a>
 <nav aria-label="Main navigation"><a href="discover.html">Home</a><a href="explore.html">Explore</a><a href="my-log.html">Log</a><a href="discuss.html" aria-current="page">Discuss</a>
 <details class="account-menu"><summary aria-label="Open account menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/></svg></summary>
 <div class="account-dropdown"><p class="account-heading">Your account</p><p id="account-email">Checking your account...</p><p id="account-status"></p><div class="account-divider"></div><p class="account-settings">Account settings — Coming soon</p><button type="button" id="account-signout" hidden>Sign out</button><a id="account-signin" href="signup.html?mode=signin" hidden>Sign in / Create account</a></div></details></nav></header>
-<main class="discuss-shell"><p class="discuss-eyebrow">AFTERLOGUE / 04 — THE CONVERSATION</p>
-<h1 class="discuss-title">Discuss.</h1><p class="discuss-subtitle">Every story starts another conversation.</p>
-<section class="discuss-feature" id="featured-panel" aria-labelledby="featured-title">
-<div><p class="discuss-kicker">THIS WEEK'S CONVERSATION</p><h2 id="featured-title">What makes a film unforgettable?</h2><p id="featured-description">Is it the characters, the ending, or simply how it made you feel?</p></div>
-<button type="button" class="discuss-feature-button" id="featured-open">Join the conversation <span aria-hidden="true">→</span></button></section>
-<div class="discuss-tools"><h2>Browse conversations.</h2><button class="discuss-primary" type="button" id="new-thread">Start a conversation <span aria-hidden="true">＋</span></button></div>
-<div class="discuss-tabs" role="group" aria-label="Discussion categories">
-<button type="button" class="discuss-tab active" data-filter="all" aria-pressed="true">All</button>
-<button type="button" class="discuss-tab" data-filter="general" aria-pressed="false">General</button>
-<button type="button" class="discuss-tab" data-filter="title" aria-pressed="false">Film &amp; TV</button>
-</div>
-<p class="discuss-notice" id="discuss-notice" role="status" aria-live="polite"></p>
-<div class="discuss-list" id="discuss-list" aria-live="polite"><p class="discuss-empty">Loading conversations…</p></div>
-<section class="discuss-rules" aria-labelledby="discuss-rules-title"><h2 id="discuss-rules-title">A few things worth remembering.</h2>
-<p>General conversations and Afterlogue's featured questions are open for everyone to read. Signed-in members can contribute, while film- and TV-specific conversations are for members only. Protect spoilers with the spoiler option or wrap a passage in ||double bars||. Respect other perspectives. Sharing from Log is always your choice; private notes are never published automatically.</p>
-</section></main>
-<dialog id="thread-dialog" class="discuss-dialog" aria-labelledby="thread-dialog-title"><button type="button" class="discuss-cancel" id="thread-close">← Back to conversations</button><p class="discuss-kicker" id="thread-kind"></p><h2 id="thread-dialog-title"></h2><p class="thread-meta" id="thread-meta"></p><div class="thread-content" id="thread-body"></div><section class="discuss-replies" id="thread-replies"></section>
-<form id="reply-form"><h3>Join the conversation.</h3><label for="reply-body">Your reply<textarea id="reply-body" required minlength="2" maxlength="2000" placeholder="What did you think?"></textarea></label><label class="checkline"><input type="checkbox" id="reply-spoiler">My entire reply contains spoilers</label>
-<p class="dialog-status" id="reply-status"></p><div class="dialog-actions"><button type="button" class="discuss-cancel" id="report-thread">Report conversation</button><button type="submit" class="discuss-primary">Post reply</button></div></form>
-<p id="guest-reply-hint" class="discuss-footer-hint" hidden>Want to join in? <a href="signup.html?mode=signin">Sign in or create an account</a> to reply.</p></dialog>
-<dialog id="compose-dialog" class="discuss-dialog" aria-labelledby="compose-title">
-<h2 id="compose-title">Start a conversation.</h2><form id="compose-form">
-<label for="compose-kind">Type of discussion<select id="compose-kind"><option value="general">General conversation — public to read</option><option value="title">Film or TV conversation — members only</option></select></label>
-<div id="compose-work-fields" hidden><label for="compose-work">Film or show title<input id="compose-work" maxlength="120" placeholder="Name of the film or show"></label><label for="compose-work-type">Format<select id="compose-work-type"><option value="film">Film</option><option value="tv">TV</option></select></label></div>
-<label for="compose-heading">Conversation title<input id="compose-heading" required minlength="5" maxlength="160" placeholder="What's on your mind?"></label>
-<label for="compose-body">Your thoughts<textarea id="compose-body" required minlength="10" maxlength="4000" placeholder="Start the conversation…"></textarea></label>
-<label class="checkline"><input type="checkbox" id="compose-spoiler">This conversation contains spoilers</label>
-<p class="dialog-status" id="compose-status"></p><div class="dialog-actions"><button type="button" class="discuss-cancel" id="compose-cancel">Cancel</button><button type="submit" class="discuss-primary" id="compose-submit">Publish conversation</button></div></form></dialog>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-client.js"></script><script src="site-navigation.js?v=2"></script><script src="discuss.js?v=2"></script></body></html>
+<main class="discuss-shell">
+  <div class="discuss-introduction">
+    <p class="discuss-eyebrow">AFTERLOGUE / 04 — THE CONVERSATION</p>
+    <h1 class="discuss-title">Discuss.</h1>
+    <p class="discuss-subtitle">Every story starts another conversation.</p>
+  </div>
+
+  <section class="discuss-feature" id="featured-panel" aria-labelledby="featured-title">
+    <div class="discuss-feature-copy">
+      <div class="discuss-feature-topline">
+        <p class="discuss-kicker">01 — THIS WEEK'S CONVERSATION</p>
+        <span class="discuss-feature-number" aria-hidden="true">✳</span>
+      </div>
+      <h2 id="featured-title">What makes a film unforgettable?</h2>
+      <p id="featured-description">The characters, the ending, or simply how it made you feel?</p>
+      <a href="discuss.html" class="discuss-feature-button" id="featured-open" aria-disabled="true">
+        Read conversation <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+    <div class="discuss-feature-art" aria-hidden="true">
+      <span class="discuss-feature-art-top">THE CONVERSATION</span>
+      <span class="discuss-feature-art-mark">“</span>
+      <span class="discuss-feature-art-bottom">STORIES WORTH TALKING ABOUT</span>
+    </div>
+  </section>
+
+  <div class="discuss-tools">
+    <div>
+      <p class="discuss-kicker">THE OPEN FLOOR</p>
+      <h2>Browse conversations.</h2>
+    </div>
+    <a class="discuss-primary" href="discuss-compose.html" id="new-thread">Start a conversation <span aria-hidden="true">↗</span></a>
+  </div>
+  <div class="discuss-tabs" role="group" aria-label="Conversation type">
+    <button type="button" class="discuss-tab active" data-filter="all" aria-pressed="true">All conversations</button>
+    <button type="button" class="discuss-tab" data-filter="general" aria-pressed="false">General</button>
+    <button type="button" class="discuss-tab" data-filter="title" aria-pressed="false">Film &amp; TV</button>
+  </div>
+  <p class="discuss-guest-caption" id="discuss-guest-caption" hidden>
+    General discussions are open to read. Film- and TV-specific conversations are available to members.
+  </p>
+  <p class="discuss-notice" id="discuss-notice" role="status" aria-live="polite"></p>
+  <section class="discuss-list" id="discuss-list" aria-label="Conversations" aria-live="polite">
+    <p class="discuss-empty">Loading conversations…</p>
+  </section>
+
+  <section class="discuss-rules" aria-labelledby="discuss-rules-title">
+    <p class="discuss-kicker">THE WAY WE TALK</p>
+    <h2 id="discuss-rules-title">A few things worth remembering.</h2>
+    <p>Everyone can read featured and general discussions. Only members can publish, reply, or read film- and TV-specific conversations. Mark spoilers, be considerate of different interpretations, and keep the conversation about the stories. Bringing a personal note over from Log is always optional—it is never published for you.</p>
+  </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="site-navigation.js?v=2"></script>
+<script src="discuss-common.js?v=1"></script>
+<script src="discuss.js?v=3"></script>
+</body></html>
