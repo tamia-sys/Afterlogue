@@ -433,7 +433,7 @@ const filterControls={
   format:$("explore-format")
 };
 const browseState={genre:"all",year:"all",country:"all",format:"all"};
-const foldText=v=>String(v||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
+const foldText=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const addFilterOption=(el,val,name)=>{const opt=document.createElement("option");opt.value=val;opt.textContent=name;el.append(opt);};
 const uniqueValues=values=>[...new Set(values)].sort((a,b)=>String(a).localeCompare(String(b)));
 uniqueValues(data.titles.flatMap(x=>x.genres||[])).forEach(v=>addFilterOption(filterControls.genre,v,v));
