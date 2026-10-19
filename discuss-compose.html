@@ -6,7 +6,7 @@
 <title>Start a conversation — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="discuss.css?v=3">
-<link rel="stylesheet" href="discuss-pages.css?v=2">
+<link rel="stylesheet" href="discuss-pages.css?v=3">
 <link rel="stylesheet" href="mobile-header.css?v=3">
 </head>
 <body class="discuss-body">
@@ -52,6 +52,19 @@
 <input class="discuss-entry-input" id="compose-title" minlength="5" maxlength="160" required placeholder="What's something you've been thinking about?" autocomplete="off"></label>
 <label for="compose-content" class="discuss-entry-label">Your conversation
 <textarea class="discuss-entry-textarea" id="compose-content" minlength="10" maxlength="4000" required placeholder="Take your time. What would you like people to think about?"></textarea></label>
+<div class="discuss-upload-panel" id="compose-upload-panel">
+  <p class="discuss-entry-label">Image for your conversation <span class="discuss-form-help">(optional)</span></p>
+  <label for="compose-image" class="discuss-image-drop"><span aria-hidden="true">＋</span> Add an image <small>JPG, PNG, or WebP · up to 5 MB</small></label>
+  <input id="compose-image" type="file" accept="image/jpeg,image/png,image/webp" class="discuss-file-input" aria-describedby="compose-image-help">
+  <p id="compose-image-help" class="discuss-form-help">Give your image a description so everyone can understand it.</p>
+  <div class="discuss-image-attachment" id="compose-image-attachment" hidden>
+    <img id="compose-image-preview" alt="Selected image preview">
+    <label for="compose-image-alt" class="discuss-entry-label">Describe this image
+      <input id="compose-image-alt" class="discuss-entry-input" maxlength="180" placeholder="What does this image show?">
+    </label>
+    <button type="button" id="compose-image-remove" class="discuss-quiet-button">Remove image ×</button>
+  </div>
+</div>
 <label class="discuss-checkbox-row"><input type="checkbox" id="compose-has-spoilers">This post contains spoilers</label>
 <p class="discuss-form-help">For just one spoiler passage, surround the text with ||double bars||. Your Log notes will never post without you reviewing this page.</p>
 <p class="discuss-status-message" id="compose-message" aria-live="polite" role="status"></p>
@@ -61,7 +74,7 @@
 <button type="submit" id="compose-publish" class="discuss-primary">Publish conversation <span aria-hidden="true">↗</span></button>
 </div>
 <section id="compose-preview" class="discuss-warning" aria-label="Post preview" hidden>
-<p class="discuss-inner-eyebrow">PREVIEW / ONLY YOU CAN SEE THIS</p><h2 id="preview-heading" class="discuss-form-heading"></h2><div id="preview-body" class="discuss-article-body"></div>
+<p class="discuss-inner-eyebrow">PREVIEW / ONLY YOU CAN SEE THIS</p><h2 id="preview-heading" class="discuss-form-heading"></h2><div id="preview-body" class="discuss-article-body"></div><img id="compose-preview-image" class="discuss-embedded-image" alt="" hidden>
 </section>
 </div>
 <aside class="discuss-form-sidebar">
@@ -76,5 +89,5 @@
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=3"></script>
 <script src="discuss-common.js?v=1"></script>
-<script src="discuss-compose.js?v=1"></script>
+<script src="discuss-compose.js?v=2"></script>
 </body></html>
