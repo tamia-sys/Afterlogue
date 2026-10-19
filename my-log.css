@@ -154,3 +154,137 @@ body.archive-body > header.site-header .account-dropdown .archive-settings-open:
 .archive-dialog .archive-secondary-button:hover {
   background: #393127;
 }
+
+
+/* AFTERLOGUE / FEATURED FROM YOUR LOG
+   A cropped editorial moment, deliberately not a homepage-sized hero.
+   No rule or separator between the photograph and its typography.
+*/
+.archive-page .archive-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, .61fr) auto;
+  align-items: center;
+  gap: clamp(23px, 3.8vw, 53px);
+  margin: 27px 0 0;
+  padding: 0;
+  background: #000;
+}
+.archive-page .archive-feature-media {
+  width: 100%;
+  height: clamp(165px, 17vw, 220px);
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #1c1715;
+}
+.archive-page .archive-feature-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 54%, rgba(0,0,0,.19) 100%);
+}
+.archive-page .archive-feature-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  filter: saturate(.86) brightness(.88);
+  display: block;
+}
+.archive-page .archive-feature-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 400 clamp(24px, 3vw, 40px)/1 Georgia,serif;
+  letter-spacing: -.02em;
+  color: rgba(223,195,163,.42);
+  background: linear-gradient(115deg, #26201d, #161313 58%, #080808);
+}
+.archive-page .archive-feature-content { align-self: center; min-width: 0; }
+.archive-page .archive-feature-kicker {
+  color: #d4b892;
+  font: 500 10px/1.5 'Inter',sans-serif;
+  letter-spacing: .18em;
+  margin: 0 0 8px;
+}
+.archive-page .archive-feature-title {
+  font: 400 clamp(27px, 2.5vw, 39px)/1.06 Georgia,serif;
+  color: #f4eadc;
+  margin: 0 0 6px;
+  letter-spacing: -.025em;
+  overflow-wrap: anywhere;
+}
+.archive-page .archive-feature-meta {
+  color: #b8aea3;
+  font: 12px/1.6 'Inter',sans-serif;
+  margin: 0 0 8px;
+}
+.archive-page .archive-feature-rating {
+  color: #ddbd8f;
+  font: 12px/1.5 'Inter',sans-serif;
+  margin: 0 0 12px;
+}
+.archive-page .archive-feature-note {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: #e1d7c8;
+  font: italic clamp(14px,1.4vw,18px)/1.4 Georgia,serif;
+  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.archive-page .archive-feature-no-note {
+  color: #a99e90;
+  font: italic 15px/1.45 Georgia,serif;
+  margin: 0;
+}
+.archive-page .archive-feature-link {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  min-width: 142px;
+  background: transparent;
+  border: 1px solid #ad8c67;
+  border-radius: 999px;
+  color: #e6c99b;
+  font: 12px/1.3 'Inter',sans-serif;
+  padding: 13px 20px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.archive-page .archive-feature-link:hover {
+  border-color: #e1bb85;
+  color: #f4eadc;
+  background: rgba(191,165,139,.07);
+}
+.archive-page .archive-card.archive-feature-target {
+  outline: 1px solid #d3b48d;
+  outline-offset: 3px;
+}
+@media (max-width: 1050px) {
+  .archive-page .archive-feature { grid-template-columns: minmax(0,1.12fr) minmax(0,.7fr); gap: 25px; }
+  .archive-page .archive-feature-link { grid-column: 2; justify-self: start; margin-top: -9px; }
+}
+@media (max-width: 735px) {
+  .archive-page .archive-feature {
+    margin-top: 22px;
+    grid-template-columns: 1fr;
+    row-gap: 14px;
+  }
+  .archive-page .archive-feature-media { height: clamp(155px,39vw,230px); }
+  .archive-page .archive-feature-title { font-size: 30px; }
+  .archive-page .archive-feature-content { padding: 2px 0 0; }
+  .archive-page .archive-feature-link { grid-column: 1; justify-self: start; margin: 2px 0 0; }
+  .archive-page .archive-toolbar { padding-top: 30px; }
+}
