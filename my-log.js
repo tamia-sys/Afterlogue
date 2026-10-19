@@ -22,6 +22,15 @@
   const removeWatchlist = document.getElementById('dialog-remove-watchlist');
   const dialogError = document.getElementById('dialog-error');
   const saveButton = document.getElementById('dialog-save');
+  const feature = document.getElementById('archive-feature');
+  const featureImage = document.getElementById('archive-feature-image');
+  const featureTitle = document.getElementById('archive-feature-title');
+  const featureMeta = document.getElementById('archive-feature-meta');
+  const featureRating = document.getElementById('archive-feature-rating');
+  const featureNote = document.getElementById('archive-feature-note');
+  const featureNoNote = document.getElementById('archive-feature-no-note');
+  const featureLink = document.getElementById('archive-feature-link');
+  let featuredRecord = null;
   const fieldSharePreference = document.getElementById('dialog-share-preference');
   const shareDialog = document.getElementById('archive-share-dialog');
   const shareIncludeNote = document.getElementById('share-include-note');
@@ -115,6 +124,7 @@
     const rated = impression(record.key);
     const extra = metadata(record.key);
     const card = el('article', 'archive-card');
+    card.dataset.titleKey = record.key;
     const poster = el('div', 'archive-poster');
     const posterFallback = el('span', 'archive-poster-fallback', record.title);
     poster.appendChild(posterFallback);
@@ -178,7 +188,84 @@
     return card;
   }
 
+  // Feature one real saved impression, with an actual note where available.
+  // Never use sample film titles or pretend a user wrote a note they did not write.
+  function updateFeature() {
+    const available = state.impressions.filter(function (item) {
+      return validRatings.includes(item.rating);
+    });
+    const hasArtwork = function (item) { return Boolean(info(item.title_key).poster); };
+    const hasNote = function (item) {
+      const extra = metadata(item.title_key);
+      return Boolean(extra && extra.private_note && extra.private_note.trim());
+    };
+    const selectors = [
+      function (item) { return item.rating === 'Loved' && hasNote(item) && hasArtwork(item); },
+      function (item) { return hasNote(item) && hasArtwork(item); },
+      function (item) { return item.rating === 'Loved' && hasArtwork(item); },
+      function (item) { return hasArtwork(item); },
+      function (item) { return true; }
+    ];
+    let chosen = null;
+    for (const matches of selectors) {
+      chosen = available.find(matches);
+      if (chosen) break;
+    }
+
+    if (!chosen) {
+      featuredRecord = null;
+      feature.hidden = true;
+      featureImage.hidden = true;
+      featureImage.removeAttribute('src');
+      return;
+    }
+
+    const record = info(chosen.title_key, (metadata(chosen.title_key) || {}).category);
+    const extra = metadata(record.key);
+    featuredRecord = record;
+    feature.hidden = false;
+    featureTitle.textContent = record.title;
+    featureMeta.textContent =
+      (record.year || 'Year unavailable') + ' · ' + (record.category === 'tv' ? 'TV' : 'Film');
+    const symbols = { 'Loved': '♥', 'Liked': '♡', 'Okay': '●', 'Not for me': '×' };
+    featureRating.textContent = (symbols[chosen.rating] || '•') + '  ' + chosen.rating;
+
+    const hasPersonalNote = Boolean(extra && extra.private_note && extra.private_note.trim());
+    featureNote.hidden = !hasPersonalNote;
+    featureNoNote.hidden = hasPersonalNote;
+    featureNote.textContent = hasPersonalNote ? '“' + extra.private_note.trim() + '”' : '';
+
+    featureImage.hidden = !record.poster;
+    if (record.poster) {
+      featureImage.alt = 'Cropped artwork for ' + record.title;
+      featureImage.src = record.poster;
+    } else {
+      featureImage.removeAttribute('src');
+    }
+  }
+
+  featureImage.addEventListener('error', function () {
+    // Keep a tasteful, text-only visual in place when external poster hosting fails.
+    featureImage.hidden = true;
+  });
+
+  featureLink.addEventListener('click', function () {
+    if (!featuredRecord) return;
+    state.currentTab = 'watched';
+    state.category = featuredRecord.category;
+    render();
+    const card = Array.from(grid.querySelectorAll('.archive-card')).find(function (entry) {
+      return entry.dataset.titleKey === featuredRecord.key;
+    });
+    if (!card) return;
+    card.classList.add('archive-feature-target');
+    card.tabIndex = -1;
+    card.focus({ preventScroll: true });
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
   function render() {
+    updateFeature();
     tabs.forEach(function (button) {
       const active = button.dataset.archiveTab === state.currentTab;
       button.classList.toggle('active', active);
