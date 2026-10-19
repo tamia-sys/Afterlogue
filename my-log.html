@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Log — Afterlogue</title>
   <link rel="stylesheet" href="style.css?v=29">
-  <link rel="stylesheet" href="my-log.css?v=3">
+  <link rel="stylesheet" href="my-log.css?v=4">
 </head>
 <body class="archive-body">
   <header class="site-header">
@@ -39,6 +39,24 @@
     <p class="archive-eyebrow">AFTERLOGUE / 03 — YOUR COLLECTION</p>
     <h1 class="archive-title">Log.</h1>
     <p class="archive-subtitle">The stories you've experienced, and those still waiting.</p>
+
+    <section class="archive-feature" id="archive-feature" aria-label="Featured from your Log" hidden>
+      <div class="archive-feature-media">
+        <div class="archive-feature-placeholder" id="archive-feature-placeholder" aria-hidden="true">afterlogue.</div>
+        <img id="archive-feature-image" alt="" loading="eager" hidden>
+      </div>
+      <div class="archive-feature-content">
+        <p class="archive-feature-kicker">FEATURED FROM YOUR LOG</p>
+        <h2 class="archive-feature-title" id="archive-feature-title"></h2>
+        <p class="archive-feature-meta" id="archive-feature-meta"></p>
+        <p class="archive-feature-rating" id="archive-feature-rating"></p>
+        <blockquote class="archive-feature-note" id="archive-feature-note" hidden></blockquote>
+        <p class="archive-feature-no-note" id="archive-feature-no-note" hidden>Your impressions, in focus.</p>
+      </div>
+      <button class="archive-feature-link" id="archive-feature-link" type="button">
+        View in Log <span aria-hidden="true">→</span>
+      </button>
+    </section>
 
     <div class="archive-toolbar">
       <div class="archive-tabs" role="group" aria-label="Log sections">
@@ -155,6 +173,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script src="site-navigation.js?v=2"></script>
-  <script src="my-log.js?v=2"></script>
+  <script src="my-log.js?v=3"></script>
 </body>
 </html>
