@@ -765,6 +765,124 @@ body.explore-body > header.site-header {
   .explore-gallery {scroll-behavior:auto;}
 }
 
+
+/* EXPLORE / VERTICAL COLLECTION SHELF
+   Tablet and desktop scroll the cards upward within the middle section.
+   The heading, filters and Surprise Me remain in place. Phones retain
+   the earlier sideways, two-up swipe experience. */
+@media (min-width: 700px) {
+  .explore-gallery {
+    display: grid;
+    grid-auto-flow: row;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-columns: auto;
+    grid-template-rows: none;
+    grid-auto-rows: max-content;
+    align-items: start;
+    align-content: start;
+    gap: clamp(10px, 1.25vw, 19px);
+    height: clamp(165px, 27dvh, 278px);
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scroll-snap-type: y proximity;
+    scroll-padding-block: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212,180,135,.37) transparent;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    padding: 2px 10px 7px 2px;
+  }
+  .explore-gallery::-webkit-scrollbar {
+    display: block;
+    width: 5px;
+  }
+  .explore-gallery::-webkit-scrollbar-thumb {
+    background: rgba(212,180,135,.27);
+    border-radius: 99px;
+  }
+  .explore-gallery::-webkit-scrollbar-track {background: transparent;}
+  .explore-gallery .mood-card {
+    width: auto;
+    height: auto;
+    scroll-snap-align: start;
+  }
+  .explore-rail-tools .explore-rail-nav {display:none;}
+  .explore-rail-tools #explore-rail-hint {
+    display:inline-block;
+    font: 10px Inter,Arial,sans-serif;
+    color:#B2A18E;
+  }
+  .explore-search-active .explore-gallery {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-columns: auto;
+  }
+}
+@media (min-width: 700px) and (max-width: 1100px) {
+  .explore-gallery,
+  .explore-search-active .explore-gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 700px) and (min-height: 600px) {
+  body.explore-body.explore-gallery-mode:not(.explore-search-active) {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  body.explore-body.explore-gallery-mode:not(.explore-search-active) > .explore-shell {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+    overflow: hidden;
+    padding-top: clamp(12px,2.3dvh,24px);
+    padding-bottom: clamp(10px,2dvh,20px);
+  }
+  body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-gallery-wrap {
+    flex: 0 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-gallery {
+    flex: 0 1 auto;
+    max-height: calc(100dvh - 390px);
+  }
+  body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-top,
+  body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-browse,
+  body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-rail-head,
+  body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-mystery {
+    flex: 0 0 auto;
+  }
+}
+@media (min-width: 700px) and (max-height: 599px) {
+  /* Short laptop windows may scroll the page instead of clipping controls. */
+  body.explore-body {overflow-y:auto;}
+  .explore-gallery {height: min(230px,38vh);}
+}
+@media (max-width: 699px) {
+  .explore-gallery {
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: calc((100% - var(--explore-rail-gap)) / 2);
+    grid-template-rows: 1fr;
+    grid-auto-rows: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    touch-action: pan-x;
+    height: auto;
+  }
+  .explore-gallery::-webkit-scrollbar {display:none;}
+  .explore-rail-tools #explore-rail-hint {display:none;}
+  .explore-rail-tools .explore-rail-nav {display:grid;}
+}
+
 </style>
 </head>
 <body class="explore-body">
@@ -822,7 +940,7 @@ body.explore-body > header.site-header {
 <div class="explore-group-label explore-rail-head">
     <p>01 — A LITTLE SOMETHING FOR...</p>
     <div class="explore-rail-tools">
-      <span>Scroll to explore</span>
+      <span id="explore-rail-hint">Scroll for more ↓</span>
       <button type="button" id="explore-rail-prev" class="explore-rail-nav" aria-label="Previous collections" disabled>‹</button>
       <button type="button" id="explore-rail-next" class="explore-rail-nav" aria-label="More collections">›</button>
     </div>
@@ -955,11 +1073,15 @@ async function setupExploreAccountMenu(){
 }
 setupExploreAccountMenu();
 
+/* Keep the overview in a fixed-height frame on larger screens. */
+document.body.classList.add("explore-gallery-mode");
+
 function view(section) {
   gallery.hidden = section !== "gallery";
   experience.hidden = section !== "experience";
   results.hidden = section !== "results";
   window.scrollTo({top:0,behavior:"auto"});
+  document.body.classList.toggle("explore-gallery-mode",section==="gallery");
 }
 function start(mood) {
   if (!data.moods[mood]) return;
@@ -1180,19 +1302,30 @@ $("explore-clear").addEventListener("click",()=>{
 
 
 
+function isVerticalExploreRail(){
+  return window.matchMedia("(min-width: 700px)").matches;
+}
 function refreshExploreRail(){
   const track=$("explore-gallery"),prev=$("explore-rail-prev"),next=$("explore-rail-next");
   if(!track||!prev||!next)return;
-  const max=Math.max(0,track.scrollWidth-track.clientWidth);
-  prev.disabled=track.scrollLeft<=2;
-  next.disabled=max<=2||track.scrollLeft>=max-2;
+  const vertical=isVerticalExploreRail();
+  const max=vertical?Math.max(0,track.scrollHeight-track.clientHeight):Math.max(0,track.scrollWidth-track.clientWidth);
+  const current=vertical?track.scrollTop:track.scrollLeft;
+  prev.disabled=current<=2;
+  next.disabled=max<=2||current>=max-2;
 }
 function shiftExploreRail(direction){
   const track=$("explore-gallery");
-  const firstVisible=[...track.querySelectorAll(".mood-card")].find(c=>!c.hidden);
-  const cardWidth=firstVisible?.getBoundingClientRect().width||track.clientWidth/4;
-  const gap=parseFloat(getComputedStyle(track).columnGap)||14;
-  track.scrollBy({left:direction*2*(cardWidth+gap),behavior:"smooth"});
+  const visible=[...track.querySelectorAll(".mood-card")].find(card=>!card.hidden);
+  if(isVerticalExploreRail()){
+    const row=visible?.getBoundingClientRect().height||180;
+    const gap=parseFloat(getComputedStyle(track).rowGap)||14;
+    track.scrollBy({top:direction*(row+gap),behavior:"smooth"});
+  }else{
+    const width=visible?.getBoundingClientRect().width||track.clientWidth/2;
+    const gap=parseFloat(getComputedStyle(track).columnGap)||12;
+    track.scrollBy({left:direction*2*(width+gap),behavior:"smooth"});
+  }
 }
 $("explore-rail-prev").addEventListener("click",()=>shiftExploreRail(-1));
 $("explore-rail-next").addEventListener("click",()=>shiftExploreRail(1));
@@ -1289,7 +1422,7 @@ async function toggleCollectionPin(mood,button){
   const previous=[...pinnedMoods];
   pinnedMoods=wasPinned?pinnedMoods.filter(value=>value!==mood):[mood,...pinnedMoods];
   renderPinnedCollections();
-  pinGallery.scrollTo({left:0,behavior:"smooth"});
+  pinGallery.scrollTo({top:0,left:0,behavior:"smooth"});
   const cached=cachePins();
   reportPin(wasPinned?"Removed from pinned collections.":"Pinned collection moved to the beginning.");
   if(pinnedAccount){
