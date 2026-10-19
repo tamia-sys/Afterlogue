@@ -121,6 +121,7 @@
   const previewTitle = $('preview-title-edit');
   const titleSize = $('preview-title-size');
   const SIZE_TAG = /^\\[\\[afterlogue:title-size:(\\d{2})\\]\\]/;
+  const widthControl = $('preview-image-width'), offsetControl = $('preview-image-offset'), ratioControl = $('preview-custom-ratio');
   const frame = $('preview-image-frame'), cropX = $('preview-crop-x'), cropY = $('preview-crop-y');
   function updatePreviewImage() {
     const figure = $('preview-image-figure'), image = $('preview-image');
@@ -129,7 +130,16 @@
     if (!objectUrl) return;
     image.src = objectUrl;
     image.alt = imageAlt.value.trim() || 'Conversation image';
-    image.style.aspectRatio = frame.value === 'square' ? '1/1' : frame.value === 'wide' ? '2/1' : '16/9';
+    const ratio = frame.value === 'square' ? 1 : frame.value === 'wide' ? 2 : frame.value === 'custom' ? Number(ratioControl.value)/100 : 16/9;
+    image.style.aspectRatio = String(ratio);
+    $('preview-custom-ratio-label').hidden = frame.value !== 'custom';
+    $('preview-custom-ratio-value').textContent = ratio.toFixed(2)+':1';
+    $('preview-image-width-value').textContent = widthControl.value+'%';
+    $('preview-image-offset-value').textContent = offsetControl.value+' px';
+    const layout = document.querySelector('.discuss-live-preview');
+    layout.style.setProperty('--visual-width',widthControl.value+'%');
+    layout.style.setProperty('--visual-offset',offsetControl.value+'px');
+    layout.style.setProperty('--visual-ratio',String(ratio));
     image.style.objectPosition = cropX.value + '% ' + cropY.value + '%';
   }
   function renderPreview() {
@@ -146,14 +156,14 @@
     $('compose-title').value = previewTitle.value;
     $('preview-heading').textContent = previewTitle.value || 'Your conversation title';
   });
-  [frame,cropX,cropY].forEach(el=>el.addEventListener('input',updatePreviewImage));
+  [frame,cropX,cropY,widthControl,offsetControl,ratioControl].forEach(el=>el.addEventListener('input',updatePreviewImage));
   titleSize.addEventListener('input',()=>{ $('preview-heading').style.fontSize = titleSize.value+'px'; $('preview-title-size-value').textContent = titleSize.value+' px'; });
   function preparedImage() {
     if (!selectedFile) return Promise.resolve(null);
     return new Promise((resolve,reject) => {
       const img = new Image();
       img.onload = () => {
-        const ratio = frame.value === 'square' ? 1 : frame.value === 'wide' ? 2 : 16/9;
+        const ratio = frame.value === 'square' ? 1 : frame.value === 'wide' ? 2 : frame.value === 'custom' ? Number(ratioControl.value)/100 : 16/9;
         const sw = Math.min(img.naturalWidth,img.naturalHeight*ratio);
         const sh = sw/ratio;
         const sx = (img.naturalWidth-sw)*(Number(cropX.value)/100);
@@ -215,7 +225,7 @@
         author_id:member.id, kind:draft.kind, title:draft.heading,
         work_title:draft.kind === 'title' ? draft.work : null,
         work_type:draft.kind === 'title' ? draft.workType : null,
-        body:'[[afterlogue:title-size:'+draft.titleSize+']]' + draft.body,has_spoilers:draft.hasSpoilers,
+        body:'[[afterlogue:title-size:'+draft.titleSize+']][[afterlogue:visual:'+widthControl.value+','+offsetControl.value+','+(frame.value === 'square' ? 100 : frame.value === 'wide' ? 200 : frame.value === 'custom' ? ratioControl.value : 178)+']]' + draft.body,has_spoilers:draft.hasSpoilers,
         image_path:uploadedPath,
         image_alt:uploadedPath ? imageAlt.value.trim().slice(0,180) : null
       }).select('id').single();
