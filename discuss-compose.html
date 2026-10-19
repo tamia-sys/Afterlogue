@@ -139,12 +139,7 @@
 <button type="button" id="compose-preview-toggle" class="discuss-quiet-button">Preview</button>
 <button type="submit" id="compose-publish" class="discuss-primary">Publish conversation <span aria-hidden="true">↗</span></button>
 </div>
-<section id="compose-preview" class="discuss-warning" aria-label="Post preview" hidden>
-<p class="discuss-inner-eyebrow">PREVIEW / ONLY YOU CAN SEE THIS</p>
-<div class="discuss-preview-editor"><label>Conversation title <input id="preview-title-edit" class="discuss-entry-input" maxlength="160" aria-label="Edit conversation title in preview"></label>
-<div id="preview-image-tools" hidden><label>Image framing <select id="preview-image-frame" class="discuss-entry-select"><option value="landscape">Landscape (16:9)</option><option value="wide">Wide (2:1)</option><option value="square">Square (1:1)</option></select></label><label>Horizontal crop <input type="range" id="preview-crop-x" min="0" max="100" value="50"></label><label>Vertical crop <input type="range" id="preview-crop-y" min="0" max="100" value="50"></label></div></div>
-<div class="discuss-live-preview"><div class="discuss-live-copy"><h2 id="preview-heading" class="discuss-form-heading"></h2><div id="preview-body" class="discuss-article-body"></div></div><figure id="preview-image-figure" hidden><img id="preview-image" alt="Preview of conversation image"></figure></div>
-</section>
+
 </div>
 <aside class="discuss-form-sidebar">
 <p class="discuss-inner-eyebrow">BEFORE YOU PUBLISH</p>
@@ -153,10 +148,16 @@
 <p>Mark spoilers, remain respectful, and make space for different interpretations. Comments are open to members once you publish.</p>
 </aside>
 </div>
+<section id="compose-preview" class="discuss-warning" aria-label="Post preview" hidden>
+<p class="discuss-inner-eyebrow">PREVIEW / ONLY YOU CAN SEE THIS</p>
+<div class="discuss-preview-editor"><label>Conversation title <input id="preview-title-edit" class="discuss-entry-input" maxlength="160" aria-label="Edit conversation title in preview"></label>
+<div class="discuss-title-size-tool"><label for="preview-title-size">Title size <output id="preview-title-size-value">32 px</output></label><input type="range" id="preview-title-size" min="24" max="48" step="2" value="32"></div><div id="preview-image-tools" hidden><label>Image framing <select id="preview-image-frame" class="discuss-entry-select"><option value="landscape">Landscape (16:9)</option><option value="wide">Wide (2:1)</option><option value="square">Square (1:1)</option></select></label><label>Horizontal crop <input type="range" id="preview-crop-x" min="0" max="100" value="50"></label><label>Vertical crop <input type="range" id="preview-crop-y" min="0" max="100" value="50"></label></div></div>
+<div class="discuss-live-preview"><div class="discuss-live-copy"><h2 id="preview-heading" class="discuss-form-heading"></h2><div id="preview-body" class="discuss-article-body"></div></div><figure id="preview-image-figure" hidden><img id="preview-image" alt="Preview of conversation image"></figure></div>
+</section>
 </form></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=3"></script>
 <script src="discuss-common.js?v=1"></script>
-<script src="discuss-compose.js?v=20261019-preview2"></script>
+<script src="discuss-compose.js?v=20261019-preview3"></script>
 </body></html>
