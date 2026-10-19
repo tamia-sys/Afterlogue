@@ -203,8 +203,8 @@
   font: inherit;
 }
 .discuss-spoiler-inline[aria-expanded="false"] {
-  color: transparent;
-  text-shadow: 0 0 7px #d9c4a7;
+  color: #e0c7a4;
+  text-shadow: none;
 }
 .discuss-no-comments { color: #a99c8e; padding: 15px 0 32px; font: 13px/1.7 Inter,Arial,sans-serif; }
 .discuss-form-layout { display: grid; grid-template-columns: minmax(0,1fr) 240px; gap: clamp(28px,5.4vw,72px); align-items:start; margin-top: 33px; }
