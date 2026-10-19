@@ -6,7 +6,7 @@
 <title>Start a conversation — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="discuss.css?v=3">
-<link rel="stylesheet" href="discuss-pages.css?v=7">
+<link rel="stylesheet" href="discuss-pages.css?v=8">
 <link rel="stylesheet" href="mobile-header.css?v=3">
 </head>
 <body class="discuss-body discuss-compose-page">
@@ -38,7 +38,7 @@
 <div class="discuss-form-layout">
 <div class="discuss-form-main">
 <div class="discuss-upload-panel" id="compose-upload-panel">
-  <p class="discuss-entry-label">Start with a visual <span class="discuss-form-help">(optional)</span></p>
+  <div class="discuss-image-heading"><p class="discuss-entry-label">Start with a visual <span class="discuss-form-help">(optional)</span></p><button type="button" id="compose-image-remove-top" class="discuss-quiet-button discuss-remove-visual" hidden>Remove visual ×</button></div>
   <label for="compose-image" class="discuss-image-drop"><span aria-hidden="true">＋</span> Add an image to inspire your story <small>JPG, PNG, or WebP · up to 5 MB</small></label>
   <input id="compose-image" type="file" accept="image/jpeg,image/png,image/webp" class="discuss-file-input" aria-describedby="compose-image-help">
   <p id="compose-image-help" class="discuss-form-help">Place your cursor anywhere in the writing area first, or choose an image now to begin with it.</p>
@@ -91,5 +91,5 @@
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=3"></script>
 <script src="discuss-common.js?v=1"></script>
-<script src="discuss-compose.js?v=5"></script>
+<script src="discuss-compose.js?v=6"></script>
 </body></html>
