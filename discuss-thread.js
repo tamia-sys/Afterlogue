@@ -31,7 +31,7 @@
     const figure = $('thread-image-figure');
     figure.hidden = true;
     body.replaceChildren();
-    const parts = String(t.body || '').replace(/^\[\[afterlogue:title-size:\d{2}\]\]/,'').replace(/^\[\[afterlogue:visual:\d{2},-?\d{1,3},\d{2,3}\]\]/,'').split(IMAGE_TOKEN);
+    const parts = String(t.body || '').replace(/^\[\[afterlogue:title-size:\d{2}\]\]/,'').replace(/^\[\[afterlogue:visual:\d{2},-?\d{1,3},\d{2,3}\]\]/,'').replace(/^\[\[afterlogue:body-size:\d{2}\]\]/,'').split(IMAGE_TOKEN);
     parts.forEach((part,index) => {
       if (part) {
         const block = make('div','discuss-article-text');
@@ -187,6 +187,8 @@
     const title = t.title || 'Conversation';
     document.title = (t.has_spoilers ? 'Spoiler-marked conversation' : title) + ' — Afterlogue';
     $('thread-heading').textContent = t.has_spoilers ? 'A conversation with spoilers.' : title;
+    const bodySizeMatch = String(t.body || '').match(/\[\[afterlogue:body-size:(\d{2})\]\]/);
+    $('thread-content').style.fontSize = (bodySizeMatch ? Math.max(12,Math.min(22,Number(bodySizeMatch[1]))) : 14)+'px';
     const visualMatch = String(t.body || '').match(/\[\[afterlogue:visual:(\d{2}),(-?\d{1,3}),(\d{2,3})\]\]/);
     const layout = document.querySelector('.discuss-thread-copy');
     if (visualMatch && layout) {
