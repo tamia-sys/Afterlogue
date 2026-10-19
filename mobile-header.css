@@ -141,3 +141,42 @@
     font-size: 33px !important;
   }
 }
+/* Discuss joins the same mobile two-row Home-style header */
+@media (max-width:767px) {
+ body.discuss-body > header.site-header {
+   display:grid!important;grid-template-columns:minmax(0,1fr);justify-items:stretch;align-items:start!important;
+   width:100%;margin:0;padding:22px 5% 20px!important;row-gap:17px!important;background:#000;border-bottom:1px solid #34312e;
+ }
+ body.discuss-body > header.site-header > a.logo {
+   display:inline-block;width:max-content;max-width:100%;font-family:Georgia,"Times New Roman",serif!important;
+   font-size:36px!important;font-weight:400!important;letter-spacing:-1px!important;line-height:1.08!important;
+   text-decoration:none;color:#F4EADD;
+ }
+ body.discuss-body > header.site-header > nav {
+   display:flex!important;flex-wrap:nowrap!important;width:100%!important;min-width:0;align-items:center!important;
+   justify-content:flex-start!important;gap:clamp(11px,3.3vw,19px)!important;margin:0;padding:0;
+ }
+ body.discuss-body > header.site-header > nav > a {
+   display:inline-flex;align-items:center;flex:0 0 auto;white-space:nowrap;
+   font:400 12px/1.35 Inter,Arial,sans-serif!important;text-align:left;padding:0;
+ }
+ body.discuss-body > header.site-header > nav > a[hidden]{display:none!important}
+ body.discuss-body > header.site-header nav .account-menu{
+   display:flex;flex:0 0 26px;width:26px;min-width:26px;align-items:center;justify-content:center;
+   position:relative;margin:0 0 0 auto!important;padding:0;color:#F4EADD;
+ }
+ body.discuss-body > header.site-header nav .account-menu > summary{
+   display:flex;align-items:center;justify-content:center;width:26px!important;height:26px!important;
+   margin:0;padding:0;list-style:none;cursor:pointer;
+ }
+ body.discuss-body > header.site-header nav .account-menu > summary svg{display:block;width:23px;height:23px}
+ body.discuss-body > header.site-header nav .account-dropdown{
+   position:absolute;top:calc(100% + 14px);right:0;left:auto;width:min(270px,calc(100vw - 30px));
+   max-width:calc(100vw - 30px);z-index:1000;text-align:left;
+ }
+}
+@media(max-width:360px){
+ body.discuss-body > header.site-header > nav{gap:10px!important}
+ body.discuss-body > header.site-header > nav > a{font-size:11px!important}
+ body.discuss-body > header.site-header > a.logo{font-size:33px!important}
+}
