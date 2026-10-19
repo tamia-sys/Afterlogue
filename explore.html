@@ -41,12 +41,12 @@ body.explore-body>header{padding:24px 5%;background:#000}
 .mood-card .mood-title{display:block;font:400 clamp(23px,2.1vw,34px)/1.16 Georgia,serif;letter-spacing:-.025em;max-width:270px}
 .mood-card .mood-bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;color:#E2D4C2;font:12px/1.5 Arial,sans-serif}
 .mood-card .mood-arrow{font-size:22px;line-height:1}
-.mood-card[data-mood="yearning"] .mood-image{background-image:url("https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1000&q=80");background-color:#334653}
-.mood-card[data-mood="winding"] .mood-image{background-image:url("https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1000&q=80");background-color:#4A392E}
-.mood-card[data-mood="friday"] .mood-image{background-image:url("https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=1000&q=80");background-color:#292441}
-.mood-card[data-mood="fall"] .mood-image{background-image:url("https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=1000&q=80");background-color:#57452D}
-.mood-card[data-mood="holidays"] .mood-image{background-image:url("https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=1000&q=80");background-color:#4C3832}
-.mood-card[data-mood="unexpected"] .mood-image{background-image:url("https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1000&q=80");background-color:#3F4345}
+.mood-card[data-mood="yearning"] .mood-image{background-image:url("https://images.unsplash.com/photo-1680268719962-acaffc32c3cb?auto=format&fit=crop&w=900&q=82");background-color:#334653}
+.mood-card[data-mood="winding"] .mood-image{background-image:url("https://images.unsplash.com/photo-1701946147341-4a664af4325e?auto=format&fit=crop&w=900&q=82");background-color:#4A392E}
+.mood-card[data-mood="friday"] .mood-image{background-image:url("https://images.unsplash.com/photo-1767973419928-11ffdfe630a4?auto=format&fit=crop&w=900&q=82");background-color:#292441}
+.mood-card[data-mood="fall"] .mood-image{background-image:url("https://images.unsplash.com/photo-1761090747786-972432a6c5e2?auto=format&fit=crop&w=900&q=82");background-color:#57452D}
+.mood-card[data-mood="holidays"] .mood-image{background-image:url("https://images.unsplash.com/photo-1766393030565-12f744515335?auto=format&fit=crop&w=900&q=82");background-color:#4C3832}
+.mood-card[data-mood="unexpected"] .mood-image{background-image:url("https://images.unsplash.com/photo-1767244489920-9f4a7125d520?auto=format&fit=crop&w=900&q=82");background-color:#3F4345}
 .explore-mystery{margin-top:25px;display:flex;align-items:center;justify-content:space-between;gap:22px;border-top:1px solid var(--ex-border);border-bottom:1px solid var(--ex-border);padding:24px 0}
 .explore-mystery h2{font:400 27px Georgia,serif;margin:0 0 7px}
 .explore-mystery p{font:13px/1.6 Arial,sans-serif;color:#BCAF9D;margin:0}
@@ -114,62 +114,298 @@ body.explore-body>header{padding:19px 5%;align-items:center}
 }
 @media(prefers-reduced-motion:reduce){.mood-card .mood-image,.explore-art img,.explore-pick-info{transition:none}}
 
-/* Quiet photographic collections; search before the gallery, no second hero. */
-.explore-shell{padding-top:32px}
-.explore-top{margin-bottom:22px;padding-bottom:8px;border-bottom:0}
-.explore-top h1{font-size:clamp(36px,4.1vw,61px);margin:9px 0 9px}
-.explore-lead{font-size:13px;max-width:600px}
-.explore-browse{margin-bottom:34px}
-.explore-search{height:48px;border:1px solid #695946;background:#11100e;display:flex;align-items:center;gap:13px;padding:0 16px}
-.explore-search:focus-within{border-color:#D4B487}
-.explore-search svg{width:19px;height:19px;fill:none;stroke:#D4B487;stroke-width:1.6;stroke-linecap:round;flex:none}
-.explore-search input{flex:1;min-width:0;height:100%;outline:0;border:0;background:transparent;color:#F4EADD;font:13px Inter,Arial,sans-serif}
-.explore-search input::placeholder{color:#AB9E8D}
-.explore-search>span{font:600 9px Inter,Arial,sans-serif;letter-spacing:.16em;color:#BAA58A}
-.explore-filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:11px}
-.explore-filters label{height:36px;padding:0 11px;border:1px solid #4C4135;display:flex;gap:9px;align-items:center;color:#BFB09E;font:11px Inter,Arial,sans-serif}
-.explore-filters select{max-width:170px;min-width:0;background:#000;border:0;outline:0;color:#F4EADD;font:11px Inter,Arial,sans-serif;cursor:pointer}
-.explore-filters label:focus-within{border-color:#D4B487}
-#explore-clear{border:0;background:none;color:#D4B487;padding:7px;font:11px Inter,Arial,sans-serif;cursor:pointer}
-#explore-browse-note{color:#988A78;font:11px/1.5 Inter,Arial,sans-serif;margin:10px 0 0}
-.explore-gallery{grid-template-columns:repeat(3,minmax(0,1fr));gap:29px 22px}
-.mood-card{background:transparent;border:0;min-height:0;aspect-ratio:auto;overflow:visible;display:flex;flex-direction:column;isolation:auto}
-.mood-card::after{display:none}
-.mood-card .mood-image{position:relative;inset:auto;width:100%;aspect-ratio:1.43/1;display:block;flex:none;filter:saturate(.7) brightness(.84)}
-.mood-card-body{position:relative;left:auto;right:auto;bottom:auto;padding-top:12px;display:block}
-.mood-card .mood-number{display:none}
-.mood-card .mood-title{max-width:none;font-size:clamp(19px,2vw,26px);line-height:1.23}
-.mood-card .mood-bottom{font:11px/1.5 Inter,Arial,sans-serif;color:#A99B87;margin-top:6px}
-.mood-card .mood-arrow{font-size:17px;color:#D4B487}
-.mood-card[hidden]{display:none}
-.explore-mystery{margin-top:36px;padding:19px 0}
-.explore-mystery h2{font-size:23px}
-.explore-search-results{margin:0 0 35px;padding:0 0 28px;border-bottom:1px solid #3C3229}
-.explore-search-results[hidden],#explore-no-matches[hidden]{display:none}
-.explore-search-results .explore-picks{gap:19px 14px}
-.explore-search-results .explore-pick{max-width:225px}
-#explore-no-matches{font:13px/1.6 Inter,Arial,sans-serif;color:#C5B5A1}
-.explore-art{border:0;border-radius:2px}
-.explore-pick h3{font:500 14px/1.4 Inter,Arial,sans-serif}
-.explore-pick .explore-year{font:11px Inter,Arial,sans-serif}
-@media(max-width:1000px){.explore-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:650px){
-.explore-shell{padding-top:25px}
-.explore-top{padding-bottom:7px;margin-bottom:18px}
-.explore-top h1{font-size:clamp(34px,9vw,46px)}
-.explore-search{height:45px;padding:0 12px}
-.explore-search>span{display:none}
-.explore-filters{gap:7px}
-.explore-filters label{flex:1 1 calc(50% - 7px);justify-content:space-between;padding:0 8px}
-.explore-filters select{max-width:110px;font-size:10px}
-.explore-gallery{gap:23px 12px}
-.mood-card{min-height:0}
-.mood-card .mood-image{aspect-ratio:1.05/1}
-.mood-card-body{padding-top:9px}
-.mood-card .mood-title{font-size:19px}
-.mood-card .mood-bottom{font-size:10px}
-.explore-search-results .explore-picks{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* Explore exhibition v2 — wide library, four photographic collections per desktop row.
+   Cover images: licensed Unsplash photographs, source references in commit history. */
+
+.explore-shell {
+  width: min(1800px, 100%);
+  margin: 0 auto;
+  padding: 28px clamp(20px, 3.7vw, 68px) 88px;
 }
+
+.explore-top {
+  margin-bottom: 22px;
+  padding-bottom: 8px;
+  border-bottom: 0;
+}
+
+.explore-top h1 {
+  font-size: clamp(36px, 4.1vw, 60px);
+  line-height: 1.08;
+  margin: 9px 0;
+}
+
+.explore-lead {
+  max-width: 620px;
+  font-size: 13px;
+}
+
+/* Full-width, pill-shaped search field. */
+.explore-browse {
+  margin: 0 0 36px;
+}
+
+.explore-search {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  height: 50px;
+  padding: 0 19px;
+  border: 1px solid rgba(212, 180, 135, .42);
+  border-radius: 999px;
+  background: #131210;
+  transition: border-color .2s ease, background-color .2s ease;
+}
+
+.explore-search:focus-within {
+  border-color: #D4B487;
+  background: #191713;
+}
+
+.explore-search svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: #D4B487;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.explore-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #F4EADD;
+  font: 13px Inter, Arial, sans-serif;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.explore-search input::placeholder { color: #A99E91; }
+.explore-search input::-webkit-search-cancel-button { cursor: pointer; }
+
+.explore-search > span {
+  color: #B8A083;
+  font: 600 9px Inter, Arial, sans-serif;
+  letter-spacing: .16em;
+}
+
+/* Filters: a row of quiet rounded controls, never square dropdown boxes. */
+.explore-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.explore-filters label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 11px;
+  min-width: 0;
+  height: 38px;
+  padding: 0 14px 0 16px;
+  border: 1px solid rgba(212, 180, 135, .38);
+  border-radius: 999px;
+  background: #11100F;
+  color: #BCAD9A;
+  font: 11px Inter, Arial, sans-serif;
+  transition: border-color .2s ease;
+}
+
+.explore-filters label:focus-within,
+.explore-filters label:hover {
+  border-color: #D4B487;
+}
+
+.explore-filters select {
+  max-width: 170px;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  color: #F4EADD;
+  background: transparent;
+  font: 11px Inter, Arial, sans-serif;
+  cursor: pointer;
+}
+
+#explore-clear {
+  height: 38px;
+  padding: 0 15px;
+  border: 1px solid rgba(212, 180, 135, .4);
+  border-radius: 999px;
+  background: #11100F;
+  color: #D4B487;
+  cursor: pointer;
+  font: 11px Inter, Arial, sans-serif;
+}
+
+#explore-clear[hidden] { display: none; }
+
+#explore-browse-note {
+  margin: 11px 0 0;
+  color: #9A8C7A;
+  font: 11px/1.5 Inter, Arial, sans-serif;
+}
+
+/* Cinematic playlist covers: wider than tall, with plenty of black around them. */
+.explore-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 31px clamp(13px, 1.45vw, 25px);
+}
+
+.mood-card {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: auto;
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: transparent;
+  isolation: auto;
+}
+
+.mood-card::after { display: none; }
+.mood-card[hidden] { display: none; }
+
+.mood-card .mood-image {
+  display: block;
+  position: relative;
+  inset: auto;
+  width: 100%;
+  flex: 0 0 auto;
+  aspect-ratio: 1.54 / 1;
+  overflow: hidden;
+  border-radius: 19px;
+  background-position: center;
+  background-size: cover;
+  filter: saturate(.82) brightness(.86);
+  transform: none;
+  transition: filter .3s ease;
+}
+
+.mood-card[data-mood="yearning"] .mood-image { background-position: center 45%; }
+.mood-card[data-mood="winding"] .mood-image { background-position: center 55%; }
+.mood-card[data-mood="friday"] .mood-image { background-position: center 57%; }
+.mood-card[data-mood="fall"] .mood-image { background-position: center 54%; }
+.mood-card[data-mood="holidays"] .mood-image { background-position: center 50%; }
+.mood-card[data-mood="unexpected"] .mood-image { background-position: center 48%; }
+
+.mood-card:hover .mood-image,
+.mood-card:focus-visible .mood-image {
+  filter: saturate(.98) brightness(.99);
+  transform: none;
+}
+
+.mood-card-body {
+  display: block;
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  width: 100%;
+  padding: 11px 2px 0;
+}
+
+.mood-card .mood-number { display: none; }
+
+.mood-card .mood-title {
+  max-width: none;
+  font-size: clamp(17px, 1.42vw, 22px);
+  line-height: 1.26;
+  letter-spacing: -.02em;
+}
+
+.mood-card .mood-bottom {
+  gap: 12px;
+  margin-top: 4px;
+  color: #A99B87;
+  font: 11px/1.5 Inter, Arial, sans-serif;
+}
+
+.mood-card .mood-arrow {
+  flex: 0 0 auto;
+  color: #D4B487;
+  font-size: 17px;
+}
+
+/* Search results remain film posters, unlike the photographic mood covers. */
+.explore-search-results {
+  margin: 0 0 35px;
+  padding: 0 0 28px;
+  border-bottom: 1px solid #3C3229;
+}
+
+.explore-search-results[hidden],
+#explore-no-matches[hidden] { display: none; }
+
+.explore-search-results .explore-picks { gap: 19px 14px; }
+.explore-search-results .explore-pick { max-width: 225px; }
+
+#explore-no-matches {
+  color: #C5B5A1;
+  font: 13px/1.6 Inter, Arial, sans-serif;
+}
+
+.explore-art { border: 0; border-radius: 9px; }
+.explore-pick h3 { font: 500 14px/1.4 Inter, Arial, sans-serif; }
+.explore-pick .explore-year { font: 11px Inter, Arial, sans-serif; }
+
+.explore-mystery { margin-top: 38px; padding: 19px 0; }
+.explore-mystery h2 { font-size: 23px; }
+
+/* Keep four across on desktops, three on tablets, two on phones. */
+@media (max-width: 1100px) {
+  .explore-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .explore-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 25px 13px;
+  }
+}
+
+@media (max-width: 650px) {
+  .explore-shell { padding: 25px 5% 65px; }
+  .explore-top { margin-bottom: 18px; padding-bottom: 7px; }
+  .explore-top h1 { font-size: clamp(34px, 9vw, 46px); }
+  .explore-search { height: 46px; padding: 0 15px; }
+  .explore-search > span { display: none; }
+
+  .explore-filters { gap: 8px; }
+  .explore-filters label {
+    flex: 1 1 calc(50% - 8px);
+    padding: 0 10px;
+  }
+  .explore-filters select { max-width: 113px; font-size: 10px; }
+
+  .mood-card .mood-image { aspect-ratio: 1.13 / 1; border-radius: 15px; }
+  .mood-card-body { padding-top: 9px; }
+  .mood-card .mood-title { font-size: 18px; }
+  .mood-card .mood-bottom { font-size: 10px; }
+  .explore-search-results .explore-picks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mood-card .mood-image { transition: none; }
+}
+
 </style>
 </head>
 <body class="explore-body">
