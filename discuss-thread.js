@@ -62,8 +62,8 @@
   function renderThread(t) {
     currentThread = t;
     const title = t.title || 'Conversation';
-    document.title = title + ' — Afterlogue';
-    $('thread-heading').textContent = title;
+    document.title = (t.has_spoilers ? 'Spoiler-marked conversation' : title) + ' — Afterlogue';
+    $('thread-heading').textContent = t.has_spoilers ? 'A conversation with spoilers.' : title;
     $('thread-category').textContent =
       t.kind === 'general' ? 'Open conversation' :
       (t.work_type === 'tv' ? 'TV' : 'Film') + ' · ' + (t.work_title || '');
@@ -76,6 +76,8 @@
     $('spoiler-warning').hidden = !t.has_spoilers;
     if (!t.has_spoilers) showSpoilerText(content, t.body);
     $('reveal-thread').addEventListener('click', () => {
+      $('thread-heading').textContent = title;
+      document.title = title + ' — Afterlogue';
       showSpoilerText(content, t.body);
       content.hidden = false;
       $('spoiler-warning').hidden = true;
