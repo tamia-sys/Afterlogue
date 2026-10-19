@@ -85,7 +85,7 @@
       kind, work:kind === 'title' ? $('compose-work').value.trim() : '',
       workType:$('compose-work-type').value,
       heading:$('compose-title').value.trim(),
-      body:bodyText(), hasSpoilers:$('compose-has-spoilers').checked
+      body:bodyText(), titleSize:Number(titleSize.value), hasSpoilers:$('compose-has-spoilers').checked
     };
   }
 
@@ -95,7 +95,10 @@
     $('compose-work').value = String(draft.work || '').slice(0,120);
     $('compose-work-type').value = draft.workType === 'tv' ? 'tv' : 'film';
     $('compose-title').value = String(draft.heading || '').slice(0,160);
-    editorText(String(draft.body || '').replaceAll(IMAGE_TOKEN,''));
+    const savedBody = String(draft.body || '');
+    const sizeMatch = savedBody.match(SIZE_TAG);
+    titleSize.value = String(draft.titleSize || (sizeMatch ? Number(sizeMatch[1]) : 32));
+    editorText(savedBody.replace(SIZE_TAG,'').replaceAll(IMAGE_TOKEN,''));
     $('compose-has-spoilers').checked = Boolean(draft.hasSpoilers);
     workFields();
   }
@@ -116,6 +119,8 @@
   }
 
   const previewTitle = $('preview-title-edit');
+  const titleSize = $('preview-title-size');
+  const SIZE_TAG = /^\\[\\[afterlogue:title-size:(\\d{2})\\]\\]/;
   const frame = $('preview-image-frame'), cropX = $('preview-crop-x'), cropY = $('preview-crop-y');
   function updatePreviewImage() {
     const figure = $('preview-image-figure'), image = $('preview-image');
@@ -129,6 +134,8 @@
   }
   function renderPreview() {
     $('preview-heading').textContent = $('compose-title').value.trim() || 'Your conversation title';
+    $('preview-heading').style.fontSize = titleSize.value + 'px';
+    $('preview-title-size-value').textContent = titleSize.value + ' px';
     previewBody.replaceChildren();
     const text = document.createElement('div');
     showSpoilerText(text,bodyText() || 'Your words will appear here.');
@@ -140,6 +147,7 @@
     $('preview-heading').textContent = previewTitle.value || 'Your conversation title';
   });
   [frame,cropX,cropY].forEach(el=>el.addEventListener('input',updatePreviewImage));
+  titleSize.addEventListener('input',()=>{ $('preview-heading').style.fontSize = titleSize.value+'px'; $('preview-title-size-value').textContent = titleSize.value+' px'; });
   function preparedImage() {
     if (!selectedFile) return Promise.resolve(null);
     return new Promise((resolve,reject) => {
@@ -207,7 +215,7 @@
         author_id:member.id, kind:draft.kind, title:draft.heading,
         work_title:draft.kind === 'title' ? draft.work : null,
         work_type:draft.kind === 'title' ? draft.workType : null,
-        body:draft.body,has_spoilers:draft.hasSpoilers,
+        body:'[[afterlogue:title-size:'+draft.titleSize+']]' + draft.body,has_spoilers:draft.hasSpoilers,
         image_path:uploadedPath,
         image_alt:uploadedPath ? imageAlt.value.trim().slice(0,180) : null
       }).select('id').single();
