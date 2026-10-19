@@ -8,7 +8,14 @@
 <link rel="stylesheet" href="discuss.css?v=3">
 <link rel="stylesheet" href="discuss-pages.css?v=16">
 <link rel="stylesheet" href="mobile-header.css?v=3">
-</head>
+<style id="thread-layout-actions-fix">
+.discuss-thread-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,32%);gap:clamp(22px,4vw,56px);align-items:start}
+.discuss-thread-layout .discuss-thread-copy{grid-column:1;grid-row:1;min-width:0}
+.discuss-thread-layout .discuss-article-figure{grid-column:2;grid-row:1}
+.discuss-thread-layout .discuss-article-actions{margin-top:18px;display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+@media(max-width:680px){.discuss-thread-layout{grid-template-columns:minmax(0,1fr) 34%;gap:14px}}
+@media(max-width:420px){.discuss-thread-layout{grid-template-columns:minmax(0,1fr) 36%;gap:12px}}
+</style></head>
 <body class="discuss-body">
 <header class="site-header">
 <a href="index.html" class="logo">afterlogue.</a>
@@ -39,7 +46,7 @@
 <span class="tag" id="thread-spoiler-label" hidden>Spoilers</span>
 </div>
 <div class="discuss-thread-layout"><div class="discuss-thread-copy"><div id="thread-content" class="discuss-article-body"></div>
-<figure id="thread-image-figure" class="discuss-article-figure" hidden><img id="thread-image" alt="" loading="lazy"><figcaption id="thread-image-caption"></figcaption></figure></div>
+</div><figure id="thread-image-figure" class="discuss-article-figure" hidden><img id="thread-image" alt="" loading="lazy"><figcaption id="thread-image-caption"></figcaption></figure>
 <div id="spoiler-warning" class="discuss-warning" hidden>
 <p>This conversation may reveal plot details. Choose when you’re ready to read.</p>
 <button type="button" id="reveal-thread" class="discuss-primary">Reveal conversation</button>
