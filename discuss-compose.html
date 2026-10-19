@@ -6,8 +6,47 @@
 <title>Start a conversation — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="discuss.css?v=3">
-<link rel="stylesheet" href="discuss-pages.css?v=15">
+<link rel="stylesheet" href="discuss-pages.css?v=20261019-17">
 <link rel="stylesheet" href="mobile-header.css?v=3">
+
+<style id="discuss-visual-controls-fix">
+/* Inline to avoid a stale styles cache during the deployment transition. */
+.discuss-compose-page .discuss-image-action-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+.discuss-compose-page .discuss-image-action-row #compose-image-change-button,
+.discuss-compose-page .discuss-image-action-row #compose-image-remove {
+  appearance: none !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 124px !important;
+  min-width: 124px !important;
+  height: 35px !important;
+  min-height: 35px !important;
+  margin: 0 !important;
+  padding: 7px 10px !important;
+  border: 1px solid #826548 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: #dfb48e !important;
+  font: 400 11px/1.25 Inter,Arial,sans-serif !important;
+  white-space: nowrap !important;
+}
+.discuss-compose-page .discuss-image-action-row #compose-image-change-button:hover,
+.discuss-compose-page .discuss-image-action-row #compose-image-remove:hover { background: #2b2018 !important; }
+@media (max-width: 360px) {
+  .discuss-compose-page .discuss-image-action-row #compose-image-change-button,
+  .discuss-compose-page .discuss-image-action-row #compose-image-remove {
+    width: 116px !important;
+    min-width: 116px !important;
+  }
+}
+</style>
 </head>
 <body class="discuss-body discuss-compose-page">
 <header class="site-header">
@@ -103,5 +142,5 @@
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=3"></script>
 <script src="discuss-common.js?v=1"></script>
-<script src="discuss-compose.js?v=11"></script>
+<script src="discuss-compose.js?v=20261019-17"></script>
 </body></html>
