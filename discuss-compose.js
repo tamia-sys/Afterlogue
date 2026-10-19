@@ -7,6 +7,52 @@
   let member = null;
   let saving = false;
   let draftKey = '';
+  let selectedFile = null;
+  let localImageUrl = null;
+  const imageInput = $('compose-image');
+  const imageAlt = $('compose-image-alt');
+  const attachment = $('compose-image-attachment');
+  const imagePreview = $('compose-image-preview');
+  const coverPreview = $('compose-preview-image');
+  const limitBytes = 5 * 1024 * 1024;
+  const allowed = {'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+  const imageStore = client.storage.from('discussion-images');
+
+  function clearImage() {
+    selectedFile = null;
+    imageInput.value = '';
+    imageAlt.value = '';
+    imageAlt.required = false;
+    attachment.hidden = true;
+    coverPreview.hidden = true;
+    imagePreview.removeAttribute('src');
+    coverPreview.removeAttribute('src');
+    if (localImageUrl) URL.revokeObjectURL(localImageUrl);
+    localImageUrl = null;
+  }
+
+  function updateSelectedImage(file) {
+    if (!file) { clearImage(); return; }
+    if (!Object.prototype.hasOwnProperty.call(allowed,file.type) || file.size > limitBytes || file.size <= 0) {
+      clearImage();
+      status.textContent = 'Choose a JPG, PNG, or WebP image smaller than 5 MB.';
+      return;
+    }
+    if (localImageUrl) URL.revokeObjectURL(localImageUrl);
+    selectedFile = file;
+    localImageUrl = URL.createObjectURL(file);
+    imagePreview.src = localImageUrl;
+    imagePreview.alt = 'Preview of selected discussion image';
+    attachment.hidden = false;
+    imageAlt.required = true;
+    status.textContent = '';
+  }
+
+  imageInput.addEventListener('change', () => updateSelectedImage(imageInput.files && imageInput.files[0]));
+  $('compose-image-remove').addEventListener('click', clearImage);
+  window.addEventListener('pagehide', () => {
+    if (localImageUrl) URL.revokeObjectURL(localImageUrl);
+  });
 
   function workFields() {
     const specific = $('compose-kind').value === 'title';
@@ -41,7 +87,7 @@
     if (!member) return;
     try {
       localStorage.setItem(draftKey, JSON.stringify(collect()));
-      status.textContent = 'Draft saved in this browser. It hasn’t been published.';
+      status.textContent = 'Text draft saved in this browser. Reattach your image before publishing.';
     } catch (error) {
       status.textContent = 'We couldn’t save locally. Your text is still here.';
     }
@@ -57,6 +103,11 @@
     $('compose-preview-toggle').textContent = opening ? 'Close preview' : 'Preview';
     if (!opening) return;
     $('preview-heading').textContent = $('compose-title').value.trim() || 'Your conversation title';
+    coverPreview.hidden = !localImageUrl;
+    if (localImageUrl) {
+      coverPreview.src = localImageUrl;
+      coverPreview.alt = imageAlt.value.trim() || 'Selected conversation image';
+    }
     const body = $('preview-body');
     body.replaceChildren();
     const raw = $('compose-content').value.trim() || 'Your words will appear here.';
@@ -81,11 +132,26 @@
       status.textContent = 'Please complete your title and conversation before publishing.';
       return;
     }
+    if (selectedFile && !imageAlt.value.trim()) {
+      status.textContent = 'Add a short description for your image before publishing.';
+      imageAlt.focus();
+      return;
+    }
     saving = true;
     const btn = $('compose-publish');
     btn.disabled = true;
     status.textContent = 'Publishing your conversation…';
+    let uploadedPath = null;
     try {
+      if (selectedFile) {
+        status.textContent = 'Uploading your image…';
+        uploadedPath = member.id + '/' + crypto.randomUUID() + '.' + allowed[selectedFile.type];
+        const uploaded = await imageStore.upload(uploadedPath, selectedFile, {
+          cacheControl: '3600', contentType: selectedFile.type, upsert: false
+        });
+        if (uploaded.error) throw uploaded.error;
+      }
+      status.textContent = 'Publishing your conversation…';
       const {data, error} = await client.from('discussion_threads')
         .insert({
           author_id: member.id,
@@ -94,7 +160,9 @@
           work_type: draft.kind === 'title' ? draft.workType : null,
           title: draft.heading,
           body: draft.body,
-          has_spoilers: draft.hasSpoilers
+          has_spoilers: draft.hasSpoilers,
+          image_path: uploadedPath,
+          image_alt: uploadedPath ? imageAlt.value.trim().slice(0,180) : null
         }).select('id').single();
       if (error) throw error;
       if (!data?.id) throw new Error('Missing new conversation ID.');
@@ -104,8 +172,12 @@
       } catch (_) {}
       window.location.assign('discuss-thread.html?id=' + encodeURIComponent(data.id));
     } catch (error) {
+      if (uploadedPath) {
+        try { await imageStore.remove([uploadedPath]); }
+        catch (cleanupError) { console.warn('Could not clean up unused image', cleanupError); }
+      }
       console.error('Publishing conversation failed', error);
-      status.textContent = 'Your conversation couldn’t be published. Your text is still here.';
+      status.textContent = 'Your conversation couldn’t be published. Your text and image selection are still here.';
       btn.disabled = false;
       saving = false;
     }
