@@ -575,3 +575,635 @@ window.afterlogueExploreData = {
     }
   }
 };
+
+
+/* Editorial tags used by Explore's initial search and filters.
+   These classify the curated 30-title starter catalog; they are not an
+   external, continuously updated film database. */
+const afterlogueExploreMetadata = {
+  "The Farewell": {
+    "genres": [
+      "Drama",
+      "Comedy"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "family",
+      "homesickness",
+      "grief",
+      "identity",
+      "goodbye",
+      "bittersweet"
+    ]
+  },
+  "Booksmart": {
+    "genres": [
+      "Comedy",
+      "Coming-of-age"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "friendship",
+      "graduation",
+      "party",
+      "youth",
+      "girls night",
+      "growing up"
+    ]
+  },
+  "Perfect Days": {
+    "genres": [
+      "Drama"
+    ],
+    "countries": [
+      "Japan",
+      "Germany"
+    ],
+    "topics": [
+      "quiet",
+      "routine",
+      "solitude",
+      "ordinary life",
+      "peace",
+      "meaning",
+      "loneliness"
+    ]
+  },
+  "Past Lives": {
+    "genres": [
+      "Drama",
+      "Romance"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "yearning",
+      "longing",
+      "almost love",
+      "nostalgia",
+      "distance",
+      "connection",
+      "identity"
+    ]
+  },
+  "Aftersun": {
+    "genres": [
+      "Drama"
+    ],
+    "countries": [
+      "United Kingdom",
+      "United States"
+    ],
+    "topics": [
+      "memory",
+      "family",
+      "grief",
+      "nostalgia",
+      "love",
+      "summer",
+      "childhood"
+    ]
+  },
+  "Knives Out": {
+    "genres": [
+      "Mystery",
+      "Comedy",
+      "Thriller"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "mystery",
+      "family",
+      "crime",
+      "secrets",
+      "whodunit",
+      "twists"
+    ]
+  },
+  "Everything Everywhere All at Once": {
+    "genres": [
+      "Sci-Fi",
+      "Comedy",
+      "Adventure",
+      "Drama"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "family",
+      "identity",
+      "absurd",
+      "multiverse",
+      "surreal",
+      "love",
+      "chaos"
+    ]
+  },
+  "The Grand Budapest Hotel": {
+    "genres": [
+      "Comedy",
+      "Adventure",
+      "Drama"
+    ],
+    "countries": [
+      "United States",
+      "Germany"
+    ],
+    "topics": [
+      "whimsical",
+      "nostalgia",
+      "friendship",
+      "hotel",
+      "eccentric",
+      "winter"
+    ]
+  },
+  "Lady Bird": {
+    "genres": [
+      "Drama",
+      "Comedy",
+      "Coming-of-age"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "school",
+      "family",
+      "mother daughter",
+      "growing up",
+      "hometown",
+      "starting over"
+    ]
+  },
+  "Arrival": {
+    "genres": [
+      "Sci-Fi",
+      "Drama",
+      "Mystery"
+    ],
+    "countries": [
+      "United States",
+      "Canada"
+    ],
+    "topics": [
+      "language",
+      "time",
+      "grief",
+      "love",
+      "alien",
+      "mystery",
+      "connection"
+    ]
+  },
+  "Whiplash": {
+    "genres": [
+      "Drama",
+      "Music"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "obsession",
+      "jazz",
+      "ambition",
+      "pressure",
+      "drumming",
+      "music"
+    ]
+  },
+  "The Florida Project": {
+    "genres": [
+      "Drama"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "childhood",
+      "family",
+      "summer",
+      "ordinary life",
+      "poverty",
+      "tenderness"
+    ]
+  },
+  "Gone Girl": {
+    "genres": [
+      "Thriller",
+      "Mystery",
+      "Drama"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "relationship",
+      "secrets",
+      "revenge",
+      "suspense",
+      "mystery"
+    ]
+  },
+  "Spider-Man: Into the Spider-Verse": {
+    "genres": [
+      "Animation",
+      "Action",
+      "Adventure"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "superhero",
+      "identity",
+      "friendship",
+      "family",
+      "animation",
+      "adventure"
+    ]
+  },
+  "Before Sunrise": {
+    "genres": [
+      "Romance",
+      "Drama"
+    ],
+    "countries": [
+      "United States",
+      "Austria"
+    ],
+    "topics": [
+      "romance",
+      "conversation",
+      "travel",
+      "yearning",
+      "summer",
+      "connection",
+      "chance"
+    ]
+  },
+  "Mindhunter": {
+    "genres": [
+      "Crime",
+      "Thriller",
+      "Drama"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "crime",
+      "serial killers",
+      "psychology",
+      "mystery",
+      "investigation"
+    ]
+  },
+  "Fullmetal Alchemist: Brotherhood": {
+    "genres": [
+      "Animation",
+      "Action",
+      "Fantasy",
+      "Adventure"
+    ],
+    "countries": [
+      "Japan"
+    ],
+    "topics": [
+      "anime",
+      "brothers",
+      "loyalty",
+      "magic",
+      "fantasy",
+      "family"
+    ]
+  },
+  "Station Eleven": {
+    "genres": [
+      "Drama",
+      "Sci-Fi"
+    ],
+    "countries": [
+      "United States",
+      "Canada"
+    ],
+    "topics": [
+      "survival",
+      "art",
+      "healing",
+      "humanity",
+      "friendship",
+      "hope"
+    ]
+  },
+  "Severance": {
+    "genres": [
+      "Sci-Fi",
+      "Mystery",
+      "Thriller"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "work",
+      "identity",
+      "office",
+      "mystery",
+      "alienation",
+      "surreal"
+    ]
+  },
+  "The Leftovers": {
+    "genres": [
+      "Drama",
+      "Mystery"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "grief",
+      "faith",
+      "loss",
+      "loneliness",
+      "love",
+      "existential",
+      "meaning"
+    ]
+  },
+  "The Bear": {
+    "genres": [
+      "Drama",
+      "Comedy"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "food",
+      "restaurant",
+      "family",
+      "ambition",
+      "work",
+      "chaos",
+      "grief"
+    ]
+  },
+  "Fleabag": {
+    "genres": [
+      "Comedy",
+      "Drama"
+    ],
+    "countries": [
+      "United Kingdom"
+    ],
+    "topics": [
+      "grief",
+      "love",
+      "loneliness",
+      "relationships",
+      "dark comedy",
+      "faith",
+      "yearning"
+    ]
+  },
+  "Succession": {
+    "genres": [
+      "Drama",
+      "Comedy"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "wealth",
+      "family",
+      "power",
+      "ambition",
+      "rivalry",
+      "dark comedy"
+    ]
+  },
+  "Atlanta": {
+    "genres": [
+      "Comedy",
+      "Drama"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "music",
+      "friendship",
+      "surreal",
+      "Atlanta",
+      "ordinary life",
+      "humor"
+    ]
+  },
+  "Dark": {
+    "genres": [
+      "Sci-Fi",
+      "Mystery",
+      "Thriller"
+    ],
+    "countries": [
+      "Germany"
+    ],
+    "topics": [
+      "time travel",
+      "family",
+      "mystery",
+      "fate",
+      "secrets",
+      "strange"
+    ]
+  },
+  "The Good Place": {
+    "genres": [
+      "Comedy",
+      "Fantasy"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "afterlife",
+      "friendship",
+      "ethics",
+      "philosophy",
+      "comfort",
+      "meaning"
+    ]
+  },
+  "Shōgun": {
+    "genres": [
+      "Drama",
+      "Historical",
+      "Action"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "Japan",
+      "history",
+      "war",
+      "politics",
+      "culture",
+      "samurai",
+      "power"
+    ]
+  },
+  "Breaking Bad": {
+    "genres": [
+      "Crime",
+      "Drama",
+      "Thriller"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "crime",
+      "choices",
+      "secrets",
+      "ambition",
+      "morality"
+    ]
+  },
+  "Beef": {
+    "genres": [
+      "Comedy",
+      "Drama"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "anger",
+      "loneliness",
+      "resentment",
+      "dark comedy",
+      "revenge",
+      "connection"
+    ]
+  },
+  "Yellowjackets": {
+    "genres": [
+      "Thriller",
+      "Drama",
+      "Mystery",
+      "Horror"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "topics": [
+      "survival",
+      "friendship",
+      "secrets",
+      "trauma",
+      "mystery",
+      "horror"
+    ]
+  }
+};
+window.afterlogueExploreData.titles.forEach(item => {
+  Object.assign(item, afterlogueExploreMetadata[item.title]);
+});
+window.afterlogueExploreData.collectionTopics = {
+  "yearning": [
+    "yearning",
+    "longing",
+    "loneliness",
+    "romance",
+    "love",
+    "heartbreak",
+    "memory",
+    "missing someone",
+    "almost",
+    "homesick",
+    "nostalgia",
+    "connection",
+    "loss"
+  ],
+  "winding": [
+    "winding down",
+    "quiet",
+    "calm",
+    "comfort",
+    "cozy",
+    "soft",
+    "gentle",
+    "slow",
+    "Sunday",
+    "solitude",
+    "peace",
+    "tired",
+    "healing",
+    "rainy day"
+  ],
+  "friday": [
+    "Friday night",
+    "weekend",
+    "party",
+    "fun",
+    "friendship",
+    "friends",
+    "date night",
+    "energy",
+    "adventure",
+    "laugh",
+    "thrill",
+    "girls night"
+  ],
+  "fall": [
+    "fall",
+    "autumn",
+    "September",
+    "October",
+    "leaves",
+    "nostalgia",
+    "school",
+    "cozy",
+    "melancholy",
+    "rain",
+    "season"
+  ],
+  "holidays": [
+    "holidays",
+    "winter",
+    "Christmas",
+    "family",
+    "home",
+    "togetherness",
+    "warmth",
+    "traditions",
+    "comfort",
+    "reunion"
+  ],
+  "unexpected": [
+    "unexpected",
+    "strange",
+    "different",
+    "surreal",
+    "experiment",
+    "wild",
+    "surprise",
+    "twist",
+    "offbeat",
+    "mystery",
+    "unfamiliar"
+  ]
+};
