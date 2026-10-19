@@ -780,8 +780,9 @@ body.explore-body > header.site-header {
     grid-auto-rows: max-content;
     align-items: start;
     align-content: start;
-    gap: clamp(10px, 1.25vw, 19px);
-    height: clamp(165px, 27dvh, 278px);
+    gap: clamp(16px, 2.2dvh, 32px) clamp(12px, 1.45vw, 21px);
+    height: auto;
+    flex: 1 1 auto;
     min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
@@ -793,6 +794,16 @@ body.explore-body > header.site-header {
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
     padding: 2px 10px 7px 2px;
+  }
+  .explore-gallery .mood-image {
+    aspect-ratio: 1.68 / 1;
+  }
+  .explore-gallery .mood-card-body {
+    padding-top: 10px;
+    padding-bottom: 8px;
+  }
+  .explore-gallery .mood-title {
+    font-size: clamp(17px, 1.35vw, 20px);
   }
   .explore-gallery::-webkit-scrollbar {
     display: block;
@@ -836,21 +847,27 @@ body.explore-body > header.site-header {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     min-height: 0;
     overflow: hidden;
-    padding-top: clamp(12px,2.3dvh,24px);
-    padding-bottom: clamp(10px,2dvh,20px);
+    padding-top: clamp(13px,2.2dvh,27px);
+    padding-bottom: clamp(9px,1.6dvh,18px);
   }
   body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-gallery-wrap {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
   }
   body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-gallery {
-    flex: 0 1 auto;
-    max-height: calc(100dvh - 390px);
+    height: auto;
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 0;
+  }
+  body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-mystery {
+    margin-top: clamp(14px,2.2dvh,26px);
+    margin-bottom: 0;
   }
   body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-top,
   body.explore-body.explore-gallery-mode:not(.explore-search-active) .explore-browse,
@@ -859,6 +876,55 @@ body.explore-body > header.site-header {
     flex: 0 0 auto;
   }
 }
+/* Smaller iPad landscape / laptop heights: save room for both rows rather
+   than sacrificing the second row to the viewport crop. */
+@media (min-width: 700px) and (max-height: 900px) {
+  .explore-body .explore-top {
+    margin-bottom: 9px;
+  }
+  .explore-body .explore-top h1 {
+    font-size: clamp(31px, 3vw, 43px);
+    margin: 4px 0;
+  }
+  .explore-body .explore-top .explore-lead {
+    font-size: 11px;
+  }
+  .explore-body .explore-browse {
+    margin-bottom: 11px;
+  }
+  .explore-body .explore-search {height: 39px;}
+  .explore-body .explore-filters {
+    margin-top: 7px;
+  }
+  .explore-body .explore-filters label {
+    height: 30px;
+  }
+  .explore-body .explore-group-label {
+    margin-bottom: 8px;
+  }
+  .explore-body .explore-gallery {
+    row-gap: 11px;
+  }
+  .explore-body .explore-gallery .mood-image {
+    aspect-ratio: 2.05 / 1;
+  }
+  .explore-body .explore-gallery .mood-card {
+    padding: 6px;
+  }
+  .explore-body .explore-gallery .mood-card-body {
+    padding: 6px 4px 5px;
+  }
+  .explore-body .explore-gallery .mood-title {
+    font-size: 16px;
+  }
+  .explore-body .explore-gallery .mood-bottom {
+    font-size: 10px;
+  }
+  .explore-body .explore-mystery {
+    padding: 9px 0;
+  }
+}
+
 @media (min-width: 700px) and (max-height: 599px) {
   /* Short laptop windows may scroll the page instead of clipping controls. */
   body.explore-body {overflow-y:auto;}
@@ -1313,6 +1379,10 @@ function refreshExploreRail(){
   const current=vertical?track.scrollTop:track.scrollLeft;
   prev.disabled=current<=2;
   next.disabled=max<=2||current>=max-2;
+  const hint=$("explore-rail-hint");
+  if(hint)hint.textContent=vertical
+    ? (max>2?"Scroll for more ↓":"Your collections")
+    : "Swipe for more →";
 }
 function shiftExploreRail(direction){
   const track=$("explore-gallery");
