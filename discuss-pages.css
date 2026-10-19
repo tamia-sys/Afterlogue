@@ -411,3 +411,8 @@
 @media(max-width:650px) {
   .discuss-body .discuss-interior { padding-left:5%; padding-right:5%; }
 }
+
+.discuss-image-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.discuss-image-heading p{margin:0}
+.discuss-remove-visual{color:#dfb48e!important;border:1px solid #826548!important;border-radius:999px;padding:7px 13px!important}
+.discuss-remove-visual:hover{background:#2b2018;color:#f4eadd!important;text-decoration:none!important}
