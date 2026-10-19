@@ -21,7 +21,7 @@
     const type = t.kind === 'general' ? 'GENERAL DISCUSSION' : 'FILM & TV / MEMBERS';
     copy.appendChild(make('p', 'discuss-kicker', type));
     const heading = make('h3');
-    const title = make('a', 'discuss-thread-title', t.title);
+    const title = make('a', 'discuss-thread-title', t.has_spoilers ? 'Spoiler-marked conversation' : t.title);
     title.href = threadUrl(t.id);
     heading.appendChild(title);
     copy.appendChild(heading);
@@ -31,7 +31,7 @@
     copy.appendChild(meta);
     const link = make('a', 'discuss-open', 'Read conversation  ↗');
     link.href = threadUrl(t.id);
-    link.setAttribute('aria-label', 'Read ' + t.title);
+    link.setAttribute('aria-label', t.has_spoilers ? 'Read spoiler-marked conversation' : 'Read ' + t.title);
     row.appendChild(copy);
     row.appendChild(link);
     list.appendChild(row);
