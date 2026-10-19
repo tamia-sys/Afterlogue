@@ -43,6 +43,23 @@
 .discuss-thread-copy{grid-template-columns:minmax(0,1fr) 43%!important;column-gap:12px!important}
 .discuss-thread-copy .discuss-article-figure img{height:auto!important}
 }
+</style><style id="afterlogue-shared-conversation-layout">
+/* Identical editorial grid for the writing preview and the published conversation. */
+.discuss-compose-page .discuss-live-preview,
+.discuss-body .discuss-thread-copy{
+ display:grid!important;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)!important;
+ gap:30px!important;align-items:start!important;width:100%!important;
+}
+.discuss-body .discuss-thread-copy .discuss-article-body{grid-column:1!important;grid-row:1!important}
+.discuss-body .discuss-thread-copy .discuss-article-figure{grid-column:2!important;grid-row:1!important;width:100%!important}
+.discuss-body .discuss-thread-copy .discuss-article-figure img{display:block!important;width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:2/1!important;object-fit:cover!important}
+.discuss-body .discuss-thread-layout{display:block!important}
+.discuss-body .discuss-article #thread-heading{font-size:var(--conversation-title-size,36px)!important;max-width:100%!important}
+.discuss-body .discuss-article-actions{margin:12px 0 0!important;padding:0!important}
+@media(max-width:650px){
+.discuss-compose-page .discuss-live-preview,.discuss-body .discuss-thread-copy{
+grid-template-columns:minmax(0,1fr) 43%!important;gap:12px!important}
+}
 </style></head>
 <body class="discuss-body">
 <header class="site-header">
@@ -113,5 +130,5 @@
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=3"></script>
 <script src="discuss-common.js?v=1"></script>
-<script src="discuss-thread.js?v=8"></script>
+<script src="discuss-thread.js?v=20261019-shared"></script>
 </body></html>
