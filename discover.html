@@ -8,7 +8,7 @@
   <title>Discover — Afterlogue</title>
 
   <link rel="stylesheet" href="style.css?v=29">
-  <link rel="stylesheet" href="discover-home.css?v=5">
+  <link rel="stylesheet" href="discover-home.css?v=6">
 </head>
 
 <body class="discovery-home-page">
@@ -84,7 +84,7 @@
       <div class="discovery-top">
         <div class="discovery-section-header">
           <p>SELECTED / 001</p>
-          <h2 id="discovery-heading">Your next five.</h2>
+          <h2 id="discovery-heading">Selected for you.</h2>
         </div>
       </div>
       <p id="impression-count" class="discovery-count"></p>
@@ -138,8 +138,8 @@ if (isGuestMode) {
 
 document.getElementById("impression-count").textContent =
   impressionCount === 0
-    ? "Your story begins here. Return to the Log to share your first impression."
-    : `You've shared ${impressionCount} ${impressionCount === 1 ? "impression" : "impressions"}.`;
+    ? "Your first impressions will shape what comes next."
+    : "Five recommendations shaped by your taste.";
   // AFTERLOGUE — MOVIES / TV SHOWS SWITCHER
 
 const categoryButtons = document.querySelectorAll(
@@ -712,7 +712,10 @@ async function loadAccountImpressions() {
         "SELECTED / 001";
 
       document.querySelector(".discovery-section-header h2").textContent =
-        "Your first five.";
+        "Selected for you.";
+
+      document.getElementById("impression-count").textContent =
+        "Five recommendations shaped by your first impressions.";
 
       return;
     }
@@ -752,7 +755,7 @@ async function loadAccountImpressions() {
 
     document.getElementById("impression-count").textContent =
       count > 0
-        ? "Based on your recent Log."
+        ? "Five recommendations shaped by your taste."
         : "Your first impressions will shape what comes next.";
 
     // Refresh the currently selected recommendation category.
