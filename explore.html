@@ -496,6 +496,275 @@ body.explore-body>header{padding:19px 5%;align-items:center}
   .mood-pin, .mood-pin svg { transition: none; }
 }
 
+
+/* EXPLORE / COMPACT BROWSING STAGE — Oct 2026
+   Only the Something rail scrolls sideways. The page stays quiet and
+   vertically compact on desktop, while search results may expand naturally. */
+body.explore-body {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+body.explore-body > header.site-header {
+  position: relative;
+  flex: 0 0 auto;
+  padding-top: 17px;
+  padding-bottom: 17px;
+  z-index: 20;
+}
+.explore-body .explore-shell {
+  flex: 1 0 auto;
+  width: min(1800px,100%);
+  padding-top: clamp(12px,2vh,22px);
+  padding-bottom: 10px;
+}
+.explore-top {
+  margin-bottom: clamp(12px,2vh,18px);
+  padding-bottom: 0;
+  align-items: center;
+}
+.explore-top h1 {
+  font-size: clamp(33px,3.45vw,52px);
+  margin: 5px 0 5px;
+}
+.explore-eyebrow {font-size: 9px;}
+.explore-lead { font-size: 12px; line-height: 1.5; }
+.explore-aside {font-size: 11px;}
+.explore-browse {margin-bottom: clamp(15px,2.3vh,23px);}
+.explore-search {height: 43px;}
+.explore-filters {margin-top: 9px;}
+.explore-filters label, #explore-clear {height: 33px;}
+#explore-browse-note {margin-top: 5px;font-size: 10px;}
+.explore-group-label {margin-bottom: 10px;}
+.explore-group-label p {font-size:10px;}
+.explore-group-label span {font:10px Inter,Arial,sans-serif;}
+.explore-rail-head {margin-bottom: 10px;}
+.explore-rail-tools {display:flex;align-items:center;gap:12px;white-space:nowrap;}
+.explore-rail-nav {
+  display:grid;place-items:center;
+  width:29px;height:29px;
+  background:transparent;
+  border:1px solid rgba(212,180,135,.4);
+  border-radius:50%;
+  color:#D4B487;
+  font:23px/1 Georgia,serif;
+  padding:0;
+  cursor:pointer;
+}
+.explore-rail-nav:hover:not(:disabled) {background:rgba(212,180,135,.14);}
+.explore-rail-nav:focus-visible {outline:2px solid #F4EADD;outline-offset:3px;}
+.explore-rail-nav:disabled {opacity:.3;cursor:default;}
+.explore-gallery {
+  --explore-rail-gap: clamp(12px,1.4vw,22px);
+  display:grid;
+  grid-auto-flow:column;
+  grid-auto-columns:calc((100% - 3 * var(--explore-rail-gap)) / 4);
+  grid-template-columns:none;
+  grid-template-rows:1fr;
+  column-gap:var(--explore-rail-gap);
+  row-gap:0;
+  overflow-x:auto;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;
+  scroll-padding-inline:1px;
+  scrollbar-width:none;
+  padding:1px 1px 5px;
+  align-items:stretch;
+}
+.explore-gallery::-webkit-scrollbar {display:none;}
+.mood-card {
+  min-width:0;
+  height:auto;
+  padding:7px;
+  border-radius:19px;
+  scroll-snap-align:start;
+}
+.mood-card .mood-image {
+  aspect-ratio:1.9/1;
+  border-radius:13px;
+}
+.mood-card-body,
+.mood-card .mood-card-body {padding:7px 4px 5px;}
+.mood-card .mood-title {font-size:clamp(16px,1.26vw,19px);line-height:1.2;}
+.mood-card .mood-bottom {font-size:10px;line-height:1.32;margin-top:2px;padding-top:3px;}
+.mood-card .mood-pin {z-index:3;right:7px;bottom:7px;width:34px;height:34px;}
+.mood-card .mood-pin svg {width:20px;height:20px;}
+.explore-mystery {
+  margin-top:clamp(13px,2vh,23px);
+  padding:clamp(11px,1.7vh,18px) 0;
+  gap:15px;
+}
+.explore-mystery h2 {font-size:clamp(19px,1.8vw,23px);margin-bottom:3px;}
+.explore-mystery p {font-size:11px;line-height:1.4;}
+.explore-mystery .explore-button {padding:10px 19px;}
+.explore-footer {
+  flex:0 0 auto;
+  padding:11px;
+  font-size:11px;
+}
+
+/* Filters and search can expand the document; card controls still stay scrollable. */
+.explore-search-active .explore-search-results {margin-bottom:18px;padding-bottom:16px;}
+.explore-search-active .explore-gallery {
+  grid-auto-columns:calc((100% - 3 * var(--explore-rail-gap)) / 4);
+}
+
+/* Short, inviting question choices instead of large square forms. */
+.explore-experience {
+  max-width:1030px;
+  margin:0 auto;
+  padding:0 0 16px;
+}
+.explore-back {margin-bottom:15px;padding:5px 0;}
+.explore-experience .explore-eyebrow {margin-bottom:9px;}
+.explore-experience h2 {font-size:clamp(32px,3.7vw,47px);margin:0 0 7px;}
+.explore-experience .explore-question {
+  margin:0 0 19px;
+  font:13px/1.5 Inter,Arial,sans-serif;
+}
+.explore-choices {
+  width:100%;
+  max-width:none;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.choice {
+  border:1px solid rgba(212,180,135,.27);
+  border-radius:20px;
+  background:rgba(39,38,36,.44);
+  min-height:96px;
+  padding:16px 18px;
+  gap:6px;
+}
+.choice-title {font:400 20px/1.2 Georgia,serif;}
+.choice-desc {font:11px/1.4 Inter,Arial,sans-serif;}
+.choice:hover {border-color:rgba(212,180,135,.65);background:rgba(49,45,40,.56);}
+.choice[aria-pressed="true"] {
+  border-color:#D4B487;
+  background:rgba(79,63,45,.53);
+  box-shadow:inset 0 0 0 1px rgba(212,180,135,.15);
+}
+.explore-step-actions {max-width:none;margin-top:15px;}
+.explore-step-actions .explore-button {padding:11px 21px;}
+
+/* A single Surprise Me poster should occupy its own compact editorial spread,
+   with no giant five-column results area or enormous blank strip. */
+.explore-results {padding:0 0 12px;}
+.explore-results .explore-back {margin-bottom:15px;}
+.explore-results h2 {font-size:clamp(32px,3.9vw,49px);}
+.explore-results .explore-question {margin:0;max-width:510px;}
+.explore-results-head {margin-bottom:16px;padding-bottom:12px;}
+.explore-results .explore-picks {gap:14px;}
+.explore-results-actions {margin-top:17px;padding-top:15px;}
+.explore-results-actions .explore-button {padding:11px 17px;}
+.explore-results.is-surprise:not([hidden]) {
+  display:grid;
+  max-width:970px;
+  margin:0 auto;
+  grid-template-areas:
+    "back back"
+    "heading poster"
+    "actions poster";
+  grid-template-columns:minmax(0,1fr) minmax(165px,265px);
+  grid-template-rows:auto auto 1fr;
+  align-items:start;
+  column-gap:clamp(24px,5vw,75px);
+  row-gap:8px;
+}
+.explore-results.is-surprise .explore-back {
+  grid-area:back;
+  justify-self:start;
+  margin:0 0 9px;
+}
+.explore-results.is-surprise .explore-results-head {
+  grid-area:heading;
+  display:block;
+  margin:0;
+  padding:0;
+  border:0;
+}
+.explore-results.is-surprise .explore-results-head .explore-question {
+  font-size:13px;
+  line-height:1.6;
+}
+.explore-results.is-surprise .explore-picks {
+  grid-area:poster;
+  display:block;
+  width:100%;
+  max-width:220px;
+  justify-self:start;
+}
+.explore-results.is-surprise .explore-art {width:100%;}
+.explore-results.is-surprise .explore-results-actions {
+  grid-area:actions;
+  align-self:start;
+  justify-content:flex-start;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:17px 0 0;
+  padding:0;
+  border:0;
+}
+.explore-results.is-surprise .explore-pick h3 {margin-top:8px;}
+
+/* Match account menu appearance to Home and Log, including dropdown action. */
+.explore-body .site-header nav .account-menu summary {
+  display:flex;align-items:center;justify-content:center;
+  width:24px;height:24px;padding:0;
+}
+.explore-body .site-header nav .account-dropdown a {
+  display:block;
+  color:#F4EADD;
+  font:13px/1.5 Inter,Arial,sans-serif;
+  text-decoration:none;
+}
+.explore-body .site-header nav .account-dropdown a:hover {color:#D4B487;}
+.explore-body .site-header nav .account-dropdown [hidden] {display:none!important;}
+.explore-body .site-header nav .account-menu svg {width:22px;height:22px;}
+@media(max-width:1100px){
+  .explore-gallery {grid-template-columns:none;grid-auto-columns:calc((100% - 2 * var(--explore-rail-gap))/3);}
+}
+@media(max-width:760px){
+  .explore-gallery {grid-template-columns:none;grid-auto-columns:calc((100% - var(--explore-rail-gap))/2);}
+  .explore-rail-tools > span {display:none;}
+}
+@media(max-width:650px){
+  body.explore-body > header.site-header {padding:15px 5%;}
+  .explore-body .explore-shell {padding:18px 5% 18px;}
+  .explore-top {margin-bottom:15px;}
+  .explore-top h1 {font-size:clamp(33px,8.5vw,45px);}
+  .explore-browse {margin-bottom:20px;}
+  .explore-gallery {gap:12px;}
+  .mood-card {padding:7px;border-radius:18px;}
+  .mood-card .mood-image {aspect-ratio:1.16/1;border-radius:12px;}
+  .mood-card .mood-title {font-size:16px;}
+  .mood-card .mood-bottom {font-size:10px;}
+  .mood-card .mood-pin {bottom:6px;right:5px;}
+  .explore-mystery {margin-top:20px;}
+  .explore-choices {grid-template-columns:1fr;gap:9px;}
+  .choice {min-height:0;padding:14px 17px;border-radius:17px;}
+  .explore-results.is-surprise:not([hidden]) {
+    grid-template-areas:"back" "heading" "poster" "actions";
+    grid-template-columns:minmax(0,1fr);
+    gap:12px;
+    max-width:460px;
+  }
+  .explore-results.is-surprise .explore-picks {max-width:165px;}
+  .explore-results.is-surprise .explore-results-actions {margin-top:0;}
+}
+@media(max-height:720px) and (min-width:761px) {
+  body.explore-body > header.site-header {padding-top:11px;padding-bottom:11px;}
+  .explore-body .explore-shell {padding-top:11px;}
+  .explore-top {margin-bottom:10px;}
+  .explore-browse {margin-bottom:12px;}
+  .explore-gallery .mood-image {aspect-ratio:2.25/1;}
+  .explore-mystery {margin-top:10px;padding:9px 0;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .explore-gallery {scroll-behavior:auto;}
+}
+
 </style>
 </head>
 <body class="explore-body">
