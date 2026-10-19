@@ -43,7 +43,7 @@ function render(){
   body.appendChild(el('p','discuss-kicker',t.kind==='general'?'GENERAL DISCUSSION':'FILM & TV / MEMBERS'));
   body.appendChild(el('h3','',t.title));
   if(t.has_spoilers)body.appendChild(el('p','discuss-footer-hint','Spoilers marked — open to reveal.'));
-  else body.appendChild(el('p','',t.body.slice(0,175)+(t.body.length>175?'…':'')));
+  else body.appendChild(el('p','',t.body.replace(/\|\|[\s\S]*?\|\|/g,'[spoiler hidden]').slice(0,175)+(t.body.length>175?'…':'')));
   body.appendChild(el('div','discuss-meta',initialsOf(t)+' · '+dateOf(t.created_at)));
   row.appendChild(body);row.appendChild(button('Read conversation →','discuss-open',()=>openThread(t)));list.appendChild(row);
  });
