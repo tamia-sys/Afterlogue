@@ -270,12 +270,19 @@ body.explore-body>header{padding:19px 5%;align-items:center}
   min-width: 0;
   min-height: 0;
   aspect-ratio: auto;
-  overflow: visible;
-  padding: 0;
-  border: 0;
-  border-radius: 20px;
-  background: transparent;
+  overflow: hidden;
+  padding: 10px;
+  border: 1px solid rgba(225, 213, 195, .075);
+  border-radius: 24px;
+  background: rgba(43, 43, 42, .30);
   isolation: auto;
+  transition: background-color .25s ease, border-color .25s ease;
+}
+
+.mood-card:hover,
+.mood-card:focus-visible {
+  background: rgba(50, 49, 47, .49);
+  border-color: rgba(212, 180, 135, .23);
 }
 
 .mood-card::after { display: none; }
@@ -289,7 +296,7 @@ body.explore-body>header{padding:19px 5%;align-items:center}
   flex: 0 0 auto;
   aspect-ratio: 1.54 / 1;
   overflow: hidden;
-  border-radius: 19px;
+  border-radius: 16px;
   background-position: center;
   background-size: cover;
   filter: saturate(.82) brightness(.86);
@@ -317,7 +324,7 @@ body.explore-body>header{padding:19px 5%;align-items:center}
   right: auto;
   bottom: auto;
   width: 100%;
-  padding: 11px 2px 0;
+  padding: 11px 4px 8px;
 }
 
 .mood-card .mood-number { display: none; }
@@ -334,12 +341,6 @@ body.explore-body>header{padding:19px 5%;align-items:center}
   margin-top: 4px;
   color: #A99B87;
   font: 11px/1.5 Inter, Arial, sans-serif;
-}
-
-.mood-card .mood-arrow {
-  flex: 0 0 auto;
-  color: #D4B487;
-  font-size: 17px;
 }
 
 /* Search results remain film posters, unlike the photographic mood covers. */
@@ -393,8 +394,9 @@ body.explore-body>header{padding:19px 5%;align-items:center}
   }
   .explore-filters select { max-width: 113px; font-size: 10px; }
 
-  .mood-card .mood-image { aspect-ratio: 1.13 / 1; border-radius: 15px; }
-  .mood-card-body { padding-top: 9px; }
+  .mood-card { padding: 8px; border-radius: 20px; }
+  .mood-card .mood-image { aspect-ratio: 1.13 / 1; border-radius: 13px; }
+  .mood-card-body { padding: 9px 4px 7px; }
   .mood-card .mood-title { font-size: 18px; }
   .mood-card .mood-bottom { font-size: 10px; }
   .explore-search-results .explore-picks {
@@ -454,12 +456,12 @@ body.explore-body>header{padding:19px 5%;align-items:center}
 </section>
 <div class="explore-group-label"><p>01 — A LITTLE SOMETHING FOR...</p><span>Choose a collection to begin</span></div>
   <div class="explore-gallery">
-    <button type="button" class="mood-card" data-mood="yearning"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">001 / FEELING</span><span class="mood-title">Something for yearning.</span><span class="mood-bottom"><span>Longing &amp; what could have been</span><span class="mood-arrow">↗</span></span></span></button>
-    <button type="button" class="mood-card" data-mood="winding"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">002 / MOMENT</span><span class="mood-title">Something for winding down.</span><span class="mood-bottom"><span>For slower evenings</span><span class="mood-arrow">↗</span></span></span></button>
-    <button type="button" class="mood-card" data-mood="friday"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">003 / OCCASION</span><span class="mood-title">Something for a Friday night.</span><span class="mood-bottom"><span>Out of the ordinary</span><span class="mood-arrow">↗</span></span></span></button>
-    <button type="button" class="mood-card" data-mood="fall"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">004 / SEASON</span><span class="mood-title">Something for fall.</span><span class="mood-bottom"><span>For changing seasons</span><span class="mood-arrow">↗</span></span></span></button>
-    <button type="button" class="mood-card" data-mood="holidays"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">005 / SEASON</span><span class="mood-title">Something for the holidays.</span><span class="mood-bottom"><span>Warmth &amp; company</span><span class="mood-arrow">↗</span></span></span></button>
-    <button type="button" class="mood-card" data-mood="unexpected"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">006 / DETOUR</span><span class="mood-title">Something unexpected.</span><span class="mood-bottom"><span>Just outside your comfort zone</span><span class="mood-arrow">↗</span></span></span></button>
+    <button type="button" class="mood-card" data-mood="yearning"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">001 / FEELING</span><span class="mood-title">Something for yearning.</span><span class="mood-bottom"><span>Longing &amp; what could have been</span></span></span></button>
+    <button type="button" class="mood-card" data-mood="winding"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">002 / MOMENT</span><span class="mood-title">Something for winding down.</span><span class="mood-bottom"><span>For slower evenings</span></span></span></button>
+    <button type="button" class="mood-card" data-mood="friday"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">003 / OCCASION</span><span class="mood-title">Something for a Friday night.</span><span class="mood-bottom"><span>Out of the ordinary</span></span></span></button>
+    <button type="button" class="mood-card" data-mood="fall"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">004 / SEASON</span><span class="mood-title">Something for fall.</span><span class="mood-bottom"><span>For changing seasons</span></span></span></button>
+    <button type="button" class="mood-card" data-mood="holidays"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">005 / SEASON</span><span class="mood-title">Something for the holidays.</span><span class="mood-bottom"><span>Warmth &amp; company</span></span></span></button>
+    <button type="button" class="mood-card" data-mood="unexpected"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">006 / DETOUR</span><span class="mood-title">Something unexpected.</span><span class="mood-bottom"><span>Just outside your comfort zone</span></span></span></button>
   </div>
   <div id="explore-mystery" class="explore-mystery"><div><h2>Or, leave it to chance.</h2><p>No questions. One story. No clues until you open it.</p></div><button type="button" class="explore-button" id="explore-surprise">Surprise me ↗</button></div>
 </section>
