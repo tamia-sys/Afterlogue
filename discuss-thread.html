@@ -6,7 +6,7 @@
 <title>Conversation — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="discuss.css?v=3">
-<link rel="stylesheet" href="discuss-pages.css?v=16">
+<link rel="stylesheet" href="discuss-pages.css?v=20261019-compact2">
 <link rel="stylesheet" href="mobile-header.css?v=3">
 <style id="thread-layout-actions-fix">
 .discuss-thread-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,32%);gap:clamp(22px,4vw,56px);align-items:start}
@@ -15,6 +15,24 @@
 .discuss-thread-layout .discuss-article-actions{margin-top:18px;display:flex;align-items:center;flex-wrap:wrap;gap:12px}
 @media(max-width:680px){.discuss-thread-layout{grid-template-columns:minmax(0,1fr) 34%;gap:14px}}
 @media(max-width:420px){.discuss-thread-layout{grid-template-columns:minmax(0,1fr) 36%;gap:12px}}
+</style><style id="thread-compact-editorial">
+.discuss-interior{padding-top:18px!important}
+.discuss-interior .discuss-back{margin-bottom:14px!important}
+.discuss-article{margin-top:8px!important}
+.discuss-article #thread-heading{font-size:clamp(29px,3.1vw,43px)!important;line-height:1.08!important;max-width:920px!important;margin:8px 0 12px!important}
+.discuss-article .discuss-article-meta{margin-bottom:12px!important}
+.discuss-thread-layout{display:block!important;margin-top:8px!important}
+.discuss-thread-copy{display:grid!important;grid-template-columns:minmax(0,1.7fr) minmax(220px,1fr)!important;column-gap:clamp(18px,3vw,38px)!important;align-items:start!important}
+.discuss-thread-copy .discuss-article-body{grid-column:1!important;grid-row:1!important;margin:0!important}
+.discuss-thread-copy .discuss-article-figure{grid-column:2!important;grid-row:1/span 2!important;margin:0!important;width:100%!important}
+.discuss-thread-copy .discuss-article-figure img{width:100%!important;height:clamp(150px,18vw,210px)!important;object-fit:cover!important}
+.discuss-thread-copy .discuss-article-actions{grid-column:1!important;grid-row:2!important;display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:10px!important;margin:10px 0 0!important;padding:0!important}
+.discuss-thread-copy .discuss-article-figure figcaption{margin-top:5px!important}
+.discuss-article .discuss-comments{margin-top:16px!important}
+.discuss-interior #comments-section{margin-top:18px!important;padding-top:15px!important}
+.discuss-interior #comments-heading{font-size:clamp(23px,2.5vw,31px)!important}
+@media(max-width:680px){.discuss-thread-copy{grid-template-columns:minmax(0,1fr) 35%!important;column-gap:12px!important}.discuss-thread-copy .discuss-article-figure img{height:115px!important}.discuss-article #thread-heading{font-size:clamp(28px,7vw,37px)!important}}
+@media(max-width:420px){.discuss-thread-copy{grid-template-columns:minmax(0,1fr) 36%!important}.discuss-thread-copy .discuss-article-figure img{height:100px!important}}
 </style></head>
 <body class="discuss-body">
 <header class="site-header">
@@ -46,7 +64,7 @@
 <span class="tag" id="thread-spoiler-label" hidden>Spoilers</span>
 </div>
 <div class="discuss-thread-layout"><div class="discuss-thread-copy"><div id="thread-content" class="discuss-article-body"></div>
-</div><figure id="thread-image-figure" class="discuss-article-figure" hidden><img id="thread-image" alt="" loading="lazy"><figcaption id="thread-image-caption"></figcaption></figure>
+<figure id="thread-image-figure" class="discuss-article-figure" hidden><img id="thread-image" alt="" loading="lazy"><figcaption id="thread-image-caption"></figcaption></figure></div>
 <div id="spoiler-warning" class="discuss-warning" hidden>
 <p>This conversation may reveal plot details. Choose when you’re ready to read.</p>
 <button type="button" id="reveal-thread" class="discuss-primary">Reveal conversation</button>
@@ -55,7 +73,7 @@
 <button type="button" id="report-conversation" class="discuss-quiet-button" hidden>Report conversation</button>
 <button type="button" id="join-conversation" class="discuss-primary" hidden aria-expanded="false" aria-controls="reply-form">Join the conversation <span aria-hidden="true">↘</span></button>
 <a id="join-signin" class="discuss-primary" href="signup.html?mode=signin" hidden>Sign in to join <span aria-hidden="true">↗</span></a>
-</div></div>
+</div>
 <div class="discuss-reply-section" id="reply-section" hidden>
 <form id="reply-form" hidden>
 <h3>Add your perspective.</h3>
