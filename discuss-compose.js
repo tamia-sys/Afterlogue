@@ -39,6 +39,8 @@
     }
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     selectedFile = file;
+    // A new photo needs its own description; never reuse the previous image's alt text.
+    imageAlt.value = '';
     objectUrl = URL.createObjectURL(file);
     photoPreview.src = objectUrl;
     photoPreview.alt = 'Preview of your selected image';
@@ -50,6 +52,11 @@
   }
 
   imageInput.addEventListener('change',() => chooseImage(imageInput.files && imageInput.files[0]));
+  $('compose-image-change-button').addEventListener('click', () => {
+    // Opening and canceling the file picker leaves the current photo untouched.
+    imageInput.value = '';
+    imageInput.click();
+  });
   $('compose-image-remove').addEventListener('click', clearImage);
   imageAlt.addEventListener('input', () => {
     photoPreview.alt = imageAlt.value.trim() || 'Preview of your selected image';
