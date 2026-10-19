@@ -4,7 +4,8 @@
    Hero still: Aux garçons de mon âge (2026), from Wikimedia Commons.
 */
 body.discovery-home-page {
-  background: #0d0f0e;
+  background: #000;
+  overflow-x: clip;
 }
 
 .discovery-home-page .discover-page {
@@ -23,11 +24,12 @@ body.discovery-home-page {
   align-items: center;
   min-height: 350px;
   height: clamp(360px, 32vw, 425px);
-  margin: 0 calc(-1 * clamp(18px, 4.6vw, 70px)) 32px;
+  width: 100vw;
+  margin: 0 0 32px calc(50% - 50vw);
   overflow: hidden;
   border: 0;
   border-radius: 0;
-  background: #0d0f0e;
+  background: #000;
 }
 
 .discovery-home-page .discover-hero-photo {
@@ -38,6 +40,8 @@ body.discovery-home-page {
   background-image: url("https://upload.wikimedia.org/wikipedia/commons/e/e8/Aux_gar%C3%A7ons_de_mon_%C3%A2ge_-_Still_4.jpg");
   background-size: cover;
   background-position: center 81%;
+  transform: scale(1.045);
+  transform-origin: center;
   filter: saturate(1) brightness(.96);
 }
 
@@ -79,6 +83,8 @@ body.discovery-home-page {
   letter-spacing: -.035em;
   text-wrap: balance;
 }
+
+.discovery-home-page .discover-hero-line { display: block; }
 
 .discovery-home-page .discover-description {
   max-width: 465px;
@@ -181,10 +187,10 @@ body.discovery-home-page {
   display: grid;
   grid-template-columns: repeat(2,minmax(0,1fr));
   align-items: center;
-  width: min(760px, 100%);
+  width: 100%;
   min-width: 0;
   gap: 12px;
-  margin: 25px auto 0;
+  margin: 16px auto 0;
   padding: 0;
   border-radius: 0;
   background: none;
@@ -195,8 +201,8 @@ body.discovery-home-page {
   justify-content: center;
   align-items: center;
   width: auto;
-  min-height: 32px;
-  padding: 7px 14px;
+  min-height: 35px;
+  padding: 8px 14px;
   border: 1px solid transparent;
   border-radius: 999px;
   color: #CEBEAA;
@@ -205,15 +211,22 @@ body.discovery-home-page {
   white-space: nowrap;
 }
 
-.discovery-home-page .discovery-category:hover,
+ .discovery-home-page .discovery-category:hover,
 .discovery-home-page .discovery-category:focus-visible {
-  border-color: #CBAF87;
-  background: rgba(210,177,133,.14);
+  border-color: #D4B487;
+  background: #D4B487;
+  color: #171310;
 }
 
 .discovery-home-page .discovery-category.active {
+  color: #F4EADD;
+  border-color: rgba(212,180,135,.45);
+  background: transparent;
+}
+
+.discovery-home-page .discovery-category-buttons.has-interacted .discovery-category.active {
   background: #D4B487;
-  color: #1A1613;
+  color: #171310;
   border-color: #D4B487;
 }
 
@@ -357,7 +370,7 @@ body.discovery-home-page {
 
 @media(max-width:900px) {
   .discovery-home-page .discover-page { padding: 0 4% 70px; }
-  .discovery-home-page .discover-hero { height: 365px; min-height: 0; margin: 0 -4.35% 26px; }
+  .discovery-home-page .discover-hero { height: 365px; min-height: 0; margin: 0 0 26px calc(50% - 50vw); }
   .discovery-home-page .discover-intro { max-width: 70%; }
   .discovery-home-page .discovery-card { max-width: 165px; }
 }
@@ -419,7 +432,7 @@ body.discovery-home-page {
     padding-bottom: 13px;
   }
   .discovery-home-page .discovery-section-header h2 { font-size: 31px; }
-  .discovery-home-page .discovery-category-buttons { width: 100%; min-width: 0; margin: 23px auto 0; }
+  .discovery-home-page .discovery-category-buttons { width: 100%; min-width: 0; margin: 16px auto 0; }
   .discovery-home-page .discovery-results {
     grid-template-columns: repeat(2,minmax(0,1fr));
     gap: 23px 14px;
