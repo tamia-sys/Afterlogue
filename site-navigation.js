@@ -34,7 +34,7 @@
     page === "discover.html" ? homeLink :
     page === "explore.html" ? exploreLink :
     page === "my-log.html" ? logLink :
-    page === "discuss.html" ? discussLink : null;
+    ["discuss.html", "discuss-thread.html", "discuss-compose.html"].includes(page) ? discussLink : null;
 
   for (const link of navLinks) {
     if (link === currentLink) link.setAttribute("aria-current", "page");
