@@ -13,7 +13,8 @@
   let member = null, busy = false, draftKey = '';
   let selectedFile = null, objectUrl = null;
   const photoPreview = $('compose-image-preview');
-  const placeholder = $('compose-image-placeholder');
+  const selectedBox = $('compose-image-selected');
+  const addBox = $('compose-image-drop');
 
   function clearImage() {
     selectedFile = null;
@@ -21,9 +22,9 @@
     imageAlt.value = '';
     imageAlt.required = false;
     attachment.hidden = true;
-    photoPreview.hidden = true;
+    selectedBox.hidden = true;
     photoPreview.removeAttribute('src');
-    placeholder.hidden = false;
+    addBox.hidden = false;
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     objectUrl = null;
   }
@@ -41,8 +42,8 @@
     objectUrl = URL.createObjectURL(file);
     photoPreview.src = objectUrl;
     photoPreview.alt = 'Preview of your selected image';
-    photoPreview.hidden = false;
-    placeholder.hidden = true;
+    selectedBox.hidden = false;
+    addBox.hidden = true;
     attachment.hidden = false;
     imageAlt.required = true;
     status.textContent = '';
