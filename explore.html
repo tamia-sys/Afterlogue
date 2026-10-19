@@ -408,6 +408,94 @@ body.explore-body>header{padding:19px 5%;align-items:center}
   .mood-card .mood-image { transition: none; }
 }
 
+
+/* Collection bookmarks: the star and the collection are independent controls. */
+.mood-open {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mood-open:focus-visible {
+  outline: 2px solid #D4B487;
+  outline-offset: 4px;
+  border-radius: 16px;
+}
+
+.mood-card .mood-card-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.mood-card .mood-bottom {
+  margin-top: auto;
+  padding-top: 5px;
+  padding-right: 37px;
+}
+
+.mood-pin {
+  position: absolute;
+  right: 12px;
+  bottom: 15px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #D4B487;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color .2s ease, transform .2s ease;
+}
+
+.mood-pin svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  transition: fill .2s ease;
+}
+
+.mood-pin[aria-pressed="true"] svg { fill: #D4B487; }
+.mood-pin:hover { background: rgba(212,180,135,.12); transform: scale(1.07); }
+.mood-pin:focus-visible { outline: 2px solid #D4B487; outline-offset: 2px; }
+.mood-pin:disabled { opacity: .4; cursor: wait; transform: none; }
+
+.explore-pin-status:not(:focus):not(:active) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 650px) {
+  .mood-pin { right: 8px; bottom: 11px; width: 30px; height: 30px; }
+  .mood-pin svg { width: 18px; height: 18px; }
+  .mood-card .mood-bottom { padding-right: 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mood-pin, .mood-pin svg { transition: none; }
+}
+
 </style>
 </head>
 <body class="explore-body">
@@ -455,14 +543,45 @@ body.explore-body>header{padding:19px 5%;align-items:center}
   <p id="explore-no-matches" hidden>No matches yet in our starter catalog. Try a broader search.</p>
 </section>
 <div class="explore-group-label"><p>01 — A LITTLE SOMETHING FOR...</p><span>Choose a collection to begin</span></div>
-  <div class="explore-gallery">
-    <button type="button" class="mood-card" data-mood="yearning"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">001 / FEELING</span><span class="mood-title">Something for yearning.</span><span class="mood-bottom"><span>Longing &amp; what could have been</span></span></span></button>
-    <button type="button" class="mood-card" data-mood="winding"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">002 / MOMENT</span><span class="mood-title">Something for winding down.</span><span class="mood-bottom"><span>For slower evenings</span></span></span></button>
-    <button type="button" class="mood-card" data-mood="friday"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">003 / OCCASION</span><span class="mood-title">Something for a Friday night.</span><span class="mood-bottom"><span>Out of the ordinary</span></span></span></button>
-    <button type="button" class="mood-card" data-mood="fall"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">004 / SEASON</span><span class="mood-title">Something for fall.</span><span class="mood-bottom"><span>For changing seasons</span></span></span></button>
-    <button type="button" class="mood-card" data-mood="holidays"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">005 / SEASON</span><span class="mood-title">Something for the holidays.</span><span class="mood-bottom"><span>Warmth &amp; company</span></span></span></button>
-    <button type="button" class="mood-card" data-mood="unexpected"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">006 / DETOUR</span><span class="mood-title">Something unexpected.</span><span class="mood-bottom"><span>Just outside your comfort zone</span></span></span></button>
+  <div class="explore-gallery" id="explore-gallery">
+    <article class="mood-card" data-mood="yearning">
+      <button type="button" class="mood-open" aria-label="Explore Something for yearning"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">001 / FEELING</span><span class="mood-title">Something for yearning.</span><span class="mood-bottom"><span>Longing &amp; what could have been</span></span></span></button>
+      <button type="button" class="mood-pin" data-pin="yearning" aria-label="Pin Something for yearning" aria-pressed="false" title="Pin collection">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.9 2.8 5.67 6.27.91-4.54 4.42 1.07 6.24L12 17.2l-5.6 2.94 1.07-6.24-4.54-4.42 6.27-.91z"/></svg>
+      </button>
+    </article>
+    <article class="mood-card" data-mood="winding">
+      <button type="button" class="mood-open" aria-label="Explore Something for winding down"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">002 / MOMENT</span><span class="mood-title">Something for winding down.</span><span class="mood-bottom"><span>For slower evenings</span></span></span></button>
+      <button type="button" class="mood-pin" data-pin="winding" aria-label="Pin Something for winding down" aria-pressed="false" title="Pin collection">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.9 2.8 5.67 6.27.91-4.54 4.42 1.07 6.24L12 17.2l-5.6 2.94 1.07-6.24-4.54-4.42 6.27-.91z"/></svg>
+      </button>
+    </article>
+    <article class="mood-card" data-mood="friday">
+      <button type="button" class="mood-open" aria-label="Explore Something for a Friday night"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">003 / OCCASION</span><span class="mood-title">Something for a Friday night.</span><span class="mood-bottom"><span>Out of the ordinary</span></span></span></button>
+      <button type="button" class="mood-pin" data-pin="friday" aria-label="Pin Something for a Friday night" aria-pressed="false" title="Pin collection">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.9 2.8 5.67 6.27.91-4.54 4.42 1.07 6.24L12 17.2l-5.6 2.94 1.07-6.24-4.54-4.42 6.27-.91z"/></svg>
+      </button>
+    </article>
+    <article class="mood-card" data-mood="fall">
+      <button type="button" class="mood-open" aria-label="Explore Something for fall"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">004 / SEASON</span><span class="mood-title">Something for fall.</span><span class="mood-bottom"><span>For changing seasons</span></span></span></button>
+      <button type="button" class="mood-pin" data-pin="fall" aria-label="Pin Something for fall" aria-pressed="false" title="Pin collection">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.9 2.8 5.67 6.27.91-4.54 4.42 1.07 6.24L12 17.2l-5.6 2.94 1.07-6.24-4.54-4.42 6.27-.91z"/></svg>
+      </button>
+    </article>
+    <article class="mood-card" data-mood="holidays">
+      <button type="button" class="mood-open" aria-label="Explore Something for the holidays"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">005 / SEASON</span><span class="mood-title">Something for the holidays.</span><span class="mood-bottom"><span>Warmth &amp; company</span></span></span></button>
+      <button type="button" class="mood-pin" data-pin="holidays" aria-label="Pin Something for the holidays" aria-pressed="false" title="Pin collection">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.9 2.8 5.67 6.27.91-4.54 4.42 1.07 6.24L12 17.2l-5.6 2.94 1.07-6.24-4.54-4.42 6.27-.91z"/></svg>
+      </button>
+    </article>
+    <article class="mood-card" data-mood="unexpected">
+      <button type="button" class="mood-open" aria-label="Explore Something unexpected"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">006 / DETOUR</span><span class="mood-title">Something unexpected.</span><span class="mood-bottom"><span>Just outside your comfort zone</span></span></span></button>
+      <button type="button" class="mood-pin" data-pin="unexpected" aria-label="Pin Something unexpected" aria-pressed="false" title="Pin collection">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.9 2.8 5.67 6.27.91-4.54 4.42 1.07 6.24L12 17.2l-5.6 2.94 1.07-6.24-4.54-4.42 6.27-.91z"/></svg>
+      </button>
+    </article>
   </div>
+  <p id="explore-pin-status" class="explore-pin-status" role="status" aria-live="polite" aria-atomic="true"></p>
   <div id="explore-mystery" class="explore-mystery"><div><h2>Or, leave it to chance.</h2><p>No questions. One story. No clues until you open it.</p></div><button type="button" class="explore-button" id="explore-surprise">Surprise me ↗</button></div>
 </section>
 <section class="explore-experience" id="explore-experience" aria-live="polite" hidden>
@@ -730,7 +849,120 @@ $("explore-clear").addEventListener("click",()=>{
   updateBrowse();
 });
 
-document.querySelectorAll("[data-mood]").forEach(b=>b.addEventListener("click",()=>start(b.dataset.mood)));
+
+/* Save "Something for..." collections separately from film watchlists.
+   Guests have browser-only pins. Member pins sync privately across devices. */
+const pinGallery=$("explore-gallery");
+const pinCards=[...pinGallery.querySelectorAll(".mood-card")];
+const pinCardMap=new Map(pinCards.map((card,index)=>[card.dataset.mood,{card,index}]));
+const pinStatus=$("explore-pin-status");
+const guestPinKey="afterlogue.explore.pins.guest.v1";
+let pinStorageKey=guestPinKey;
+let pinnedMoods=[];
+let pinnedAccount=null;
+let pinReady=false;
+
+function normalizePins(value) {
+  if(!Array.isArray(value))return [];
+  return [...new Set(value.filter(mood=>typeof mood==="string"&&pinCardMap.has(mood)))];
+}
+function readSavedPins(key){
+  try{return normalizePins(JSON.parse(localStorage.getItem(key)||"[]"));}
+  catch(error){return [];}
+}
+function cachePins(){
+  try{localStorage.setItem(pinStorageKey,JSON.stringify(pinnedMoods));return true;}
+  catch(error){return false;}
+}
+function renderPinnedCollections() {
+  const position=new Map(pinnedMoods.map((mood,index)=>[mood,index]));
+  const sorted=[...pinCards].sort((a,b)=>{
+    const ia=position.has(a.dataset.mood)?position.get(a.dataset.mood):1000+pinCardMap.get(a.dataset.mood).index;
+    const ib=position.has(b.dataset.mood)?position.get(b.dataset.mood):1000+pinCardMap.get(b.dataset.mood).index;
+    return ia-ib;
+  });
+  pinGallery.append(...sorted);
+  pinCards.forEach(card=>{
+    const button=card.querySelector(".mood-pin");
+    const selected=position.has(card.dataset.mood);
+    const text=data.moods[card.dataset.mood].label;
+    button.setAttribute("aria-pressed",String(selected));
+    button.setAttribute("aria-label",(selected?"Unpin ":"Pin ")+text);
+    button.title=(selected?"Unpin":"Pin")+" collection";
+  });
+}
+function reportPin(message){pinStatus.textContent=message;}
+async function initializeCollectionPins(){
+  pinCards.forEach(card=>{card.querySelector(".mood-pin").disabled=true;});
+  try {
+    if(!isGuest && window.afterlogueSupabase){
+      const client=window.afterlogueSupabase;
+      const {data:auth,error:authError}=await client.auth.getUser();
+      if(authError)throw authError;
+      if(auth?.user){
+        pinnedAccount=auth.user.id;
+        pinStorageKey="afterlogue.explore.pins.user."+pinnedAccount+".v1";
+        const {data:rows,error:loadError}=await client.from("explore_pins")
+          .select("mood,pinned_at")
+          .eq("user_id",pinnedAccount)
+          .order("pinned_at",{ascending:false});
+        if(loadError){
+          pinnedMoods=readSavedPins(pinStorageKey);
+          reportPin("Pinned collections could not be synced. Try again when your connection returns.");
+        }else{
+          pinnedMoods=normalizePins((rows||[]).map(row=>row.mood));
+          cachePins();
+        }
+      }else{
+        pinnedMoods=readSavedPins(guestPinKey);
+      }
+    }else{
+      pinnedMoods=readSavedPins(guestPinKey);
+    }
+  }catch(error){
+    pinnedMoods=readSavedPins(pinStorageKey);
+    reportPin("Your saved collections are temporarily available on this device only.");
+  }finally{
+    renderPinnedCollections();
+    pinReady=true;
+    pinCards.forEach(card=>{card.querySelector(".mood-pin").disabled=false;});
+  }
+}
+async function toggleCollectionPin(mood,button){
+  if(!pinReady||!pinCardMap.has(mood)||button.disabled)return;
+  const wasPinned=pinnedMoods.includes(mood);
+  const previous=[...pinnedMoods];
+  pinnedMoods=wasPinned?pinnedMoods.filter(value=>value!==mood):[mood,...pinnedMoods];
+  renderPinnedCollections();
+  const cached=cachePins();
+  reportPin(wasPinned?"Removed from pinned collections.":"Pinned collection moved to the beginning.");
+  if(pinnedAccount){
+    button.disabled=true;
+    try{
+      const client=window.afterlogueSupabase;
+      const response=wasPinned
+        ?await client.from("explore_pins").delete().eq("user_id",pinnedAccount).eq("mood",mood)
+        :await client.from("explore_pins").insert({user_id:pinnedAccount,mood});
+      if(response.error)throw response.error;
+    }catch(error){
+      pinnedMoods=previous;
+      renderPinnedCollections();
+      cachePins();
+      reportPin("Could not save your pin to your account. Please try again.");
+    }finally{button.disabled=false;}
+  }else if(!cached){
+    pinnedMoods=previous;
+    renderPinnedCollections();
+    reportPin("Couldn't save your pin in this browser. Check your storage settings.");
+  }
+}
+pinCards.forEach(card=>{
+  const button=card.querySelector(".mood-pin");
+  button.addEventListener("click",()=>toggleCollectionPin(card.dataset.mood,button));
+});
+initializeCollectionPins();
+
+document.querySelectorAll(".mood-open").forEach(button=>button.addEventListener("click",()=>start(button.closest(".mood-card").dataset.mood)));
 $("explore-back").addEventListener("click",()=>view("gallery"));
 $("explore-results-back").addEventListener("click",()=>view("gallery"));
 $("explore-another").addEventListener("click",()=>view("gallery"));
