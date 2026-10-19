@@ -1,479 +1,99 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111110">
   <title>Log — Afterlogue</title>
   <link rel="stylesheet" href="style.css?v=29">
+  <link rel="stylesheet" href="my-log.css?v=1">
 </head>
-
-<body>
-<header class="site-header">
-    <h1>
-      <a href="index.html" class="logo-link">afterlogue.</a>
-    </h1>
- <nav>
-  <a href="discover.html">Home</a>
-  <a href="explore.html">Explore</a>
-  <a href="my-log.html">Log</a>
-  <a href="discuss.html">Discuss</a>
-
-  <details class="account-menu">
-    <summary aria-label="Open account menu">
-      <svg width="22" height="22"
-           viewBox="0 0 24 24"
-           fill="none"
-           stroke="currentColor"
-           stroke-width="1.5"
-           stroke-linecap="round"
-           stroke-linejoin="round"
-           aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/>
-        <circle cx="12" cy="8" r="3"/>
-        <path d="M5.5 19a7 7 0 0 1 13 0"/>
-      </svg>
-    </summary>
-
-    <div class="account-dropdown">
-      <p class="account-heading">Your account</p>
-      <p id="account-email">Checking your account...</p>
-      <p id="account-status"></p>
-
-      <div class="account-divider"></div>
-
-      <p class="account-settings">
-        Account settings — Coming soon
-      </p>
-
-      <button type="button" id="account-signout">
-        Sign out
-      </button>
-    </div>
-  </details>
-</nav>
+<body class="archive-body">
+  <header class="site-header">
+    <h1><a href="index.html" class="logo-link">afterlogue.</a></h1>
+    <nav aria-label="Site navigation">
+      <a href="discover.html">Home</a>
+      <a href="explore.html">Explore</a>
+      <a href="my-log.html" aria-current="page">Log</a>
+      <a href="discuss.html">Discuss</a>
+      <details class="account-menu">
+        <summary aria-label="Open account menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/>
+          </svg>
+        </summary>
+        <div class="account-dropdown">
+          <p class="account-heading">Your account</p>
+          <p id="account-email">Checking your account…</p>
+          <p id="account-status"></p>
+          <div class="account-divider"></div>
+          <p class="account-settings">Account settings — Coming soon</p>
+          <button type="button" id="account-signout" hidden>Sign out</button>
+        </div>
+      </details>
+    </nav>
   </header>
 
-  <main class="personal-log">
-    <p class="personal-log-eyebrow">
-      AFTERLOGUE / 03 — YOUR COLLECTION
-    </p>
+  <main class="archive-page">
+    <p class="archive-eyebrow">AFTERLOGUE / 03 — YOUR COLLECTION</p>
+    <h1 class="archive-title">Log.</h1>
+    <p class="archive-subtitle">The stories you've experienced, and those still waiting.</p>
 
-    <h2 class="personal-log-title">Log.</h2>
+    <div class="archive-toolbar">
+      <div class="archive-tabs" role="group" aria-label="Log sections">
+        <button type="button" class="archive-tab active" data-archive-tab="watched" aria-pressed="true">Watched</button>
+        <button type="button" class="archive-tab" data-archive-tab="watchlist" aria-pressed="false">Watchlist</button>
+        <button type="button" class="archive-tab" data-archive-tab="favorites" aria-pressed="false">Favorites</button>
+      </div>
+      <div class="archive-categories" role="group" aria-label="Content type">
+        <button type="button" class="archive-category active" data-archive-category="movies" aria-pressed="true">Movies</button>
+        <button type="button" class="archive-category" data-archive-category="tv" aria-pressed="false">TV</button>
+      </div>
+    </div>
 
-    <p class="personal-log-description">
-      The stories you've experienced, and those still waiting.
-    </p>
-
-    <div class="personal-log-divider"></div>
-
-    <nav class="personal-log-tabs" aria-label="Log sections">
-      <button type="button" class="personal-log-tab active" data-tab="watched">Watched</button>
-      <button type="button" class="personal-log-tab" data-tab="watchlist">Watchlist</button>
-      <button type="button" class="personal-log-tab" data-tab="favorites">Favorites</button>
-    </nav>
-
-<div class="log-category-selector" aria-label="Content type">
-  <button
-    type="button"
-    class="log-category-btn active"
-    data-category="movies"
-    aria-pressed="true">
-    Movies
-  </button>
-
-  <button
-    type="button"
-    class="log-category-btn"
-    data-category="tv"
-    aria-pressed="false">
-    TV Shows
-  </button>
-</div>
-
-    <section class="personal-log-panel" id="watched">
-      <p>Your impressions will live here.</p>
-    </section>
-
-    <section class="personal-log-panel" id="watchlist" hidden>
-      <p>Stories you've saved for later.</p>
-    </section>
-
-    <section class="personal-log-panel" id="favorites" hidden>
-      <p>The stories you keep close.</p>
-    </section>
+    <div class="archive-rule" aria-hidden="true"></div>
+    <p id="archive-count" class="archive-count" aria-live="polite">LOADING YOUR COLLECTION…</p>
+    <p id="archive-feedback" class="archive-feedback" role="status" aria-live="polite"></p>
+    <section id="archive-grid" class="archive-grid" aria-label="Saved stories"></section>
+    <p id="archive-empty" class="archive-empty" hidden></p>
   </main>
+
+  <dialog class="archive-dialog" id="archive-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-content">
+      <div class="dialog-top">
+        <div>
+          <p class="dialog-eyebrow">AFTERLOGUE / PERSONAL DETAILS</p>
+          <h2 id="dialog-title"></h2>
+          <p class="dialog-meta" id="dialog-meta"></p>
+        </div>
+        <button type="button" class="dialog-close" id="dialog-close" aria-label="Close details">×</button>
+      </div>
+      <form id="archive-form">
+        <label class="dialog-field" for="dialog-rating">Your impression
+          <select id="dialog-rating" name="rating">
+            <option value="">Not rated</option>
+            <option value="Loved">♥ Loved</option>
+            <option value="Liked">♡ Liked</option>
+            <option value="Okay">● Okay</option>
+            <option value="Not for me">× Not for me</option>
+          </select>
+        </label>
+        <label class="dialog-field" for="dialog-note">Private note
+          <textarea id="dialog-note" name="note" maxlength="4000" placeholder="The scenes, feelings, or details you want to remember…"></textarea>
+        </label>
+        <p class="dialog-privacy">Only you can view this note. Sharing a title does not share your note.</p>
+        <p class="dialog-error" id="dialog-error" role="alert"></p>
+        <div class="dialog-controls">
+          <button type="button" class="dialog-remove" id="dialog-remove-watchlist" hidden>Remove from Watchlist</button>
+          <button type="submit" class="dialog-save" id="dialog-save">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-client.js"></script>
-<script src="site-navigation.js?v=2"></script>
-  <script>
-    document.querySelectorAll(".personal-log-tab").forEach(button => {
-      button.addEventListener("click", () => {
-        document.querySelectorAll(".personal-log-tab").forEach(tab => {
-          tab.classList.toggle("active", tab === button);
-        });
-
-        document.querySelectorAll(".personal-log-panel").forEach(panel => {
-          panel.hidden = panel.id !== button.dataset.tab;
-        });
-      });
-    });
-  </script>
-  
-<script>
-  /* AFTERLOGUE — LOAD WATCHED IMPRESSIONS */
-
-  async function loadWatchedImpressions() {
-    const watched = document.getElementById("watched");
-    watched.textContent = "Loading your impressions...";
-
-    try {
-      const client = window.afterlogueSupabase;
-
-      const { data: userData, error: userError } =
-        await client.auth.getUser();
-
-      if (userError || !userData.user) {
-        watched.textContent = "Please sign in to view your Log.";
-        return;
-      }
-
-      const { data: impressions, error } = await client
-        .from("impressions")
-        .select("title_key, rating")
-        .eq("user_id", userData.user.id)
-        .order("title_key");
-
-      if (error) throw error;
-
-      watched.replaceChildren();
-
-      if (!impressions || impressions.length === 0) {
-        watched.textContent = "No impressions yet.";
-        return;
-      }
-
-const posterLookup = new Map();
-
-const response = await fetch("log.html");
-if (response.ok) {
-  const html = await response.text();
-  const doc = new DOMParser().parseFromString(html, "text/html");
-
-  doc.querySelectorAll(".log-film-card").forEach(card => {
-    const title = card.querySelector("h4")?.textContent.trim();
-    const poster = card.querySelector("img")?.getAttribute("src");
-
-    if (title && poster) {
-      const key = title.toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
-
-      posterLookup.set(key, poster);
-    }
-  });
-}
-
-      impressions.forEach(item => {
-        const entry = document.createElement("p");
-
-const tvTitles = new Set([
-  "malcolm-in-the-middle",
-  "abbott-elementary",
-  "gilmore-girls",
-  "insecure",
-  "bridgerton",
-  "gossip-girl",
-  "stranger-things",
-  "chernobyl",
-  "demon-slayer",
-  "avatar-the-last-airbender",
-  "love-island-usa",
-  "criminal-minds"
-]);
-
-entry.dataset.category = tvTitles.has(item.title_key)
-  ? "tv"
-  : "movies";
-
-        const title = item.title_key
-          .split("-")
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ");
-
-        
-const titleElement = document.createElement("div");
-titleElement.className = "watched-title";
-titleElement.textContent = title;
-
-const impressionElement = document.createElement("div");
-impressionElement.className = "watched-impression";
-
-const impressionIcons = {
-  "Loved": "♥",
-  "Liked": "♡",
-  "Okay": "●",
-  "Not for me": "×"
-};
-
-const icon = impressionIcons[item.rating] || "•";
-impressionElement.textContent = `${icon} ${item.rating}`;
-
-
-const releaseYears = {
-  "mean-girls": 2004,
-  "moonlight": 2016,
-  "jurassic-park": 1993,
-  "the-sound-of-music": 1965,
-  "get-out": 2017,
-  "little-miss-sunshine": 2006,
-  "the-truman-show": 1998,
-  "spirited-away": 2001,
-  "parasite": 2019,
-  "titanic": 1997,
-  "ex-machina": 2014,
-  "shrek": 2001,
-  "malcolm-in-the-middle": 2000,
-  "abbott-elementary": 2021,
-  "gilmore-girls": 2000,
-  "insecure": 2016,
-  "bridgerton": 2020,
-  "gossip-girl": 2007,
-  "stranger-things": 2016,
-  "chernobyl": 2019,
-  "demon-slayer": 2019,
-  "avatar-the-last-airbender": 2005,
-  "love-island-usa": 2019,
-  "criminal-minds": 2005
-};
-
-const yearElement = document.createElement("div");
-yearElement.className = "watched-year";
-yearElement.textContent = releaseYears[item.title_key] || "";
-
-entry.appendChild(titleElement);
-entry.appendChild(yearElement);
-entry.appendChild(impressionElement);
-
-        
-const poster = posterLookup.get(item.title_key);
-
-if (poster) {
-  const image = document.createElement("img");
-  image.src = poster;
-  image.alt = `${title} poster`;
-  image.style.width = "140px";
-  image.style.aspectRatio = "2 / 3";
-  image.style.objectFit = "cover";
-  image.style.display = "block";
-  image.style.marginBottom = "10px";
-
-  entry.prepend(image);
-}
-
-        watched.appendChild(entry);
-      });
-
-    } catch (error) {
-      console.error("Log loading error:", error);
-      watched.textContent =
-        "Unable to load your impressions. Please refresh.";
-    }
-  }
-
- 
-/* AFTERLOGUE — LOG CATEGORY FILTER */
-
-
-function filterWatchedCategory(category) {
-  document.querySelectorAll(
-    "#watched > p[data-category], #watchlist > p[data-category]"
-  ).forEach(entry => {
-    entry.hidden = entry.dataset.category !== category;
-  });
-}
-
-
-document.querySelectorAll(".log-category-btn").forEach(button => {
-  button.addEventListener("click", () => {
-    const category = button.dataset.category;
-
-    document.querySelectorAll(".log-category-btn").forEach(btn => {
-      const isActive = btn === button;
-      btn.classList.toggle("active", isActive);
-      btn.setAttribute("aria-pressed", String(isActive));
-    });
-
-    filterWatchedCategory(category);
-  });
-});
-
-// Load saved impressions before applying the default filter.
-loadWatchedImpressions().then(() => {
-  filterWatchedCategory("movies");
-});
-
-</script>
-
-<script>
-  /* AFTERLOGUE — LOAD WATCHLIST */
-
-  async function loadMyWatchlist() {
-    const section = document.getElementById("watchlist");
-    section.textContent = "Loading your Watchlist...";
-
-    try {
-      const client = window.afterlogueSupabase;
-
-      const { data: userData, error: userError } =
-        await client.auth.getUser();
-
-      if (userError || !userData.user) {
-        section.textContent = "Please sign in to view your Watchlist.";
-        return;
-      }
-
-      const { data: savedTitles, error } = await client
-        .from("watchlist")
-        .select("title_key, category")
-        .eq("user_id", userData.user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      section.replaceChildren();
-
-      if (!savedTitles || savedTitles.length === 0) {
-        section.textContent = "Your Watchlist is empty.";
-        return;
-      }
-
-const watchlistCatalogue = {
-  "past-lives": {
-    title: "Past Lives",
-    year: 2023,
-    poster: "images/posters/PastLives.webp"
-  },
-  "severance": {
-    title: "Severance",
-    year: 2022,
-    poster: "images/posters/Severance.webp"
-  },
-  
-"whiplash": {
-  title: "Whiplash",
-  year: 2014,
-  poster: "images/posters/Whiplash.webp"
-},
-"everything-everywhere-all-at-once": {
-  title: "Everything Everywhere All at Once",
-  year: 2022,
-  poster: "images/posters/EverythingEverywhere.webp"
-},
-
-"atlanta": {
-  title: "Atlanta",
-  year: 2016,
-  poster: "images/posters/Atlanta.webp"
-},
-
-};
-
-     
-savedTitles.forEach(item => {
-  const movie = watchlistCatalogue[item.title_key];
-
-  const title = movie?.title || item.title_key
-    .split("-")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-
-  const entry = document.createElement("p");
-  entry.dataset.category = item.category;
-
-  if (movie?.poster) {
-    const image = document.createElement("img");
-    image.src = movie.poster;
-    image.alt = `${title} poster`;
-    entry.appendChild(image);
-  }
-
-  const titleElement = document.createElement("div");
-  titleElement.className = "watched-title";
-  titleElement.textContent = title;
-  entry.appendChild(titleElement);
-
-  if (movie?.year) {
-    const yearElement = document.createElement("div");
-    yearElement.className = "watched-year";
-    yearElement.textContent = movie.year;
-    entry.appendChild(yearElement);
-  }
-
-  section.appendChild(entry);
-});
-
-
-    } catch (error) {
-      console.error("Watchlist error:", error);
-      section.textContent = "Unable to load your Watchlist.";
-    }
-  }
-
-  loadMyWatchlist();
-</script>
-<script>
-(async function setupAccountMenu() {
-  const client = window.afterlogueSupabase;
-
-  const emailLabel = document.getElementById("account-email");
-  const statusLabel = document.getElementById("account-status");
-  const signoutButton = document.getElementById("account-signout");
-
-  if (!client || !emailLabel || !statusLabel || !signoutButton) {
-    console.error("Afterlogue: Account menu setup incomplete.");
-    return;
-  }
-
-  try {
-    const { data, error } = await client.auth.getUser();
-
-    if (error) throw error;
-
-    if (data.user) {
-      emailLabel.textContent = data.user.email || "Afterlogue member";
-      statusLabel.textContent = "● Signed in";
-      signoutButton.hidden = false;
-    } else {
-      emailLabel.textContent = "Not signed in";
-      statusLabel.textContent = "Sign in to access your account.";
-      signoutButton.hidden = true;
-    }
-  } catch (error) {
-    console.error("Account loading error:", error);
-    emailLabel.textContent = "Unable to load account";
-    statusLabel.textContent = "Please refresh the page.";
-    signoutButton.hidden = true;
-  }
-
-  signoutButton.addEventListener("click", async () => {
-    signoutButton.disabled = true;
-    signoutButton.textContent = "Signing out...";
-
-    try {
-      const { error } = await client.auth.signOut();
-
-      if (error) throw error;
-
-      window.location.replace("index.html");
-    } catch (error) {
-      console.error("Sign out error:", error);
-      statusLabel.textContent = "Couldn't sign out. Please try again.";
-      signoutButton.disabled = false;
-      signoutButton.textContent = "Sign out";
-    }
-  });
-})();
-</script>
+  <script src="supabase-client.js"></script>
+  <script src="site-navigation.js?v=2"></script>
+  <script src="my-log.js?v=1"></script>
 </body>
 </html>
