@@ -565,7 +565,7 @@
     };
     try { sessionStorage.setItem('afterlogue-discuss-draft', JSON.stringify(draft)); }
     catch (e) { console.warn('Could not save discussion draft', e); }
-    window.location.assign('discuss.html?compose=1');
+    window.location.assign('discuss-compose.html');
   }
 
   async function loadAccount() {
