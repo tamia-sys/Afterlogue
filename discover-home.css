@@ -189,8 +189,8 @@ body.discovery-home-page {
   align-items: center;
   width: 100%;
   min-width: 0;
-  gap: 12px;
-  margin: 16px auto 0;
+  gap: 14px;
+  margin: 15px auto 0;
   padding: 0;
   border-radius: 0;
   background: none;
@@ -200,18 +200,19 @@ body.discovery-home-page {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  width: auto;
-  min-height: 35px;
-  padding: 8px 14px;
-  border: 1px solid transparent;
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 18px;
+  border: 1px solid rgba(212,180,135,.45);
   border-radius: 999px;
-  color: #CEBEAA;
+  color: #E9DCCB;
   background: transparent;
-  font: 11px/1.4 Arial,Helvetica,sans-serif;
+  font: 500 12px/1.4 Inter,Arial,Helvetica,sans-serif;
+  transition: background-color .2s ease,color .2s ease,border-color .2s ease;
   white-space: nowrap;
 }
 
- .discovery-home-page .discovery-category:hover,
+.discovery-home-page .discovery-category:hover,
 .discovery-home-page .discovery-category:focus-visible {
   border-color: #D4B487;
   background: #D4B487;
@@ -219,12 +220,6 @@ body.discovery-home-page {
 }
 
 .discovery-home-page .discovery-category.active {
-  color: #F4EADD;
-  border-color: rgba(212,180,135,.45);
-  background: transparent;
-}
-
-.discovery-home-page .discovery-category-buttons.has-interacted .discovery-category.active {
   background: #D4B487;
   color: #171310;
   border-color: #D4B487;
@@ -236,10 +231,10 @@ body.discovery-home-page {
   grid-template-columns: repeat(5,minmax(0,1fr));
   align-items: start;
   justify-content: space-between;
-  gap: clamp(14px,2vw,28px);
+  gap: clamp(12px,1.5vw,22px);
   width: 100%;
   max-width: none;
-  margin: 17px 0 0;
+  margin: 18px 0 0;
 }
 
 .discovery-home-page .discovery-card {
@@ -248,7 +243,7 @@ body.discovery-home-page {
   flex-direction: column;
   justify-self: center;
   width: 100%;
-  max-width: 176px;
+  max-width: 225px;
   min-width: 0;
   overflow: visible;
   border: 0;
@@ -307,16 +302,18 @@ body.discovery-home-page {
   max-width: 100%;
   min-height: 0;
   padding: 0;
-  margin: 10px 0 4px;
+  margin: 11px 0 5px;
   color: #F4EADD;
-  font: 400 clamp(13px,1.2vw,16px)/1.32 Georgia,"Times New Roman",serif;
+  font: 500 clamp(13px,1.14vw,15px)/1.35 Inter,Arial,Helvetica,sans-serif;
+  letter-spacing: .005em;
 }
 
 .discovery-home-page .discovery-year {
   padding: 0 67px 0 0;
   margin: auto 0 0;
   color: #B6A995;
-  font: 10px/1.5 Arial,Helvetica,sans-serif;
+  font: 500 10px/1.5 Inter,Arial,Helvetica,sans-serif;
+  letter-spacing: .02em;
 }
 
 .discovery-home-page .discovery-card-actions {
@@ -372,7 +369,7 @@ body.discovery-home-page {
   .discovery-home-page .discover-page { padding: 0 4% 70px; }
   .discovery-home-page .discover-hero { height: 365px; min-height: 0; margin: 0 0 26px calc(50% - 50vw); }
   .discovery-home-page .discover-intro { max-width: 70%; }
-  .discovery-home-page .discovery-card { max-width: 165px; }
+  .discovery-home-page .discovery-card { max-width: 225px; }
 }
 
 @media(max-width:650px) {
@@ -432,7 +429,7 @@ body.discovery-home-page {
     padding-bottom: 13px;
   }
   .discovery-home-page .discovery-section-header h2 { font-size: 31px; }
-  .discovery-home-page .discovery-category-buttons { width: 100%; min-width: 0; margin: 16px auto 0; }
+  .discovery-home-page .discovery-category-buttons { width: 100%; min-width: 0; gap: 9px; margin: 16px auto 0; }
   .discovery-home-page .discovery-results {
     grid-template-columns: repeat(2,minmax(0,1fr));
     gap: 23px 14px;
