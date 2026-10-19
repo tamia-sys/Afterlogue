@@ -21,9 +21,9 @@ body.discovery-home-page {
   isolation: isolate;
   display: flex;
   align-items: center;
-  min-height: 260px;
-  height: clamp(265px, 23vw, 315px);
-  margin: 0;
+  min-height: 350px;
+  height: clamp(360px, 32vw, 425px);
+  margin: 0 calc(-1 * clamp(18px, 4.6vw, 70px)) 32px;
   overflow: hidden;
   border: 0;
   border-radius: 0;
@@ -37,7 +37,7 @@ body.discovery-home-page {
   background-color: #22201d;
   background-image: url("https://upload.wikimedia.org/wikipedia/commons/e/e8/Aux_gar%C3%A7ons_de_mon_%C3%A2ge_-_Still_4.jpg");
   background-size: cover;
-  background-position: 70% 48%;
+  background-position: center 81%;
   filter: saturate(1) brightness(.96);
 }
 
@@ -60,8 +60,8 @@ body.discovery-home-page {
 .discovery-home-page .discover-intro {
   position: relative;
   z-index: 1;
-  max-width: 62%;
-  padding: 17px 0 20px 26px;
+  max-width: 58%;
+  padding: 20px 0 22px clamp(28px, 5.1vw, 90px);
 }
 
 .discovery-home-page .discover-eyebrow {
@@ -135,7 +135,7 @@ body.discovery-home-page {
 /* Compact heading so the first five posters appear in the same viewport. */
 .discovery-home-page .discovery-selections {
   padding: 0;
-  margin: 8px 0 0;
+  margin: 0;
 }
 
 .discovery-home-page .discovery-top {
@@ -181,10 +181,10 @@ body.discovery-home-page {
   display: grid;
   grid-template-columns: repeat(2,minmax(0,1fr));
   align-items: center;
-  width: auto;
-  min-width: 215px;
-  gap: 6px;
-  margin: 0;
+  width: min(760px, 100%);
+  min-width: 0;
+  gap: 12px;
+  margin: 25px auto 0;
   padding: 0;
   border-radius: 0;
   background: none;
@@ -357,7 +357,7 @@ body.discovery-home-page {
 
 @media(max-width:900px) {
   .discovery-home-page .discover-page { padding: 0 4% 70px; }
-  .discovery-home-page .discover-hero { height: 320px; min-height: 0; }
+  .discovery-home-page .discover-hero { height: 365px; min-height: 0; margin: 0 -4.35% 26px; }
   .discovery-home-page .discover-intro { max-width: 70%; }
   .discovery-home-page .discovery-card { max-width: 165px; }
 }
@@ -367,12 +367,13 @@ body.discovery-home-page {
   .discovery-home-page .discover-hero {
     height: 450px;
     min-height: 0;
+    margin: 0 0 22px;
     align-items: flex-end;
     border: 0;
     border-radius: 0;
   }
   .discovery-home-page .discover-hero-photo {
-    background-position: 66% 50%;
+    background-position: center 72%;
   }
   .discovery-home-page .discover-hero::after {
     /* A small, transparent fade behind the mobile text only. */
@@ -418,7 +419,7 @@ body.discovery-home-page {
     padding-bottom: 13px;
   }
   .discovery-home-page .discovery-section-header h2 { font-size: 31px; }
-  .discovery-home-page .discovery-category-buttons { min-width: 0; }
+  .discovery-home-page .discovery-category-buttons { width: 100%; min-width: 0; margin: 23px auto 0; }
   .discovery-home-page .discovery-results {
     grid-template-columns: repeat(2,minmax(0,1fr));
     gap: 23px 14px;
