@@ -290,3 +290,108 @@
  .discuss-image-attachment > img {max-height:270px;}
  .discuss-article .discuss-reply-section .discuss-post-actions {align-items:flex-start;}
 }
+
+
+/* REFINEMENT — editorial composer shifted left, smaller headings and image-led writing */
+.discuss-compose-page .discuss-interior {
+  width: 100%;
+  max-width: 1500px;
+  padding-left: 5%;
+  padding-right: 5%;
+  margin-left: 0;
+}
+.discuss-compose-page .discuss-back { margin-bottom: 28px; }
+.discuss-compose-page .discuss-compose-heading {
+  font-size: clamp(39px,4.35vw,57px);
+  letter-spacing: -.035em;
+  max-width: none;
+}
+.discuss-compose-page .discuss-form-layout {
+  max-width: 1300px;
+  grid-template-columns: minmax(0,1fr) minmax(205px,255px);
+  margin-top: 21px;
+  column-gap: clamp(24px,4vw,62px);
+}
+.discuss-compose-page .discuss-form-main { gap: 20px; }
+.discuss-compose-page .discuss-upload-panel { margin-bottom: 7px; }
+.discuss-compose-page .discuss-image-drop {
+  min-height: 126px;
+  background: linear-gradient(120deg,#1f1913,#10100f);
+  border-color: #ad8961;
+}
+.discuss-compose-page .discuss-image-drop span { font-size:32px; }
+.discuss-compose-page .discuss-image-drop:hover { background: #241b14; }
+.discuss-rich-editor {
+  min-height: 230px;
+  height: auto;
+  font: 14px/1.8 Inter,Arial,sans-serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+.discuss-rich-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #8e8175;
+  pointer-events: none;
+}
+.discuss-rich-editor:focus { border-color: #cfaa78; }
+.discuss-inline-figure {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 15px 0;
+  padding: 7px;
+  border: 1px solid #685341;
+  border-radius: 7px;
+  background: #1c1713;
+  user-select: all;
+}
+.discuss-inline-photo {
+  display:block;
+  max-width: min(100%,720px);
+  max-height: 350px;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  border-radius: 4px;
+}
+.discuss-inline-caption {
+  display:block;
+  font: 10px/1.5 Inter,Arial,sans-serif;
+  color: #b9a38b;
+  padding: 7px 3px 0;
+}
+.discuss-article-body .discuss-article-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.discuss-article-body .discuss-article-figure {
+  margin: 17px 0 22px;
+}
+.discuss-comment-edited {
+  color: #c8ad88;
+  font: italic 10px/1.5 Inter,Arial,sans-serif;
+}
+.discuss-comment-actions { display:flex;gap:16px;margin-top:9px;align-items:center; }
+.discuss-comment-action {
+  appearance:none;background:none;border:0;padding:2px 0;
+  font: 11px/1.6 Inter,Arial,sans-serif;
+  cursor:pointer;color:#cab08f;
+}
+.discuss-comment-action:hover { color:#f4eadd;text-decoration:underline; }
+.discuss-comment-delete { color:#bd9b8f; }
+.discuss-comment-editor {display:grid;gap:11px;margin-top:12px;}
+.discuss-comment-editor .discuss-entry-textarea {min-height:115px;}
+.discuss-comment-editor .discuss-post-actions {margin-top:0;justify-content:flex-start;}
+.discuss-article h1 {font-size:clamp(39px,5vw,66px);}
+@media(max-width:860px) {
+  .discuss-compose-page .discuss-form-layout {grid-template-columns:1fr;}
+}
+@media(max-width:650px) {
+  .discuss-compose-page .discuss-interior {padding-left:5%;padding-right:5%;}
+  .discuss-compose-page .discuss-compose-heading {font-size:clamp(36px,8.5vw,46px);}
+  .discuss-article h1 {font-size:clamp(35px,8.8vw,49px);}
+  .discuss-compose-page .discuss-image-drop {min-height:112px;}
+  .discuss-rich-editor {min-height:200px;}
+}
