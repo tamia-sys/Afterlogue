@@ -68,13 +68,13 @@
   }
 
   function clearImage() {
-    const node = imageNode();
-    if (node) node.remove();
+    editor.querySelectorAll('[data-inline-image]').forEach(node => node.remove());
     selectedFile = null;
     imageInput.value = '';
     imageAlt.value = '';
     imageAlt.required = false;
     attachment.hidden = true;
+    $('compose-image-remove-top').hidden = true;
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     objectUrl = null;
     selectedRange = null;
@@ -94,6 +94,7 @@
     objectUrl = URL.createObjectURL(file);
     selectedFile = file;
     attachment.hidden = false;
+    $('compose-image-remove-top').hidden = false;
     imageAlt.required = true;
     status.textContent = '';
     putImageAtCursor();
@@ -102,6 +103,13 @@
   imageInput.addEventListener('change', () => chooseImage(imageInput.files && imageInput.files[0]));
   $('compose-image-move').addEventListener('click', putImageAtCursor);
   $('compose-image-remove').addEventListener('click', clearImage);
+  $('compose-image-remove-top').addEventListener('click', clearImage);
+  editor.addEventListener('input', () => {
+    if (selectedFile && !imageNode()) {
+      clearImage();
+      status.textContent = 'Visual removed. Your writing is unchanged.';
+    }
+  });
   imageAlt.addEventListener('input', () => {
     const node = imageNode();
     if (node) node.querySelector('img').alt = imageAlt.value.trim() || 'Selected visual';
