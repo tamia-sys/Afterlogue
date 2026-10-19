@@ -140,7 +140,7 @@ body.discovery-home-page {
 
 /* Compact heading so the first five posters appear in the same viewport. */
 .discovery-home-page .discovery-selections {
-  padding: 0;
+  padding: 12px 0 0;
   margin: 0;
 }
 
@@ -176,9 +176,9 @@ body.discovery-home-page {
 }
 
 .discovery-home-page .discovery-count {
-  margin: 9px 0 0;
-  color: #AC9F8E;
-  font: 11px/1.35 Arial,Helvetica,sans-serif;
+  margin: 8px 0 0;
+  color: #BCAF9E;
+  font: 11px/1.45 Inter,Arial,Helvetica,sans-serif;
 }
 
 .discovery-home-page [hidden] { display: none !important; }
@@ -187,10 +187,10 @@ body.discovery-home-page {
   display: grid;
   grid-template-columns: repeat(2,minmax(0,1fr));
   align-items: center;
-  width: 100%;
+  width: min(760px, 100%);
   min-width: 0;
-  gap: 14px;
-  margin: 15px auto 0;
+  gap: 11px;
+  margin: 12px auto 0;
   padding: 0;
   border-radius: 0;
   background: none;
@@ -201,13 +201,13 @@ body.discovery-home-page {
   justify-content: center;
   align-items: center;
   width: 100%;
-  min-height: 40px;
-  padding: 9px 18px;
-  border: 1px solid rgba(212,180,135,.45);
+  min-height: 31px;
+  padding: 6px 14px;
+  border: 1px solid rgba(212,180,135,.35);
   border-radius: 999px;
   color: #E9DCCB;
   background: transparent;
-  font: 500 12px/1.4 Inter,Arial,Helvetica,sans-serif;
+  font: 500 11px/1.35 Inter,Arial,Helvetica,sans-serif;
   transition: background-color .2s ease,color .2s ease,border-color .2s ease;
   white-space: nowrap;
 }
@@ -231,10 +231,10 @@ body.discovery-home-page {
   grid-template-columns: repeat(5,minmax(0,1fr));
   align-items: start;
   justify-content: space-between;
-  gap: clamp(12px,1.5vw,22px);
+  gap: clamp(14px,1.6vw,24px);
   width: 100%;
   max-width: none;
-  margin: 18px 0 0;
+  margin: 25px 0 0;
 }
 
 .discovery-home-page .discovery-card {
@@ -302,9 +302,9 @@ body.discovery-home-page {
   max-width: 100%;
   min-height: 0;
   padding: 0;
-  margin: 11px 0 5px;
+  margin: 12px 0 6px;
   color: #F4EADD;
-  font: 500 clamp(13px,1.14vw,15px)/1.35 Inter,Arial,Helvetica,sans-serif;
+  font: 500 clamp(14px,1.3vw,16px)/1.35 Inter,Arial,Helvetica,sans-serif;
   letter-spacing: .005em;
 }
 
@@ -312,7 +312,7 @@ body.discovery-home-page {
   padding: 0 67px 0 0;
   margin: auto 0 0;
   color: #B6A995;
-  font: 500 10px/1.5 Inter,Arial,Helvetica,sans-serif;
+  font: 500 11px/1.5 Inter,Arial,Helvetica,sans-serif;
   letter-spacing: .02em;
 }
 
@@ -429,15 +429,15 @@ body.discovery-home-page {
     padding-bottom: 13px;
   }
   .discovery-home-page .discovery-section-header h2 { font-size: 31px; }
-  .discovery-home-page .discovery-category-buttons { width: 100%; min-width: 0; gap: 9px; margin: 16px auto 0; }
+  .discovery-home-page .discovery-category-buttons { width: 100%; min-width: 0; gap: 9px; margin: 12px auto 0; }
   .discovery-home-page .discovery-results {
     grid-template-columns: repeat(2,minmax(0,1fr));
     gap: 23px 14px;
     margin-top: 16px;
   }
   .discovery-home-page .discovery-card { max-width: none; }
-  .discovery-home-page .discovery-card h3 { font-size: 14px; }
-  .discovery-home-page .discovery-year { font-size: 10px; }
+  .discovery-home-page .discovery-card h3 { font-size: 15px; }
+  .discovery-home-page .discovery-year { font-size: 11px; }
 }
 
 @media(prefers-reduced-motion:reduce) {
