@@ -8,7 +8,7 @@
   <title>Discover — Afterlogue</title>
 
   <link rel="stylesheet" href="style.css?v=29">
-  <link rel="stylesheet" href="discover-home.css?v=3">
+  <link rel="stylesheet" href="discover-home.css?v=4">
 </head>
 
 <body class="discovery-home-page">
@@ -66,7 +66,7 @@
       <div class="discover-hero-photo" aria-hidden="true"></div>
       <div class="discover-intro">
         <p class="discover-eyebrow">AFTERLOGUE / YOUR DISCOVERY</p>
-        <h1 id="discover-home-title">A world of stories awaits.</h1>
+        <h1 id="discover-home-title">A world of <span class="discover-hero-line">stories awaits.</span></h1>
         <p class="discover-description">
           Five films or shows chosen with your impressions in mind.
           Discover new perspectives, one selection at a time.
@@ -88,12 +88,12 @@
         </div>
       </div>
       <p id="impression-count" class="discovery-count"></p>
-      <div class="discovery-results" id="discovery-results" aria-live="polite">
-        <!-- The existing recommendation engine renders five personalized picks here. -->
-      </div>
       <div class="discovery-category-buttons" role="group" aria-label="Choose what to discover">
         <button type="button" class="discovery-category active" data-category="movies" aria-pressed="true">Movies</button>
         <button type="button" class="discovery-category" data-category="tv" aria-pressed="false">TV Shows</button>
+      </div>
+      <div class="discovery-results" id="discovery-results" aria-live="polite">
+        <!-- The existing recommendation engine renders five personalized picks here. -->
       </div>
     </section>
   </main>
@@ -150,7 +150,7 @@ let selectedCategory = "movies";
 
 categoryButtons.forEach(button => {
   button.addEventListener("click", () => {
-
+    document.querySelector(".discovery-category-buttons").classList.add("has-interacted");
     selectedCategory = button.dataset.category;
 
     categoryButtons.forEach(otherButton => {
@@ -702,8 +702,8 @@ async function loadAccountImpressions() {
       document.querySelector(".discover-eyebrow").textContent =
         "AFTERLOGUE / FIRST DISCOVERIES";
 
-      document.querySelector(".discover-intro h1").textContent =
-        "A world of stories awaits.";
+      document.querySelector(".discover-intro h1").innerHTML =
+        'A world of <span class="discover-hero-line">stories awaits.</span>';
 
       document.querySelector(".discover-description").textContent =
         "Your first impressions have opened the door. Explore five films or shows chosen to get you started.";
