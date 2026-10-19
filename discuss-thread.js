@@ -13,6 +13,7 @@
   let currentThread = null;
   let busy = false;
   let imageUrl = null;
+  const IMAGE_TOKEN = '[[afterlogue:image]]';
   const joinButton = $('join-conversation');
   const replySection = $('reply-section');
 
@@ -25,21 +26,38 @@
     if (opening) $('reply-text').focus();
   });
 
+  function populateConversation(t) {
+    const body = $('thread-content');
+    const figure = $('thread-image-figure');
+    figure.hidden = true;
+    body.replaceChildren();
+    const parts = String(t.body || '').split(IMAGE_TOKEN);
+    parts.forEach((part,index) => {
+      if (part) {
+        const block = make('div','discuss-article-text');
+        showSpoilerText(block,part);
+        body.appendChild(block);
+      }
+      if (index < parts.length - 1 && t.image_path) body.appendChild(figure);
+    });
+    if (!parts.length || !t.body.includes(IMAGE_TOKEN)) body.appendChild(figure);
+    if (t.image_path) showDiscussionImage(t);
+  }
+
   async function showDiscussionImage(t) {
     const figure = $('thread-image-figure');
     figure.hidden = true;
     if (!t.image_path) return;
     try {
-      // Storage read permissions enforce guest/public versus member-only threads.
-      const signed = await client.storage.from('discussion-images').createSignedUrl(t.image_path, 3600);
-      if (signed.error || !signed.data || !signed.data.signedUrl) throw signed.error || Error('Image unavailable');
+      const signed = await client.storage.from('discussion-images').createSignedUrl(t.image_path,3600);
+      if (signed.error || !signed.data?.signedUrl) throw signed.error || Error('Unavailable');
       imageUrl = signed.data.signedUrl;
       $('thread-image').src = imageUrl;
       $('thread-image').alt = t.image_alt || 'Image accompanying this conversation';
       $('thread-image-caption').textContent = t.image_alt || '';
-      figure.hidden = false;
+      if (currentThread?.id === t.id) figure.hidden = false;
     } catch (error) {
-      console.warn('Could not display discussion image', error);
+      console.warn('Unable to load conversation image',error);
       figure.hidden = true;
     }
   }
@@ -49,17 +67,91 @@
     status.hidden = !message;
   }
   function drawReply(reply) {
-    const row = make('article', 'discuss-comment');
-    row.appendChild(make('div', 'discuss-avatar', '◌'));
+    const row = make('article','discuss-comment');
+    row.appendChild(make('div','discuss-avatar','◌'));
     const content = make('div');
-    const byline = make('div', 'discuss-comment-byline');
-    byline.appendChild(make('span', 'discuss-comment-author',
-      user && reply.author_id === user.id ? 'You' : 'Afterlogue member'));
-    byline.appendChild(make('span', 'discuss-comment-date', fmtDate(reply.created_at)));
+    const byline = make('div','discuss-comment-byline');
+    const owner = Boolean(user && reply.author_id === user.id);
+    byline.appendChild(make('span','discuss-comment-author',owner ? 'You' : 'Afterlogue member'));
+    byline.appendChild(make('span','discuss-comment-date',fmtDate(reply.created_at)));
+    if (reply.edited_at) byline.appendChild(make('span','discuss-comment-edited','Edited'));
     content.appendChild(byline);
-    const body = make('p', 'discuss-comment-text');
-    showSpoilerText(body, reply.body);
+    const body = make('p','discuss-comment-text');
+    showSpoilerText(body,reply.body);
     content.appendChild(body);
+
+    if (owner) {
+      const actions = make('div','discuss-comment-actions');
+      const editButton = make('button','discuss-comment-action','Edit');
+      const deleteButton = make('button','discuss-comment-action discuss-comment-delete','Delete');
+      editButton.type = deleteButton.type = 'button';
+      const editForm = make('form','discuss-comment-editor');
+      editForm.hidden = true;
+      const area = make('textarea','discuss-entry-textarea');
+      area.setAttribute('aria-label','Edit your reply');
+      area.maxLength = 2000;
+      area.required = true;
+      const spoilerRow = make('label','discuss-checkbox-row');
+      const spoilerCheckbox = make('input');
+      spoilerCheckbox.type = 'checkbox';
+      spoilerRow.append(spoilerCheckbox,document.createTextNode('This reply contains spoilers'));
+      const controls = make('div','discuss-post-actions');
+      const cancel = make('button','discuss-comment-action','Cancel');
+      const save = make('button','discuss-primary','Save changes');
+      cancel.type = 'button';
+      save.type = 'submit';
+      const msg = make('p','discuss-status-message');
+      msg.setAttribute('role','status');
+      controls.append(cancel,save);
+      editForm.append(area,spoilerRow,controls,msg);
+      editButton.addEventListener('click',() => {
+        const whole = reply.body.startsWith('||') && reply.body.endsWith('||') && reply.body.length >= 6;
+        area.value = whole ? reply.body.slice(2,-2) : reply.body;
+        spoilerCheckbox.checked = whole;
+        editForm.hidden = false;
+        actions.hidden = true;
+        body.hidden = true;
+        area.focus();
+      });
+      cancel.addEventListener('click',() => {
+        editForm.hidden = true;actions.hidden = false;body.hidden = false;
+      });
+      editForm.addEventListener('submit',async event => {
+        event.preventDefault();
+        const value = area.value.trim();
+        const next = spoilerCheckbox.checked ? '||' + value + '||' : value;
+        if (value.length < 2 || next.length > 2000) {
+          msg.textContent = 'Your reply must be between 2 and 2,000 characters.';
+          return;
+        }
+        save.disabled = true; msg.textContent = 'Saving…';
+        try {
+          const {error} = await client.from('discussion_replies').update({body:next})
+            .eq('id',reply.id).eq('thread_id',currentThread.id).eq('author_id',user.id);
+          if (error) throw error;
+          await loadReplies();
+        } catch (error) {
+          console.error('Could not edit reply',error);
+          msg.textContent = 'Your changes were not saved. Try again.';
+          save.disabled = false;
+        }
+      });
+      deleteButton.addEventListener('click',async () => {
+        if (!window.confirm('Delete this reply permanently?')) return;
+        deleteButton.disabled = true;
+        try {
+          const {error} = await client.from('discussion_replies').delete()
+            .eq('id',reply.id).eq('thread_id',currentThread.id).eq('author_id',user.id);
+          if (error) throw error;
+          await loadReplies();
+        } catch (error) {
+          console.error('Could not delete reply',error);
+          deleteButton.disabled = false;
+        }
+      });
+      actions.append(editButton,deleteButton);
+      content.append(actions,editForm);
+    }
     row.appendChild(content);
     return row;
   }
@@ -68,7 +160,7 @@
     if (!currentThread) return;
     try {
       const { data, error } = await client.from('discussion_replies')
-        .select('id,author_id,body,created_at')
+        .select('id,author_id,body,created_at,edited_at')
         .eq('thread_id', currentThread.id)
         .eq('is_hidden', false)
         .order('created_at', { ascending: true }).limit(200);
@@ -105,17 +197,16 @@
     content.replaceChildren();
     content.hidden = Boolean(t.has_spoilers);
     $('spoiler-warning').hidden = !t.has_spoilers;
-    if (!t.has_spoilers) showSpoilerText(content, t.body);
+    if (!t.has_spoilers) populateConversation(t);
     $('reveal-thread').addEventListener('click', () => {
       $('thread-heading').textContent = title;
       document.title = title + ' — Afterlogue';
-      showSpoilerText(content, t.body);
+      populateConversation(t);
       content.hidden = false;
       $('spoiler-warning').hidden = true;
       comments.hidden = false;
       joinButton.hidden = !user;
       $('join-signin').hidden = Boolean(user);
-      showDiscussionImage(t);
     }, { once: true });
     $('report-conversation').hidden = !user;
     $('reply-form').hidden = true;
@@ -125,7 +216,6 @@
     $('join-signin').hidden = Boolean(user) || t.has_spoilers;
     thread.hidden = false;
     comments.hidden = Boolean(t.has_spoilers);
-    if (!t.has_spoilers) showDiscussionImage(t);
     displayStatus('');
   }
 
