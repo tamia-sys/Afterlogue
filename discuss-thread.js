@@ -188,7 +188,7 @@
     document.title = (t.has_spoilers ? 'Spoiler-marked conversation' : title) + ' — Afterlogue';
     $('thread-heading').textContent = t.has_spoilers ? 'A conversation with spoilers.' : title;
     const titleMatch = String(t.body || '').match(/^\[\[afterlogue:title-size:(\d{2})\]\]/);
-    $('thread-heading').style.setProperty('font-size', (titleMatch ? Math.min(48,Math.max(24,Number(titleMatch[1]))) : 36) + 'px', 'important');
+    $('thread-heading').style.setProperty('--conversation-title-size', (titleMatch ? Math.min(48,Math.max(24,Number(titleMatch[1]))) : 36) + 'px');
     $('thread-category').textContent =
       t.kind === 'general' ? 'Open conversation' :
       (t.work_type === 'tv' ? 'TV' : 'Film') + ' · ' + (t.work_title || '');
