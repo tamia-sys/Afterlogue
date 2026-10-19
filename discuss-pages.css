@@ -416,3 +416,15 @@
 .discuss-image-heading p{margin:0}
 .discuss-remove-visual{color:#dfb48e!important;border:1px solid #826548!important;border-radius:999px;padding:7px 13px!important}
 .discuss-remove-visual:hover{background:#2b2018;color:#f4eadd!important;text-decoration:none!important}
+
+/* Separate visual preview and writing area */
+.discuss-compose-page .discuss-image-drop { position:relative;overflow:hidden;min-height:180px;padding:12px; }
+.discuss-compose-page .discuss-upload-placeholder { display:flex;flex-direction:column;align-items:center;gap:6px; }
+.discuss-compose-page .discuss-upload-placeholder[hidden],.discuss-compose-page .discuss-upload-preview[hidden],.discuss-compose-page .discuss-image-change[hidden] {display:none!important}
+.discuss-compose-page .discuss-image-plus {font:30px/1 Georgia,serif;color:#d4b487}
+.discuss-compose-page .discuss-upload-preview {display:block;width:100%;max-height:330px;object-fit:contain;border-radius:5px}
+.discuss-compose-page .discuss-image-change {color:#e7caa6;font:11px Inter,Arial,sans-serif;margin-top:6px}
+.discuss-compose-page .discuss-image-attachment {gap:10px}
+.discuss-compose-page .discuss-image-attachment .discuss-remove-visual {justify-self:start}
+.discuss-compose-page .discuss-writing-textarea {min-height:230px;resize:vertical}
+.discuss-compose-page .discuss-embedded-image {margin-bottom:20px}
