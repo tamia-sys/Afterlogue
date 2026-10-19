@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111110">
+  <meta name="theme-color" content="#000000">
   <title>Log — Afterlogue</title>
   <link rel="stylesheet" href="style.css?v=29">
-  <link rel="stylesheet" href="my-log.css?v=1">
+  <link rel="stylesheet" href="my-log.css?v=2">
 </head>
 <body class="archive-body">
   <header class="site-header">
@@ -41,9 +41,11 @@
 
     <div class="archive-toolbar">
       <div class="archive-tabs" role="group" aria-label="Log sections">
-        <button type="button" class="archive-tab active" data-archive-tab="watched" aria-pressed="true">Watched</button>
-        <button type="button" class="archive-tab" data-archive-tab="watchlist" aria-pressed="false">Watchlist</button>
-        <button type="button" class="archive-tab" data-archive-tab="favorites" aria-pressed="false">Favorites</button>
+        <div class="archive-primary-tabs">
+          <button type="button" class="archive-tab active" data-archive-tab="watched" aria-pressed="true">Watched</button>
+          <button type="button" class="archive-tab" data-archive-tab="watchlist" aria-pressed="false">Watchlist</button>
+        </div>
+        <button type="button" class="archive-tab archive-tab-favorites" data-archive-tab="favorites" aria-pressed="false">Favorites</button>
       </div>
       <div class="archive-categories" role="group" aria-label="Content type">
         <button type="button" class="archive-category active" data-archive-category="movies" aria-pressed="true">Movies</button>
