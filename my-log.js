@@ -2,7 +2,7 @@
 /* AFTERLOGUE — PERSONAL LOG
    The three archive sections read existing authenticated Supabase data.
    Private notes and favorites live in the separately RLS-protected log_entries table.
-   Sharing never includes private notes.
+   Notes remain private unless sharing preferences explicitly include them.
 */
 (function () {
   'use strict';
@@ -22,6 +22,15 @@
   const removeWatchlist = document.getElementById('dialog-remove-watchlist');
   const dialogError = document.getElementById('dialog-error');
   const saveButton = document.getElementById('dialog-save');
+  const fieldSharePreference = document.getElementById('dialog-share-preference');
+  const shareDialog = document.getElementById('archive-share-dialog');
+  const shareIncludeNote = document.getElementById('share-include-note');
+  const sharePreview = document.getElementById('share-preview');
+  const settingsDialog = document.getElementById('archive-settings-dialog');
+  const settingsDefault = document.getElementById('account-note-share-default');
+  const settingsError = document.getElementById('share-settings-error');
+  const settingsSave = document.getElementById('share-settings-save');
+  let pendingShareRecord = null;
 
   const state = {
     user: null,
@@ -31,7 +40,8 @@
     watchlist: [],
     metadata: [],
     openKey: null,
-    saving: false
+    saving: false,
+    shareDefault: 'ask'
   };
 
   const validRatings = ['Loved', 'Liked', 'Okay', 'Not for me'];
@@ -219,6 +229,7 @@
       category: record.category,
       private_note: existing ? existing.private_note : '',
       is_favorite: !(existing && existing.is_favorite),
+      share_note_preference: (existing && existing.share_note_preference) || 'inherit',
       updated_at: new Date().toISOString()
     };
     try {
@@ -245,6 +256,7 @@
       (record.year || 'Year unavailable') + ' · ' + (record.category === 'tv' ? 'TV' : 'Film');
     fieldRating.value = rated && validRatings.includes(rated.rating) ? rated.rating : '';
     fieldNote.value = extra ? extra.private_note : '';
+    fieldSharePreference.value = extra ? (extra.share_note_preference || 'inherit') : 'inherit';
     removeWatchlist.hidden = !watchlistItem(record.key);
     dialogError.textContent = '';
     dialog.showModal();
@@ -259,6 +271,7 @@
     const latest = info(key, (watchlistItem(key) || oldNote || {}).category);
     const wantedRating = fieldRating.value;
     const wantedNote = fieldNote.value.trim();
+    const wantedSharePreference = fieldSharePreference.value;
     if (wantedNote.length > 4000) { dialogError.textContent = 'Keep your note under 4,000 characters.'; return; }
 
     state.saving = true;
@@ -284,11 +297,13 @@
         }
       }
 
-      if (wantedNote !== (oldNote ? oldNote.private_note : '')) {
+      if (wantedNote !== (oldNote ? oldNote.private_note : '') ||
+          wantedSharePreference !== (oldNote ? (oldNote.share_note_preference || 'inherit') : 'inherit')) {
         const row = {
           user_id: state.user.id, title_key: key, category: latest.category,
           private_note: wantedNote,
           is_favorite: Boolean(oldNote && oldNote.is_favorite),
+          share_note_preference: wantedSharePreference,
           updated_at: new Date().toISOString()
         };
         const response = await client.from('log_entries').upsert(row,
@@ -334,19 +349,30 @@
     }
   }
 
-  async function shareTitle(record) {
+  function shareMessage(record, includeNote) {
     const rated = impression(record.key);
-    const suffix = rated && validRatings.includes(rated.rating)
-      ? 'My impression: ' + rated.rating + '.'
-      : 'A story from my collection.';
-    const message = record.title + (record.year ? ' (' + record.year + ')' : '') +
-      ' — ' + suffix + ' Afterlogue';
+    const extra = metadata(record.key);
+    const parts = [record.title + (record.year ? ' (' + record.year + ')' : '')];
+    if (rated && validRatings.includes(rated.rating)) {
+      parts.push('My impression: ' + rated.rating + '.');
+    }
+    if (includeNote && extra && extra.private_note && extra.private_note.trim()) {
+      parts.push('My note:\n' + extra.private_note.trim());
+    }
+    parts.push('— Shared from Afterlogue');
+    return parts.join('\n\n');
+  }
+
+  async function performShare(record, includeNote) {
+    const message = shareMessage(record, includeNote);
     try {
       if (navigator.share) {
         await navigator.share({ title: record.title + ' — Afterlogue', text: message });
       } else if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(message);
-        showMessage('Title and impression copied. Your private note was not included.');
+        showMessage(includeNote
+          ? 'Copied with your personal note.'
+          : 'Copied without your personal note.');
       } else {
         const input = el('textarea');
         input.value = message;
@@ -356,10 +382,74 @@
         input.select();
         const copied = document.execCommand('copy');
         input.remove();
-        showMessage(copied ? 'Copied. Your private note was not included.' : 'Sharing is unavailable here.');
+        showMessage(copied ? 'Share text copied.' : 'Sharing is unavailable here.');
       }
     } catch (error) {
       if (error.name !== 'AbortError') showMessage('Sharing is unavailable. Please try again.');
+    }
+  }
+
+  function effectiveNotePreference(record) {
+    const extra = metadata(record.key);
+    const perStory = extra && extra.share_note_preference;
+    if (perStory === 'ask' || perStory === 'include' || perStory === 'exclude') {
+      return perStory;
+    }
+    return state.shareDefault;
+  }
+
+  function updateSharePreview() {
+    if (!pendingShareRecord) return;
+    sharePreview.textContent = shareMessage(pendingShareRecord, shareIncludeNote.checked);
+  }
+
+  function shareTitle(record) {
+    const extra = metadata(record.key);
+    const hasNote = Boolean(extra && extra.private_note && extra.private_note.trim());
+    const preference = effectiveNotePreference(record);
+    if (hasNote && preference === 'ask') {
+      pendingShareRecord = record;
+      shareIncludeNote.checked = false;
+      updateSharePreview();
+      shareDialog.showModal();
+      return;
+    }
+    // Automatic inclusion is only possible after the member opts into it.
+    performShare(record, hasNote && preference === 'include');
+  }
+
+  function openShareSettings() {
+    const menu = document.querySelector('.account-menu');
+    if (menu) menu.open = false;
+    settingsDefault.value = state.shareDefault;
+    settingsError.textContent = '';
+    settingsDialog.showModal();
+  }
+
+  async function saveShareSettings(event) {
+    event.preventDefault();
+    if (!state.user || settingsSave.disabled) return;
+    const chosen = settingsDefault.value;
+    if (!['ask','include','exclude'].includes(chosen)) return;
+    settingsSave.disabled = true;
+    settingsSave.textContent = 'Saving…';
+    settingsError.textContent = '';
+    try {
+      const result = await client.from('log_share_settings').upsert({
+        user_id: state.user.id,
+        note_share_default: chosen,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      if (result.error) throw result.error;
+      state.shareDefault = chosen;
+      settingsDialog.close();
+      showMessage('Your sharing preference has been saved.');
+    } catch (error) {
+      console.error('Afterlogue sharing preferences save failed', error);
+      settingsError.textContent = 'Unable to save sharing preference. Please try again.';
+    } finally {
+      settingsSave.disabled = false;
+      settingsSave.textContent = 'Save preference';
     }
   }
 
@@ -382,14 +472,17 @@
           .eq('user_id', state.user.id).order('updated_at', { ascending: false }),
         client.from('watchlist').select('title_key,category,created_at')
           .eq('user_id', state.user.id).order('created_at', { ascending: false }),
-        client.from('log_entries').select('title_key,category,private_note,is_favorite,updated_at')
-          .eq('user_id', state.user.id).order('updated_at', { ascending: false })
+        client.from('log_entries').select('title_key,category,private_note,is_favorite,share_note_preference,updated_at')
+          .eq('user_id', state.user.id).order('updated_at', { ascending: false }),
+        client.from('log_share_settings').select('note_share_default')
+          .eq('user_id', state.user.id).maybeSingle()
       ]);
       const broken = result.find(function (r) { return r.error; });
       if (broken) throw broken.error;
       state.impressions = result[0].data || [];
       state.watchlist = result[1].data || [];
       state.metadata = result[2].data || [];
+      state.shareDefault = (result[3].data && result[3].data.note_share_default) || 'ask';
       showMessage('');
       render();
     } catch (error) {
@@ -422,6 +515,29 @@
   });
   form.addEventListener('submit', saveDetails);
   removeWatchlist.addEventListener('click', removeFromWatchlist);
+
+  // A note never gets shared on the default "ask" path without this explicit choice.
+  shareIncludeNote.addEventListener('change', updateSharePreview);
+  document.getElementById('share-dialog-confirm').addEventListener('click', function () {
+    if (!pendingShareRecord) return;
+    const record = pendingShareRecord;
+    const includeNote = shareIncludeNote.checked;
+    pendingShareRecord = null;
+    shareDialog.close();
+    performShare(record, includeNote);
+  });
+  function closeShareDialog() { pendingShareRecord = null; shareDialog.close(); }
+  document.getElementById('share-dialog-close').addEventListener('click', closeShareDialog);
+  document.getElementById('share-dialog-cancel').addEventListener('click', closeShareDialog);
+  shareDialog.addEventListener('close', function () { pendingShareRecord = null; });
+  document.getElementById('log-sharing-settings-open').addEventListener('click', openShareSettings);
+  document.getElementById('share-settings-close').addEventListener('click', function () {
+    settingsDialog.close();
+  });
+  document.getElementById('share-settings-cancel').addEventListener('click', function () {
+    settingsDialog.close();
+  });
+  document.getElementById('archive-settings-form').addEventListener('submit', saveShareSettings);
 
   document.getElementById('account-signout').addEventListener('click', async function () {
     try {
