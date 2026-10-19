@@ -38,7 +38,7 @@ body.discovery-home-page {
   background-image: url("https://upload.wikimedia.org/wikipedia/commons/e/e8/Aux_gar%C3%A7ons_de_mon_%C3%A2ge_-_Still_4.jpg");
   background-size: cover;
   background-position: 70% 48%;
-  filter: saturate(.92) brightness(.75);
+  filter: saturate(1) brightness(.96);
 }
 
 .discovery-home-page .discover-hero::after {
@@ -47,13 +47,19 @@ body.discovery-home-page {
   position: absolute;
   z-index: -1;
   inset: 0;
-  background:
-    linear-gradient(90deg,rgba(13,15,14,.88) 0%,rgba(13,15,14,.77) 13%,rgba(13,15,14,.56) 35%,rgba(13,15,14,.10) 76%,rgba(13,15,14,.04) 100%),
-    linear-gradient(0deg,#0d0f0e 0%,transparent 17%,transparent 87%,rgba(13,15,14,.35) 100%);
+  /* Gentle left-side shading for the heading. No opaque bottom strip. */
+  background: linear-gradient(
+    90deg,
+    rgba(13,15,14,.38) 0%,
+    rgba(13,15,14,.22) 28%,
+    rgba(13,15,14,.05) 55%,
+    transparent 75%
+  );
 }
 
 .discovery-home-page .discover-intro {
   position: relative;
+  z-index: 1;
   max-width: 62%;
   padding: 17px 0 20px 26px;
 }
@@ -369,9 +375,13 @@ body.discovery-home-page {
     background-position: 66% 50%;
   }
   .discovery-home-page .discover-hero::after {
-    background:
-      linear-gradient(0deg,#0d0f0e 0%,rgba(13,15,14,.78) 17%,rgba(13,15,14,.14) 78%,rgba(13,15,14,.10) 100%),
-      linear-gradient(90deg,rgba(13,15,14,.23),transparent 85%);
+    /* A small, transparent fade behind the mobile text only. */
+    background: linear-gradient(
+      0deg,
+      rgba(13,15,14,.30) 0%,
+      rgba(13,15,14,.13) 25%,
+      transparent 58%
+    );
   }
   .discovery-home-page .discover-intro {
     max-width: 100%;
