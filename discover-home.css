@@ -396,18 +396,18 @@ body.discovery-home-page {
   }
   .discovery-home-page .discover-intro {
     max-width: 100%;
-    padding: 45px 6% 30px;
+    padding: 42px 6% 76px;
   }
   .discovery-home-page .discover-eyebrow { margin-bottom: 13px; font-size: 9px; }
   .discovery-home-page .discover-intro h1 {
     max-width: 420px;
     margin-bottom: 13px;
-    font-size: clamp(38px,10vw,55px);
+    font-size: clamp(36px,9vw,48px);
   }
   .discovery-home-page .discover-description {
     max-width: 365px;
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 12px;
+    line-height: 1.55;
   }
   .discovery-home-page .discover-hero-actions { gap: 9px; margin-top: 18px; }
   .discovery-home-page .discover-again-button {
@@ -438,6 +438,44 @@ body.discovery-home-page {
   .discovery-home-page .discovery-card { max-width: none; }
   .discovery-home-page .discovery-card h3 { font-size: 15px; }
   .discovery-home-page .discovery-year { font-size: 11px; }
+}
+
+/* Mobile header: keep the account icon at the far right and the menu
+   directly beneath it, rather than letting the panel run off the left edge. */
+@media (max-width:650px) {
+  .discovery-home-page > header.site-header nav {
+    display: flex;
+    width: 100%;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: clamp(13px, 3.5vw, 21px);
+  }
+
+  .discovery-home-page > header.site-header nav .account-menu {
+    margin-left: auto;
+    flex: 0 0 auto;
+  }
+
+  .discovery-home-page > header.site-header nav .account-dropdown {
+    top: calc(100% + 15px);
+    right: 0;
+    left: auto;
+    width: min(265px, calc(100vw - 30px));
+    max-width: calc(100vw - 30px);
+    padding: 17px 19px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 10px;
+  }
+
+  .discovery-home-page > header.site-header nav .account-dropdown p {
+    margin-bottom: 8px;
+  }
+
+  .discovery-home-page > header.site-header nav .account-dropdown .account-divider {
+    margin: 13px 0;
+  }
 }
 
 @media(prefers-reduced-motion:reduce) {
