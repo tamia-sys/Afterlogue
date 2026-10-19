@@ -251,3 +251,42 @@
  .discuss-post-actions {justify-content:flex-start;}
  .discuss-submit-row {justify-content:flex-start;}
 }
+
+
+/* Discuss — optional editorial imagery and an in-place reply invitation */
+.discuss-upload-panel { display:grid;gap:12px; }
+.discuss-upload-panel > p { margin:0; }
+.discuss-image-drop {
+  width:100%; min-height:94px;
+  display:flex; flex-wrap:wrap; flex-direction:column; align-items:center; justify-content:center;
+  gap:5px; padding:18px; cursor:pointer; text-align:center;
+  color:#ebd6b9; background:#14120f; border:1px dashed #8c7456;
+  border-radius:8px; font:13px/1.5 Inter,Arial,sans-serif;
+}
+.discuss-image-drop span { font:26px/1 Georgia,serif;color:#d4b487; }
+.discuss-image-drop small { font:11px/1.5 Inter,Arial,sans-serif;color:#998b7a; }
+.discuss-image-drop:hover { border-color:#e1b781;background:#201b15; }
+.discuss-file-input { position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden; }
+.discuss-file-input:focus-visible + p, .discuss-image-drop:focus-within { outline:2px solid #d4b487;outline-offset:3px; }
+.discuss-image-attachment { display:grid;gap:13px; }
+.discuss-image-attachment > img, .discuss-embedded-image {
+  display:block;max-width:100%;max-height:375px;width:auto;
+  object-fit:contain;border-radius:6px;border:1px solid #5e4c3b;background:#14110f;
+}
+.discuss-image-attachment > .discuss-quiet-button {justify-self:start;}
+.discuss-article-figure {margin:25px 0 0;max-width:840px;}
+.discuss-article-figure img {display:block;max-width:100%;max-height:580px;width:auto;height:auto;border-radius:5px;}
+.discuss-article-figure figcaption { margin-top:9px;color:#a99b87;font:11px/1.65 Inter,Arial,sans-serif;}
+.discuss-article-actions {gap:14px;align-items:center;}
+.discuss-article-actions .discuss-primary {padding:10px 16px;}
+.discuss-article .discuss-reply-section {margin-top:22px;padding:21px 0 0;}
+.discuss-article .discuss-reply-section h3 {margin:0 0 13px;font:400 25px/1.2 Georgia,serif;}
+.discuss-article .discuss-entry-textarea {min-height:98px;}
+.discuss-article .discuss-reply-section .discuss-post-actions {justify-content:space-between;}
+.discuss-comments {padding-top:33px;}
+.discuss-image-drop:has(+ input:focus-visible) {outline:2px solid #d4b487;outline-offset:3px;}
+@media(max-width:650px) {
+ .discuss-article-figure img {max-height:420px;}
+ .discuss-image-attachment > img {max-height:270px;}
+ .discuss-article .discuss-reply-section .discuss-post-actions {align-items:flex-start;}
+}
