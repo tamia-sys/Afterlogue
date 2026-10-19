@@ -47,7 +47,20 @@
   }
 }
 </style>
-</head>
+<style id="discuss-accurate-preview">
+.discuss-compose-page #compose-preview{padding:22px!important}
+.discuss-preview-editor{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,1fr);gap:16px;margin:14px 0 22px;font-size:12px}
+.discuss-preview-editor label{display:block;color:#d6b58c}
+.discuss-preview-editor input,.discuss-preview-editor select{margin-top:6px}
+#preview-image-tools{display:grid;gap:8px}
+#preview-image-tools input[type=range]{width:100%;accent-color:#d8b68d}
+.discuss-live-preview{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(170px,1fr);gap:22px;align-items:start}
+.discuss-live-preview .discuss-form-heading{font-size:clamp(24px,2.4vw,36px);line-height:1.1;margin:0 0 14px}
+.discuss-live-preview .discuss-article-body{font-size:14px;line-height:1.65}
+#preview-image-figure{margin:0;min-width:0}
+#preview-image{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:50% 50%;border-radius:5px}
+@media(max-width:650px){.discuss-preview-editor{grid-template-columns:1fr}.discuss-live-preview{grid-template-columns:minmax(0,1fr) 35%;gap:12px}.discuss-live-preview .discuss-form-heading{font-size:23px}}
+</style></head>
 <body class="discuss-body discuss-compose-page">
 <header class="site-header">
 <a href="index.html" class="logo">afterlogue.</a>
@@ -127,7 +140,10 @@
 <button type="submit" id="compose-publish" class="discuss-primary">Publish conversation <span aria-hidden="true">↗</span></button>
 </div>
 <section id="compose-preview" class="discuss-warning" aria-label="Post preview" hidden>
-<p class="discuss-inner-eyebrow">PREVIEW / ONLY YOU CAN SEE THIS</p><h2 id="preview-heading" class="discuss-form-heading"></h2><div id="preview-body" class="discuss-article-body"></div>
+<p class="discuss-inner-eyebrow">PREVIEW / ONLY YOU CAN SEE THIS</p>
+<div class="discuss-preview-editor"><label>Conversation title <input id="preview-title-edit" class="discuss-entry-input" maxlength="160" aria-label="Edit conversation title in preview"></label>
+<div id="preview-image-tools" hidden><label>Image framing <select id="preview-image-frame" class="discuss-entry-select"><option value="landscape">Landscape (16:9)</option><option value="wide">Wide (2:1)</option><option value="square">Square (1:1)</option></select></label><label>Horizontal crop <input type="range" id="preview-crop-x" min="0" max="100" value="50"></label><label>Vertical crop <input type="range" id="preview-crop-y" min="0" max="100" value="50"></label></div></div>
+<div class="discuss-live-preview"><div class="discuss-live-copy"><h2 id="preview-heading" class="discuss-form-heading"></h2><div id="preview-body" class="discuss-article-body"></div></div><figure id="preview-image-figure" hidden><img id="preview-image" alt="Preview of conversation image"></figure></div>
 </section>
 </div>
 <aside class="discuss-form-sidebar">
@@ -142,5 +158,5 @@
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=3"></script>
 <script src="discuss-common.js?v=1"></script>
-<script src="discuss-compose.js?v=20261019-17"></script>
+<script src="discuss-compose.js?v=20261019-preview2"></script>
 </body></html>
