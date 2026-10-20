@@ -172,3 +172,38 @@ test('Live QA member walkthrough: mood, filters, catalog, and related titles', a
     }));
   }
 });
+
+test('Investigate France + original French catalog results, waiting for exact network request', async ({page}) => {
+  test.setTimeout(120_000);
+  await page.goto('explore.html', {waitUntil:'domcontentloaded'});
+  await page.evaluate(()=>sessionStorage.removeItem('afterlogue.explore.all-films.v1'));
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.locator('#catalog-open').click();
+  await expect(page.locator('#afterlogue-global-catalog')).toBeVisible({timeout:45_000});
+  await page.locator('#catalog-country').selectOption('FR');
+  const waiter=page.waitForResponse(res=>{
+    if(!res.url().includes('/functions/v1/afterlogue-catalog')||res.request().method()!=='POST')return false;
+    try{
+      const b=res.request().postDataJSON();
+      return b.mode==='discover'&&b.country==='FR'&&b.originalLanguage==='fr';
+    }catch(_){return false;}
+  },{timeout:70_000});
+  await page.locator('#catalog-language').selectOption('fr');
+  const response=await waiter;
+  const payload=await response.json();
+  // If old results are still on screen at this moment, give the display time
+  // to catch up with the specific FR+fr response before judging it.
+  await page.waitForTimeout(750);
+  const titles=await page.locator('#catalog-grid .catalog-tile-title').allTextContents();
+  const responseTitles=(payload.items||[]).map(x=>x.title);
+  console.log('EDITORIAL_AUDIT_FR_FRENCH_NETWORK:'+JSON.stringify({
+    success:response.ok(),status:response.status(),
+    submitted:{country:'FR',originalLanguage:'fr'},
+    totalResponse:responseTitles.length,returned:responseTitles.slice(0,25),
+    displayed:titles.slice(0,25),
+    appearsEnglishOnly:responseTitles.filter(t=>['The Fifth Element','Léon: The Professional'].includes(t)),
+  }));
+  expect(response.ok()).toBeTruthy();
+  expect(responseTitles).not.toContain('The Fifth Element');
+  expect(responseTitles).not.toContain('Léon: The Professional');
+});
