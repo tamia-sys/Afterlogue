@@ -24,7 +24,10 @@ function render(list){
   const img=document.createElement("img");img.loading="lazy";img.src=title.poster||"";img.alt=title.title+" poster";
   const name=document.createElement("span");name.className="catalog-tile-title";name.textContent=title.title;
   const sub=document.createElement("span");sub.className="catalog-tile-year";sub.textContent=title.year||"";
-  frame.append(img);a.append(frame,name,sub);$("catalog-grid").append(a);
+  frame.append(img);a.append(frame,name,sub);
+  const tile=document.createElement("div");tile.className="catalog-tile-wrap";
+  const eye=window.AfterlogueSeen?.button({key:"tmdb-"+title.media+"-"+title.id,title:title.title,category:title.media==="tv"?"tv":"movies"});
+  tile.append(a);if(eye)tile.append(eye);$("catalog-grid").append(tile);
  }
 }
 async function load(){
