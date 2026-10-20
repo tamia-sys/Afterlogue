@@ -276,7 +276,7 @@
       // Soft deletion preserves referential integrity for existing replies and reports.
       // RLS must permit authors to update their own threads.
       const { error, count } = await client.from('discussion_threads')
-        .update({ is_hidden: true }, { count: 'exact' })
+        .delete({ count: 'exact' })
         .eq('id', currentThread.id)
         .eq('author_id', user.id);
       if (error) throw error;
