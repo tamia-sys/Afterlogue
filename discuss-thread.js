@@ -275,13 +275,12 @@
     try {
       // Soft deletion preserves referential integrity for existing replies and reports.
       // RLS must permit authors to update their own threads.
-      const { data, error } = await client.from('discussion_threads')
-        .update({ is_hidden: true })
+      const { error, count } = await client.from('discussion_threads')
+        .update({ is_hidden: true }, { count: 'exact' })
         .eq('id', currentThread.id)
-        .eq('author_id', user.id)
-        .select('id,is_hidden')
-        .single();
-      if (error || !data?.is_hidden) throw error || Error('Deletion not confirmed');
+        .eq('author_id', user.id);
+      if (error) throw error;
+      if (count !== 1) throw Error('Deletion not confirmed');
       window.location.assign('discuss.html');
     } catch (error) {
       console.error('Could not delete conversation', error);
