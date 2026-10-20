@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101113">
+<title>Film details — Afterlogue</title>
+<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="mobile-header.css?v=3">
+<link rel="stylesheet" href="film-details.css?v=1">
+</head><body class="film-detail-page">
+<header class="site-header">
+<a href="index.html" class="logo">afterlogue.</a>
+<nav aria-label="Main navigation">
+<a href="discover.html">Home</a><a href="explore.html">Explore</a>
+<a href="my-log.html">Log</a><a href="discuss.html">Discuss</a>
+<details class="account-menu">
+<summary aria-label="Open account menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/></svg></summary>
+<div class="account-dropdown"><p class="account-heading">Your account</p><p id="account-email">Checking your account…</p><p id="account-status"></p><div class="account-divider"></div>
+<a class="account-settings" href="account-settings.html">Edit profile ↗</a>
+<button type="button" id="account-signout" hidden>Sign out</button>
+<a href="signup.html?mode=signin" id="account-signin" hidden>Sign in / Create account</a>
+</div></details>
+</nav></header>
+<main class="film-detail-shell">
+<a class="film-detail-return" id="film-back" href="discover.html">← Back to Discover</a>
+<div id="film-loading" class="film-detail-loading" role="status">Opening the story…</div>
+<div id="film-content" hidden>
+<section class="film-hero" aria-label="Title overview">
+<div class="film-hero-art" id="film-hero-frame"><img id="film-hero-image" class="film-hero-image" alt=""></div>
+<div class="film-hero-copy">
+<p class="film-eyebrow" id="film-eyebrow">AFTERLOGUE / A CLOSER LOOK</p>
+<h1 class="film-title" id="film-title"></h1>
+<p class="film-meta" id="film-meta"></p>
+<p class="film-lead" id="film-lead"></p>
+<div class="film-hero-actions">
+<a id="film-trailer" class="film-action" href="#" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">▷</span> Watch trailer ↗</a>
+<button type="button" id="film-watchlist" class="film-action">＋ Add to Watchlist</button>
+<a class="film-action icon" id="film-to-log" href="my-log.html" title="Open your personal Log" aria-label="Open your Log">⋯</a>
+</div>
+<p class="film-feedback" id="film-feedback" role="status" aria-live="polite"></p>
+</div>
+</section>
+<div class="film-tabs" role="tablist" aria-label="Title details">
+<button class="film-tab" id="film-tab-overview" role="tab" type="button" aria-controls="film-panel-overview" aria-selected="true" tabindex="0" data-tab="overview">Overview</button>
+<button class="film-tab" id="film-tab-cast" role="tab" type="button" aria-controls="film-panel-cast" aria-selected="false" tabindex="-1" data-tab="cast">Cast &amp; Crew</button>
+<button class="film-tab" id="film-tab-watch" role="tab" type="button" aria-controls="film-panel-watch" aria-selected="false" tabindex="-1" data-tab="watch">Where to Watch</button>
+<button class="film-tab" id="film-tab-discuss" role="tab" type="button" aria-controls="film-panel-discuss" aria-selected="false" tabindex="-1" data-tab="discuss">Discussions</button>
+</div>
+<section class="film-panel" role="tabpanel" id="film-panel-overview" aria-labelledby="film-tab-overview">
+<div class="film-overview-grid">
+<div class="film-overview-primary">
+<div class="film-photo-rail" id="film-stills" hidden></div>
+<p class="film-still-credit" id="film-stills-credit" hidden></p>
+<h2 class="film-section-title">About.</h2>
+<p class="film-about" id="film-about"></p>
+<p class="film-pullquote" id="film-perspective" hidden></p>
+</div>
+<aside class="film-facts"><h2 class="film-sidebar-title">Details.</h2>
+<dl id="film-facts"></dl>
+</aside>
+</div>
+</section>
+<section class="film-panel" role="tabpanel" id="film-panel-cast" aria-labelledby="film-tab-cast" hidden>
+<div class="film-details-section">
+<h2 class="film-section-title">The people behind the story.</h2>
+<p class="film-tab-intro" id="film-cast-note">The names and creative work that brought this story to the screen.</p>
+<div id="film-credits"></div>
+</div>
+</section>
+<section class="film-panel" role="tabpanel" id="film-panel-watch" aria-labelledby="film-tab-watch" hidden>
+<div class="film-watch-panel">
+<h2 class="film-section-title">Find your screening.</h2>
+<p class="film-about">Streaming catalogs, rentals, and theatrical screenings change over time. Follow the availability guide below to check where this title can be watched in your region.</p>
+<div class="film-actions-secondary"><a id="film-justwatch" class="film-action" href="#" target="_blank" rel="noopener noreferrer">Check viewing options ↗</a></div>
+<p class="film-watch-notice">Afterlogue doesn't sell or stream films directly. Availability and prices are provided by third-party services and aren't verified in real time here.</p>
+</div>
+</section>
+<section class="film-panel" role="tabpanel" id="film-panel-discuss" aria-labelledby="film-tab-discuss" hidden>
+<div class="film-details-section">
+<h2 class="film-section-title">The conversation continues.</h2>
+<p class="film-tab-intro">Read perspectives from other Afterlogue members or begin one of your own.</p>
+<div id="film-discussions"><p class="film-watch-notice">Loading conversations…</p></div>
+<div class="film-actions-secondary"><a class="film-action" id="film-start-discussion" href="discuss.html">Start a conversation ↗</a><a class="film-action" href="discuss.html">Browse all conversations ↗</a></div>
+</div>
+</section>
+<section class="film-other-picks" id="film-related" hidden>
+<p class="film-eyebrow">KEEP EXPLORING</p><h2 class="film-section-title">Another story, perhaps.</h2>
+<div id="film-related-grid" class="film-other-grid"></div>
+</section>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="site-navigation.js?v=6"></script>
+<script src="featured-catalog.js?v=1"></script>
+<script src="film-details-data.js?v=1"></script>
+<script src="film-details.js?v=1"></script>
+</body></html>
