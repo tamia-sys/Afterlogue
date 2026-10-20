@@ -305,6 +305,20 @@ Deno.serve(async (req:Request) => {
       const languages=facet("languages",v=>languageCodes.has(v));
       const genres=facet("genres",v=>Boolean(categoryGenres[v]));
       const decades=facet("decades",v=>/^(19[3-9]0|20[0-2]0)$/.test(v));
+      const pace=["slow","medium","energetic"].includes(String(input.pace||""))
+        ?String(input.pace):"medium";
+      const excluded=new Set((Array.isArray(input.excludeIds)?input.excludeIds:[])
+        .slice(0,120).map(Number).filter(v=>Number.isSafeInteger(v)&&v>0));
+      const genreSignal=(ids:number[],rating:string):number=>{
+        // TMDB has no objective pacing field; genre-based signals are an
+        // approximate preference only, never a claim about the film's tempo.
+        const has=(...values:number[])=>values.some(v=>ids.includes(v));
+        if(rating==="slow")return (has(18)?5:0)+(has(10749,99,36)?3:0)
+          -(has(28,12,53)?3:0);
+        if(rating==="energetic")return (has(28,12,53)?6:0)
+          +(has(35,16,10402)?4:0)-(has(18)&&!has(35)?2:0);
+        return (has(35,18,10751)?3:0)+(has(14,878,9648)?1:0);
+      };
       const ids=await moodKeywordIds(mood,token);
       if(!ids.length)return response({mood,items:[],note:"No verified mood tags are currently available."});
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,30,0);
@@ -315,7 +329,7 @@ Deno.serve(async (req:Request) => {
         const decade=decades.length?Number(decades[(Math.floor(i/Math.max(1,countries.length*languages.length))+offset)%decades.length]):null;
         const params=new URLSearchParams({
           language:"en-US",include_adult:"false",sort_by:"popularity.desc",
-          page:String(1+Math.floor((i+offset)/Math.max(1,total/2))%2),
+          page:String(1+((i+offset*3)%12)),
           "vote_count.gte":String(media==="movie"?30:20),
           with_keywords:ids.join("|")
         });
@@ -348,7 +362,7 @@ Deno.serve(async (req:Request) => {
       for(let index=0;index<20;index++){
         for(const group of groups){
           const entry=group[index];
-          if(!entry||seen.has(Number(entry.id)))continue;
+          if(!entry||seen.has(Number(entry.id))||excluded.has(Number(entry.id)))continue;
           seen.add(Number(entry.id));selected.push(entry);
         }
       }
@@ -360,10 +374,11 @@ Deno.serve(async (req:Request) => {
       // Recheck source details before displaying a result. This ensures that
       // "US", "Family", "2010s", and "English" all truly hold simultaneously.
       // Limit the candidate count and workers so we never flood TMDB.
-      const queue=selected.slice(0,26);
+      const queue=selected.slice(0,36);
       const verified:Array<ReturnType<typeof listItem>&{moodReason:string;matchedFilters:string[]}>= [];
       async function verifyOne(v:Record<string,unknown>){
         const p=new URLSearchParams({language:"en-US",append_to_response:"keywords"});
+        if(excluded.has(Number(v.id)))return;
         const details=await tmdb("/"+media+"/"+Number(v.id),p,token);
         const dateString=String(media==="movie"?details.release_date:details.first_air_date||"");
         if(!dateString||dateString>now||details.adult)return;
@@ -415,13 +430,17 @@ Deno.serve(async (req:Request) => {
       // Verification jobs are concurrent, so put titles back into the
       // original discovery relevance/popularity order.
       const indexById=new Map(selected.map((x,i)=>[Number(x.id),i]));
-      verified.sort((a,b)=>(indexById.get(Number(a.id))??999)-(indexById.get(Number(b.id))??999));
+      verified.sort((a,b)=>{
+        const aa=genreSignal(a.genreIds.map(Number),pace);
+        const bb=genreSignal(b.genreIds.map(Number),pace);
+        return bb-aa||(indexById.get(Number(a.id))??999)-(indexById.get(Number(b.id))??999);
+      });
       return response({
-        mood,matching:"verified-theme-and-details",
+        mood,matching:"verified-theme-and-details",pace,
         items:verified.slice(0,24),
         note:verified.length?"These stories have a verified thematic reason and match your filters."
           :"No verified stories match this mood and filter combination. Try fewer filters.",
-        filters:{genres,countries,languages,decades}
+        filters:{genres,countries,languages,decades},excludedCount:excluded.size
       });
     }
     // Cross-title recommendations, anchored exclusively in titles the viewer liked.
