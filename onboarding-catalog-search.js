@@ -68,6 +68,7 @@ async function populate(media,sectionId,requestId){
  const parent=document.querySelector(sectionId);
  if(!parent)return;
  const grid=parent.querySelector('.log-film-grid');
+ if(grid&&requestId===sequence)grid.replaceChildren();
  const heading=parent.querySelector('.log-section-heading span');
  if(!grid)return;
  try{
