@@ -16,8 +16,12 @@ test('All Films title returns to the expanded catalog with search intact', async
   await page.locator('#catalog-open').click();
   await expect(page.locator('#afterlogue-global-catalog')).toBeVisible({ timeout: 45_000 });
   await page.locator('#catalog-search').fill('Moonlight');
-  await expect(page.locator('#catalog-grid .catalog-tile').first()).toBeVisible({ timeout: 60_000 });
-  await page.locator('#catalog-grid .catalog-tile').first().click();
+  // Wait for the *searched title*, not any stale tile from the prior page.
+  const moonlight = page.locator('#catalog-grid .catalog-tile').filter({
+    has: page.locator('.catalog-tile-title', { hasText: /^Moonlight$/i }),
+  }).first();
+  await expect(moonlight).toBeVisible({ timeout: 60_000 });
+  await moonlight.click();
   await expect(page.locator('#film-back')).toContainText('All Films', { timeout: 60_000 });
   await page.locator('#film-back').click();
   await expect(page.locator('#afterlogue-global-catalog')).toBeVisible({ timeout: 45_000 });
