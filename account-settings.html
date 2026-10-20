@@ -35,7 +35,15 @@
 .account-field input{padding:10px}
 .account-private{font-size:12px}
 }
-</style><style>.avatar-picker{margin-top:10px}.avatar-picker summary{cursor:pointer;color:#d7c7a6;font-size:12px}.avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px;max-width:430px}.avatar-option{border:2px solid transparent;border-radius:50%;padding:2px;background:none;aspect-ratio:1;cursor:pointer}.avatar-option[aria-pressed=true]{border-color:#d7c49a}.avatar-art{display:block;width:100%;height:100%;border-radius:50%;background-image:url('assets/afterlogue-avatars.png');background-size:400% 300%;background-repeat:no-repeat}.account-avatar.is-preset{background-image:url('assets/afterlogue-avatars.png');background-size:400% 300%;background-repeat:no-repeat}@media(max-width:650px){.avatar-grid{grid-template-columns:repeat(4,1fr);max-width:320px}}</style></head>
+</style><style>.avatar-picker{margin-top:10px}.avatar-picker summary{cursor:pointer;color:#d7c7a6;font-size:12px}.avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px;max-width:430px}.avatar-option{border:2px solid transparent;border-radius:50%;padding:2px;background:none;aspect-ratio:1;cursor:pointer}.avatar-option[aria-pressed=true]{border-color:#d7c49a}.avatar-art{display:block;width:100%;height:100%;border-radius:50%;background-image:url('assets/afterlogue-avatars.png');background-size:400% 300%;background-repeat:no-repeat}.account-avatar.is-preset{background-image:url('assets/afterlogue-avatars.png');background-size:400% 300%;background-repeat:no-repeat}@media(max-width:650px){.avatar-grid{grid-template-columns:repeat(4,1fr);max-width:320px}}</style><style>
+/* Avatar gallery: maintain true square tiles inside the account form grid */
+.avatar-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;max-width:480px;width:100%;align-items:start}
+.avatar-option{display:block;box-sizing:border-box;min-width:0;width:100%;height:auto;aspect-ratio:1/1;border-radius:50%;padding:3px;line-height:0;overflow:hidden}
+.avatar-art{box-sizing:border-box;width:100%;height:100%;aspect-ratio:1/1;border-radius:50%;background-size:400% 300%;background-position:center}
+.avatar-picker{max-width:480px}
+.avatar-picker summary{padding:5px 0;font-size:12px;letter-spacing:.01em}
+@media(max-width:650px){.avatar-grid{grid-template-columns:repeat(4,minmax(0,1fr));max-width:340px;gap:12px}}
+</style></head>
 <body><header class="site-header"><a href="index.html" class="logo">afterlogue.</a><nav aria-label="Main navigation"><a href="discover.html">Home</a><a href="explore.html">Explore</a><a href="my-log.html">Log</a><a href="discuss.html">Discuss</a></nav></header>
 <main class="account-page"><p class="account-eyebrow">AFTERLOGUE / YOUR ACCOUNT</p><h1>Make it yours.</h1><p class="account-intro">A little space for the person behind the perspective.</p>
 <form id="profile-form">
