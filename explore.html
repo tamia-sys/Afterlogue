@@ -1019,8 +1019,11 @@ body.explore-body > header.site-header {
 .catalog-intro{font:14px/1.5 Arial,sans-serif;color:#C3B19A}
 @media(max-width:1000px){.catalog-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:650px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:19px 12px}.catalog-toolbar{gap:8px}}
+
+.explore-pick-actions{display:flex;align-items:center;gap:8px;margin-top:7px}.explore-pick-actions a{margin-top:0!important}.explore-film-entry-actions{display:flex;justify-content:flex-end}.explore-film-tile{min-width:0}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
+<link rel="stylesheet" href="seen-impression.css?v=1">
 </head>
 <body class="explore-body">
 <header class="site-header">
@@ -1192,6 +1195,7 @@ body.explore-body > header.site-header {
 <script src="site-navigation.js?v=6"></script>
 <script src="explore-data.js?v=2"></script>
 <script src="featured-catalog.js?v=1"></script>
+<script src="seen-impression.js?v=1"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
 <script>
@@ -1315,8 +1319,10 @@ function renderAllFilms(){
   const meta=document.createElement("span");meta.className="explore-film-entry-meta";
   meta.textContent=entry.year+(entry.details.genre?"  ·  "+entry.details.genre.split("·")[0].trim():"");
   poster.append(image);
+  const eye=window.AfterlogueSeen.button({key:entry.key,title:entry.title,category:"movies"});
+  const actions=document.createElement("div");actions.className="explore-film-entry-actions";actions.append(eye);
   link.append(poster,label,meta);
-  grid.append(link);
+  const tile=document.createElement("div");tile.className="explore-film-tile";tile.append(link,actions);grid.append(tile);
  }
  $("explore-film-count").textContent=matches.length+" of "+filmEntries.length+" films";
  $("explore-films-empty").hidden=matches.length!==0;
@@ -1446,7 +1452,9 @@ function drawPick(item){
   more.textContent="View details";
   more.setAttribute("aria-label","View details for "+item.title);
   more.style.cssText="display:inline-block;margin-top:10px;color:#d4b487;font:11px Arial,sans-serif;text-decoration:none;border-bottom:1px solid rgba(212,180,135,.45);padding-bottom:3px";
-  card.append(art,h,year,more);return card;
+  const eye=window.AfterlogueSeen.button({key:slug(item.title),title:item.title,category:item.media});
+  const controls=document.createElement("div");controls.className="explore-pick-actions";controls.append(eye,more);
+  card.append(art,h,year,controls);return card;
 }
 function displayResults(){
   results.classList.toggle("is-surprise",state.randomPick);
@@ -1732,5 +1740,6 @@ $("explore-again").addEventListener("click",()=>{
 })();
 </script>
 <script src="catalog-browser.js?v=1"></script>
+
 </body>
 </html>
