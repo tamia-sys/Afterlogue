@@ -223,7 +223,7 @@ Deno.serve(async (req:Request) => {
       }
       // TMDB's release date alone is not enough: verify the production status
       // and production/network metadata on the actual title record.
-      const shortlist=balanced.slice(0,26);
+      const shortlist=balanced.slice(0,16);
       const checked=await Promise.allSettled(shortlist.map(async v=>{
         const details=await tmdb("/"+media+"/"+Number(v.id),new URLSearchParams({language:"en-US"}),token);
         const aired=String(media==="movie"?details.release_date:details.first_air_date||"");
