@@ -16,9 +16,10 @@ async function init(){
   const {data,error}=await client.auth.getUser();if(error)throw error;
   if(!data.user){location.replace('signup.html?mode=signin');return;}
   user=data.user;
-  const {data:profile,error:profileError}=await client.from('member_profiles').select('username,display_name,avatar_path,avatar_preset').eq('user_id',user.id).maybeSingle();
+  const {data:profile,error:profileError}=await client.from('member_profiles').select('username,display_name,avatar_path,avatar_preset,bio').eq('user_id',user.id).maybeSingle();
   if(profileError)throw profileError;
   $('username').value=profile?.username||'';
+  $('profile-bio').value=profile?.bio||'';
   $('display-name').value=profile?.display_name||user.user_metadata?.full_name||'';
   originalPath=profile?.avatar_path||null;
   selectedPreset=profile?.avatar_preset||null;if(selectedPreset){previewPreset(selectedPreset);document.querySelector('[data-preset="'+selectedPreset+'"]')?.setAttribute('aria-pressed','true');}else if(originalPath) $('avatar-preview').src=client.storage.from('member-avatars').getPublicUrl(originalPath).data.publicUrl;
@@ -38,7 +39,7 @@ $('profile-form').addEventListener('submit',async event=>{
  let uploaded=null;
  try{
   let path=(removeAvatar||selectedPreset)?null:originalPath;
-  const payload={user_id:user.id,username,display_name:name,avatar_path:path,avatar_preset:selectedPreset};
+  const payload={user_id:user.id,username,display_name:name,bio:$('profile-bio').value.trim()||null,avatar_path:path,avatar_preset:selectedPreset};
   // Prefer a concrete insert or update over an upsert without a returned representation.
   const lookup=await client.from('member_profiles').select('user_id').eq('user_id',user.id).maybeSingle();
   if(lookup.error)throw lookup.error;
