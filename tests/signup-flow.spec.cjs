@@ -38,7 +38,11 @@ async function start(page,query=''){
     status:200,contentType:'application/javascript',body:fakeSupabase
   }));
   await page.goto('signup.html'+query);
-  await expect(page.locator('.signup-submit')).toBeVisible();
+  // A verified returning session redirects automatically; the form may
+  // disappear before Playwright could ever expect it to be visible.
+  if(!query.includes('verified_test')) {
+    await expect(page.locator('.signup-submit')).toBeVisible();
+  }
 }
 async function fill(page){
   await page.locator('#signup-email').fill('qa-tester@example.invalid');
