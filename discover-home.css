@@ -326,7 +326,6 @@ body.discovery-home-page {
   gap: 0;
 }
 
-.discovery-home-page .discovery-info,
 .discovery-home-page .discovery-bookmark {
   display: inline-flex;
   align-items: center;
@@ -344,8 +343,6 @@ body.discovery-home-page {
   transition: color .15s ease;
 }
 
-.discovery-home-page .discovery-info:hover,
-.discovery-home-page .discovery-info:focus-visible,
 .discovery-home-page .discovery-bookmark:hover,
 .discovery-home-page .discovery-bookmark:focus-visible {
   color: #F4EADD;
@@ -353,7 +350,6 @@ body.discovery-home-page {
   transform: none;
 }
 
-.discovery-home-page .discovery-info:focus-visible,
 .discovery-home-page .discovery-bookmark:focus-visible {
   outline: 1px solid #D4B487;
   outline-offset: 1px;
