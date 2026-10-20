@@ -45,8 +45,15 @@ $('profile-form').addEventListener('submit',async event=>{
    if(result.error)throw result.error;
    path=uploaded;selectedPreset=null;
   }
-  const {error}=await client.from('member_profiles').upsert({user_id:user.id,username,display_name:name,avatar_path:path,avatar_preset:selectedPreset},{onConflict:'user_id'});
-  if(error)throw error;
+  const payload={user_id:user.id,username,display_name:name,avatar_path:path,avatar_preset:selectedPreset};
+  // Prefer a concrete insert or update over an upsert without a returned representation.
+  const lookup=await client.from('member_profiles').select('user_id').eq('user_id',user.id).maybeSingle();
+  if(lookup.error)throw lookup.error;
+  const write=lookup.data
+   ? await client.from('member_profiles').update(payload).eq('user_id',user.id).select('user_id,username').single()
+   : await client.from('member_profiles').insert(payload).select('user_id,username').single();
+  if(write.error)throw write.error;
+  if(!write.data||write.data.username!==username)throw new Error('Profile could not be verified after saving.');
   const previous=originalPath;originalPath=path;selectedFile=null;removeAvatar=false;
   if(previous&&previous!==path)client.storage.from('member-avatars').remove([previous]).catch(console.warn);
   if(selectedPreset)previewPreset(selectedPreset);else if(path){clearPreset();$('avatar-preview').src=client.storage.from('member-avatars').getPublicUrl(path).data.publicUrl;}else{clearPreset();$('avatar-preview').src=fallback;}
