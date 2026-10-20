@@ -238,7 +238,7 @@ function showCredits(){
   }
   host.append(title,grid);
  };
- if(!rich.cast?.length&&!rich.crew?.length){const p=document.createElement('p');p.className='film-watch-notice';p.textContent='Full credits for this title are still being curated.';host.append(p);return;}
+ if(!rich.cast?.length&&!rich.crew?.length){const p=document.createElement('p');p.className='film-watch-notice';p.textContent=rich.castNote||'Full credits for this title are still being curated.';host.append(p);return;}
  addGroup('Cast.',rich.cast);
  addGroup('Crew.',(rich.crew||[]).map(row=>[row[1],row[0]]));
 }
