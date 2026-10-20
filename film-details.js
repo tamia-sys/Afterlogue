@@ -5,7 +5,7 @@
 (async()=>{
 'use strict';
 const client=window.afterlogueSupabase;
-const catalog=window.AfterlogueFeaturedCatalog||{};
+const catalog={...(window.AfterlogueFeaturedCatalog||{})};
 const editorial=window.AfterlogueFilmDetails||{};
 const exploration=window.afterlogueExploreData?.titles||[];
 const $=id=>document.getElementById(id);
@@ -17,8 +17,36 @@ if(!catalog[key]){
  const fromName=Object.keys(catalog).find(k=>slug(catalog[k].title)===key);
  if(fromName)key=fromName;
 }
+let dynamicDetails=null;
+const externalId=Number(params.get('tmdb'));
+const externalType=params.get('type')==='tv'?'tv':'movie';
+if(Number.isInteger(externalId)&&externalId>0&&externalId<=100000000){
+ try{
+  const response=await fetch('https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog',{
+   method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({mode:'detail',id:externalId,media:externalType})
+  });
+  if(!response.ok)throw Error('Catalog service unavailable');
+  dynamicDetails=await response.json();
+  if(!dynamicDetails?.title)throw Error('Title not found');
+  key='tmdb-'+externalType+'-'+externalId;
+  catalog[key]={title:dynamicDetails.title,year:dynamicDetails.year,
+   category:externalType==='tv'?'tv':'movies',poster:dynamicDetails.poster};
+ }catch(error){
+  console.warn('Expanded details unavailable',error);
+  $('film-loading').textContent='This film is temporarily unavailable. Please return to Explore.';
+  return;
+ }
+}
 const item=catalog[key];
-const rich={...(window.AfterlogueFilmBasics?.[key]||{}),...(editorial[key]||{})};
+const rich=dynamicDetails?{
+ synopsis:dynamicDetails.synopsis,director:dynamicDetails.director,
+ creator:dynamicDetails.creator,country:dynamicDetails.country,
+ language:dynamicDetails.language,runtime:dynamicDetails.runtime,
+ genre:dynamicDetails.genre,cast:dynamicDetails.cast,crew:dynamicDetails.crew,
+ still:dynamicDetails.backdrop,stills:dynamicDetails.stills,
+ trailer:dynamicDetails.trailer
+}:{...(window.AfterlogueFilmBasics?.[key]||{}),...(editorial[key]||{})};
 const fromExplore=exploration.find(t=>slug(t.title)===key);
 const fallbackText='Explore this title, save it to your personal Watchlist, or join a conversation about what it means to you.';
 if(!item){$('film-loading').textContent='This title is not yet part of the Afterlogue catalog. Return to Discover to find another story.';return;}
@@ -261,7 +289,7 @@ function getTrailerId(value){
  }catch(_){}
  return null;
 }
-let resolvedTrailerId=getTrailerId(verifiedTrailers[key]||'');
+let resolvedTrailerId=getTrailerId(verifiedTrailers[key]||rich.trailer||'');
 let trailerLoading=null;
 if(!resolvedTrailerId&&window.AfterlogueFilmArtwork?.resolveTrailer){
  trailerLoading=window.AfterlogueFilmArtwork.resolveTrailer(item.title,item.year,isTV).then(id=>{
