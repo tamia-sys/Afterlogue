@@ -8,9 +8,10 @@ const presets={
  genres:[["Drama","Drama"],["Comedy","Comedy"],["Romance","Romance"],["Thriller","Thriller"],["Mystery","Mystery"],["Horror","Horror"],["Action","Action"],["Adventure","Adventure"],["Science Fiction","Sci-fi"],["Fantasy","Fantasy"],["Animation","Animation"],["Crime","Crime"],["Documentary","Documentary"],["Family","Family"],["History","History"],["Music","Music"],["Western","Western"]],
  countries:[["US","United States"],["GB","United Kingdom"],["CA","Canada"],["AU","Australia"],["FR","France"],["DE","Germany"],["IT","Italy"],["ES","Spain"],["MX","Mexico"],["BR","Brazil"],["AR","Argentina"],["IN","India"],["JP","Japan"],["KR","South Korea"],["CN","China"],["TW","Taiwan"],["NG","Nigeria"],["ZA","South Africa"],["TH","Thailand"],["TR","Turkey"],["SE","Sweden"],["NL","Netherlands"],["NZ","New Zealand"],["EG","Egypt"],["PH","Philippines"],["PL","Poland"],["DK","Denmark"],["NO","Norway"]],
  languages:[["en","English"],["es","Spanish"],["fr","French"],["de","German"],["it","Italian"],["pt","Portuguese"],["hi","Hindi"],["ja","Japanese"],["ko","Korean"],["zh","Chinese"],["ar","Arabic"],["ta","Tamil"],["te","Telugu"],["bn","Bengali"],["th","Thai"],["tr","Turkish"],["sv","Swedish"],["nl","Dutch"],["pl","Polish"],["id","Indonesian"],["tl","Filipino"],["ru","Russian"]],
- decades:[["2020","2020s"],["2010","2010s"],["2000","2000s"],["1990","1990s"],["1980","1980s"],["1970","1970s"],["1960","1960s"],["1950","1950s"],["1940","1940s"],["1930","1930s"]]
+ decades:[["2020","2020s"],["2010","2010s"],["2000","2000s"],["1990","1990s"],["1980","1980s"],["1970","1970s"],["1960","1960s"],["1950","1950s"],["1940","1940s"],["1930","1930s"]],
+ ratings:[["G","G"],["PG","PG"],["PG-13","PG-13"],["R","R"],["NC-17","NC-17"],["TV-Y","TV-Y"],["TV-Y7","TV-Y7"],["TV-G","TV-G"],["TV-PG","TV-PG"],["TV-14","TV-14"],["TV-MA","TV-MA"]]
 };
-const labels={genres:"Genres",countries:"Countries",languages:"Languages",decades:"Decades"};
+const labels={genres:"Genres",countries:"Countries",languages:"Languages",decades:"Decades",ratings:"Age rating"};
 const storageKey="afterlogue.explore.mood-filters.v1";
 const picked=Object.fromEntries(Object.keys(presets).map(x=>[x,new Set()]));
 const listeners=new Set();
