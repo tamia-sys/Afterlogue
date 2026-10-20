@@ -99,5 +99,13 @@ test('Unexpected: a conventional fantasy franchise is not automatically surprisi
  const surreal=movie(200,'Survive Style 5+',
    'Absurd surreal stories collide in an experimental narrative.',[14,9648]);
  assert.ok(fit('unexpected',minecraft,[],'energetic').score<5);
+ assert.ok(fit('unexpected',minecraft,['surrealism'],'energetic').score<5,
+   'A well-known formulaic adaptation should not be recategorized as an offbeat surprise by a single tag');
  assert.ok(fit('unexpected',surreal,['surrealism'],'energetic').score>=5);
+});
+
+test('Winding down: gentle tone in a death-row drama does not erase its emotional weight',()=>{
+ const green=movie(497,'The Green Mile',
+   'A gentle prison guard confronts a supernatural inmate on death row before an execution.',[18,80,14]);
+ assert.ok(fit('winding',green,[],'slow').score<5);
 });
