@@ -477,3 +477,14 @@ body.discovery-home-page {
 @media(prefers-reduced-motion:reduce) {
   .discovery-home-page .discover-again-button { transition: none; }
 }
+
+/* Three balanced actions below every card — never overlap title/year. */
+.discovery-home-page .discovery-year{padding-right:0;margin:0}
+.discovery-home-page .discovery-card-actions{position:static;display:flex;justify-content:flex-end;align-items:center;gap:5px;width:100%;min-height:38px;margin-top:5px;padding:0}
+.discovery-home-page .discovery-card-actions .discovery-bookmark,
+.discovery-home-page .discovery-card-actions .afterlogue-seen-eye,
+.discovery-home-page .discovery-card-actions .discovery-detail{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:0 0 34px;width:34px;height:34px;min-width:34px;min-height:34px;padding:7px;margin:0;border:1px solid transparent;border-radius:50%;background:transparent;color:#b9aa95;text-decoration:none;cursor:pointer}
+.discovery-home-page .discovery-card-actions .afterlogue-seen-eye.is-seen{background:rgba(212,180,135,.1);color:#d4b487;border-color:rgba(212,180,135,.26)}
+.discovery-home-page .discovery-card-actions :is(.discovery-bookmark,.afterlogue-seen-eye,.discovery-detail):hover{background:rgba(212,180,135,.1);color:#f4eadd}
+.discovery-home-page .discovery-card-actions :is(.discovery-bookmark,.afterlogue-seen-eye,.discovery-detail):focus-visible{outline:2px solid #d4b487;outline-offset:2px}
+.discovery-home-page .discovery-card-actions .discovery-detail{font:21px Georgia,serif}
