@@ -95,3 +95,28 @@ body.film-lightbox-open{overflow:hidden}
 
 /* A missing gallery stays truly hidden rather than reserving empty space. */
 .film-photo-rail[hidden]{display:none!important}
+
+/* Browseable scene gallery — preserves the approved Before Sunrise aesthetic */
+.film-gallery[hidden]{display:none!important}
+.film-gallery{margin-bottom:7px;min-width:0}
+.film-gallery-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;color:#c8b9a1;font:12px Arial,sans-serif;letter-spacing:.025em}
+.film-gallery-controls{display:flex;gap:8px}
+.film-gallery-controls button{height:32px;width:32px;border:1px solid rgba(212,180,135,.4);border-radius:50%;color:#d4b487;background:transparent;cursor:pointer}
+.film-gallery-controls button:disabled{opacity:.25;cursor:default}
+.film-gallery.no-overflow .film-gallery-controls{display:none}
+.film-photo-rail{display:flex;gap:12px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;scrollbar-width:thin;scrollbar-color:#71604a transparent;padding:0 0 9px;margin-bottom:19px}
+.film-still-frame{flex:0 0 clamp(185px,35%,300px);scroll-snap-align:start;aspect-ratio:1.67}
+.film-gallery.is-single .film-still-frame{flex-basis:min(100%,500px)}
+.film-lightbox-arrow{position:absolute;top:50%;transform:translateY(-50%);height:45px;width:45px;border:1px solid rgba(212,180,135,.6);background:rgba(16,17,19,.72);border-radius:50%;font-size:22px;color:#f0e7d9;cursor:pointer}
+.film-lightbox-prev{left:clamp(8px,2vw,34px)}
+.film-lightbox-next{right:clamp(8px,2vw,34px)}
+.film-lightbox-arrow[hidden]{display:none!important}
+.film-lightbox button:focus-visible,.film-gallery-controls button:focus-visible{outline:2px solid #d4b487;outline-offset:3px}
+.film-lightbox img{max-width:min(1100px,calc(100vw - 140px))}
+.film-action.is-unavailable{opacity:.55;cursor:default;border-style:dashed}
+@media(max-width:600px){
+ .film-still-frame{flex-basis:76%}
+ .film-photo-rail{gap:9px}
+ .film-lightbox-arrow{width:35px;height:35px;font-size:18px}
+ .film-lightbox img{max-width:calc(100vw - 88px)}
+}
