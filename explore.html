@@ -1469,7 +1469,72 @@ function drawPick(item){
   const controls=document.createElement("div");controls.className="explore-pick-actions";controls.append(eye,more);
   card.append(art,h,year,controls);return card;
 }
-function displayResults(){
+async function displayResults(){
+  // Use worldwide TMDB discoveries for every mood instead of the fixed pools.
+  const requestId=++window.afterlogueMoodRequestId;
+  const host=$("explore-picks");
+  results.classList.toggle("is-surprise",state.randomPick);
+  host.replaceChildren();
+  const pending=document.createElement("p");
+  pending.className="explore-question";pending.textContent="Finding stories beyond the collection…";
+  host.append(pending);
+  view("results");
+  try{
+    const isSurprise=state.randomPick;
+    const media=state.format==="tv"?["tv"]:state.format==="movies"?["movie"]:["movie","tv"];
+    const requests=await Promise.all(media.map(async type=>{
+      const resp=await fetch("https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog",{
+       method:"POST",headers:{"Content-Type":"application/json"},
+       body:JSON.stringify({mode:"mood",mood:isSurprise?"unexpected":state.mood,
+         media:type,seed:sessionStorage.getItem("afterlogue.first.impressions.seed.v2")||"mood",
+         offset:state.offset})
+      });
+      if(!resp.ok)throw Error("Mood catalog unavailable");
+      return (await resp.json()).items||[];
+    }));
+    if(requestId!==window.afterlogueMoodRequestId)return;
+    const rated=ratedTitles();
+    const excluded=new Set([...rated,...(window.AfterlogueSeen?.seen||[])]);
+    const unique=new Set(),titles=[];
+    for(const item of requests.flat()){
+      const key="tmdb-"+item.media+"-"+item.id;
+      if(!item.poster||unique.has(key)||excluded.has(key))continue;
+      unique.add(key);
+      titles.push({...item,key,media:item.media==="tv"?"tv":"movies",
+        reason:"A "+(data.moods[state.mood]?.short||"different")+" discovery, selected from cinema beyond the starter collection."});
+    }
+    // Use a stable order for each session, but vary the selection by visit and offset.
+    const seed=String(sessionStorage.getItem("afterlogue.first.impressions.seed.v2")||"8841")+String(state.offset);
+    let h=0;for(const ch of seed)h=((h*31)+ch.charCodeAt(0))>>>0;
+    titles.sort((a,b)=>((a.id*17+h)%104729)-((b.id*17+h)%104729));
+    const five=titles.slice(0,isSurprise?1:5);
+    host.replaceChildren();
+    for(const item of five){
+      const el=document.createElement("article");el.className="explore-pick";
+      const link=document.createElement("a");link.className="explore-art";
+      link.href="film-details.html?tmdb="+item.id+"&type="+(item.media==="tv"?"tv":"movie")+"&from=explore";
+      const img=document.createElement("img");img.src=item.poster;img.alt=item.title+" poster";img.loading="lazy";link.append(img);
+      const title=document.createElement("h3");title.textContent=item.title;
+      const year=document.createElement("p");year.className="explore-year";year.textContent=(item.year||"")+" / "+(item.media==="tv"?"TV":"FILM");
+      const actions=document.createElement("div");actions.className="explore-pick-actions";
+      actions.append(window.AfterlogueSeen.button({key:item.key,title:item.title,year:item.year,poster:item.poster,category:item.media}));
+      const detail=document.createElement("a");detail.href=link.href;detail.textContent="View details";detail.className="explore-global-detail";actions.append(detail);
+      el.append(link,title,year,actions);host.append(el);
+    }
+    if(!five.length)host.textContent="No suitable matches this time. Try another selection.";
+    $("explore-results-title").textContent=isSurprise?"A story you didn't ask for.":"A little something for you.";
+    $("explore-results-detail").textContent=data.moods[state.mood].intro;
+    $("explore-results-label").textContent="AFTERLOGUE / "+data.moods[state.mood].short.toUpperCase();
+    $("explore-adjust").hidden=isSurprise;
+    $("explore-again").textContent=isSurprise?"Another surprise ↗":"Another selection ↗";
+    $("explore-again").disabled=false;
+  }catch(error){
+    if(requestId!==window.afterlogueMoodRequestId)return;
+    // Offline fallback preserves the pre-existing mood experience.
+    displayLocalMoodResults();
+  }
+}
+function displayLocalMoodResults(){
   results.classList.toggle("is-surprise",state.randomPick);
   const selected=selectedCandidates();
   const host=$("explore-picks");host.replaceChildren();
@@ -1746,8 +1811,7 @@ $("explore-adjust").addEventListener("click",()=>{state.stage=0;state.offset=0;r
 $("explore-surprise").addEventListener("click",()=>{Object.assign(state,{randomPick:true,mood:"unexpected",format:"either",pace:"medium",offset:0});displayResults();});
 $("explore-again").addEventListener("click",()=>{
   if(state.randomPick) {displayResults();return;}
-  const length=selectedCandidates().length;
-  state.offset=state.offset+5>=length?0:state.offset+5;
+  state.offset+=1;
   displayResults();
 });
 })();
