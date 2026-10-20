@@ -708,23 +708,29 @@ Deno.serve(async (req:Request) => {
             if(genres.length&&!genres.some(g=>genreIds.includes(genresMap[g])))continue;
             const certification=usCertification(detail,media);
             if(ratings.length&&(!certification||!ratings.includes(certification)))continue;
-            if(mood){
-              const keywords=media==="movie"?detail.keywords?.keywords:detail.keywords?.results;
-              const tagged=(Array.isArray(keywords)?keywords:[])
-                .some((tag:Record<string,unknown>)=>allowedKeywords?.has(Number(tag.id)));
-              if(mood==="holidays"&&!holidayEvidence(detail))continue;
-              if(!tagged&&!narrativeMoodEvidence(mood,detail,""))continue;
-            }
+            const keywords=media==="movie"?detail.keywords?.keywords:detail.keywords?.results;
+            const tagged=Boolean(mood)&&(Array.isArray(keywords)?keywords:[])
+              .some((tag:Record<string,unknown>)=>allowedKeywords?.has(Number(tag.id)));
+            const storyMatchesMood=Boolean(mood)&&(mood==="holidays"
+              ?Boolean(holidayEvidence(detail)):tagged||Boolean(narrativeMoodEvidence(mood,detail,"")));
+            // The source-film relationship comes first. Mood match helps
+            // ranking but does not shrink a credible 5-story shelf to 1.
             results.push({
               ...listItem({...detail,genre_ids:genreIds},media),
               certification,
-              whyRelated:Number(v.source)===0?"Connected through TMDB story recommendations."
-                :Number(v.source)===1?"Similar story and genre qualities.":"Shares this title’s genres and your chosen mood."
+              whyRelated:storyMatchesMood?"Shares this mood and qualities of the story you opened."
+                :Number(v.source)===0?"A related story recommended from this film."
+                :Number(v.source)===1?"Similar themes or genres to this film."
+                :"Shares genres with this film."
             });
           }catch(error){console.warn("Related title check unavailable",String(error));}
         }
       }
       await Promise.all([verify(),verify(),verify(),verify(),verify(),verify()]);
+      // Related titles that ALSO match the mood lead the shelf. The selected
+      // country/language/decade/genre/ratings remain hard constraints.
+      results.sort((a,b)=>Number(b.whyRelated.startsWith("Shares this mood"))-
+        Number(a.whyRelated.startsWith("Shares this mood")));
       return response({items:results.slice(0,5),note:results.length
         ?"Related stories matching your current browsing preferences."
         :"No related stories meet every selected filter right now."});
