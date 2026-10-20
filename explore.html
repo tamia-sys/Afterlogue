@@ -1021,9 +1021,19 @@ body.explore-body > header.site-header {
 @media(max-width:650px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:19px 12px}.catalog-toolbar{gap:8px}}
 
 .explore-pick-actions{display:flex;align-items:center;gap:8px;margin-top:7px}.explore-pick-actions a{margin-top:0!important}.explore-film-entry-actions{display:flex;justify-content:flex-end}.explore-film-tile{min-width:0}
+
+/* Consistent eye placement across mood picks, All Films and expanded library. */
+.explore-pick-actions{display:flex;align-items:center;justify-content:flex-start;gap:11px;min-height:38px;margin-top:8px}
+.explore-pick-actions .afterlogue-seen-eye{margin:0}
+.explore-pick-actions a{margin:0!important;align-self:center}
+.explore-film-entry-actions{display:flex;justify-content:flex-end;align-items:center;min-height:38px;margin-top:3px}
+.explore-film-tile,.catalog-tile-wrap{display:flex;flex-direction:column;min-width:0}
+.catalog-tile-wrap>.afterlogue-seen-eye{align-self:flex-end;margin-top:5px}
+.explore-film-entry-actions .afterlogue-seen-eye,.catalog-tile-wrap>.afterlogue-seen-eye{flex:0 0 34px}
+@media(max-width:650px){.explore-pick-actions{gap:8px}.explore-film-entry-actions{min-height:34px}}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
-<link rel="stylesheet" href="seen-impression.css?v=1">
+<link rel="stylesheet" href="seen-impression.css?v=2">
 </head>
 <body class="explore-body">
 <header class="site-header">
@@ -1195,7 +1205,7 @@ body.explore-body > header.site-header {
 <script src="site-navigation.js?v=6"></script>
 <script src="explore-data.js?v=2"></script>
 <script src="featured-catalog.js?v=1"></script>
-<script src="seen-impression.js?v=1"></script>
+<script src="seen-impression.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
 <script>
