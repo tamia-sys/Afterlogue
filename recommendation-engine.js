@@ -73,9 +73,14 @@ const common=(a,b)=>{
  const sharedTones=overlap(a.tones,b.tones);
  const sharedGenre=overlap(a.genres,b.genres);
  const sharedPace=a.pace&&b.pace&&a.pace===b.pace;
+ // Broad concepts like identity, control, and family appear across very
+ // different films. Require a richer connection before they dominate ranking.
+ const broad=new Set(["identity","family","control","belonging","survival","love","friendship","loss"]);
+ const themeScore=sharedThemes.reduce((sum,theme)=>sum+(broad.has(theme)?.65:1.8),0);
+ const toneScore=sharedTones.length*1.25;
+ const genreScore=Math.min(sharedGenre.length,2)*1.1;
  return {sharedThemes,sharedTones,sharedGenre,sharedPace,
-  strength:sharedThemes.length*1.8+sharedTones.length*1.1+
-  Math.min(sharedGenre.length,2)*.55+(sharedPace?.28:0)};
+  strength:themeScore+toneScore+genreScore+(sharedPace?.35:0)};
 };
 function normalizeEntries(catalog={},explore=[],editorial={},basics={}){
  const fromExplore=new Map(explore.map(item=>[slug(item.title),item]));
