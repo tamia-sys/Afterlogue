@@ -38,13 +38,6 @@ $('profile-form').addEventListener('submit',async event=>{
  let uploaded=null;
  try{
   let path=(removeAvatar||selectedPreset)?null:originalPath;
-  if(selectedFile){
-   const ext=selectedFile.type==='image/png'?'png':selectedFile.type==='image/webp'?'webp':'jpg';
-   uploaded=user.id+'/'+crypto.randomUUID()+'.'+ext;
-   const result=await client.storage.from('member-avatars').upload(uploaded,selectedFile,{contentType:selectedFile.type,upsert:false});
-   if(result.error)throw result.error;
-   path=uploaded;selectedPreset=null;
-  }
   const payload={user_id:user.id,username,display_name:name,avatar_path:path,avatar_preset:selectedPreset};
   // Prefer a concrete insert or update over an upsert without a returned representation.
   const lookup=await client.from('member_profiles').select('user_id').eq('user_id',user.id).maybeSingle();
@@ -54,6 +47,24 @@ $('profile-form').addEventListener('submit',async event=>{
    : await client.from('member_profiles').insert(payload).select('user_id,username').single();
   if(write.error)throw write.error;
   if(!write.data||write.data.username!==username)throw new Error('Profile could not be verified after saving.');
+  // Identity must persist independently of optional photo uploads.
+  if(selectedFile){
+   const file=selectedFile;
+   if(!file.size){message('Your name and username were saved. The selected photo is empty; please choose it again.');selectedFile=null;return;}
+   const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+   const uploadPath=user.id+'/'+crypto.randomUUID()+'.'+ext;
+   const uploadResult=await client.storage.from('member-avatars').upload(uploadPath,file,{contentType:file.type,upsert:false});
+   if(uploadResult.error){
+    console.warn('Photo upload failed',uploadResult.error);
+    selectedFile=null;originalPath=path;
+    message('Name and username saved. Photo upload failed: '+uploadResult.error.message);
+    return;
+   }
+   uploaded=uploadPath;
+   const avatarUpdate=await client.from('member_profiles').update({avatar_path:uploadPath,avatar_preset:null}).eq('user_id',user.id);
+   if(avatarUpdate.error)throw avatarUpdate.error;
+   path=uploadPath;
+  }
   const previous=originalPath;originalPath=path;selectedFile=null;removeAvatar=false;
   if(previous&&previous!==path)client.storage.from('member-avatars').remove([previous]).catch(console.warn);
   if(selectedPreset)previewPreset(selectedPreset);else if(path){clearPreset();$('avatar-preview').src=client.storage.from('member-avatars').getPublicUrl(path).data.publicUrl;}else{clearPreset();$('avatar-preview').src=fallback;}
