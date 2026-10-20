@@ -133,3 +133,18 @@ body.film-lightbox-open{overflow:hidden}
 #film-trailer-external{color:#d4b487;font:12px Arial,sans-serif;text-decoration:underline;text-underline-offset:4px}
 body.film-trailer-open{overflow:hidden}
 @media(max-width:600px){.film-trailer-modal{padding:12px}.film-trailer-heading{font-size:21px}}
+
+/* Seen action harmonizes with the cinematic pill controls on detail pages. */
+.film-hero-actions .film-seen-action{
+ box-sizing:border-box;flex:0 0 auto;width:auto;min-width:0;height:42px;min-height:42px;
+ display:inline-flex;align-items:center;justify-content:center;gap:9px;
+ border:1px solid rgba(211,180,135,.68);border-radius:999px;
+ padding:0 17px;color:#eee0c9;background:transparent;
+ font:12px Arial,Helvetica,sans-serif;letter-spacing:.01em;
+ white-space:nowrap;
+}
+.film-hero-actions .film-seen-action:hover,
+.film-hero-actions .film-seen-action:focus-visible{color:#181818;background:#d7b887}
+.film-hero-actions .film-seen-action.is-seen{color:#d4b487;background:rgba(212,180,135,.12);border-color:#d4b487}
+.film-hero-actions .film-seen-action svg{flex:none;width:18px;height:18px}
+@media(max-width:480px){.film-hero-actions .film-seen-action{min-height:39px;height:39px;padding:0 13px;font-size:11px}}
