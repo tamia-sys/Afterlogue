@@ -633,7 +633,7 @@ bookmarkButton.setAttribute(
  const actions = document.createElement("div");
  actions.className = "discovery-card-actions";
  const detailLink=document.createElement("a");
- detailLink.href="film-details.html?title="+encodeURIComponent(item.title.toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))+"&from=discover";
+ detailLink.href="film-details.html?title="+encodeURIComponent(item.title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))+"&from=discover";
  detailLink.className="discovery-detail";
  detailLink.setAttribute("aria-label","View film details for "+item.title);
  detailLink.title="Film details";
