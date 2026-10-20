@@ -1031,6 +1031,9 @@ body.explore-body > header.site-header {
 .catalog-tile-wrap>.afterlogue-seen-eye{align-self:flex-end;margin-top:5px}
 .explore-film-entry-actions .afterlogue-seen-eye,.catalog-tile-wrap>.afterlogue-seen-eye{flex:0 0 34px}
 @media(max-width:650px){.explore-pick-actions{gap:8px}.explore-film-entry-actions{min-height:34px}}
+.explore-global-matches{margin:22px 0 30px;padding:18px 0;border-top:1px solid rgba(212,180,135,.23)}
+.explore-global-detail{color:#d4b487;font:11px Arial,sans-serif;text-decoration:none;border-bottom:1px solid rgba(212,180,135,.45);padding-bottom:3px}
+.explore-global-matches[hidden]{display:none!important}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 <link rel="stylesheet" href="seen-impression.css?v=2">
@@ -1085,7 +1088,7 @@ body.explore-body > header.site-header {
 <section id="explore-search-results" class="explore-search-results" hidden aria-live="polite">
   <div class="explore-group-label"><p>MATCHING STORIES</p><span id="explore-matches-count"></span></div>
   <div class="explore-picks" id="explore-match-picks"></div>
-  <p id="explore-no-matches" hidden>No matches yet in our starter catalog. Try a broader search.</p>
+  <p id="explore-no-matches" hidden>No featured matches. Searching the wider catalog…</p>
 </section>
 <div class="explore-group-label explore-rail-head">
     <p>01 — A LITTLE…</p>
@@ -1750,6 +1753,7 @@ $("explore-again").addEventListener("click",()=>{
 })();
 </script>
 <script src="catalog-browser.js?v=2"></script>
+<script src="explore-global-search.js?v=1"></script>
 
 </body>
 </html>
