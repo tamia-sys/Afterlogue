@@ -92,3 +92,6 @@ body.film-lightbox-open{overflow:hidden}
 /* Final typography adjustment: slightly quieter tab navigation. */
 .film-tab{font-size:clamp(14px,1.27vw,16px)}
 @media(max-width:600px){.film-tab{font-size:13px}}
+
+/* A missing gallery stays truly hidden rather than reserving empty space. */
+.film-photo-rail[hidden]{display:none!important}
