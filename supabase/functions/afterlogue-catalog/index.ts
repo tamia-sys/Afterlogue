@@ -350,20 +350,25 @@ Deno.serve(async (req:Request) => {
         return (has(35,18,10751)?3:0)+(has(14,878,9648)?1:0);
       };
       const ids=await moodKeywordIds(mood,token);
-      if(!ids.length)return response({mood,items:[],note:"No verified mood tags are currently available."});
+      // Keyword coverage is incomplete, so also find subjects through title and synopsis evidence.
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,30,0);
-      const total=Math.min(10,Math.max(4,countries.length*languages.length,decades.length*2));
+      const total=Math.min(10,Math.max(6,countries.length*languages.length,decades.length*2));
       const jobs=await Promise.allSettled(Array.from({length:total},async (_,i)=>{
         const country=countries.length?countries[(i+offset)%countries.length]:null;
         const language=languages.length?languages[(Math.floor(i/Math.max(1,countries.length))+offset)%languages.length]:null;
         const decade=decades.length?Number(decades[(Math.floor(i/Math.max(1,countries.length*languages.length))+offset)%decades.length]):null;
         const params=new URLSearchParams({
           language:"en-US",include_adult:"false",sort_by:"popularity.desc",
-          page:String(1+((i+offset*3)%12)),
-          "vote_count.gte":String(media==="movie"?30:20),
-          with_keywords:ids.join("|")
+          page:String(1+((offset*2+Math.floor(i/2))%24)),
+          "vote_count.gte":String(media==="movie"?30:20)
         });
+        const keywordSearch=ids.length>0&&i<Math.ceil(total/2);
+        if(keywordSearch)params.set("with_keywords",ids.join("|"));
+        // A second discovery stream uses broader genres, then verifies the
+        // actual synopsis or keywords. It catches titles with poor tag coverage.
+        const broader=GENRE_MOODS[mood][media][i%GENRE_MOODS[mood][media].length];
         if(genres.length)params.set("with_genres",genres.map(name=>categoryGenres[name]).join("|"));
+        else if(!keywordSearch)params.set("with_genres",broader.join("|"));
         if(country)params.set("with_origin_country",country);
         if(language)params.set("with_original_language",language);
         const prefix=media==="movie"?"primary_release_date":"first_air_date";
@@ -389,6 +394,13 @@ Deno.serve(async (req:Request) => {
       const groups=jobs.filter((x):x is PromiseFulfilledResult<Record<string,unknown>[]>=>x.status==="fulfilled").map(x=>x.value);
       if(!groups.length)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
       const seen=new Set<number>(),selected:Record<string,unknown>[]=[];
+      // Editor-reviewed occasion picks still must satisfy the production,
+      // country, language, genre and decade checks before being returned.
+      if(mood==="holidays"&&media==="movie"){
+        for(const id of Object.keys(SEASONAL_FEATURES).map(Number)){
+          if(!excluded.has(id)){seen.add(id);selected.push({id});}
+        }
+      }
       for(let index=0;index<20;index++){
         for(const group of groups){
           const entry=group[index];
@@ -404,7 +416,7 @@ Deno.serve(async (req:Request) => {
       // Recheck source details before displaying a result. This ensures that
       // "US", "Family", "2010s", and "English" all truly hold simultaneously.
       // Limit the candidate count and workers so we never flood TMDB.
-      const queue=selected.slice(0,36);
+      const queue=selected.slice(0,56);
       const verified:Array<ReturnType<typeof listItem>&{moodReason:string;matchedFilters:string[]}>= [];
       async function verifyOne(v:Record<string,unknown>){
         const p=new URLSearchParams({language:"en-US",append_to_response:"keywords"});
@@ -432,23 +444,25 @@ Deno.serve(async (req:Request) => {
         const tagged=(Array.isArray(detailKeywords)?detailKeywords:[])
           .map((v:Record<string,unknown>)=>Number(v.id))
           .filter((id:number)=>idToTopic.has(id));
-        if(!tagged.length)return;
-        const label=idToTopic.get(tagged[0])||MOOD_TOPICS[mood].labels[0];
-        const phrase=mood==="holidays"?holidayEvidence(details):null;
-        if(mood==="holidays"&&!phrase)return;
-        const reason=phrase||("TMDB tags this story with “"+label+"”, matching this mood.");
+        const label=tagged.length?idToTopic.get(tagged[0])||"":""; 
+        const editorial=mood==="holidays"&&media==="movie"?SEASONAL_FEATURES[Number(v.id)]:null;
+        const explicit=narrativeMoodEvidence(mood,details,label);
+        // Seasonal picks have editorially documented context; otherwise demand
+        // story evidence, not a popularity score or generic genre label.
+        if(!explicit&&!editorial)return;
+        const reason=explicit||editorial!.reason;
         const matching:string[]=[];
         if(countries.length)matching.push("Country: "+countries.filter(c=>produced.includes(c)).join(" or "));
         if(languages.length)matching.push("Language: "+details.original_language);
         if(genres.length)matching.push("Genre: "+genres.filter(g=>detailGenreIds.includes(categoryGenres[g])).join(" or "));
         if(decades.length&&year)matching.push("Decade: "+Math.floor(year/10)*10+"s");
         verified.push({
-          ...listItem(v,media),moodReason:reason,
+          ...listItem({...details,genre_ids:detailGenreIds},media),moodReason:reason,
           matchedFilters:matching
         });
       }
       async function worker(){
-        while(queue.length){
+        while(queue.length&&verified.length<22){
           const item=queue.shift();
           if(!item)return;
           try{await verifyOne(item);}catch(error){
@@ -469,7 +483,7 @@ Deno.serve(async (req:Request) => {
         mood,matching:"verified-theme-and-details",pace,
         items:verified.slice(0,24),
         note:verified.length?"These stories have a verified thematic reason and match your filters."
-          :"No verified stories match this mood and filter combination. Try fewer filters.",
+          :"No fresh matches found in this part of the catalog. Try searching further or broaden your choices.",
         filters:{genres,countries,languages,decades},excludedCount:excluded.size
       });
     }
