@@ -964,6 +964,43 @@ body.explore-body > header.site-header {
   .explore-rail-tools .explore-rail-nav {display:grid;}
 }
 
+
+
+/* Full Afterlogue film catalog: compact, editorial poster archive */
+.explore-browse-foot{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:6px}
+.explore-browse-foot #explore-browse-note{margin:0}
+.explore-all-films-open{color:#D4B487;background:transparent;border:1px solid rgba(212,180,135,.45);border-radius:999px;padding:8px 17px;font:12px Arial,sans-serif;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s}
+.explore-all-films-open:hover,.explore-all-films-open:focus-visible{background:#D4B487;color:#151311;outline-offset:3px}
+.explore-all-films[hidden]{display:none!important}
+.explore-all-films{width:100%;padding:15px 0 65px}
+.explore-all-films-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;border-bottom:1px solid var(--ex-border);padding-bottom:25px;margin-bottom:25px}
+.explore-all-films-heading h2{font:400 clamp(40px,5vw,70px)/1.08 Georgia,serif;letter-spacing:-.035em;margin:6px 0 9px}
+.explore-all-films-heading p:not(.explore-eyebrow){font:13px/1.6 Arial,sans-serif;color:#BAAC9A;margin:0}
+.explore-films-total{font:11px Arial,sans-serif;color:#C7A77D;white-space:nowrap}
+.explore-film-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.explore-film-search,.explore-film-select{min-height:41px;display:flex;align-items:center;gap:10px;padding:0 15px;border:1px solid rgba(212,180,135,.4);border-radius:999px;background:#151411;color:#BDAF9B;font:11px Arial,sans-serif}
+.explore-film-search{flex:1 1 290px;color:#D4B487}
+.explore-film-search input{flex:1;min-width:0;border:0;outline:0;color:#F4EADD;background:transparent;font:12px Arial,sans-serif}
+.explore-film-select select{border:0;background:transparent;color:#F4EADD;max-width:155px;outline:none;cursor:pointer;font:11px Arial,sans-serif}
+.explore-film-search:focus-within,.explore-film-select:focus-within{border-color:#D4B487}
+.explore-film-count{margin:23px 0 18px;color:#AD9F8F;font:11px Arial,sans-serif}
+.explore-films-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:28px clamp(12px,1.55vw,25px)}
+.explore-film-entry{display:flex;flex-direction:column;gap:5px;min-width:0;color:#F4EADD;text-decoration:none}
+.explore-film-poster{width:100%;aspect-ratio:2 / 3;overflow:hidden;background:linear-gradient(145deg,#2B302C,#241E1B);border-radius:8px;border:1px solid rgba(212,180,135,.18)}
+.explore-film-poster img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .3s,filter .3s}
+.explore-film-entry:hover .explore-film-poster img,.explore-film-entry:focus-visible .explore-film-poster img{transform:scale(1.035);filter:brightness(.8)}
+.explore-film-entry:focus-visible{outline:2px solid #D4B487;outline-offset:4px}
+.explore-film-entry-title{font:15px/1.4 Georgia,serif;margin-top:5px}
+.explore-film-entry-meta{font:11px/1.5 Arial,sans-serif;color:#AFA18C}
+.explore-film-poster.poster-missing{display:grid;place-items:center;text-align:center;padding:12px;font:19px Georgia,serif}
+.explore-film-empty[hidden]{display:none!important}
+.explore-film-empty{font:14px Arial,sans-serif;color:#BFB09C}
+@media(max-width:1150px){.explore-films-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:850px){.explore-films-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:650px){.explore-browse-foot{flex-wrap:wrap}.explore-browse-foot #explore-browse-note{flex:1 1 auto}.explore-all-films-open{margin-left:auto}.explore-all-films-heading{align-items:start}.explore-film-tools{gap:8px}.explore-film-search{flex-basis:100%}.explore-film-select{flex:1 1 auto;min-width:0;padding:0 11px}.explore-film-select select{max-width:110px}.explore-films-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 13px}.explore-film-entry-title{font-size:14px}.explore-film-entry-meta{font-size:10px}}
+@media(min-width:651px) and (max-width:850px){.explore-films-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.explore-film-poster img{transition:none}}
+
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 </head>
@@ -1012,7 +1049,9 @@ body.explore-body > header.site-header {
     <label>Format <select id="explore-format"><option value="all">Movies &amp; TV</option><option value="movies">Movies</option><option value="tv">TV Shows</option></select></label>
     <button type="button" id="explore-clear" hidden>Clear ×</button>
   </div>
-  <p id="explore-browse-note">Search and filter our curated starter catalog.</p>
+  <div class="explore-browse-foot"><p id="explore-browse-note">Search and filter our curated starter catalog.</p>
+    <button type="button" class="explore-all-films-open" id="explore-all-films-open" aria-controls="explore-all-films">All Films <span aria-hidden="true">↗</span></button>
+  </div>
 </section>
 <section id="explore-search-results" class="explore-search-results" hidden aria-live="polite">
   <div class="explore-group-label"><p>MATCHING STORIES</p><span id="explore-matches-count"></span></div>
@@ -1068,6 +1107,29 @@ body.explore-body > header.site-header {
   <p id="explore-pin-status" class="explore-pin-status" role="status" aria-live="polite" aria-atomic="true"></p>
   <div id="explore-mystery" class="explore-mystery"><div><h2>Or, leave it to chance.</h2><p>No questions. One story. No clues until you open it.</p></div><button type="button" class="explore-button" id="explore-surprise">Surprise me ↗</button></div>
 </section>
+<section class="explore-all-films" id="explore-all-films" aria-labelledby="explore-all-films-title" hidden>
+  <button type="button" class="explore-back" id="explore-films-back">← Back to Explore</button>
+  <div class="explore-all-films-heading">
+    <div>
+      <p class="explore-eyebrow">AFTERLOGUE / THE COLLECTION</p>
+      <h2 id="explore-all-films-title">All Films.</h2>
+      <p>A growing collection of stories, ready to explore.</p>
+    </div>
+    <span id="explore-all-films-total" class="explore-films-total"></span>
+  </div>
+  <div class="explore-film-tools">
+    <label class="explore-film-search" for="explore-film-query">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.8"></circle><path d="M16 16 21 21"></path></svg>
+      <input id="explore-film-query" type="search" placeholder="Search films..." autocomplete="off" aria-controls="explore-films-grid">
+    </label>
+    <label class="explore-film-select">Genre <select id="explore-film-genre"><option value="all">All genres</option></select></label>
+    <label class="explore-film-select">Decade <select id="explore-film-decade"><option value="all">Any decade</option></select></label>
+    <label class="explore-film-select">Sort <select id="explore-film-sort"><option value="title">Title A–Z</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
+  </div>
+  <p id="explore-film-count" class="explore-film-count" role="status" aria-live="polite"></p>
+  <div id="explore-films-grid" class="explore-films-grid"></div>
+  <p id="explore-films-empty" class="explore-film-empty" hidden>No films match those filters. Try another search or genre.</p>
+</section>
 <section class="explore-experience" id="explore-experience" aria-live="polite" hidden>
   <button type="button" class="explore-back" id="explore-back">← All moods</button>
   <p class="explore-eyebrow" id="explore-stage">AFTERLOGUE / A LITTLE CLOSER</p>
@@ -1094,6 +1156,9 @@ body.explore-body > header.site-header {
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=6"></script>
 <script src="explore-data.js?v=2"></script>
+<script src="featured-catalog.js?v=1"></script>
+<script src="film-details-data.js?v=2"></script>
+<script src="film-details-basics.js?v=2"></script>
 <script>
 (() => {
 "use strict";
@@ -1103,6 +1168,7 @@ const $ = id => document.getElementById(id);
 const gallery = $("explore-gallery-wrap");
 const experience = $("explore-experience");
 const results = $("explore-results");
+const allFilms = $("explore-all-films");
 const state = { mood:null, stage:0, format:null, pace:null, offset:0, randomPick:false };
 const isGuest = new URLSearchParams(location.search).get("guest") === "1";
 const impressionRatings = new Set(["Loved","Liked","Okay","Not for me"]);
@@ -1162,9 +1228,73 @@ function view(section) {
   gallery.hidden = section !== "gallery";
   experience.hidden = section !== "experience";
   results.hidden = section !== "results";
+  allFilms.hidden = section !== "films";
   window.scrollTo({top:0,behavior:"auto"});
   document.body.classList.toggle("explore-gallery-mode",section==="gallery");
 }
+/* Full film collection, separate from the five-at-a-time mood discovery.
+   Use the entire Afterlogue catalog so films don't vanish because they lack mood tags. */
+const filmCatalog=window.AfterlogueFeaturedCatalog||{};
+const filmBasics=window.AfterlogueFilmBasics||{};
+const filmEditorial=window.AfterlogueFilmDetails||{};
+const filmEntries=Object.entries(filmCatalog)
+  .filter(([,item])=>item.category==="movies")
+  .map(([key,item])=>({key,...item,details:{...(filmBasics[key]||{}),...(filmEditorial[key]||{})}}));
+const filmQuery=$("explore-film-query"),filmGenre=$("explore-film-genre"),
+  filmDecade=$("explore-film-decade"),filmSort=$("explore-film-sort");
+const normalizedFilmText=value=>String(value||"").toLowerCase().normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"");
+const filmGenres=entry=>String(entry.details.genre||"").split("·").map(v=>v.trim()).filter(Boolean);
+const filmGenreValues=[...new Set(filmEntries.flatMap(filmGenres))].sort((a,b)=>a.localeCompare(b));
+const filmDecades=[...new Set(filmEntries.map(entry=>Math.floor(entry.year/10)*10))].sort((a,b)=>b-a);
+filmGenreValues.forEach(genre=>{
+ const option=document.createElement("option");option.value=genre;option.textContent=genre;filmGenre.append(option);
+});
+filmDecades.forEach(decade=>{
+ const option=document.createElement("option");option.value=String(decade);option.textContent=decade+"s";filmDecade.append(option);
+});
+$("explore-all-films-total").textContent=filmEntries.length+" films";
+function renderAllFilms(){
+ const query=normalizedFilmText(filmQuery.value.trim());
+ const genre=filmGenre.value,decade=filmDecade.value;
+ const matches=filmEntries.filter(entry=>{
+  const searchable=[entry.title,entry.year,entry.details.genre,entry.details.director,
+    entry.details.country,entry.details.synopsis].filter(Boolean).join(" ");
+  return (!query||normalizedFilmText(searchable).includes(query))
+    &&(genre==="all"||filmGenres(entry).includes(genre))
+    &&(decade==="all"||Math.floor(entry.year/10)*10===Number(decade));
+ }).sort((a,b)=>filmSort.value==="newest"?(b.year-a.year||a.title.localeCompare(b.title))
+  :filmSort.value==="oldest"?(a.year-b.year||a.title.localeCompare(b.title))
+  :a.title.localeCompare(b.title));
+ const grid=$("explore-films-grid");grid.replaceChildren();
+ for(const entry of matches){
+  const link=document.createElement("a");
+  link.className="explore-film-entry";
+  link.href="film-details.html?title="+encodeURIComponent(entry.key)+"&from=explore";
+  link.setAttribute("aria-label","View details: "+entry.title+", "+entry.year);
+  const poster=document.createElement("div");poster.className="explore-film-poster";
+  const image=document.createElement("img");image.loading="lazy";image.src=entry.poster;
+  image.alt=entry.title+" poster";
+  image.addEventListener("error",()=>{image.hidden=true;poster.classList.add("poster-missing");poster.textContent=entry.title;});
+  const label=document.createElement("span");label.className="explore-film-entry-title";label.textContent=entry.title;
+  const meta=document.createElement("span");meta.className="explore-film-entry-meta";
+  meta.textContent=entry.year+(entry.details.genre?"  ·  "+entry.details.genre.split("·")[0].trim():"");
+  poster.append(image);
+  link.append(poster,label,meta);
+  grid.append(link);
+ }
+ $("explore-film-count").textContent=matches.length+" of "+filmEntries.length+" films";
+ $("explore-films-empty").hidden=matches.length!==0;
+}
+$("explore-all-films-open").addEventListener("click",()=>{
+ renderAllFilms();view("films");filmQuery.focus({preventScroll:true});
+});
+$("explore-films-back").addEventListener("click",()=>view("gallery"));
+[filmQuery,filmGenre,filmDecade,filmSort].forEach(control=>{
+ control.addEventListener(control===filmQuery?"input":"change",renderAllFilms);
+});
+renderAllFilms();
+
 function start(mood) {
   if (!data.moods[mood]) return;
   Object.assign(state,{mood,stage:0,format:null,pace:null,offset:0,randomPick:false});
