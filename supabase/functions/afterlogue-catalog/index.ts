@@ -358,7 +358,7 @@ Deno.serve(async (req:Request) => {
       };
       const ids=await moodKeywordIds(mood,token);
       // Keyword coverage is incomplete, so also find subjects through title and synopsis evidence.
-      const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,30,0);
+      const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
       const total=Math.min(10,Math.max(6,countries.length*languages.length,decades.length*2));
       const jobs=await Promise.allSettled(Array.from({length:total},async (_,i)=>{
         const country=countries.length?countries[(i+offset)%countries.length]:null;
