@@ -63,11 +63,11 @@ if(origin==='profile'&&document.referrer&&referrer==='member-profile.html'){href
 $('film-back').href=href;$('film-back').textContent=title;
 $('film-title').textContent=item.title;
 $('film-eyebrow').textContent='AFTERLOGUE / '+(isTV?'A SERIES IN FOCUS':'A FILM IN FOCUS');
-$('film-lead').textContent=rich.perspective||fromExplore?.reason||fallbackText;
+const synopsis=rich.synopsis|| (fromExplore?fromExplore.reason+' Further synopsis and credits are being curated.':'A story in the Afterlogue collection. Detailed synopsis and credits are being curated.');
+$('film-lead').textContent=synopsis;
 const meta=[String(item.year||''),rich.country||'',rich.genre||'',rich.runtime||''].filter(Boolean);
 for(const value of meta){const el=document.createElement('span');el.textContent=value;$('film-meta').append(el);}
-const synopsis=rich.synopsis|| (fromExplore?fromExplore.reason+' Further synopsis and credits are being curated.':'A story in the Afterlogue collection. Detailed synopsis and credits are being curated.');
-$('film-about').textContent=synopsis;
+
 if(rich.perspective){$('film-perspective').textContent=rich.perspective;$('film-perspective').hidden=false;}
 const hero=$('film-hero-image');
 const setPosterFallback=()=>{
