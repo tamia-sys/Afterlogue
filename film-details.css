@@ -88,3 +88,7 @@ body.film-lightbox-open{overflow:hidden}
 .film-other-picks{margin-top:18px;border-top:0;padding-top:18px}
 .film-action.icon{font-size:13px;font-weight:bold;letter-spacing:1px}
 @media(max-width:600px){.film-tab{font-size:14px}.film-lightbox{padding:18px}.film-lightbox img{max-width:96vw;max-height:75vh}}
+
+/* Final typography adjustment: slightly quieter tab navigation. */
+.film-tab{font-size:clamp(14px,1.27vw,16px)}
+@media(max-width:600px){.film-tab{font-size:13px}}
