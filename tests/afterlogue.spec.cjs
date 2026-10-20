@@ -64,3 +64,51 @@ test('Test member can sign in (only after GitHub secrets are added)', async ({ p
   }, { timeout: 25_000, intervals: [500, 1000, 2000] });
   await outcome.toBe('signed-in');
 });
+
+test('Signed-in member finds a saved movie in the private Log', async ({ page }) => {
+  const email = process.env.AFTERLOGUE_TEST_EMAIL;
+  const password = process.env.AFTERLOGUE_TEST_PASSWORD;
+  test.skip(!email || !password, 'Sign-in secrets are required for this member check.');
+
+  await page.goto('signup.html?mode=signin');
+  await page.locator('#signup-email').fill(email);
+  await page.locator('#signup-password').fill(password);
+  await page.locator('.signup-submit').click();
+  await expect(page).toHaveURL(/\/(discover|log)\.html(?:[?#]|$)/, { timeout: 30_000 });
+
+  // Test against the dedicated QA account only, never anyone's real profile.
+  await page.goto('film-details.html?title=moonlight&from=log');
+  const save = page.locator('#film-watchlist');
+  await expect(save).toBeVisible({ timeout: 35_000 });
+  await expect(save).not.toContainText('Sign in to save');
+
+  const alreadySaved = await save.getAttribute('aria-pressed') === 'true';
+  let addedByTest = false;
+  try {
+    if (!alreadySaved) {
+      await save.click();
+      await expect(save).toHaveAttribute('aria-pressed', 'true', { timeout: 20_000 });
+      addedByTest = true;
+    }
+    await page.goto('my-log.html');
+    await page.locator('[data-archive-tab="watchlist"]').click();
+    await page.locator('[data-archive-category="movies"]').click();
+    const moonlight = page.locator('#archive-grid .archive-card').filter({
+      has: page.locator('.archive-card-title', { hasText: /^Moonlight$/i }),
+    });
+    await expect(moonlight).toBeVisible({ timeout: 35_000 });
+    await page.reload();
+    await page.locator('[data-archive-tab="watchlist"]').click();
+    await expect(page.locator('#archive-grid .archive-card-title', { hasText: /^Moonlight$/i }))
+      .toBeVisible({ timeout: 35_000 });
+  } finally {
+    // Leave the test account as it was before running this smoke check.
+    if (addedByTest) {
+      await page.goto('film-details.html?title=moonlight&from=log');
+      const button = page.locator('#film-watchlist');
+      await expect(button).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 });
+      await button.click();
+      await expect(button).toHaveAttribute('aria-pressed', 'false', { timeout: 20_000 });
+    }
+  }
+});
