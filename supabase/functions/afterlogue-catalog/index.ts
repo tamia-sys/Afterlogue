@@ -76,6 +76,32 @@ const GENRE_MOODS:Record<string,{movie:number[][],tv:number[][],caption:string}>
  unexpected:{movie:[[878,9648],[14,18],[16],[99]],tv:[[10765,9648],[16],[18]],caption:"An optional detour beyond familiar genres."}
 };
 
+
+/* Exact subject tags, not genres, decide whether a title belongs in a mood. */
+const MOOD_TOPICS:Record<string,{labels:string[];reason:string}>={
+ holidays:{labels:["christmas","christmas eve","christmas holiday","thanksgiving","new year's eve","new year","hanukkah","diwali","lunar new year","santa claus"],reason:"A story centered on a holiday"},
+ yearning:{labels:["unrequited love","long distance relationship","first love","forbidden love","lost love","unfulfilled love"],reason:"A story about longing and connection"},
+ winding:{labels:["slice of life","self discovery","small town","healing","friendship","everyday life","feel-good"],reason:"A reflective story for winding down"},
+ friday:{labels:["party","night out","road trip","heist","nightclub","music festival","concert","dance party"],reason:"An energetic Friday-night story"},
+ fall:{labels:["halloween","autumn","harvest","haunted house","ghost","witch","small town mystery"],reason:"A story with autumnal or eerie atmosphere"},
+ unexpected:{labels:["surrealism","alternate reality","time travel","parallel universe","absurdism","experimental film","dream world"],reason:"A surprising or unconventional story"}
+};
+const keywordCache=new Map<string,{id:number,expires:number}>();
+async function moodKeywordIds(mood:string,token:string):Promise<number[]>{
+ const labels=MOOD_TOPICS[mood]?.labels||[];
+ const results=await Promise.allSettled(labels.map(async label=>{
+  const cached=keywordCache.get(label);
+  if(cached&&cached.expires>Date.now())return cached.id;
+  const resp=await tmdb("/search/keyword",new URLSearchParams({query:label,page:"1"}),token);
+  const normalized=(s:unknown)=>String(s||"").toLowerCase().trim().replace(/’/g,"'");
+  const exact=(resp.results||[]).find((v:Record<string,unknown>)=>normalized(v.name)===normalized(label));
+  const id=Number(exact?.id)||0;
+  keywordCache.set(label,{id,expires:Date.now()+6*60*60*1000});
+  return id;
+ }));
+ return [...new Set(results.filter((v):v is PromiseFulfilledResult<number>=>v.status==="fulfilled")
+  .map(v=>v.value).filter(v=>Number.isInteger(v)&&v>0))];
+}
 function listItem(entry: Record<string,unknown>,media:Media){
   return {
     id:entry.id, media, title:media==="tv"?entry.name:entry.title,
