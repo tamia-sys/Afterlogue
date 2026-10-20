@@ -58,7 +58,13 @@ function renderResults(){
 }
 $('featured-search').addEventListener('input',renderResults);
 $('featured-save').addEventListener('click',async()=>{
- if(!user||!hasProfile){message('Save your display name and username first, then choose your three.');return;}
+ if(!user){message('Sign in to save your featured titles.');return;}
+ if(!hasProfile){
+  const {data,error}=await client.from('member_profiles').select('user_id').eq('user_id',user.id).maybeSingle();
+  if(error){message('Could not check your profile. Please try again.');return;}
+  hasProfile=!!data;
+  if(!hasProfile){message('Save your display name and username first, then choose your three.');return;}
+ }
  const btn=$('featured-save');btn.disabled=true;message('Saving your selection…');
  try{
   const {data,error}=await client.from('member_profiles')
