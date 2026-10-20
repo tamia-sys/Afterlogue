@@ -632,7 +632,14 @@ bookmarkButton.setAttribute(
  infoButton.addEventListener("click", () => poster.click());
  const actions = document.createElement("div");
  actions.className = "discovery-card-actions";
- actions.append(infoButton, bookmarkButton);
+ const detailLink=document.createElement("a");
+ detailLink.href="film-details.html?title="+encodeURIComponent(item.title.toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))+"&from=discover";
+ detailLink.className="discovery-detail";
+ detailLink.setAttribute("aria-label","View film details for "+item.title);
+ detailLink.title="Film details";
+ detailLink.textContent="↗";
+ detailLink.style.cssText="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;color:#c1ad91;font:18px Georgia,serif;text-decoration:none";
+ actions.append(infoButton, bookmarkButton, detailLink);
 
  card.append(poster, title, year, actions);
  container.appendChild(card);
