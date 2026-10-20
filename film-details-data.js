@@ -46,13 +46,13 @@ window.AfterlogueFilmDetails = Object.freeze({
     ],
     "trailer": "https://www.youtube.com/watch?v=QzZBbX5A1FA",
     "watch": "https://www.justwatch.com/us/movie/perfect-days",
-    "still": "https://jccc.on.ca/sites/default/files/imgs/film/slides/Screen-PerfectDays-Online-Web_16-9.jpeg",
+    "still": "https://cdn.craft.cloud/26ed9c78-feb7-4ee6-8ddf-262fd7bafb2d/assets/tco/images/2023_05_Perfect-Days-Wim-Wenders-scaled.jpeg?fit=crop&format=webp&quality=75&s=FU78YQyPsyn2iSQ2VVvUlhZ9UqdYKt9xkX4m_aEmOh0&width=1024",
     "stills": [
-      "https://jccc.on.ca/sites/default/files/imgs/film/slides/Screen-PerfectDays-Online-Web_16-9.jpeg",
-      "https://npr.brightspotcdn.com/46/9c/d264c4134db29175e89fc2d955af/reviewstill-perfectdays.png",
-      "https://musemagazine.it/wp-content/uploads/2024/01/1.425.2_1.425.2-1-scaled.jpg"
+      "https://cdn.craft.cloud/26ed9c78-feb7-4ee6-8ddf-262fd7bafb2d/assets/tco/images/2023_05_Perfect-Days-Wim-Wenders-scaled.jpeg?fit=crop&format=webp&quality=75&s=FU78YQyPsyn2iSQ2VVvUlhZ9UqdYKt9xkX4m_aEmOh0&width=1024",
+      "https://media.1815.io/jfk/i/full/2024/10/perfect-days-pathe-thuis.jpg",
+      "https://cloudfront-eu-central-1.images.arcpublishing.com/madsack/RX4USL2KCVBOLGTZSYVJCBRFUU.jpeg"
     ],
-    "imageCredit": "Film images via Japanese Canadian Cultural Centre, Spokane Public Radio and Muse Magazine."
+    "imageCredit": "Film stills: Little White Lies, JFK and RND."
   },
   "before-sunrise": {
     "director": "Richard Linklater",
