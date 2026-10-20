@@ -51,8 +51,19 @@ const setPosterFallback=()=>{
  hero.dataset.fallback='used';hero.src=item.poster||'';hero.classList.add('is-poster');
 };
 hero.addEventListener('error',setPosterFallback);
-hero.alt=item.title+' — film imagery';hero.src=rich.still||item.poster;
+hero.alt=item.title+' — a cinematic image from the story';
+hero.src=rich.still||item.poster;
 if(!rich.still)hero.classList.add('is-poster');
+// For every title, replace lettered poster art with a verified, text-free backdrop.
+// If the public artwork service cannot supply one, keep the existing fallback.
+if(window.AfterlogueFilmArtwork){
+ window.AfterlogueFilmArtwork.resolve(item.title,item.year,isTV).then(url=>{
+  if(!url || !document.body.contains(hero))return;
+  const preview=new Image();
+  preview.onload=()=>{hero.src=url;hero.classList.remove('is-poster');hero.style.display='block';};
+  preview.src=url;
+ }).catch(error=>console.warn('Artwork unavailable',error));
+}
 label('Director',rich.director);
 label('Creator',rich.creator);
 label('Country',rich.country);
@@ -70,6 +81,19 @@ function closeLightbox(){lightbox.hidden=true;document.body.classList.remove('fi
 $('film-lightbox-close').addEventListener('click',closeLightbox);
 lightbox.addEventListener('click',e=>{if(e.target===lightbox)closeLightbox();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!lightbox.hidden)closeLightbox();});
+if(!gallery.length && window.AfterlogueFilmArtwork){
+ window.AfterlogueFilmArtwork.resolve(item.title,item.year,isTV).then(url=>{
+  if(!url)return;
+  const frame=document.createElement('div');frame.className='film-still-frame';
+  const button=document.createElement('button');button.type='button';
+  button.setAttribute('aria-label','Enlarge a still from '+item.title);
+  const image=document.createElement('img');image.src=url;image.loading='lazy';image.alt='A still from '+item.title;
+  image.addEventListener('error',()=>{frame.remove();galleryHost.hidden=true;});
+  button.addEventListener('click',()=>openLightbox(url));
+  button.append(image);frame.append(button);galleryHost.replaceChildren(frame);
+  galleryHost.classList.add('is-single');galleryHost.hidden=false;
+ }).catch(()=>{});
+}
 if(gallery.length){
  if(gallery.length===1)galleryHost.classList.add('is-single');
  for(const src of gallery){
