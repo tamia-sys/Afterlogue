@@ -50,5 +50,13 @@ test('Test member can sign in (only after GitHub secrets are added)', async ({ p
   await page.locator('#signup-email').fill(email);
   await page.locator('#signup-password').fill(password);
   await page.locator('.signup-submit').click();
-  await expect(page).toHaveURL(/\/(discover|log)\.html(?:[?#]|$)/, { timeout: 45_000 });
+  // Surface the real sign-in error promptly instead of waiting 45 seconds
+  // and reporting only "page never navigated".
+  const outcome = await expect.poll(async () => {
+    if (/\/(discover|log)\.html(?:[?#]|$)/.test(page.url())) return 'signed-in';
+    const message = (await page.locator('#signup-message').textContent() || '').trim();
+    // The page never writes credentials here; report only an auth message.
+    return message ? 'auth error: ' + message : 'waiting for sign-in';
+  }, { timeout: 25_000, intervals: [500, 1000, 2000] });
+  await outcome.toBe('signed-in');
 });
