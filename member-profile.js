@@ -11,9 +11,12 @@ const valid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f
 const list=$('member-conversations');
 const note=message=>{list.textContent=message;};
 const catalog=window.AfterlogueFeaturedCatalog||{};
-function addPoster(item){
+function addPoster(item,key){
  const card=document.createElement('div');card.className='member-poster-card';
- const frame=document.createElement('div');frame.className='member-poster-frame';
+ const frame=document.createElement('a');frame.className='member-poster-frame';
+ frame.href='film-details.html?title='+encodeURIComponent(key)+'&from=profile';
+ frame.setAttribute('aria-label','View details for '+item.title);
+ frame.style.textDecoration='none';frame.style.color='inherit';
  const img=document.createElement('img');img.src=item.poster;img.alt=item.title+' poster';img.loading='lazy';
  img.addEventListener('error',()=>{frame.textContent=item.title;frame.style.padding='10px';frame.style.textAlign='center';},{once:true});
  frame.append(img);
@@ -26,7 +29,7 @@ function showFeatured(selected,owner){
  if(!values.length&&!owner)return;
  $('member-featured-section').hidden=false;
  const grid=$('member-featured-grid');grid.replaceChildren();
- values.forEach(key=>grid.append(addPoster(catalog[key])));
+ values.forEach(key=>grid.append(addPoster(catalog[key],key)));
  if(owner){
   for(let n=values.length;n<3;n++){
    const anchor=document.createElement('a');anchor.className='member-poster-placeholder';
