@@ -1210,6 +1210,7 @@ body.explore-body > header.site-header {
 <script src="seen-impression.js?v=5"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
+<script src="explore-facets.js?v=1"></script>
 <script>
 (() => {
 "use strict";
@@ -1570,25 +1571,17 @@ function displayLocalMoodResults(){
 /* Explore browsing tools. All queries are matched against a curated, local
    30-title starter catalog. This does not claim unlimited global search. */
 const searchField=$("explore-search");
-const filterControls={
-  genre:$("explore-genre"),
-  year:$("explore-year"),
-  country:$("explore-country"),
-  format:$("explore-format")
-};
-const browseState={genre:"all",year:"all",country:"all",format:"all"};
+const browseState={format:"all"};
 const foldText=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
-const addFilterOption=(el,val,name)=>{const opt=document.createElement("option");opt.value=val;opt.textContent=name;el.append(opt);};
-const uniqueValues=values=>[...new Set(values)].sort((a,b)=>String(a).localeCompare(String(b)));
-uniqueValues(data.titles.flatMap(x=>x.genres||[])).forEach(v=>addFilterOption(filterControls.genre,v,v));
-uniqueValues(data.titles.flatMap(x=>x.countries||[])).forEach(v=>addFilterOption(filterControls.country,v,v));
-uniqueValues(data.titles.map(x=>Math.floor(x.year/10)*10)).sort((a,b)=>b-a)
-  .forEach(v=>addFilterOption(filterControls.year,String(v),v+"s"));
+const chosenFilters=()=>window.AfterlogueExploreFilters?.get()||{genres:[],countries:[],languages:[],decades:[]};
 function matchesFilters(item){
-  return (browseState.genre==="all"||(item.genres||[]).includes(browseState.genre))
-    && (browseState.year==="all"||Math.floor(item.year/10)*10===Number(browseState.year))
-    && (browseState.country==="all"||(item.countries||[]).includes(browseState.country))
-    && (browseState.format==="all"||item.media===browseState.format);
+ const f=chosenFilters();
+ const genres=(item.genres||[]).map(foldText),countries=(item.countries||[]).map(foldText);
+ return (browseState.format==="all"||item.media===browseState.format)
+  &&(!f.genres.length||f.genres.some(x=>genres.includes(foldText(x))))
+  &&(!f.countries.length||f.countries.some(x=>countries.includes(foldText(x))))
+  &&(!f.decades.length||f.decades.includes(String(Math.floor(item.year/10)*10)))
+  &&(!f.languages.length||f.languages.includes(item.original_language));
 }
 function matchesText(item,query){
   if(!query)return true;
@@ -1601,43 +1594,40 @@ function matchesMood(mood,query){
   return words.some(v=>foldText(v).includes(query));
 }
 function updateBrowse(){
-  const query=foldText(searchField.value.trim());
-  Object.entries(filterControls).forEach(([key,control])=>browseState[key]=control.value);
-  const enabled=Boolean(query)||Object.values(browseState).some(v=>v!=="all");
-  $("explore-clear").hidden=!enabled;
+ const query=foldText(searchField.value.trim());
+ browseState.format=$("explore-format").value;
+ const enabled=Boolean(query)||(window.AfterlogueExploreFilters?.active()||false)||browseState.format!=="all";
+ $("explore-clear").hidden=!enabled;
+ document.body.classList.toggle("explore-search-active",Boolean(query));
+ const panel=$("explore-search-results");panel.hidden=!query;
+ const host=$("explore-match-picks");host.replaceChildren();
+ if(query){
   const filtered=data.titles.filter(matchesFilters);
   const direct=filtered.filter(item=>matchesText(item,query));
-  const moodMatches=Object.keys(data.moods).filter(mood=>query&&matchesMood(mood,query));
-  const resultTitles=query && moodMatches.length
-    ?filtered.filter(item=>direct.includes(item)||moodMatches.some(m=> (data.pools[m][item.media]||[]).includes(item.title)))
-    :direct;
-  document.body.classList.toggle("explore-search-active",enabled);
-  const panel=$("explore-search-results");panel.hidden=!enabled;
-  const host=$("explore-match-picks");host.replaceChildren();
-  resultTitles.slice(0,10).forEach(item=>host.append(drawPick(item)));
-  const count=resultTitles.length;
-  $("explore-matches-count").textContent=count+" "+(count===1?"story":"stories");
-  $("explore-no-matches").hidden=count!==0;
-  $("explore-browse-note").textContent=enabled
-    ?count+" matching "+(count===1?"story":"stories")+" in our curated starter catalog."
-    :"Search and filter our curated starter catalog.";
-  for(const card of document.querySelectorAll(".mood-card")){
-    if(!enabled){card.hidden=false;continue;}
-    const key=card.dataset.mood;
-    const titles=[...(data.pools[key]?.movies||[]),...(data.pools[key]?.tv||[])];
-    card.hidden=!filtered.some(item=>titles.includes(item.title))
-      ||(Boolean(query)&&!matchesMood(key,query)&&!resultTitles.some(item=>titles.includes(item.title)));
-  }
-  requestAnimationFrame(refreshExploreRail);
+  const moods=Object.keys(data.moods).filter(mood=>matchesMood(mood,query));
+  const titles=moods.length
+   ?filtered.filter(item=>direct.includes(item)||moods.some(m=>(data.pools[m][item.media]||[]).includes(item.title)))
+   :direct;
+  titles.slice(0,10).forEach(item=>host.append(drawPick(item)));
+  $("explore-matches-count").textContent=titles.length+" featured stories";
+  $("explore-no-matches").hidden=titles.length!==0;
+ }
+ $("explore-browse-note").textContent=enabled
+  ?"Your choices shape the stories in each mood. Select a mood to discover."
+  :"Choose a mood, then discover films and shows shaped by your interests.";
+ for(const card of document.querySelectorAll(".mood-card")){
+  card.hidden=Boolean(query)&&!matchesMood(card.dataset.mood,query);
+ }
+ window.AfterlogueExploreFilters?.refresh();
+ requestAnimationFrame(refreshExploreRail);
 }
 searchField.addEventListener("input",updateBrowse);
-Object.values(filterControls).forEach(el=>el.addEventListener("change",updateBrowse));
+$("explore-format").addEventListener("change",updateBrowse);
+window.AfterlogueExploreFilters?.subscribe(updateBrowse);
 $("explore-clear").addEventListener("click",()=>{
-  searchField.value="";
-  Object.values(filterControls).forEach(el=>el.value="all");
-  updateBrowse();
+ searchField.value="";$("explore-format").value="all";
+ window.AfterlogueExploreFilters?.reset();updateBrowse();
 });
-
 
 
 function isVerticalExploreRail(){
