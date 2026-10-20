@@ -1499,34 +1499,38 @@ function drawPick(item){
   const controls=document.createElement("div");controls.className="explore-pick-actions";controls.append(eye,more);
   card.append(art,h,year,controls);return card;
 }
-// Track displayed titles, not just request pages. "Another selection" must
-// never reissue the same five titles (even when the user's answers change).
-const moodHistoryKey="afterlogue.explore.seen-mood-titles.v2";
-const shownByMood=(()=>{
+// A distinct mood + pace + filter combination gets its own discovery history.
+// Changing answers starts a fresh search rather than inheriting exhaustion.
+const moodHistoryKey="afterlogue.explore.seen-mood-titles.v3";
+const shownByScope=(()=>{
  try{
   const saved=JSON.parse(sessionStorage.getItem(moodHistoryKey)||"{}");
-  return Object.fromEntries(Object.entries(saved).filter(([m,list])=>data.moods[m]&&Array.isArray(list))
-    .map(([m,list])=>[m,[...new Set(list.filter(x=>/^(movie|tv):[1-9][0-9]{0,9}$/.test(x)))].slice(-160)]));
+  return Object.fromEntries(Object.entries(saved).filter(([,items])=>Array.isArray(items))
+    .map(([key,items])=>[key,[...new Set(items.filter(x=>/^(movie|tv):[1-9][0-9]{0,9}$/.test(x)))].slice(-120)]));
  }catch(_){return {};}
 })();
-function previousMoodTitles(mood){return shownByMood[mood]||[];}
-function rememberMoodTitles(mood,items){
- const old=previousMoodTitles(mood);
- shownByMood[mood]=[...new Set([...old,...items.map(item=>(item.media==="tv"?"tv":"movie")+":"+item.id)])].slice(-160);
- try{sessionStorage.setItem(moodHistoryKey,JSON.stringify(shownByMood));}catch(_){}
+function moodScopeKey(){
+ const facet=window.AfterlogueExploreFilters?.get()||{};
+ return JSON.stringify([
+  state.mood,$("explore-format").value==="all"?state.format:$("explore-format").value,
+  state.pace||"medium",...["countries","languages","genres","decades"].map(k=>(facet[k]||[]).slice().sort().join(","))
+ ]);
 }
-async function displayResults({retainOnEmpty=false}={}){
-  // Use worldwide TMDB discoveries for every mood instead of the fixed pools.
+function previousMoodTitles(scope){return shownByScope[scope]||[];}
+function rememberMoodTitles(scope,items){
+ shownByScope[scope]=[...new Set([...previousMoodTitles(scope),
+  ...items.map(item=>(item.media==="tv"?"tv":"movie")+":"+item.id)])].slice(-120);
+ try{sessionStorage.setItem(moodHistoryKey,JSON.stringify(shownByScope));}catch(_){}
+}
+async function displayResults(){
   const requestId=window.afterlogueMoodRequestId=(window.afterlogueMoodRequestId||0)+1;
   const host=$("explore-picks");
   results.classList.toggle("is-surprise",state.randomPick);
-  const previousCards=retainOnEmpty?[...host.children]:[];
-  if(!retainOnEmpty||!previousCards.some(el=>el.classList?.contains("explore-pick"))){
-    host.replaceChildren();
-    const pending=document.createElement("p");
-    pending.className="explore-question";pending.textContent="Finding new stories that fit your choices…";
-    host.append(pending);
-  }
+  host.replaceChildren();
+  const pending=document.createElement("p");
+  pending.className="explore-question";
+  pending.textContent="Searching for fresh stories that fit your choices…";
+  host.append(pending);
   $("explore-again").disabled=true;
   view("results");
   try{
@@ -1535,59 +1539,60 @@ async function displayResults({retainOnEmpty=false}={}){
     const useFormat=selectedFormat==="all"?state.format:selectedFormat;
     const media=useFormat==="tv"?["tv"]:useFormat==="movies"?["movie"]:["movie","tv"];
     const facetChoices=window.AfterlogueExploreFilters?.get()||{};
-    const alreadyShown=new Set(previousMoodTitles(state.mood));
+    const scope=moodScopeKey();
+    const alreadyShown=new Set(previousMoodTitles(scope));
+    const rated=ratedTitles(),excluded=new Set([...rated,...(window.AfterlogueSeen?.seen||[])]);
     const pace=state.pace||"medium";
-    const requests=await Promise.all(media.map(async type=>{
-      const resp=await fetch("https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog",{
-       method:"POST",headers:{"Content-Type":"application/json"},
-       body:JSON.stringify({mode:"mood",mood:isSurprise?"unexpected":state.mood,
-         media:type,seed:sessionStorage.getItem("afterlogue.first.impressions.seed.v2")||"mood",
-         offset:state.offset,pace,
-         excludeIds:[...alreadyShown].filter(k=>k.startsWith(type+":")).map(k=>Number(k.split(":")[1])),
-         genres:facetChoices.genres||[],
-         countries:facetChoices.countries||[],languages:facetChoices.languages||[],
-         decades:facetChoices.decades||[]})
-      });
-      if(!resp.ok)throw Error("Mood catalog unavailable");
-      return await resp.json();
-    }));
-    if(requestId!==window.afterlogueMoodRequestId)return;
-    const rated=ratedTitles();
-    const excluded=new Set([...rated,...(window.AfterlogueSeen?.seen||[])]);
     const unique=new Set(),titles=[];
-    // Interleave Movies and TV instead of always giving movies first.
-    const streams=requests.map(payload=>payload.items||[]);
-    const maxCount=Math.max(0,...streams.map(items=>items.length));
-    for(let i=0;i<maxCount;i++){
-      for(const stream of streams){
-        const item=stream[i];if(!item)continue;
-        const key="tmdb-"+item.media+"-"+item.id;
-        const historyKey=item.media+":"+item.id;
-        if(!item.poster||unique.has(key)||excluded.has(key)||alreadyShown.has(historyKey))continue;
-        unique.add(key);
-        titles.push({...item,key,media:item.media==="tv"?"tv":"movies",
-          reason:item.moodReason||"Selected for the mood you chose."});
+    const desired=isSurprise?1:5;
+    let searched=0,notes=[];
+    // A single TMDB discover page cannot establish that a mood has run out.
+    // Continue to the next pages when the first pass has no fresh matches.
+    while(searched<2&&titles.length<desired){
+      const cursor=state.offset;
+      const requests=await Promise.all(media.map(async type=>{
+        const resp=await fetch("https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog",{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({mode:"mood",mood:isSurprise?"unexpected":state.mood,
+            media:type,seed:sessionStorage.getItem("afterlogue.first.impressions.seed.v2")||"mood",
+            offset:cursor,pace,
+            excludeIds:[...alreadyShown].filter(k=>k.startsWith(type+":")).map(k=>Number(k.split(":")[1])),
+            genres:facetChoices.genres||[],countries:facetChoices.countries||[],
+            languages:facetChoices.languages||[],decades:facetChoices.decades||[]})
+        });
+        if(!resp.ok)throw Error("Mood catalog unavailable");
+        return await resp.json();
+      }));
+      if(requestId!==window.afterlogueMoodRequestId)return;
+      searched++;state.offset=cursor+1;
+      notes=notes.concat(requests.map(x=>x.note).filter(Boolean));
+      // Alternate Movies and TV without weakening the selected mood.
+      const streams=requests.map(x=>x.items||[]);
+      const maxCount=Math.max(0,...streams.map(items=>items.length));
+      for(let i=0;i<maxCount;i++){
+        for(const stream of streams){
+          const item=stream[i];if(!item)continue;
+          const key="tmdb-"+item.media+"-"+item.id;
+          const historyKey=item.media+":"+item.id;
+          if(!item.poster||unique.has(key)||excluded.has(key)||alreadyShown.has(historyKey))continue;
+          unique.add(key);
+          titles.push({...item,key,media:item.media==="tv"?"tv":"movies",
+            reason:item.moodReason||"Selected for the mood you chose."});
+        }
       }
     }
-    // TMDB returns eligible, mood-tagged results in popularity order. Avoid
-    // random reordering that buries stronger matches behind weaker ones.
-    const five=titles.slice(0,isSurprise?1:5);
+    const five=titles.slice(0,desired);
     if(!five.length){
-      const message="You've reached the end of new stories matching these choices. Adjust your answers or explore a different mood.";
-      if(retainOnEmpty&&previousCards.some(el=>el.classList?.contains("explore-pick"))){
-        $("explore-results-detail").textContent=message;
-      }else{
-        host.replaceChildren();
-        const notice=document.createElement("p");notice.className="explore-question";
-        notice.textContent=message;
-        host.append(notice);
-        $("explore-results-detail").textContent="No unseen titles match this mood and your choices right now.";
-      }
-      $("explore-again").disabled=true;
-      $("explore-again").textContent="No more new stories";
+      host.replaceChildren();
+      const notice=document.createElement("p");notice.className="explore-question";
+      notice.textContent="No fresh matches found in these catalog pages. You can search further or broaden your choices.";
+      host.append(notice);
+      $("explore-results-detail").textContent=notes[0]||"No new matches in this search yet.";
+      $("explore-again").textContent="Search further ↗";
+      $("explore-again").disabled=false;
       return;
     }
-    rememberMoodTitles(state.mood,five);
+    rememberMoodTitles(scope,five);
     host.replaceChildren();
     for(const item of five){
       const el=document.createElement("article");el.className="explore-pick";
@@ -1900,8 +1905,7 @@ $("explore-next").addEventListener("click",()=>{
 $("explore-adjust").addEventListener("click",()=>{const format=$("explore-format").value;state.stage=format==="all"?0:1;if(format!=="all")state.format=format;state.offset=0;renderQuestion();view("experience");});
 $("explore-surprise").addEventListener("click",()=>{Object.assign(state,{randomPick:true,mood:"unexpected",format:"either",pace:"medium",offset:0});displayResults();});
 $("explore-again").addEventListener("click",()=>{
-  state.offset+=1;
-  displayResults({retainOnEmpty:true});
+  displayResults();
 });
 })();
 </script>
