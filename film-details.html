@@ -5,7 +5,7 @@
 <title>Film details — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="mobile-header.css?v=3">
-<link rel="stylesheet" href="film-details.css?v=2">
+<link rel="stylesheet" href="film-details.css?v=4">
 </head><body class="film-detail-page">
 <header class="site-header">
 <a href="index.html" class="logo">afterlogue.</a>
@@ -32,9 +32,9 @@
 <p class="film-meta" id="film-meta"></p>
 <p class="film-lead" id="film-lead"></p>
 <div class="film-hero-actions">
-<a id="film-trailer" class="film-action" href="#" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">▷</span> Watch trailer ↗</a>
+<a id="film-trailer" class="film-action" href="#" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">▷</span> Watch trailer</a>
 <button type="button" id="film-watchlist" class="film-action">＋ Add to Watchlist</button>
-<a class="film-action icon" id="film-to-log" href="my-log.html" title="Open your personal Log" aria-label="Open your Log">⋯</a>
+<a class="film-action icon" id="film-to-log" href="my-log.html" title="Open your personal Log" aria-label="Open your Log"><span aria-hidden="true">•••</span></a>
 </div>
 <p class="film-feedback" id="film-feedback" role="status" aria-live="polite"></p>
 </div>
@@ -70,8 +70,8 @@
 <div class="film-watch-panel">
 <h2 class="film-section-title">Find your screening.</h2>
 <p class="film-about">Streaming catalogs, rentals, and theatrical screenings change over time. Follow the availability guide below to check where this title can be watched in your region.</p>
-<div class="film-actions-secondary"><a id="film-justwatch" class="film-action" href="#" target="_blank" rel="noopener noreferrer">Check viewing options ↗</a></div>
-<p class="film-watch-notice">Afterlogue doesn't sell or stream films directly. Availability and prices are provided by third-party services and aren't verified in real time here.</p>
+<div class="film-actions-secondary"><a id="film-justwatch" class="film-action" href="#" target="_blank" rel="noopener noreferrer">Check viewing options</a></div>
+
 </div>
 </section>
 <section class="film-panel" role="tabpanel" id="film-panel-discuss" aria-labelledby="film-tab-discuss" hidden>
@@ -79,20 +79,22 @@
 <h2 class="film-section-title">The conversation continues.</h2>
 <p class="film-tab-intro">Read perspectives from other Afterlogue members or begin one of your own.</p>
 <div id="film-discussions"><p class="film-watch-notice">Loading conversations…</p></div>
-<div class="film-actions-secondary"><a class="film-action" id="film-start-discussion" href="discuss.html">Start a conversation ↗</a><a class="film-action" href="discuss.html">Browse all conversations ↗</a></div>
+<div class="film-actions-secondary"><a class="film-action" id="film-start-discussion" href="discuss.html">Start a conversation</a><a class="film-action" href="discuss.html">Browse all conversations</a></div>
 </div>
 </section>
+<p class="film-global-notice">Afterlogue doesn’t sell or stream films directly. Availability and prices are provided by third-party services and aren’t verified in real time here.</p>
 <section class="film-other-picks" id="film-related" hidden>
 <p class="film-eyebrow">KEEP EXPLORING</p><h2 class="film-section-title">Another story, perhaps.</h2>
 <div id="film-related-grid" class="film-other-grid"></div>
 </section>
 </div>
 </main>
+<div id="film-lightbox" class="film-lightbox" role="dialog" aria-modal="true" aria-label="Film still viewer" hidden><button type="button" id="film-lightbox-close" class="film-lightbox-close" aria-label="Close image">×</button><img id="film-lightbox-image" alt=""><p id="film-lightbox-caption"></p></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=6"></script>
 <script src="featured-catalog.js?v=1"></script>
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
-<script src="film-details.js?v=3"></script>
+<script src="film-details.js?v=5"></script>
 </body></html>
