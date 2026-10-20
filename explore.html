@@ -1471,7 +1471,7 @@ function drawPick(item){
 }
 async function displayResults(){
   // Use worldwide TMDB discoveries for every mood instead of the fixed pools.
-  const requestId=++window.afterlogueMoodRequestId;
+  const requestId=window.afterlogueMoodRequestId=(window.afterlogueMoodRequestId||0)+1;
   const host=$("explore-picks");
   results.classList.toggle("is-surprise",state.randomPick);
   host.replaceChildren();
@@ -1810,7 +1810,7 @@ $("explore-next").addEventListener("click",()=>{
 $("explore-adjust").addEventListener("click",()=>{state.stage=0;state.offset=0;renderQuestion();view("experience");});
 $("explore-surprise").addEventListener("click",()=>{Object.assign(state,{randomPick:true,mood:"unexpected",format:"either",pace:"medium",offset:0});displayResults();});
 $("explore-again").addEventListener("click",()=>{
-  if(state.randomPick) {displayResults();return;}
+  if(state.randomPick) {state.offset+=1;displayResults();return;}
   state.offset+=1;
   displayResults();
 });
