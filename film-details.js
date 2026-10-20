@@ -244,18 +244,80 @@ function showCredits(){
 }
 showCredits();
 const verifiedTrailers=window.AfterlogueOfficialTrailers||{};
-const trailer=verifiedTrailers[key]||null;
 const trailerLink=$('film-trailer');
-if(trailer){
- trailerLink.href=trailer;
- trailerLink.innerHTML='<span aria-hidden="true">▷</span> Watch trailer';
- trailerLink.title='Watch the official distributor trailer on YouTube';
-}else{
- const searchTerms=[item.title,item.year,isTV?'series':'film','trailer'].filter(Boolean).join(' ');
- trailerLink.href='https://www.youtube.com/results?search_query='+encodeURIComponent(searchTerms);
- trailerLink.innerHTML='<span aria-hidden="true">▷</span> Browse trailers';
- trailerLink.title='Choose from trailer results on YouTube';
+const trailerModal=$('film-trailer-modal');
+const trailerPlayer=$('film-trailer-player');
+const trailerExternal=$('film-trailer-external');
+const trailerStatus=$('film-trailer-status');
+const youtubeSearch='https://www.youtube.com/results?search_query='+encodeURIComponent([item.title,item.year,isTV?'series':'film','trailer'].filter(Boolean).join(' '));
+function getTrailerId(value){
+ try{
+  const url=new URL(value);
+  if(url.hostname==='youtu.be')return /^[a-zA-Z0-9_-]{11}$/.test(url.pathname.slice(1))?url.pathname.slice(1):null;
+  if(['youtube.com','www.youtube.com','m.youtube.com'].includes(url.hostname)){
+   const id=url.searchParams.get('v')||url.pathname.match(/^\\/(?:embed|shorts)\\/([a-zA-Z0-9_-]{11})/)?.[1];
+   return /^[a-zA-Z0-9_-]{11}$/.test(id||'')?id:null;
+  }
+ }catch(_){}
+ return null;
 }
+let resolvedTrailerId=getTrailerId(verifiedTrailers[key]||'');
+let trailerLoading=null;
+if(!resolvedTrailerId&&window.AfterlogueFilmArtwork?.resolveTrailer){
+ trailerLoading=window.AfterlogueFilmArtwork.resolveTrailer(item.title,item.year,isTV).then(id=>{
+  resolvedTrailerId=/^[a-zA-Z0-9_-]{11}$/.test(id||'')?id:null;
+  return resolvedTrailerId;
+ }).catch(()=>null);
+}
+let trailerPreviousFocus=null;
+function closeTrailer(){
+ if(trailerModal.hidden)return;
+ trailerModal.hidden=true;
+ trailerPlayer.removeAttribute('src'); // Stop video and sound on close.
+ document.body.classList.remove('film-trailer-open');
+ trailerPreviousFocus?.focus?.();
+}
+function playTrailer(id){
+ if(trailerModal.hidden)return;
+ trailerExternal.href='https://www.youtube.com/watch?v='+encodeURIComponent(id);
+ trailerExternal.textContent='Watch on YouTube ↗';
+ trailerStatus.textContent='If playback is blocked, open the video on YouTube.';
+ trailerPlayer.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&rel=0&playsinline=1';
+}
+trailerLink.href='#film-trailer-modal';
+trailerLink.removeAttribute('target');
+trailerLink.innerHTML='<span aria-hidden="true">▷</span> Watch trailer';
+trailerLink.title='Play the trailer here on Afterlogue';
+trailerLink.addEventListener('click',async event=>{
+ event.preventDefault();
+ trailerPreviousFocus=document.activeElement;
+ trailerModal.hidden=false;
+ document.body.classList.add('film-trailer-open');
+ $('film-trailer-heading').textContent=item.title+' — Trailer.';
+ trailerExternal.href=resolvedTrailerId?'https://www.youtube.com/watch?v='+resolvedTrailerId:youtubeSearch;
+ trailerExternal.textContent=resolvedTrailerId?'Watch on YouTube ↗':'Browse trailers on YouTube ↗';
+ $('film-trailer-close').focus();
+ if(resolvedTrailerId){playTrailer(resolvedTrailerId);return;}
+ trailerStatus.textContent='Finding a trailer for this story…';
+ if(trailerLoading)await trailerLoading;
+ if(trailerModal.hidden)return;
+ if(resolvedTrailerId){playTrailer(resolvedTrailerId);return;}
+ trailerStatus.textContent='A playable trailer isn’t available here yet. You can browse trailer options on YouTube.';
+ trailerExternal.href=youtubeSearch;
+ trailerExternal.textContent='Browse trailers on YouTube ↗';
+});
+$('film-trailer-close').addEventListener('click',closeTrailer);
+trailerModal.addEventListener('click',event=>{if(event.target===trailerModal)closeTrailer();});
+document.addEventListener('keydown',event=>{
+ if(trailerModal.hidden)return;
+ if(event.key==='Escape'){event.preventDefault();closeTrailer();}
+ if(event.key==='Tab'){
+  const controls=[$('film-trailer-close'),trailerExternal];
+  const n=controls.indexOf(document.activeElement);
+  if(event.shiftKey&&n<=0){event.preventDefault();controls[1].focus();}
+  else if(!event.shiftKey&&n===1){event.preventDefault();controls[0].focus();}
+ }
+});
 const jw=rich.watch||'https://www.justwatch.com/us/search?q='+encodeURIComponent(item.title);
 $('film-justwatch').href=jw;
 $('film-justwatch').textContent=rich.watch&&rich.watch.includes('justwatch.com')?'Check viewing options':rich.watch?'View provider information':'Search viewing options';
