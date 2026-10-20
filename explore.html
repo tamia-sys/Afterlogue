@@ -1080,9 +1080,7 @@ body.explore-body > header.site-header {
     <label>Format <select id="explore-format"><option value="all">Movies &amp; TV</option><option value="movies">Movies</option><option value="tv">TV Shows</option></select></label>
     <button type="button" id="explore-clear" hidden>Clear ×</button>
   </div>
-  <div class="explore-browse-foot"><button type="button" class="explore-all-films-open" id="catalog-open">Expanded library ↗</button><p id="explore-browse-note">Search and filter our curated starter catalog.</p>
-    <button type="button" class="explore-all-films-open" id="explore-all-films-open" aria-controls="explore-all-films">All Films <span aria-hidden="true">↗</span></button>
-  </div>
+  <div class="explore-browse-foot"><p id="explore-browse-note">Search by mood, or browse the full collection.</p><button type="button" class="explore-all-films-open" id="catalog-open">All Films <span aria-hidden="true">↗</span></button><button type="button" id="explore-all-films-open" hidden aria-controls="explore-all-films">Featured films</button></div>
 </section>
 <section id="explore-search-results" class="explore-search-results" hidden aria-live="polite">
   <div class="explore-group-label"><p>MATCHING STORIES</p><span id="explore-matches-count"></span></div>
@@ -1144,7 +1142,7 @@ body.explore-body > header.site-header {
     <div>
       <p class="explore-eyebrow">AFTERLOGUE / THE COLLECTION</p>
       <h2 id="explore-all-films-title">All Films.</h2>
-      <p>A growing collection of stories, ready to explore.</p>
+      <p>Featured films to explore while our expanded library is being prepared.</p>
     </div>
     <span id="explore-all-films-total" class="explore-films-total"></span>
   </div>
@@ -1750,7 +1748,7 @@ $("explore-again").addEventListener("click",()=>{
 });
 })();
 </script>
-<script src="catalog-browser.js?v=1"></script>
+<script src="catalog-browser.js?v=2"></script>
 
 </body>
 </html>
