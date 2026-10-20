@@ -15,6 +15,7 @@ on:
       - 'film-details.html'
       - 'film-details.js'
       - 'signup.html'
+      - 'auth-signup.js'
       - 'supabase/functions/afterlogue-catalog/index.ts'
 
 permissions:
