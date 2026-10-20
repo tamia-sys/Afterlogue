@@ -1,0 +1,28 @@
+name: Afterlogue Browser Checks
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      AFTERLOGUE_TEST_EMAIL: ${{ secrets.AFTERLOGUE_TEST_EMAIL }}
+      AFTERLOGUE_TEST_PASSWORD: ${{ secrets.AFTERLOGUE_TEST_PASSWORD }}
+    steps:
+      - name: Checkout Afterlogue
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run browser checks
+        run: npm run test:e2e
