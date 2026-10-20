@@ -392,6 +392,14 @@ Deno.serve(async (req:Request) => {
             const group=HOLIDAY_GROUPS[(i+offset)%HOLIDAY_GROUPS.length];
             const specific=group.map(label=>keywordCache.get(label)?.id||0).filter(Boolean);
             if(specific.length)queryIds=specific;
+          }else{
+            // Each search targets a different strand of the mood so five
+            // picks don't all revolve around the same plot beat.
+            const labels=MOOD_TOPICS[mood].labels;
+            const chosen=[labels[(i*2+offset)%labels.length],
+              labels[(i*2+offset+1)%labels.length]];
+            const specific=chosen.map(label=>keywordCache.get(label)?.id||0).filter(Boolean);
+            if(specific.length)queryIds=specific;
           }
           params.set("with_keywords",queryIds.join("|"));
         }
