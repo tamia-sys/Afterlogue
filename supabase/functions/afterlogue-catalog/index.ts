@@ -557,6 +557,27 @@ Deno.serve(async (req:Request) => {
           }
         }
       }
+      else{
+        // Five titles sharing only "first love" is not a curated mood
+        // selection. Round-robin across distinct story themes/genres so
+        // choices have different legitimate reasons to appear when possible.
+        const groups=new Map<string,typeof verified>();
+        for(const item of verified){
+          const evidence=String(item.moodReason||"");
+          const label=evidence.includes("tagged")?evidence.match(/“([^”]+)”/)?.[1]||evidence:evidence;
+          const genus=item.genres?.find((g:string)=>!["Drama","Romance"].includes(g))||item.genres?.[0]||"Story";
+          const key=(label+"|"+genus).toLowerCase();
+          if(!groups.has(key))groups.set(key,[]);
+          groups.get(key)!.push(item);
+        }
+        if(groups.size>1){
+          const ordered=[...groups.values()];
+          verified.splice(0,verified.length);
+          for(let i=0;i<40;i++){
+            for(const group of ordered){if(group[i])verified.push(group[i]);}
+          }
+        }
+      }
       return response({
         mood,matching:"verified-theme-and-details",pace,
         items:verified.slice(0,24),
