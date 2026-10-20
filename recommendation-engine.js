@@ -104,7 +104,7 @@ const toMap=value=>{
  if(Array.isArray(value))return new Map(value.map(entry=>[entry.title_key||entry.key,entry.rating]));
  return new Map(Object.entries(value||{}));
 };
-function rank({entries,category,impressions={},favorites=[],watchlist=[]}){
+function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]}){
  const all=Array.isArray(entries)?entries:[];
  const byKey=new Map(all.map(entry=>[entry.key,entry]));
  const aliases=new Map(all.flatMap(entry=>[[entry.key,entry.key],[slug(entry.title),entry.key]]));
@@ -126,7 +126,7 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[]}){
   }else signals.set(key,{key,rating:null,weight:2.5,favorite:true});
  }
  const watch=new Set((watchlist||[]).map(v=>canonical(typeof v==="string"?v:v?.title_key)));
- const known=new Set(signals.keys());
+ const known=new Set([...signals.keys(),...(seen||[]).map(v=>canonical(typeof v==="string"?v:v?.title_key))]);
  const positives=[...signals.values()].filter(s=>s.weight>=1.5);
  const negatives=[...signals.values()].filter(s=>s.weight<0);
  const candidates=all.filter(entry=>entry.category===category&&!known.has(entry.key)&&!watch.has(entry.key));
