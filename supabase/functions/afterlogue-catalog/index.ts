@@ -147,6 +147,36 @@ Deno.serve(async (req:Request) => {
           .map((v:Record<string,unknown>)=>listItem(v,media))
       });
     }
+    // Cross-title recommendations, anchored exclusively in titles the viewer liked.
+    // Inputs are titles, not private account data or raw credentials.
+    if(mode==="recommend"){
+      const terms=Array.isArray(input.titles)?input.titles.slice(0,4)
+        .filter((v:unknown)=>typeof v==="string"&&v.trim().length>=2&&v.length<=110):[];
+      if(!terms.length)return response({items:[]});
+      const all=new Map<number,{item:ReturnType<typeof listItem>,votes:number,matched:string[]}>();
+      for(const rawTitle of terms){
+        const term=String(rawTitle).trim();
+        const searchParams=new URLSearchParams({query:term,language:"en-US",page:"1",include_adult:"false"});
+        const searchData=await tmdb("/search/"+media,searchParams,token);
+        const norm=(x:string)=>x.normalize("NFKD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+        const source=(searchData.results||[]).find((v:Record<string,unknown>)=>
+          norm(String(media==="tv"?v.name:v.title||""))===norm(term));
+        if(!source?.id)continue;
+        const q=new URLSearchParams({language:"en-US",page:"1"});
+        const recommends=await tmdb("/"+media+"/"+source.id+"/recommendations",q,token);
+        for(const v of recommends.results||[]){
+          if(!v.id||!v.poster_path||!v.overview||v.adult)continue;
+          const title=listItem(v,media);
+          const prev=all.get(Number(v.id));
+          if(prev){prev.votes+=1;prev.matched.push(term);}
+          else all.set(Number(v.id),{item:title,votes:1,matched:[term]});
+        }
+      }
+      return response({items:[...all.values()]
+        .sort((a,b)=>b.votes-a.votes)
+        .slice(0,50)
+        .map(v=>({...v.item,matched:v.matched,matchCount:v.votes}))});
+    }
     if(mode==="detail"){
       const id=Number(input.id);
       if(!Number.isInteger(id)||id<=0||id>100000000)return response({error:"Invalid title ID"},400);
