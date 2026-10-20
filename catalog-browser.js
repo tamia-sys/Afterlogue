@@ -8,6 +8,25 @@ if(!panel)return;
 const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
 let media="movie",page=1,pages=1,term="",genre="",decade="",sort="popular",timer=null,serial=0,configured=false;
 const input=$("catalog-search"),genreBox=$("catalog-genre"),decadeBox=$("catalog-decade"),sortBox=$("catalog-sort");
+const stateKey="afterlogue.explore.all-films.v1";
+const params=new URLSearchParams(location.search);
+function readState(){
+ try{
+  const record=JSON.parse(sessionStorage.getItem(stateKey)||"null");
+  if(!record||typeof record!=="object")return;
+  media=record.media==="tv"?"tv":"movie";
+  page=Number.isInteger(record.page)?Math.max(1,Math.min(100,record.page)):1;
+  term=typeof record.term==="string"?record.term.slice(0,100):"";
+  genre=typeof record.genre==="string"?record.genre:"";
+  decade=typeof record.decade==="string"?record.decade:"";
+  sort=["popular","newest","oldest"].includes(record.sort)?record.sort:"popular";
+  $("catalog-media").value=media;input.value=term;
+  genreBox.value=genre;decadeBox.value=decade;sortBox.value=sort;
+ }catch(_){}
+}
+function rememberState(){
+ try{sessionStorage.setItem(stateKey,JSON.stringify({media,page,term,genre,decade,sort}));}catch(_){}
+}
 async function readiness(){
  try{const r=await fetch(endpoint+"?status=1");const data=await r.json();return Boolean(r.ok&&data.ready);}catch(_){return false;}
 }
@@ -22,7 +41,7 @@ function render(list){
  clear();
  for(const title of list){
   const a=document.createElement("a");a.className="catalog-tile";
-  a.href="film-details.html?tmdb="+encodeURIComponent(title.id)+"&type="+encodeURIComponent(title.media)+"&from=explore";
+  a.href="film-details.html?tmdb="+encodeURIComponent(title.id)+"&type="+encodeURIComponent(title.media)+"&from=all-films";
   const frame=document.createElement("div");frame.className="catalog-tile-poster";
   const img=document.createElement("img");img.loading="lazy";img.src=title.poster||"";img.alt=title.title+" poster";
   const name=document.createElement("span");name.className="catalog-tile-title";name.textContent=title.title;
@@ -34,6 +53,7 @@ function render(list){
  }
 }
 async function load(){
+ rememberState();
  const id=++serial;
  const isSearch=term.trim().length>=2;
  $("catalog-message").textContent="Finding stories…";
@@ -60,15 +80,21 @@ async function openLibrary(){
     return;
   }
   panel.hidden=false;document.body.classList.remove("explore-gallery-mode");
+  if(location.hash!=="#all-films")history.replaceState(null,"",location.pathname+location.search+"#all-films");
   $("explore-gallery-wrap").hidden=true;$("explore-experience").hidden=true;
   $("explore-results").hidden=true;$("explore-all-films").hidden=true;
   window.scrollTo({top:0,behavior:"instant"});load();
 }
 $("catalog-open").addEventListener("click",openLibrary);
-$("catalog-back").addEventListener("click",()=>{panel.hidden=true;$("explore-gallery-wrap").hidden=false;document.body.classList.add("explore-gallery-mode");});
+$("catalog-back").addEventListener("click",()=>{
+ panel.hidden=true;$("explore-gallery-wrap").hidden=false;document.body.classList.add("explore-gallery-mode");
+ history.replaceState(null,"",location.pathname+location.search);
+});
 $("catalog-media").addEventListener("change",e=>{media=e.target.value;page=1;load();});
 input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(()=>{term=input.value;page=1;load();},350);});
 [genreBox,decadeBox,sortBox].forEach(el=>el.addEventListener("change",()=>{genre=genreBox.value;decade=decadeBox.value;sort=sortBox.value;page=1;load();}));
 $("catalog-prev").addEventListener("click",()=>{if(page>1){page--;load();}});
 $("catalog-next").addEventListener("click",()=>{if(page<pages){page++;load();}});
+readState();
+if(location.hash==="#all-films")openLibrary();
 })();
