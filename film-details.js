@@ -112,7 +112,7 @@ const watchBtn=$('film-watchlist');
 let saved=false,watchId=null;
 function displaySaved(){
  watchBtn.classList.toggle('is-selected',saved);
- watchBtn.textContent=saved?'✓ In your Watchlist':'＋ Add to Watchlist';
+ watchBtn.textContent=!member?'＋ Sign in to save':saved?'✓ In your Watchlist':'＋ Add to Watchlist';
  watchBtn.setAttribute('aria-pressed',String(saved));
 }
 if(member){
@@ -168,7 +168,9 @@ let discussionsLoaded=false;
 async function loadDiscussions(){
  if(discussionsLoaded)return;
  discussionsLoaded=true;
- const box=$('film-discussions');box.textContent='Loading conversations…';
+ const box=$('film-discussions');
+ if(!member){box.textContent='Sign in to read film and TV conversations from Afterlogue members.';return;}
+ box.textContent='Loading conversations…';
  try{
   const {data,error}=await client.from('discussion_threads').select('id,title,created_at,has_spoilers')
    .eq('kind','title').eq('work_title',item.title).eq('work_type',isTV?'tv':'film')
