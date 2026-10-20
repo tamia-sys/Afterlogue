@@ -266,6 +266,31 @@
     }
   });
 
+  $('delete-conversation').addEventListener('click', async () => {
+    if (!user || !currentThread || currentThread.author_id !== user.id || busy) return;
+    if (!window.confirm('Delete this conversation? It will disappear from Discuss and its responses will no longer be accessible. This cannot be undone.')) return;
+    const button = $('delete-conversation');
+    busy = true;
+    button.disabled = true;
+    try {
+      // Soft deletion preserves referential integrity for existing replies and reports.
+      // RLS must permit authors to update their own threads.
+      const { data, error } = await client.from('discussion_threads')
+        .update({ is_hidden: true })
+        .eq('id', currentThread.id)
+        .eq('author_id', user.id)
+        .select('id,is_hidden')
+        .single();
+      if (error || !data?.is_hidden) throw error || Error('Deletion not confirmed');
+      window.location.assign('discuss.html');
+    } catch (error) {
+      console.error('Could not delete conversation', error);
+      window.alert('Could not delete this conversation. Please try again.');
+      button.disabled = false;
+      busy = false;
+    }
+  });
+
   $('report-conversation').addEventListener('click', () => {
     if (user && currentThread) $('report-dialog').showModal();
   });
@@ -312,6 +337,7 @@
       return;
     }
     renderThread(data);
+    $('delete-conversation').hidden = !user || data.author_id !== user.id;
     await loadReplies();
   } catch (error) {
     console.error('Loading a discussion failed', error);
