@@ -173,7 +173,7 @@ async function loadDiscussions(){
  box.textContent='Loading conversations…';
  try{
   const {data,error}=await client.from('discussion_threads').select('id,title,created_at,has_spoilers')
-   .eq('kind','title').eq('work_title',item.title).eq('work_type',isTV?'tv':'film')
+   .eq('kind','title').ilike('work_title',item.title).eq('work_type',isTV?'tv':'film')
    .eq('is_hidden',false).order('created_at',{ascending:false}).limit(12);
   if(error)throw error;box.replaceChildren();
   if(!data?.length){const p=document.createElement('p');p.className='film-watch-notice';p.textContent='No conversations for this title yet. You could start the first.';box.append(p);return;}
