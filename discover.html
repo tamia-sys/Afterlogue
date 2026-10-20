@@ -418,6 +418,8 @@ tv: [
 // A single shared scorer now ranks all 54 catalog titles rather than
 // awarding a flat bonus for three manually attached matches.
 let discoveryFavorites=[];
+let discoveryExpandedEntries=[];
+const discoveryFeaturedKeys=new Set(Object.keys(window.AfterlogueFeaturedCatalog||{}));
 let discoveryWatchlist=[];
 let discoverySeen=[];
 try{if(isGuestMode)discoverySeen=JSON.parse(localStorage.getItem("afterlogue.seen.guest.v1")||"[]");}catch(_){discoverySeen=[];}
@@ -430,14 +432,15 @@ const discoveryEntries=window.AfterlogueRecommendationEngine?.normalizeEntries(
 function getDiscoveryRecommendations(category, page = 0) {
   if (!window.AfterlogueRecommendationEngine) return discoveryLibrary[category].slice(page*5,page*5+5);
   const selected=window.AfterlogueRecommendationEngine.rank({
-    entries:discoveryEntries,category,impressions:savedImpressions,
+    entries:[...discoveryEntries,...discoveryExpandedEntries],category,impressions:savedImpressions,
     favorites:discoveryFavorites,watchlist:discoveryWatchlist,seen:discoverySeen
   });
   return selected.slice(page*5,page*5+5).map(item=>({
     ...item,
     reason:item.why,
     // Keep canonical IDs, particularly for titles whose display names contain punctuation.
-    catalogKey:item.key
+    catalogKey:item.key,
+    tmdb:item.tmdb||null
   }));
 }
 
@@ -584,6 +587,7 @@ bookmarkButton.addEventListener("click", async () => {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
 
+    if(item.tmdb)await window.AfterlogueCatalogMetadata.save(client,userData.user.id,{key:item.catalogKey,title:item.title,year:item.year,poster:item.poster});
     const { error } = await client
       .from("watchlist")
       .insert({
@@ -623,13 +627,13 @@ bookmarkButton.setAttribute(
  const actions = document.createElement("div");
  actions.className = "discovery-card-actions";
  const detailLink=document.createElement("a");
- detailLink.href="film-details.html?title="+encodeURIComponent(item.catalogKey||item.title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))+"&from=discover";
+ detailLink.href=item.tmdb?"film-details.html?tmdb="+item.tmdb.id+"&type="+item.tmdb.media+"&from=discover":"film-details.html?title="+encodeURIComponent(item.catalogKey||item.title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))+"&from=discover";
  detailLink.className="discovery-detail";
  detailLink.setAttribute("aria-label","View film details for "+item.title);
  detailLink.title="Film details";
  detailLink.textContent="ⓘ";
  // Shared stylesheet sets the icon sizing and spacing.
- actions.append(bookmarkButton,window.AfterlogueSeen.button({key:item.catalogKey||item.key,title:item.title,category}),detailLink);
+ actions.append(bookmarkButton,window.AfterlogueSeen.button({key:item.catalogKey||item.key,title:item.title,year:item.year,poster:item.poster,category}),detailLink);
 
  card.append(poster, title, year, actions);
  container.appendChild(card);
@@ -771,6 +775,47 @@ async function loadAccountImpressions() {
         ?.dataset.category || "movies";
 
     displayDiscoveryRecommendations(activeCategory);
+
+    // Broaden the eligible five without introducing unrelated popular titles.
+    // All fetched titles must be TMDB recommendations of personally liked works.
+    if(!isGuestMode){
+      const liked=impressions.filter(x=>["Loved","Liked"].includes(x.rating));
+      const ownMetadata=await client.from("user_catalog_titles").select("title_key,title,category").eq("user_id",userData.user.id);
+      const byName=new Map([
+        ...Object.entries(window.AfterlogueFeaturedCatalog||{}).map(([key,entry])=>[key,entry]),
+        ...(ownMetadata.data||[]).map(entry=>[entry.title_key,entry])
+      ]);
+      const api="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
+      const groups=await Promise.all(["movies","tv"].map(async kind=>{
+        const titles=liked.filter(x=>byName.get(x.title_key)?.category===kind)
+          .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved"))
+          .slice(0,3).map(x=>byName.get(x.title_key).title);
+        if(!titles.length)return [];
+        try{
+          const media=kind==="tv"?"tv":"movie";
+          const response=await fetch(api,{method:"POST",headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({mode:"recommend",media,titles})});
+          if(!response.ok)return [];
+          const data=await response.json();
+          const rated=new Set(impressions.map(x=>x.title_key));
+          const excluded=new Set([...discoverySeen,...discoveryWatchlist.map(x=>x.title_key),...rated]);
+          return (data.items||[]).filter(x=>x.poster&&x.synopsis&&x.matchCount>=1)
+            .map((x,i)=>{
+              const key="tmdb-"+x.media+"-"+x.id;
+              return {key,title:x.title,year:x.year,poster:x.poster,category:kind,
+                position:500+i,tmdb:{id:x.id,media:x.media},
+                reason:"Related to "+(x.matched||[]).join(", ")+".",
+                synopsis:x.synopsis,
+                directMatches:[],
+                facets:{themes:[],tones:[],pace:null,genres:(x.genres||[]).map(g=>g.toLowerCase())}
+              };
+            }).filter(x=>!excluded.has(x.key)&&!discoveryFeaturedKeys.has(x.key));
+        }catch(error){console.warn("Expanded recommendations unavailable",error);return [];}
+      }));
+      discoveryExpandedEntries=groups.flat();
+      discoveryPages.movies=0;discoveryPages.tv=0;
+      displayDiscoveryRecommendations(activeCategory,0);
+    }
 
     console.log("Afterlogue: Account impressions loaded.");
 
