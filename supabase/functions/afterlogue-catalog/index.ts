@@ -148,6 +148,119 @@ function narrativeMoodEvidence(mood:string,details:Record<string,unknown>,tag:st
  if(tag)return 'The film is tagged “'+tag+'” in the catalog.';
  return null;
 }
+
+/* Mood experience v1.
+ * Research-informed editorial rules, NOT a trained AI model or an objective
+ * psychological measurement of the film. Signals come from public plot
+ * descriptions, catalog topic tags and genre, not scraped review text.
+ *
+ * Distinguish "topic is present" from "the viewing experience matches".
+ * Never claim scene-level facts that do not appear in available evidence.
+ */
+type MoodAssessment={score:number;reason:string;lane:string;energy:string;fitVersion:string};
+function moodExperience(
+ mood:string,film:Record<string,unknown>,tagNames:string[],
+ pace:string,editorialReason:string|null
+):MoodAssessment{
+ const title=String(film.title||film.name||"");
+ const story=String(film.overview||"").toLowerCase();
+ const tags=tagNames.map(x=>x.toLowerCase());
+ const ids=(film.genres||[]).map((x:Record<string,unknown>)=>Number(x.id));
+ const tagged=(p:RegExp)=>tags.some(t=>p.test(t));
+ const has=(...g:number[])=>g.some(x=>ids.includes(x));
+ const cue=(p:RegExp)=>p.test(story);
+ let score=0,reason="",lane="other";
+ const signals:Array<{points:number;why:string;lane:string}>=[];
+ function add(on:boolean,points:number,why:string,group:string){
+  if(!on)return;
+  score+=points;
+  if(points>0&&why)signals.push({points,why,lane:group});
+ }
+ const bleak=cue(/\b(grief|mourning|tragic|tragedy|depression|depressed|devastat|suicid|hopeless|despair|terminal illness|mourning|abuse|brutal murder|domestic violence|dysfunction|estranged|family crisis)\b/i);
+ const frantic=cue(/\b(chaos|chaotic|heist|game goes wrong|goes awry|party game|nightclub|wild night|thrilling|adventure|chase|murder mystery|killer|race against time|hilarious|cat.and.mouse|survive the night|unexpected twist|out of control)\b/i);
+ const tender=cue(/\b(tender|bittersweet|gentle|intimate|reflective|quiet|contemplat|wistful|melanchol|everyday|ordinary life|slice of life|heartwarming|reconnect|self.discovery)\b/i);
+ const light=cue(/\b(comedy|comedic|funny|hilarious|playful|celebrat|uplifting|joyful|witty|adventure|laughter)\b/i);
+ if(mood==="yearning"){
+  add(cue(/\b(unrequited|forbidden|secret love|love across|lovers? separated|separated by|long.distance|apart|years apart|heartbreak|heartbroken|lost love|yearn|longing|impossible love|love against|reunite|cannot be together|struggle to be together|unfulfilled|not meant to be)\b/i),8,
+   "Distance or an obstacle between people gives this story genuine longing.","distance");
+  add(tagged(/\b(unrequited love|forbidden love|lost love|long distance relationship|unfulfilled love)\b/i),7,
+   "Its documented theme is love complicated by distance, loss or impossibility.","complicated love");
+  add(cue(/\b(lonel|isolation|isolated|unspoken|secret feelings|desire|miss(es|ing)? (him|her|them)|grapples? with (love|feelings)|cannot forget)\b/i),5,
+   "Unspoken feelings or isolation give the relationships emotional tension.","unspoken feelings");
+  add(tagged(/\bfirst love\b/i),5,
+   "The uncertainty and intensity of first love fit a yearning mood.","first love");
+  add(cue(/\b(falls? in love|falling in love|romance|romantic|relationship|affair)\b/i),1,
+   "A romance is present, but the synopsis alone does not establish longing.","romance");
+  add(has(10749),2,"","romance");
+  add(has(18),1,"","drama");
+  add(has(14,10751)&&!cue(/\b(unrequited|forbidden|separat|heartbreak|lost love|yearn)\b/i),-3,"","light fantasy");
+  // A simple date or happy relationship is not proof of yearning.
+  if(!signals.some(x=>x.points>=5))score-=4;
+ }else if(mood==="friday"){
+  add(frantic,5,
+   "An unpredictable, energetic premise suits an involving Friday-night watch.","high energy");
+  add(cue(/\b(party|night out|weekend|road trip|festival|concert|dance|club|wild night)\b/i),3,
+   "Its social or nighttime premise connects to the occasion.","night out");
+  add(tagged(/\b(heist|nightclub|party|road trip|concert|dance party|night out)\b/i),2,
+   "The story features a lively social outing or adventure.","social setting");
+  add(has(35),3,"A comic sensibility brings a playful option to movie night.","comedy");
+  add(has(28,12,53,27,9648,80),3,
+   "An action, suspense or mystery-driven story promises an involving watch.","suspense");
+  add(has(10402),2,"Music is part of the film's Friday-night appeal.","music");
+  add(bleak,-6,"","emotional heaviness");
+  add(has(18)&&!has(35,28,12,53,27,9648,10402),-5,"","solemn drama");
+  add(!frantic&&!light&&!has(35,28,12,53,27,9648,10402),-3,"","low energy");
+  if(!frantic&&!light&&!has(35,28,12,53,27,9648,10402))score-=2;
+ }else if(mood==="winding"){
+  add(tender,6,
+   "Its intimate or reflective storytelling fits a slower evening.","reflective");
+  add(tagged(/\b(slice of life|healing|everyday life|self discovery|feel.good)\b/i),5,
+   "Its everyday or restorative theme suits winding down.","everyday");
+  add(cue(/\b(friendship|community|small town|family bonds|simple pleasures|ordinary|quiet lives)\b/i),3,
+   "Small human connections anchor this gentler viewing experience.","human connection");
+  add(has(99,35),1,"","documentary or comedy");
+  add(bleak,-6,"","heavy");
+  add(has(27,53,28,80),-5,"","high intensity");
+  add(frantic,-3,"","frantic");
+  if(!tender&&!tagged(/\b(slice of life|healing|everyday life|feel.good)\b/i))score-=3;
+ }else if(mood==="fall"){
+  add(cue(/\b(autumn|fall season|harvest|halloween|pumpkin|falling leaves)\b/i),7,
+   "The story explicitly evokes autumn or Halloween.","autumn");
+  add(tagged(/\b(autumn|halloween|harvest|haunted house|witch|small town mystery)\b/i),5,
+   "Its seasonal or mysterious subject fits autumn viewing.","season");
+  add(cue(/\b(haunt|ghost|witch|spooky|creep|eerie|gothic|fog|mystery)\b/i),4,
+   "An eerie or mysterious atmosphere fits a fall night.","eerie");
+  add(has(9648,27,14),2,"","genre");
+  if(!signals.some(x=>x.points>=4))score-=4;
+ }else if(mood==="unexpected"){
+  add(cue(/\b(surreal|dream.like|alternate reality|parallel world|time travel|bizarre|absurd|experimental|unusual|strange phenomenon|reality shifts|body swap)\b/i),7,
+   "An unusual premise challenges expectations rather than repeating familiar stories.","unconventional");
+  add(tagged(/\b(surrealism|absurdism|time travel|alternate reality|experimental film|parallel universe)\b/i),6,
+   "An unconventional theme makes this a deliberate detour.","experimental");
+  add(has(878,14,9648,16),2,"","genre");
+  if(!signals.some(x=>x.points>=6))score-=4;
+ }else if(mood==="holidays"){
+  const evidence=holidayEvidence(film);
+  add(Boolean(evidence&&/\btitle\b/.test(evidence||"")),8,
+   evidence||"A holiday is central to the story's identity.","holiday lead");
+  add(Boolean(evidence&&/synopsis/.test(evidence||"")),4,
+   evidence||"The story is set around a holiday.","holiday setting");
+  add(tagged(/\b(christmas|thanksgiving|hanukkah|diwali|new year|halloween|valentine|easter|leap day|lunar new year)\b/i),3,
+   "Its documented theme is tied to a specific holiday.","holiday subject");
+  add(Boolean(editorialReason),8,editorialReason||"","curated seasonal viewing");
+  if(!evidence&&!editorialReason)score=-100;
+  if(Number(film.id)===9475)score-=10; // Scent of a Woman: incidental holiday, not the viewing premise.
+ }
+ // Pace answers should shape ranking without overriding mood relevance.
+ if(pace==="slow")score+=tender?2:frantic?-3:0;
+ if(pace==="energetic")score+=frantic?3:tender?-2:0;
+ // Prefer a strong narrative cue over a generic genre-only explanation.
+ const best=signals.sort((a,b)=>b.points-a.points)[0];
+ reason=best?.why||"The story has a documented connection to this mood.";
+ lane=best?.lane||"other";
+ // Public score helps editorial QA; never present it as an objective rating.
+ return {score,reason,lane,energy:frantic?"high":tender?"low":"uncertain",fitVersion:"editorial-v1"};
+}
 const HOLIDAY_GROUPS:string[][]=[
  ["christmas","christmas eve","christmas holiday","santa claus"],
  ["thanksgiving","new year's eve","new year"],
