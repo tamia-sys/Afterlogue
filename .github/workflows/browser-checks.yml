@@ -2,6 +2,20 @@ name: Afterlogue Browser Checks
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/**'
+      - '.github/workflows/browser-checks.yml'
+      - 'package.json'
+      - 'playwright.config.cjs'
+      - 'catalog-browser.js'
+      - 'explore.html'
+      - 'explore-facets.js'
+      - 'film-details.html'
+      - 'film-details.js'
+      - 'signup.html'
+      - 'supabase/functions/afterlogue-catalog/index.ts'
 
 permissions:
   contents: read
