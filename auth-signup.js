@@ -141,8 +141,8 @@ async function resumeSession(){
   await memberDestination(data.session.user,false);
  }catch(error){
   console.warn("Afterlogue: Unable to resume authentication.",String(error?.code||"session unavailable"));
-  inform("We couldn't finish opening your account automatically. Please sign in to continue.","error");
   setMode("signin");
+  inform("We couldn't finish opening your account automatically. Please sign in to continue.","error");
  }
 }
 resumeSession();
