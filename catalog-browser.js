@@ -6,8 +6,8 @@ const $=id=>document.getElementById(id);
 const panel=$("afterlogue-global-catalog");
 if(!panel)return;
 const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
-let media="movie",page=1,pages=1,term="",genre="",decade="",sort="popular",timer=null,serial=0,configured=false;
-const input=$("catalog-search"),genreBox=$("catalog-genre"),decadeBox=$("catalog-decade"),sortBox=$("catalog-sort");
+let media="movie",page=1,pages=1,term="",genre="",country="",language="",decade="",sort="popular",timer=null,serial=0,configured=false;
+const input=$("catalog-search"),genreBox=$("catalog-genre"),countryBox=$("catalog-country"),languageBox=$("catalog-language"),decadeBox=$("catalog-decade"),sortBox=$("catalog-sort");
 const stateKey="afterlogue.explore.all-films.v1";
 const params=new URLSearchParams(location.search);
 function readState(){
@@ -18,14 +18,16 @@ function readState(){
   page=Number.isInteger(record.page)?Math.max(1,Math.min(100,record.page)):1;
   term=typeof record.term==="string"?record.term.slice(0,100):"";
   genre=typeof record.genre==="string"?record.genre:"";
+  country=typeof record.country==="string"?record.country:"";
+  language=typeof record.language==="string"?record.language:"";
   decade=typeof record.decade==="string"?record.decade:"";
   sort=["popular","newest","oldest"].includes(record.sort)?record.sort:"popular";
   $("catalog-media").value=media;input.value=term;
-  genreBox.value=genre;decadeBox.value=decade;sortBox.value=sort;
+  genreBox.value=genre;countryBox.value=country;languageBox.value=language;decadeBox.value=decade;sortBox.value=sort;
  }catch(_){}
 }
 function rememberState(){
- try{sessionStorage.setItem(stateKey,JSON.stringify({media,page,term,genre,decade,sort}));}catch(_){}
+ try{sessionStorage.setItem(stateKey,JSON.stringify({media,page,term,genre,country,language,decade,sort}));}catch(_){}
 }
 async function readiness(){
  try{const r=await fetch(endpoint+"?status=1");const data=await r.json();return Boolean(r.ok&&data.ready);}catch(_){return false;}
@@ -59,7 +61,7 @@ async function load(){
  const isSearch=term.trim().length>=2;
  $("catalog-message").textContent="Finding stories…";
  try{
-  const result=await request({mode:isSearch?"search":"discover",query:term.trim(),media,page,genre,decade:Number(decade)||null,sort});
+  const result=await request({mode:isSearch?"search":"discover",query:term.trim(),media,page,genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
   if(id!==serial)return;
   pages=result.totalPages||1;render(result.items||[]);
   $("catalog-message").textContent=(result.totalResults||0).toLocaleString()+" titles · Page "+page+" of "+pages;
@@ -105,7 +107,7 @@ input.addEventListener("input",()=>{
   $("catalog-pagination").hidden=true;
   timer=setTimeout(load,350);
 });
-[genreBox,decadeBox,sortBox].forEach(el=>el.addEventListener("change",()=>{genre=genreBox.value;decade=decadeBox.value;sort=sortBox.value;page=1;load();}));
+[genreBox,countryBox,languageBox,decadeBox,sortBox].forEach(el=>el.addEventListener("change",()=>{genre=genreBox.value;country=countryBox.value;language=languageBox.value;decade=decadeBox.value;sort=sortBox.value;page=1;load();}));
 $("catalog-prev").addEventListener("click",()=>{if(page>1){page--;load();}});
 $("catalog-next").addEventListener("click",()=>{if(page<pages){page++;load();}});
 readState();
