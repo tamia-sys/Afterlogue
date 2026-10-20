@@ -6,7 +6,7 @@ const status=$('profile-status');
 const fallback=$('avatar-preview').src;
 let user,originalPath=null,removeAvatar=false,selectedFile=null,selectedPreset=null;
 const position=n=>({x:((n-1)%4)*100/3,y:Math.floor((n-1)/4)*50});
-function previewPreset(n){const p=position(n),el=$('avatar-preview');el.classList.add('is-preset');el.style.backgroundPosition=p.x+'% '+p.y+'%';el.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';}
+function previewPreset(n){const p=position(n),el=$('avatar-preview');el.classList.add('is-preset');el.style.backgroundPosition=p.x+'% '+p.y+'%';el.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221%22 height=%221%22/%3E';}
 function clearPreset(){const el=$('avatar-preview');el.classList.remove('is-preset');el.style.backgroundPosition='';}
 function choosePreset(n){selectedPreset=n;selectedFile=null;removeAvatar=false;$('avatar-file').value='';previewPreset(n);document.querySelectorAll('.avatar-option').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.preset)===n)));message('Avatar selected. Save changes to keep it.');}
 for(let n=1;n<=12;n++){const b=document.createElement('button');b.type='button';b.className='avatar-option';b.dataset.preset=n;b.setAttribute('aria-label','Choose Afterlogue avatar '+n);b.setAttribute('aria-pressed','false');const art=document.createElement('span');art.className='avatar-art';const p=position(n);art.style.backgroundPosition=p.x+'% '+p.y+'%';b.append(art);b.addEventListener('click',()=>choosePreset(n));$('avatar-grid').append(b);}
