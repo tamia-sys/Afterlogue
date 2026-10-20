@@ -18,7 +18,7 @@ if(!catalog[key]){
  if(fromName)key=fromName;
 }
 const item=catalog[key];
-const rich=editorial[key]||{};
+const rich={...(window.AfterlogueFilmBasics?.[key]||{}),...(editorial[key]||{})};
 const fromExplore=exploration.find(t=>slug(t.title)===key);
 const fallbackText='Explore this title, save it to your personal Watchlist, or join a conversation about what it means to you.';
 if(!item){$('film-loading').textContent='This title is not yet part of the Afterlogue catalog. Return to Discover to find another story.';return;}
