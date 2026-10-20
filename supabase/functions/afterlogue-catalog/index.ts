@@ -163,6 +163,20 @@ const SEASONAL_FEATURES:Record<number,{event:string;reason:string}>={
 function exactCodes(x:unknown):string[]{
  return Array.isArray(x)?x.filter((v:unknown)=>typeof v==="string").map(String):[];
 }
+const US_FILM_RATINGS=["G","PG","PG-13","R","NC-17"];
+const US_TV_RATINGS=["TV-Y","TV-Y7","TV-G","TV-PG","TV-14","TV-MA"];
+function usCertification(details:Record<string,unknown>,media:Media):string|null{
+ if(media==="movie"){
+  const countries=details.release_dates?.results||[];
+  const us=countries.find((x:Record<string,unknown>)=>x.iso_3166_1==="US");
+  const candidates=(us?.release_dates||[]).map((x:Record<string,unknown>)=>String(x.certification||"").trim().toUpperCase());
+  return candidates.find((x:string)=>US_FILM_RATINGS.includes(x))||null;
+ }
+ const us=(details.content_ratings?.results||[])
+  .find((x:Record<string,unknown>)=>x.iso_3166_1==="US");
+ const rating=String(us?.rating||"").trim().toUpperCase();
+ return US_TV_RATINGS.includes(rating)?rating:null;
+}
 function listItem(entry: Record<string,unknown>,media:Media){
   return {
     id:entry.id, media, title:media==="tv"?entry.name:entry.title,
@@ -342,6 +356,7 @@ Deno.serve(async (req:Request) => {
       const languages=facet("languages",v=>languageCodes.has(v));
       const genres=facet("genres",v=>Boolean(categoryGenres[v]));
       const decades=facet("decades",v=>/^(19[3-9]0|20[0-2]0)$/.test(v));
+      const ratings=facet("ratings",v=>[...US_FILM_RATINGS,...US_TV_RATINGS].includes(v));
       const pace=["slow","medium","energetic"].includes(String(input.pace||""))
         ?String(input.pace):"medium";
       const excluded=new Set((Array.isArray(input.excludeIds)?input.excludeIds:[])
@@ -435,9 +450,15 @@ Deno.serve(async (req:Request) => {
       const queue=selected.slice(0,56);
       const verified:Array<ReturnType<typeof listItem>&{moodReason:string;matchedFilters:string[]}>= [];
       async function verifyOne(v:Record<string,unknown>){
-        const p=new URLSearchParams({language:"en-US",append_to_response:"keywords"});
+        const p=new URLSearchParams({language:"en-US",append_to_response:media==="movie"?"keywords,release_dates":"keywords,content_ratings"});
         if(excluded.has(Number(v.id)))return;
         const details=await tmdb("/"+media+"/"+Number(v.id),p,token);
+        const certification=usCertification(details,media);
+        if(ratings.length&&!certification)return;
+        if(ratings.length&&!ratings.includes(certification!))return;
+        // Friday-night browsing should not default to children's television
+        // or G/PG cinema unless those ratings were deliberately selected.
+        if(mood==="friday"&&!ratings.length&&["G","PG","TV-Y","TV-Y7","TV-G","TV-PG"].includes(certification||""))return;
         const dateString=String(media==="movie"?details.release_date:details.first_air_date||"");
         if(!dateString||dateString>now||details.adult)return;
         if(media==="movie"){
@@ -472,8 +493,9 @@ Deno.serve(async (req:Request) => {
         if(languages.length)matching.push("Language: "+details.original_language);
         if(genres.length)matching.push("Genre: "+genres.filter(g=>detailGenreIds.includes(categoryGenres[g])).join(" or "));
         if(decades.length&&year)matching.push("Decade: "+Math.floor(year/10)*10+"s");
+        if(ratings.length&&certification)matching.push("US rating: "+certification);
         verified.push({
-          ...listItem({...details,genre_ids:detailGenreIds},media),moodReason:reason,
+          ...listItem({...details,genre_ids:detailGenreIds},media),certification,moodReason:reason,
           matchedFilters:matching
         });
       }
@@ -540,7 +562,7 @@ Deno.serve(async (req:Request) => {
         items:verified.slice(0,24),
         note:verified.length?"These stories have a verified thematic reason and match your filters."
           :"No fresh matches found in this part of the catalog. Try searching further or broaden your choices.",
-        filters:{genres,countries,languages,decades},excludedCount:excluded.size
+        filters:{genres,countries,languages,decades,ratings},excludedCount:excluded.size
       });
     }
     // Cross-title recommendations, anchored exclusively in titles the viewer liked.
@@ -577,7 +599,7 @@ Deno.serve(async (req:Request) => {
       const id=Number(input.id);
       if(!Number.isInteger(id)||id<=0||id>100000000)return response({error:"Invalid title ID"},400);
       params.delete("page");
-      params.set("append_to_response","credits,videos,images");
+      params.set("append_to_response",media==="movie"?"credits,videos,images,release_dates":"credits,videos,images,content_ratings");
       params.set("include_image_language","en,null");
       const data=await tmdb("/"+media+"/"+id,params,token);
       if(data.adult)return response({error:"Title not available"},404);
@@ -594,7 +616,7 @@ Deno.serve(async (req:Request) => {
         .slice(0,8).map((p:Record<string,unknown>)=>safePicture(p.file_path,"w1280")).filter(Boolean);
       return response({
         ...listItem({...data, genre_ids:(data.genres||[]).map((g:Record<string,unknown>)=>g.id)},media),
-        director,creator,cast,crew,
+        director,creator,cast,crew,certification:usCertification(data,media),
         country:(data.production_countries||[]).map((p:Record<string,unknown>)=>p.name).join(" · ")||
           (data.origin_country||[]).join(" · "),
         language:(data.spoken_languages||[]).map((p:Record<string,unknown>)=>p.english_name).slice(0,3).join(" · ")||data.original_language||null,
