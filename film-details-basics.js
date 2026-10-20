@@ -666,7 +666,21 @@ window.AfterlogueFilmBasics = Object.freeze({
     "synopsis": "After demons destroy his family, Tanjiro trains as a swordsman to protect others and find a way to restore his sister's humanity.",
     "runtime": "Series",
     "country": "Japan",
-    "language": "Japanese · English"
+    "language": "Japanese · English",
+    "cast": [
+      [
+        "Natsuki Hanae",
+        "Tanjiro Kamado (Japanese voice)"
+      ],
+      [
+        "Akari Kitō",
+        "Nezuko Kamado (Japanese voice)"
+      ],
+      [
+        "Hiro Shimono",
+        "Zenitsu Agatsuma (Japanese voice)"
+      ]
+    ]
   },
   "avatar-the-last-airbender": {
     "creator": "Michael Dante DiMartino · Bryan Konietzko",
@@ -695,7 +709,8 @@ window.AfterlogueFilmBasics = Object.freeze({
     "synopsis": "A group of single contestants lives together in a villa, forming romantic pairings while facing recouplings, challenges and public votes.",
     "runtime": "Reality series",
     "country": "United States",
-    "language": "English"
+    "language": "English",
+    "castNote": "Contestants change each season; there is no fixed ensemble cast."
   },
   "criminal-minds": {
     "creator": "Jeff Davis",
@@ -747,7 +762,21 @@ window.AfterlogueFilmBasics = Object.freeze({
     "synopsis": "Brothers Edward and Alphonse Elric seek the Philosopher's Stone to restore what they lost after attempting forbidden alchemy.",
     "runtime": "Series",
     "country": "Japan",
-    "language": "Japanese · English"
+    "language": "Japanese · English",
+    "cast": [
+      [
+        "Romi Park",
+        "Edward Elric (Japanese voice)"
+      ],
+      [
+        "Rie Kugimiya",
+        "Alphonse Elric (Japanese voice)"
+      ],
+      [
+        "Shinichiro Miki",
+        "Roy Mustang (Japanese voice)"
+      ]
+    ]
   },
   "station-eleven": {
     "creator": "Patrick Somerville",
