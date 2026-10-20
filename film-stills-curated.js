@@ -39,5 +39,25 @@ window.AfterlogueCuratedStills=Object.freeze({
     "https://assets.upflix.pl/media/n/69616/2023/z29407704ampfrankie-corio-i-paul-mescal-w-filmie-aftersun_1.jpg",
     "https://images.squarespace-cdn.com/content/v1/56047552e4b00047c4e83900/1ee282a0-0ea0-46fa-b4ec-ba2d552aad60/Aftersun_2.jpg",
     "https://media.meer.com/attachments/7ae8e266311fcb61be79f2771dc2acb0965c5c7d/store/fill/860/645/6f118fc43ecd6b620b6cdea0754c11772ab3cfd03969f5ac878642880be2/Atores-principais-do-filme-Aftersun-interpretando-pai-e-filha-em-um-dialogo-na-praia.jpg"
+  ],
+  "mean-girls": [
+    "https://hips.hearstapps.com/digitalspyuk.cdnds.net/18/04/1516892704-mean-girls-cafeteria-kalteen-bar.jpg?crop=0.852xw%3A1.00xh%3B0.0442xw%2C0&resize=980%3A%2A",
+    "https://media.altpress.com/fkdgxpscnt/styles/article-hero/2019/04/06/Mean-Girls-15.jpg.webp?t=86b8df21.webp",
+    "https://imgix.bustle.com/uploads/image/2020/11/16/01e593a0-4d7a-4a67-928f-9ae338d3e826-screen-shot-2020-11-16-at-10823-pm.png?crop=faces&dpr=2&fit=crop&h=408&w=800"
+  ],
+  "little-miss-sunshine": [
+    "https://m.media-amazon.com/images/M/MV5BOTU2Mzc1NDE3Nl5BMl5BanBnXkFtZTcwMTc0NjE5NA%40%40._V1_.jpg",
+    "https://m.media-amazon.com/images/M/MV5BMmZjOWUzYzItZGY5Mi00YTAyLWJmNzUtYjk1MjhhOGQ5NzBhXkEyXkFqcGc%40._V1_.jpg",
+    "https://static.wixstatic.com/media/3583a7_27b45b7e9c474d09a38c9a5ef80813ee~mv2.jpg/v1/fill/w_640%2Ch_427%2Cal_c%2Cq_80%2Cenc_avif%2Cquality_auto/3583a7_27b45b7e9c474d09a38c9a5ef80813ee~mv2.jpg"
+  ],
+  "ex-machina": [
+    "https://s.hdnux.com/photos/60/45/02/12734608/6/rawImage.jpg",
+    "https://ekladata.com/Ib-HHA1Rf3ieiNi0LbWlBPiOEBg.png",
+    "https://pics.filmaffinity.com/Ex_Machina-135735349-large.jpg"
+  ],
+  "spirited-away": [
+    "https://www.cinematheque-nice.com/media/cache/fiche_film/uploads/films/Le%20Voyage%20de%20Chihiro%20%C2%A9%20DR%20Studio%20Ghibli%20.jpg",
+    "https://dam.mediacorp.sg/image/upload/s--9XGZuQV5--/c_fill%2Cg_auto%2Ch_523%2Cw_693/f_auto%2Cq_auto/spirited-away.jpg?itok=3-PWlvid",
+    "https://idsb.tmgrup.com.tr/ly/uploads/images/2022/10/13/235643.jpg"
   ]
 });
