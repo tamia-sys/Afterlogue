@@ -48,4 +48,53 @@ async function search(){
 }
 function schedule(){clearTimeout(timer);++serial;timer=setTimeout(search,340);}
 input.addEventListener('input',schedule);format.addEventListener('change',()=>{result.replaceChildren();schedule();});
+/* The original cards are a fallback only. Each onboarding gets a broad,
+   stable-to-visitor choice of real releases across different genres. */
+const seedKey='afterlogue.first.impressions.seed.v2';
+let seed=sessionStorage.getItem(seedKey);
+if(!seed){seed=String(Math.floor(Math.random()*1e9));sessionStorage.setItem(seedKey,seed);}
+const loading=new Set();
+async function populate(media,sectionId){
+ const parent=document.querySelector(sectionId);
+ if(!parent)return;
+ const grid=parent.querySelector('.log-film-grid');
+ const heading=parent.querySelector('.log-section-heading span');
+ if(!grid)return;
+ try{
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({mode:'onboarding',media,seed})});
+  if(!response.ok)throw Error('Onboarding catalog unavailable');
+  const payload=await response.json();
+  const items=(payload.items||[]).filter(item=>item.poster).slice(0,12);
+  if(items.length<6)throw Error('Insufficient titles');
+  const cards=items.map(item=>{
+   const key=keyFor(item),card=document.createElement('article');card.className='impressions-more-card';
+   card.dataset.tmdbKey=key;
+   const picture=document.createElement('img');picture.loading='lazy';picture.alt=item.title+' poster';picture.src=item.poster;
+   const name=document.createElement('h4');name.textContent=item.title;
+   const year=document.createElement('p');year.textContent=String(item.year||'');
+   const buttons=document.createElement('div');buttons.className='impressions-more-ratings';
+   for(const rating of ['Loved','Liked','Okay','Not for me']){
+    const button=document.createElement('button');button.type='button';button.textContent=rating;
+    button.setAttribute('aria-pressed',String(localStorage.getItem('afterlogue-'+key)===rating));
+    button.addEventListener('click',()=>{
+     localStorage.setItem('afterlogue-'+key,rating);
+     localStorage.setItem('afterlogue.onboarding.tmdb.'+key,JSON.stringify({
+      key,title:item.title,year:item.year,poster:item.poster,category:media==='tv'?'tv':'movies'
+     }));
+     buttons.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+    });
+    buttons.append(button);
+   }
+   card.append(picture,name,year,buttons);
+   return card;
+  });
+  grid.replaceChildren(...cards);
+  if(heading)heading.textContent=items.length+' TITLES · SELECTED FOR THIS VISIT';
+ }catch(error){
+  console.warn('Using featured first impressions as a fallback',error);
+ }
+}
+Promise.allSettled([populate('movie','#films'),populate('tv','#television')]);
+
 })();
