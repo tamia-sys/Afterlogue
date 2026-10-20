@@ -99,6 +99,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=6"></script>
+<script src="featured-catalog.js?v=1"></script>
+<script src="explore-data.js?v=2"></script>
+<script src="film-details-data.js?v=2"></script>
+<script src="film-details-basics.js?v=2"></script>
+<script src="recommendation-engine.js?v=1"></script>
 <script>
   
 const isGuestMode =
@@ -407,35 +412,28 @@ tv: [
   ]
 };
 
+// A single shared scorer now ranks all 54 catalog titles rather than
+// awarding a flat bonus for three manually attached matches.
+let discoveryFavorites=[];
+let discoveryWatchlist=[];
+const discoveryEntries=window.AfterlogueRecommendationEngine?.normalizeEntries(
+  window.AfterlogueFeaturedCatalog||{},
+  window.afterlogueExploreData?.titles||[],
+  window.AfterlogueFilmDetails||{},
+  window.AfterlogueFilmBasics||{}
+)||[];
 function getDiscoveryRecommendations(category, page = 0) {
-  return discoveryLibrary[category]
-    .filter(item => {
-      const titleKey = item.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
-
-      return !["Loved", "Liked", "Okay", "Not for me"].includes(
-        savedImpressions["afterlogue-" + titleKey]
-      );
-    })
-    .map(item => {
-
-      let score = 0;
-
-      item.matches.forEach(title => {
-        const rating = savedImpressions["afterlogue-" + title];
-
-        if (rating === "Loved") score += 3;
-        if (rating === "Liked") score += 2;
-        if (rating === "Okay") score += 0;
-        if (rating === "Not for me") score -= 2;
-      });
-
-      return { ...item, score };
-    })
-   .sort((a, b) => b.score - a.score)
-.slice(page * 5, page * 5 + 5);
+  if (!window.AfterlogueRecommendationEngine) return discoveryLibrary[category].slice(page*5,page*5+5);
+  const selected=window.AfterlogueRecommendationEngine.rank({
+    entries:discoveryEntries,category,impressions:savedImpressions,
+    favorites:discoveryFavorites,watchlist:discoveryWatchlist
+  });
+  return selected.slice(page*5,page*5+5).map(item=>({
+    ...item,
+    reason:item.why,
+    // Keep canonical IDs, particularly for titles whose display names contain punctuation.
+    catalogKey:item.key
+  }));
 }
 
 function displayDiscoveryRecommendations(category, page = 0) {
@@ -620,7 +618,7 @@ bookmarkButton.setAttribute(
  const actions = document.createElement("div");
  actions.className = "discovery-card-actions";
  const detailLink=document.createElement("a");
- detailLink.href="film-details.html?title="+encodeURIComponent(item.title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))+"&from=discover";
+ detailLink.href="film-details.html?title="+encodeURIComponent(item.catalogKey||item.title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))+"&from=discover";
  detailLink.className="discovery-detail";
  detailLink.setAttribute("aria-label","View film details for "+item.title);
  detailLink.title="Film details";
@@ -728,6 +726,15 @@ async function loadAccountImpressions() {
       .from("impressions")
       .select("title_key, rating")
       .eq("user_id", userData.user.id);
+    // Favorites give a modest positive signal; watchlist items aren't re-recommended.
+    const [favoriteResult,watchlistResult]=await Promise.all([
+      client.from("log_entries").select("title_key").eq("user_id",userData.user.id).eq("is_favorite",true),
+      client.from("watchlist").select("title_key").eq("user_id",userData.user.id)
+    ]);
+    if(favoriteResult.error)console.warn("Recommendation favorites unavailable",favoriteResult.error);
+    if(watchlistResult.error)console.warn("Recommendation watchlist unavailable",watchlistResult.error);
+    discoveryFavorites=favoriteResult.data||[];
+    discoveryWatchlist=watchlistResult.data||[];
 
     if (error) throw error;
 
