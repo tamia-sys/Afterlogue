@@ -271,55 +271,46 @@ Deno.serve(async (req:Request) => {
     }
     if(mode==="mood"){
       const mood=String(input.mood||"yearning");
-      const config=GENRE_MOODS[mood];
-      if(!config)return response({error:"Unknown mood"},400);
-      const availableCountries=new Set(["US","GB","CA","AU","FR","DE","IT","ES","MX","BR","AR","CO","IN","JP","KR","CN","TW","TH","PH","ID","NG","ZA","TR","SE","NO","DK","NL","PL","EG","NZ"]);
-      const availableLanguages=new Set(["en","es","fr","de","it","pt","hi","ta","te","bn","ja","ko","zh","th","tl","id","tr","ar","ru","nl","sv","no","da","pl","vi","ml"]);
-      const availableGenres=media==="movie"?GENRES:TV_GENRES;
-      const facet=(key:string,allowed:(v:string)=>boolean):string[] =>
-        Array.isArray(input[key])?[...new Set(input[key].filter((v:unknown)=>typeof v==="string")
-          .slice(0,10).map(String).filter(allowed))].slice(0,6):[];
-      const countries=facet("countries",v=>availableCountries.has(v));
-      const languages=facet("languages",v=>availableLanguages.has(v));
-      const genres=facet("genres",v=>Boolean(availableGenres[v]));
+      if(!MOOD_TOPICS[mood])return response({error:"Unknown mood"},400);
+      const countryCodes=new Set(["US","GB","CA","AU","FR","DE","IT","ES","MX","BR","AR","CO","IN","JP","KR","CN","TW","TH","PH","ID","NG","ZA","TR","SE","NO","DK","NL","PL","EG","NZ"]);
+      const languageCodes=new Set(["en","es","fr","de","it","pt","hi","ta","te","bn","ja","ko","zh","th","tl","id","tr","ar","ru","nl","sv","no","da","pl","vi","ml"]);
+      const categoryGenres=media==="movie"?GENRES:TV_GENRES;
+      const facet=(key:string,check:(x:string)=>boolean):string[]=>
+        Array.isArray(input[key])?[...new Set(input[key].filter((x:unknown)=>typeof x==="string").map(String).filter(check))].slice(0,6):[];
+      const countries=facet("countries",v=>countryCodes.has(v));
+      const languages=facet("languages",v=>languageCodes.has(v));
+      const genres=facet("genres",v=>Boolean(categoryGenres[v]));
       const decades=facet("decades",v=>/^(19[3-9]0|20[0-2]0)$/.test(v));
-      const moodBuckets=config[media];
-      const seed=hashSeed(String(input.seed??"0").slice(0,64)+":"+media+":"+mood);
-      const offset=number(input.offset,0,30,0);
-      const todaysDate=new Date().toISOString().slice(0,10);
-      const n=Math.min(8,Math.max(moodBuckets.length,countries.length*languages.length,decades.length*2));
-      const batches=await Promise.allSettled(Array.from({length:n},async (_,i)=>{
-        const bucket=moodBuckets[(i+offset)%moodBuckets.length];
-        const c=countries.length?countries[(i+offset)%countries.length]:null;
-        const l=languages.length?languages[(Math.floor(i/Math.max(1,countries.length))+offset)%languages.length]:null;
-        const d=decades.length?Number(decades[(Math.floor(i/Math.max(1,countries.length*languages.length))+offset)%decades.length]):null;
-        const p=new URLSearchParams({
-          language:"en-US",include_adult:"false",
-          sort_by:"popularity.desc",page:String(1+((seed+i*3+offset*5)%4)),
-          "vote_count.gte":String(media==="movie"?70:35)
+      const ids=await moodKeywordIds(mood,token);
+      if(!ids.length)return response({mood,items:[],note:"No verified mood tags are currently available."});
+      const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,30,0);
+      const total=Math.min(10,Math.max(4,countries.length*languages.length,decades.length*2));
+      const jobs=await Promise.allSettled(Array.from({length:total},async (_,i)=>{
+        const country=countries.length?countries[(i+offset)%countries.length]:null;
+        const language=languages.length?languages[(Math.floor(i/Math.max(1,countries.length))+offset)%languages.length]:null;
+        const decade=decades.length?Number(decades[(Math.floor(i/Math.max(1,countries.length*languages.length))+offset)%decades.length]):null;
+        const params=new URLSearchParams({
+          language:"en-US",include_adult:"false",sort_by:"popularity.desc",
+          page:String(1+Math.floor((i+offset)/Math.max(1,total/2))%2),
+          "vote_count.gte":String(media==="movie"?30:20),
+          with_keywords:ids.join("|")
         });
-        // TMDB uses "|" for OR. Genre selections refine the mood rather
-        // than displacing it: results must still overlap with the mood.
-        p.set("with_genres",genres.length?genres.map(name=>availableGenres[name]).join("|"):bucket.join("|"));
-        if(c)p.set("with_origin_country",c);
-        if(l)p.set("with_original_language",l);
-        if(d){
-          p.set(media==="movie"?"primary_release_date.gte":"first_air_date.gte",d+"-01-01");
-          p.set(media==="movie"?"primary_release_date.lte":"first_air_date.lte",
-            Math.min(d+9,Number(todaysDate.slice(0,4)))+"-12-31");
-        }else{
-          p.set(media==="movie"?"primary_release_date.lte":"first_air_date.lte",todaysDate);
-        }
-        const data=await tmdb("/discover/"+media,p,token);
-        return (data.results||[]).filter((v:Record<string,unknown>)=>{
-          if(!eligible(v,media,media==="movie"?70:35))return false;
-          const ids=Array.isArray(v.genre_ids)?v.genre_ids.map(Number):[];
-          const moodGenres=new Set(moodBuckets.flat());
-          if(genres.length&&!ids.some(x=>moodGenres.has(x)))return false;
-          if(genres.length&&!genres.some(name=>ids.includes(availableGenres[name])))return false;
-          if(l&&v.original_language!==l)return false;
-          if(media==="tv"&&c&&!Array.isArray(v.origin_country))return false;
-          if(media==="tv"&&c&&!v.origin_country.includes(c))return false;
+        if(genres.length)params.set("with_genres",genres.map(name=>categoryGenres[name]).join("|"));
+        if(country)params.set("with_origin_country",country);
+        if(language)params.set("with_original_language",language);
+        const prefix=media==="movie"?"primary_release_date":"first_air_date";
+        if(decade){
+          params.set(prefix+".gte",decade+"-01-01");
+          params.set(prefix+".lte",Math.min(decade+9,Number(now.slice(0,4)))+"-12-31");
+        }else params.set(prefix+".lte",now);
+        const payload=await tmdb("/discover/"+media,params,token);
+        return (payload.results||[]).filter((v:Record<string,unknown>)=>{
+          if(!eligible(v,media,media==="movie"?30:20))return false;
+          const genreIds=Array.isArray(v.genre_ids)?v.genre_ids.map(Number):[];
+          if(genres.length&&!genres.some(g=>genreIds.includes(categoryGenres[g])))return false;
+          if(language&&v.original_language!==language)return false;
+          if(media==="tv"&&countries.length&&(!Array.isArray(v.origin_country)||
+            !v.origin_country.some((c:string)=>countries.includes(c))))return false;
           if(decades.length){
             const year=yearOf(media==="movie"?v.release_date:v.first_air_date);
             if(!year||!decades.includes(String(Math.floor(year/10)*10)))return false;
@@ -327,20 +318,20 @@ Deno.serve(async (req:Request) => {
           return true;
         });
       }));
-      const successful=batches.filter((x):x is PromiseFulfilledResult<Record<string,unknown>[]>=>
-        x.status==="fulfilled");
-      if(!successful.length)return response({error:"catalogue_unavailable",message:"Mood titles temporarily unavailable."},502);
-      const groups=successful.map(x=>x.value),known=new Set<number>(),items:Record<string,unknown>[]=[];
+      const groups=jobs.filter((x):x is PromiseFulfilledResult<Record<string,unknown>[]>=>x.status==="fulfilled").map(x=>x.value);
+      if(!groups.length)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
+      const seen=new Set<number>(),selected:Record<string,unknown>[]=[];
       for(let index=0;index<20;index++){
         for(const group of groups){
-          const v=group[index];
-          if(!v||known.has(Number(v.id)))continue;
-          known.add(Number(v.id));items.push(v);
+          const entry=group[index];
+          if(!entry||seen.has(Number(entry.id)))continue;
+          seen.add(Number(entry.id));selected.push(entry);
         }
       }
       return response({
-        mood,items:items.slice(0,60).map(v=>listItem(v,media)),
-        note:config.caption,
+        mood,matching:"topic-keywords",
+        items:selected.slice(0,50).map(v=>({...listItem(v,media),moodReason:MOOD_TOPICS[mood].reason})),
+        note:selected.length?"Mood-tagged stories matching your choices.":"No genuinely mood-related titles match this combination. Try fewer filters.",
         filters:{genres,countries,languages,decades}
       });
     }
