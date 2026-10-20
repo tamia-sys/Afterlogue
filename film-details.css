@@ -68,3 +68,23 @@ body.film-detail-page .site-header{background:#101113}
 .film-hidden{display:none!important}
 @media(max-width:790px){.film-hero{grid-template-columns:1fr;gap:23px;margin-bottom:26px}.film-hero-art{height:min(62vw,370px)}.film-title{font-size:clamp(39px,8vw,58px)}.film-overview-grid{grid-template-columns:1fr}.film-facts{max-width:460px}.film-tabs{gap:25px}}
 @media(max-width:480px){.film-detail-shell{padding:0 17px 65px}.film-detail-return{margin:18px 0}.film-hero-art{height:220px}.film-hero-copy{padding:0}.film-hero-actions{gap:8px}.film-action{min-height:39px;padding:0 13px;font-size:11px}.film-photo-rail{gap:6px}.film-tabs{gap:18px}.film-tab{font-size:12px}.film-credits-grid{grid-template-columns:1fr}.film-other-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}}
+
+/* Film details editorial refinements */
+.film-tabs{gap:clamp(23px,3.4vw,56px)}
+.film-tab{font-size:clamp(15px,1.5vw,19px);padding:18px 5px 19px;font-weight:500}
+.film-details-section{max-width:none;margin:0;text-align:left}
+.film-details-section>.film-section-title,.film-details-section>.film-tab-intro{text-align:left}
+.film-credits-grid{max-width:950px}
+.film-still-frame{cursor:zoom-in}
+.film-still-frame button{display:block;width:100%;height:100%;padding:0;border:0;background:transparent;cursor:zoom-in}
+.film-still-frame button:focus-visible{outline:2px solid var(--fd-gold);outline-offset:-3px}
+.film-lightbox[hidden]{display:none!important}
+.film-lightbox{position:fixed;inset:0;z-index:99999;background:rgba(5,5,5,.94);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px;padding:clamp(24px,5vw,70px);cursor:zoom-out}
+.film-lightbox img{max-width:min(1100px,94vw);max-height:78vh;width:auto;height:auto;object-fit:contain;box-shadow:0 20px 65px rgba(0,0,0,.65);cursor:default}
+.film-lightbox p{font:13px Georgia,serif;color:#d5c7b1;margin:0}
+.film-lightbox-close{position:absolute;top:22px;right:clamp(20px,4vw,60px);width:44px;height:44px;background:transparent;color:#f0e7d9;border:1px solid rgba(212,180,135,.6);border-radius:50%;font-size:30px;cursor:pointer}
+body.film-lightbox-open{overflow:hidden}
+.film-global-notice{font:12px/1.7 Arial,sans-serif;color:#9e9282;border-top:1px solid var(--fd-line);padding-top:19px;margin:50px 0 0}
+.film-other-picks{margin-top:18px;border-top:0;padding-top:18px}
+.film-action.icon{font-size:13px;font-weight:bold;letter-spacing:1px}
+@media(max-width:600px){.film-tab{font-size:14px}.film-lightbox{padding:18px}.film-lightbox img{max-width:96vw;max-height:75vh}}
