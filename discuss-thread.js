@@ -66,13 +66,48 @@
     status.textContent = message;
     status.hidden = !message;
   }
+
+  const memberCache=new Map();
+  async function memberInfo(id){
+    if(!id)return null;
+    if(!memberCache.has(id)){
+      memberCache.set(id,client.from('member_profiles').select('display_name,username,avatar_path,avatar_preset').eq('user_id',id).maybeSingle().then(({data,error})=>error?null:data).catch(()=>null));
+    }
+    return memberCache.get(id);
+  }
+  function profileUrl(id){return 'member-profile.html?id='+encodeURIComponent(id);}
+  function applyMemberPicture(el,p){
+    if(!p)return;
+    if(p.avatar_path){
+      el.style.backgroundImage='url('+client.storage.from('member-avatars').getPublicUrl(p.avatar_path).data.publicUrl+')';
+      el.style.backgroundSize='cover';
+    }else if(p.avatar_preset){
+      const n=p.avatar_preset;
+      el.style.backgroundImage='url(assets/afterlogue-avatars.png)';
+      el.style.backgroundSize='400% 300%';
+      el.style.backgroundPosition=((n-1)%4)*100/3+'% '+Math.floor((n-1)/4)*50+'%';
+    }else return;
+    el.style.borderRadius='50%';el.style.backgroundRepeat='no-repeat';el.textContent='';
+  }
+
   function drawReply(reply) {
     const row = make('article','discuss-comment');
-    row.appendChild(make('div','discuss-avatar','◌'));
+    const avatar=make('a','discuss-avatar','◌');
+    avatar.href=profileUrl(reply.author_id);
+    avatar.setAttribute('aria-label','View member profile');
+    row.appendChild(avatar);
     const content = make('div');
     const byline = make('div','discuss-comment-byline');
     const owner = Boolean(user && reply.author_id === user.id);
-    byline.appendChild(make('span','discuss-comment-author',owner ? 'You' : 'Afterlogue member'));
+    const author=make('a','discuss-comment-author',owner?'You':'Afterlogue member');
+    author.href=profileUrl(reply.author_id);
+    author.style.color='inherit';author.style.textDecoration='none';
+    byline.appendChild(author);
+    memberInfo(reply.author_id).then(p=>{
+      if(!row.isConnected||!p)return;
+      author.textContent=p.display_name|| (p.username?'@'+p.username:'Afterlogue member');
+      applyMemberPicture(avatar,p);
+    });
     byline.appendChild(make('span','discuss-comment-date',fmtDate(reply.created_at)));
     if (reply.edited_at) byline.appendChild(make('span','discuss-comment-edited','Edited'));
     content.appendChild(byline);
@@ -205,6 +240,14 @@
       t.kind === 'general' ? 'Open conversation' :
       (t.work_type === 'tv' ? 'TV' : 'Film') + ' · ' + (t.work_title || '');
     $('thread-byline').textContent = t.author_id ? 'Afterlogue member' : 'Afterlogue';
+    if(t.author_id){
+      const byline=$('thread-byline');
+      const link=document.createElement('a');
+      link.href=profileUrl(t.author_id);link.textContent='Afterlogue member';
+      link.style.color='inherit';link.style.textDecoration='none';
+      byline.replaceChildren(link);
+      memberInfo(t.author_id).then(p=>{if(p)link.textContent=p.display_name|| (p.username?'@'+p.username:'Afterlogue member');});
+    }
     $('thread-date').textContent = fmtDate(t.created_at);
     $('thread-spoiler-label').hidden = !t.has_spoilers;
     const content = $('thread-content');
