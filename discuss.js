@@ -6,7 +6,7 @@
   const { client, byId: $, make, fmtDate, initAccount } = window.AfterlogueDiscuss;
   const list = $('discuss-list');
   const status = $('discuss-notice');
-  const state = { user: null, threads: [], teasers: [], filter: 'all' };
+  const state = { user: null, threads: [], teasers: [], filter: 'all', authors: new Map() };
 
   const threadUrl = id => 'discuss-thread.html?id=' + encodeURIComponent(id);
   const excerpt = (text, spoiler) => {
@@ -26,15 +26,20 @@
     heading.appendChild(title);
     copy.appendChild(heading);
     copy.appendChild(make('p', 'discuss-thread-excerpt', excerpt(t.body, t.has_spoilers)));
-    const meta = make('p', 'discuss-meta',
-      (t.author_id ? 'Afterlogue member' : 'Afterlogue') + '  /  ' + fmtDate(t.created_at));
-    if(t.author_id){
-      const author=document.createElement('a');
-      author.href='member-profile.html?id='+encodeURIComponent(t.author_id);
-      author.textContent='View member profile ↗';
-      author.style.cssText='display:inline-block;color:#d4bc91;font-size:12px;margin-top:7px;text-decoration:none';
-      copy.appendChild(author);
+    const meta = make('p', 'discuss-meta');
+    if (t.author_id) {
+      meta.append(document.createTextNode('Created by: '));
+      const author = make('a', 'discuss-author-link');
+      author.href = 'member-profile.html?id=' + encodeURIComponent(t.author_id);
+      const profile = state.authors.get(t.author_id);
+      author.textContent = profile?.username ? '@' + profile.username : 'Afterlogue member';
+      author.setAttribute('aria-label', 'View the creator\'s profile');
+      author.style.cssText = 'color:#d4bc91;text-decoration:none;border-bottom:1px solid rgba(212,188,145,.4)';
+      meta.append(author);
+    } else {
+      meta.append(document.createTextNode('Afterlogue'));
     }
+    meta.append(document.createTextNode(' / ' + fmtDate(t.created_at)));
     copy.appendChild(meta);
     const link = make('a', 'discuss-open', 'Read conversation  ↗');
     link.href = threadUrl(t.id);
@@ -97,6 +102,14 @@
       .order('created_at',{ascending:false}).limit(100);
     if (error) throw error;
     state.threads = data || [];
+    // Batch-load public handles once so conversation cards never expose private Log data.
+    const authorIds = [...new Set(state.threads.map(t => t.author_id).filter(Boolean))];
+    if (authorIds.length) {
+      const {data:members,error:membersError}=await client.from('member_profiles')
+        .select('user_id,username').in('user_id',authorIds);
+      if (membersError) console.warn('Could not load public author handles',membersError);
+      else for (const member of members || []) state.authors.set(member.user_id,member);
+    }
 
     if (!state.user) {
       const {data: teaserData, error: teaserError} = await client
