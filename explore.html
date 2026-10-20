@@ -1522,6 +1522,68 @@ function rememberMoodTitles(scope,items){
   ...items.map(item=>(item.media==="tv"?"tv":"movie")+":"+item.id)])].slice(-120);
  try{sessionStorage.setItem(moodHistoryKey,JSON.stringify(shownByScope));}catch(_){}
 }
+
+const moodSnapshotKey="afterlogue.explore.return-to-picks.v1";
+function saveMoodSnapshot(five){
+ try{sessionStorage.setItem(moodSnapshotKey,JSON.stringify({
+  mood:state.mood,pace:state.pace,format:state.format,
+  randomPick:state.randomPick,offset:state.offset,
+  items:five.slice(0,5),savedAt:Date.now(),scope:moodScopeKey()
+ }));}catch(_){}
+}
+function restoreMoodSnapshot(){
+ if(location.hash!=="#mood-results")return;
+ try{
+  const snap=JSON.parse(sessionStorage.getItem(moodSnapshotKey)||"null");
+  if(!snap||!data.moods[snap.mood]||!Array.isArray(snap.items)||!snap.items.length
+    ||Date.now()-Number(snap.savedAt)>4*60*60*1000)return;
+  Object.assign(state,{mood:snap.mood,pace:snap.pace,format:snap.format,
+   randomPick:Boolean(snap.randomPick),offset:snap.offset||0});
+  paintMoodPicks(snap.items);
+  history.replaceState(null,"",location.pathname+location.search);
+ }catch(error){console.warn("Could not restore mood selections",error);}
+}
+function paintMoodPicks(five){
+  const results=$("explore-results");
+  results.classList.toggle("is-surprise",Boolean(state.randomPick));
+    const host=$("explore-picks");
+  host.replaceChildren();
+  for(const item of five){
+      const el=document.createElement("article");el.className="explore-pick";
+      const link=document.createElement("a");link.className="explore-art";
+      link.href="film-details.html?tmdb="+item.id+"&type="+(item.media==="tv"?"tv":"movie")+"&from=mood";
+      const img=document.createElement("img");img.src=item.poster;img.alt=item.title+" poster";img.loading="lazy";link.append(img);
+      const title=document.createElement("h3");title.textContent=item.title;
+      const year=document.createElement("p");year.className="explore-year";year.textContent=(item.year||"")+" / "+(item.media==="tv"?"TV":"FILM");
+      // Every recommendation must display the evidence for its mood match,
+      // with an optional expansion for the exact verified country/language/genre/decade.
+      const why=document.createElement("div");why.className="explore-mood-why";
+      const whyHeading=document.createElement("strong");whyHeading.textContent="WHY THIS STORY";
+      const whyText=document.createElement("p");
+      whyText.textContent=item.moodReason||"This story was matched to your chosen mood.";
+      why.append(whyHeading,whyText);
+      if(Array.isArray(item.matchedFilters)&&item.matchedFilters.length){
+        const details=document.createElement("details");details.className="explore-mood-filter-proof";
+        const summary=document.createElement("summary");summary.textContent="Matching filters ↗";
+        const filters=document.createElement("p");filters.textContent=item.matchedFilters.join(" · ");
+        details.append(summary,filters);why.append(details);
+      }
+      const actions=document.createElement("div");actions.className="explore-pick-actions";
+      actions.append(window.AfterlogueSeen.button({key:item.key,title:item.title,year:item.year,poster:item.poster,category:item.media}));
+      const detail=document.createElement("a");detail.href=link.href;detail.textContent="View details";detail.className="explore-global-detail";actions.append(detail);
+      el.append(link,title,year,why,actions);host.append(el);
+    }
+  $("explore-results-title").textContent=state.randomPick?"A story you didn't ask for.":"A little something for you.";
+  $("explore-results-detail").textContent=data.moods[state.mood].intro+" Each selection includes a specific reason for appearing.";
+    $("explore-results-label").textContent="AFTERLOGUE / "+data.moods[state.mood].short.toUpperCase();
+  $("explore-adjust").hidden=state.randomPick;
+  $("explore-again").textContent=state.randomPick?"Another surprise ↗":"Another selection ↗";
+    $("explore-again").disabled=false;
+
+  results.hidden=false;
+  view("results");
+}
+
 async function displayResults(){
   const requestId=window.afterlogueMoodRequestId=(window.afterlogueMoodRequestId||0)+1;
   const host=$("explore-picks");
@@ -1594,38 +1656,8 @@ async function displayResults(){
       return;
     }
     rememberMoodTitles(scope,five);
-    host.replaceChildren();
-    for(const item of five){
-      const el=document.createElement("article");el.className="explore-pick";
-      const link=document.createElement("a");link.className="explore-art";
-      link.href="film-details.html?tmdb="+item.id+"&type="+(item.media==="tv"?"tv":"movie")+"&from=explore";
-      const img=document.createElement("img");img.src=item.poster;img.alt=item.title+" poster";img.loading="lazy";link.append(img);
-      const title=document.createElement("h3");title.textContent=item.title;
-      const year=document.createElement("p");year.className="explore-year";year.textContent=(item.year||"")+" / "+(item.media==="tv"?"TV":"FILM");
-      // Every recommendation must display the evidence for its mood match,
-      // with an optional expansion for the exact verified country/language/genre/decade.
-      const why=document.createElement("div");why.className="explore-mood-why";
-      const whyHeading=document.createElement("strong");whyHeading.textContent="WHY THIS STORY";
-      const whyText=document.createElement("p");
-      whyText.textContent=item.moodReason||"This story was matched to your chosen mood.";
-      why.append(whyHeading,whyText);
-      if(Array.isArray(item.matchedFilters)&&item.matchedFilters.length){
-        const details=document.createElement("details");details.className="explore-mood-filter-proof";
-        const summary=document.createElement("summary");summary.textContent="Matching filters ↗";
-        const filters=document.createElement("p");filters.textContent=item.matchedFilters.join(" · ");
-        details.append(summary,filters);why.append(details);
-      }
-      const actions=document.createElement("div");actions.className="explore-pick-actions";
-      actions.append(window.AfterlogueSeen.button({key:item.key,title:item.title,year:item.year,poster:item.poster,category:item.media}));
-      const detail=document.createElement("a");detail.href=link.href;detail.textContent="View details";detail.className="explore-global-detail";actions.append(detail);
-      el.append(link,title,year,why,actions);host.append(el);
-    }
-    $("explore-results-title").textContent=isSurprise?"A story you didn't ask for.":"A little something for you.";
-    $("explore-results-detail").textContent=data.moods[state.mood].intro+" Each selection includes a specific reason for appearing.";
-    $("explore-results-label").textContent="AFTERLOGUE / "+data.moods[state.mood].short.toUpperCase();
-    $("explore-adjust").hidden=isSurprise;
-    $("explore-again").textContent=isSurprise?"Another surprise ↗":"Another selection ↗";
-    $("explore-again").disabled=false;
+    paintMoodPicks(five);
+    saveMoodSnapshot(five);
   }catch(error){
     if(requestId!==window.afterlogueMoodRequestId)return;
     // Never undermine explicitly selected filters with unrelated old titles.
@@ -1908,6 +1940,7 @@ $("explore-surprise").addEventListener("click",()=>{Object.assign(state,{randomP
 $("explore-again").addEventListener("click",()=>{
   displayResults();
 });
+restoreMoodSnapshot();
 })();
 </script>
 <script src="catalog-browser.js?v=2"></script>
