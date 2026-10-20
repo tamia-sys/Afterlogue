@@ -1276,7 +1276,12 @@ function drawPick(item){
   art.addEventListener("click",()=>art.setAttribute("aria-expanded",String(art.getAttribute("aria-expanded")!=="true")));
   const h=document.createElement("h3");h.textContent=item.title;
   const year=document.createElement("p");year.className="explore-year";year.textContent=item.year+" / "+(item.media==="tv"?"TV":"FILM");
-  card.append(art,h,year);return card;
+  const more=document.createElement("a");
+  more.href="film-details.html?title="+encodeURIComponent(slug(item.title))+"&from=explore";
+  more.textContent="View details ↗";
+  more.setAttribute("aria-label","View details for "+item.title);
+  more.style.cssText="display:inline-block;margin-top:10px;color:#d4b487;font:11px Arial,sans-serif;text-decoration:none;border-bottom:1px solid rgba(212,180,135,.45);padding-bottom:3px";
+  card.append(art,h,year,more);return card;
 }
 function displayResults(){
   results.classList.toggle("is-surprise",state.randomPick);
