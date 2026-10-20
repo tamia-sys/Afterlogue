@@ -104,6 +104,8 @@
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
 <script src="recommendation-engine.js?v=2"></script>
+<link rel="stylesheet" href="seen-impression.css?v=1">
+<script src="seen-impression.js?v=1"></script>
 <script>
   
 const isGuestMode =
@@ -416,6 +418,7 @@ tv: [
 // awarding a flat bonus for three manually attached matches.
 let discoveryFavorites=[];
 let discoveryWatchlist=[];
+let discoverySeen=[];
 const discoveryEntries=window.AfterlogueRecommendationEngine?.normalizeEntries(
   window.AfterlogueFeaturedCatalog||{},
   window.afterlogueExploreData?.titles||[],
@@ -426,7 +429,7 @@ function getDiscoveryRecommendations(category, page = 0) {
   if (!window.AfterlogueRecommendationEngine) return discoveryLibrary[category].slice(page*5,page*5+5);
   const selected=window.AfterlogueRecommendationEngine.rank({
     entries:discoveryEntries,category,impressions:savedImpressions,
-    favorites:discoveryFavorites,watchlist:discoveryWatchlist
+    favorites:discoveryFavorites,watchlist:discoveryWatchlist,seen:discoverySeen
   });
   return selected.slice(page*5,page*5+5).map(item=>({
     ...item,
@@ -624,7 +627,7 @@ bookmarkButton.setAttribute(
  detailLink.title="Film details";
  detailLink.textContent="ⓘ";
  detailLink.style.cssText="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;color:#c1ad91;font:18px Georgia,serif;text-decoration:none";
- actions.append(bookmarkButton, detailLink);
+ actions.append(bookmarkButton,window.AfterlogueSeen.button({key:item.catalogKey||item.key,title:item.title,category}),detailLink);
 
  card.append(poster, title, year, actions);
  container.appendChild(card);
@@ -727,14 +730,16 @@ async function loadAccountImpressions() {
       .select("title_key, rating")
       .eq("user_id", userData.user.id);
     // Favorites give a modest positive signal; watchlist items aren't re-recommended.
-    const [favoriteResult,watchlistResult]=await Promise.all([
+    const [favoriteResult,watchlistResult,seenResult]=await Promise.all([
       client.from("log_entries").select("title_key").eq("user_id",userData.user.id).eq("is_favorite",true),
-      client.from("watchlist").select("title_key").eq("user_id",userData.user.id)
+      client.from("watchlist").select("title_key").eq("user_id",userData.user.id),
+      client.from("seen_entries").select("title_key").eq("user_id",userData.user.id)
     ]);
     if(favoriteResult.error)console.warn("Recommendation favorites unavailable",favoriteResult.error);
     if(watchlistResult.error)console.warn("Recommendation watchlist unavailable",watchlistResult.error);
     discoveryFavorites=favoriteResult.data||[];
     discoveryWatchlist=watchlistResult.data||[];
+    discoverySeen=(seenResult.data||[]).map(x=>x.title_key);
 
     if (error) throw error;
 
@@ -775,6 +780,7 @@ async function loadAccountImpressions() {
   }
 }
 
+document.addEventListener("afterlogue:impression-updated",event=>{const {key,rating}=event.detail;discoverySeen.push(key);if(rating)savedImpressions["afterlogue-"+key]=rating;discoveryPages.movies=0;discoveryPages.tv=0;displayDiscoveryRecommendations(selectedCategory,0);});
 loadAccountImpressions();
 
 </script>
