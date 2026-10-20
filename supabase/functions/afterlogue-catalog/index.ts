@@ -77,8 +77,22 @@ Deno.serve(async (req:Request) => {
   // Safe setup check for the public library. Never return or log the token.
   if(req.method==="GET"){
     const url=new URL(req.url);
-    if(url.searchParams.get("status")==="1")
-      return response({service:"afterlogue-catalog",ready:Boolean(token),version:2});
+    if(url.searchParams.get("status")==="1"){
+      let ready=false;
+      if(token){
+        try{
+          // Confirm the supplied token can really access TMDB.
+          await tmdb("/configuration",new URLSearchParams(),token);
+          ready=true;
+        }catch(_){
+          // Never reveal credentials or TMDB response internals.
+          ready=false;
+        }
+      }
+      return new Response(JSON.stringify({
+        service:"afterlogue-catalog",ready,version:3
+      }),{status:200,headers:{...JSON_HEADERS,"Cache-Control":"no-store"}});
+    }
     return response({error:"Method not allowed"},405);
   }
   if(req.method!=="POST")return response({error:"Method not allowed"},405);
