@@ -59,5 +59,20 @@ window.AfterlogueCuratedStills=Object.freeze({
     "https://www.cinematheque-nice.com/media/cache/fiche_film/uploads/films/Le%20Voyage%20de%20Chihiro%20%C2%A9%20DR%20Studio%20Ghibli%20.jpg",
     "https://dam.mediacorp.sg/image/upload/s--9XGZuQV5--/c_fill%2Cg_auto%2Ch_523%2Cw_693/f_auto%2Cq_auto/spirited-away.jpg?itok=3-PWlvid",
     "https://idsb.tmgrup.com.tr/ly/uploads/images/2022/10/13/235643.jpg"
+  ],
+  "moonlight": [
+    "https://s1.afisha.ru/mediastorage/cf/db/f6b403642c0b46c2bc89e6cadbcf.jpg",
+    "https://imgix.ranker.com/user_node_img/4269/85370279/original/85370279-photo-u-189779378?auto=format&dpr=2&fit=crop&fm=pjpg&q=60&w=355",
+    "https://images.mubicdn.net/images/film/152823/cache-163681-1745493178/image-w1280.jpg"
+  ],
+  "the-bear": [
+    "https://static.wixstatic.com/media/60d286_f3de8eccd23a442cba717bdfe533bcf6~mv2.png/v1/fill/w_2500%2Ch_1634%2Cal_c/60d286_f3de8eccd23a442cba717bdfe533bcf6~mv2.png",
+    "https://d26oc3sg82pgk3.cloudfront.net/files/media/edit/image/57619/large_thumb%402x.jpg",
+    "https://media.jutarnji.hr/images/slike/2024/07/22/o_34416157_1280.jpg"
+  ],
+  "fleabag": [
+    "https://i0.wp.com/ladygeeksmedia.com/wp-content/uploads/2023/02/VideoScreenshot-WatchFleabagSeason2PrimeVideo-2334.jpg?ssl=1",
+    "https://miro.medium.com/v2/1%2AMie2U-YsIE2wiWBvKHhI5A.jpeg",
+    "https://static.standard.co.uk/s3fs-public/thumbnails/image/2019/03/04/14/fleabag0403b-0.jpg?auto=webp&quality=75&width=960"
   ]
 });
