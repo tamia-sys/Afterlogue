@@ -503,25 +503,35 @@ async function loadRelatedStories(){
   }catch(_){}
  }
  let mood='';
+ let excludedMoodIds=[];
  if(origin==='mood'){
   try{
    const saved=JSON.parse(sessionStorage.getItem('afterlogue.explore.return-to-picks.v1')||'null');
-   if(saved?.mood&&Date.now()-Number(saved.savedAt)<4*60*60*1000)mood=saved.mood;
+   if(saved?.mood&&Date.now()-Number(saved.savedAt)<4*60*60*1000){
+    mood=saved.mood;
+    // Never repeat ANY of the current five in "Another story, perhaps."
+    excludedMoodIds=(saved.items||[]).filter(p=>p.media===(media==='tv'?'tv':'movies'))
+      .map(p=>Number(p.id)).filter(n=>Number.isSafeInteger(n)&&n>0);
+   }
   }catch(_){}
  }
  if(origin==='all-films'){
+  // Only All Films choices apply here, not lingering mood filters.
+  facets={};
   try{
    const prefs=JSON.parse(sessionStorage.getItem('afterlogue.explore.all-films.v1')||'null');
    if(prefs){
     if(prefs.genre)facets.genres=[prefs.genre];
     if(prefs.decade)facets.decades=[String(prefs.decade)];
+    if(prefs.country)facets.countries=[prefs.country];
+    if(prefs.language)facets.languages=[prefs.language];
    }
   }catch(_){}
  }
  const criteria={genres:facets.genres||[],countries:facets.countries||[],
   languages:facets.languages||[],decades:facets.decades||[],ratings:facets.ratings||[]};
  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({mode:'related',media,id,mood,...criteria})});
+  body:JSON.stringify({mode:'related',media,id,mood,excludeIds:excludedMoodIds,...criteria})});
  if(!response.ok)throw Error('Related recommendations unavailable');
  const data=await response.json();
  container.replaceChildren();
@@ -529,7 +539,7 @@ async function loadRelatedStories(){
   // Do not fill the shelf with unrelated titles just to keep it full.
   if(activeExplore){block.hidden=false;
    const message=document.createElement('p');message.className='film-watch-notice';
-   message.textContent='No similar stories match all your current filters. Adjust your Explore choices for more.';
+   message.textContent='Not enough verified related stories fit these choices yet. Try a wider country, language, or mood filter.';
    container.append(message);
   }
   return;
