@@ -41,7 +41,7 @@
     }
     meta.append(document.createTextNode(' / ' + fmtDate(t.created_at)));
     copy.appendChild(meta);
-    const link = make('a', 'discuss-open', 'Read conversation  ↗');
+    const link = make('a', 'discuss-open', 'Read conversation ');
     link.href = threadUrl(t.id);
     link.setAttribute('aria-label', t.has_spoilers ? 'Read spoiler-marked conversation' : 'Read ' + t.title);
     row.appendChild(copy);
@@ -57,7 +57,7 @@
     copy.appendChild(make('p', 'discuss-thread-excerpt',
       'A dedicated ' + (t.work_type === 'tv' ? 'TV' : 'film') +
       ' conversation. Sign in to read and take part.'));
-    const link = make('a', 'discuss-open', 'Members only  ↗');
+    const link = make('a', 'discuss-open', 'Members only ');
     link.href = 'signup.html?mode=signin';
     link.setAttribute('aria-label', 'Sign in to read conversations about ' + t.work_title);
     row.appendChild(copy);
