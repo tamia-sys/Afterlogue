@@ -166,15 +166,18 @@
     body.appendChild(ratingLabel);
 
     const controls = el('div', 'archive-actions');
-    controls.appendChild(action('◉ Details', 'Edit details for ' + record.title,
-      function () { openDetails(record); }));
-    const filmLink = el('a', 'archive-action', 'Film page');
+    // The Details action always opens this story's cinematic film/TV page,
+    // regardless of whether this card appears under Watched, Watchlist or Favorites.
+    const filmLink = el('a', 'archive-action', 'ⓘ Details');
     filmLink.href = 'film-details.html?title=' + encodeURIComponent(record.key) + '&from=log';
-    filmLink.setAttribute('aria-label', 'View film details for ' + record.title);
+    filmLink.setAttribute('aria-label', 'View A Film in Focus for ' + record.title);
     filmLink.style.textDecoration = 'none';
     filmLink.style.display = 'inline-flex';
     filmLink.style.alignItems = 'center';
     controls.appendChild(filmLink);
+    // Keep the private impression / note editor available independently.
+    controls.appendChild(action('✎ Edit entry', 'Edit impression or private note for ' + record.title,
+      function () { openDetails(record); }));
     controls.appendChild(action('♧ Share', 'Share ' + record.title,
       function () { shareTitle(record); }));
     controls.appendChild(action('Discuss', 'Start a discussion about ' + record.title,
