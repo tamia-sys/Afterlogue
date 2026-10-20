@@ -484,5 +484,438 @@ window.AfterlogueFilmBasics = Object.freeze({
     "country": "United States",
     "language": "English"
   }
+,
+  "malcolm-in-the-middle": {
+    "creator": "Linwood Boomer",
+    "genre": "Comedy · Family",
+    "synopsis": "A gifted boy tries to make sense of adolescence amid the chaos of his unconventional working-class family.",
+    "cast": [
+      [
+        "Frankie Muniz",
+        "Cast"
+      ],
+      [
+        "Bryan Cranston",
+        "Cast"
+      ],
+      [
+        "Jane Kaczmarek",
+        "Cast"
+      ]
+    ]
+  },
+  "abbott-elementary": {
+    "creator": "Quinta Brunson",
+    "genre": "Comedy · Workplace",
+    "synopsis": "At an underfunded Philadelphia public school, a dedicated group of teachers tries to make a difference while navigating bureaucracy and their own messy lives.",
+    "cast": [
+      [
+        "Quinta Brunson",
+        "Cast"
+      ],
+      [
+        "Tyler James Williams",
+        "Cast"
+      ],
+      [
+        "Sheryl Lee Ralph",
+        "Cast"
+      ]
+    ]
+  },
+  "gilmore-girls": {
+    "creator": "Amy Sherman-Palladino",
+    "genre": "Comedy · Drama",
+    "synopsis": "In the small town of Stars Hollow, a single mother and her teenage daughter navigate relationships, ambitions and the changing rhythms of family life.",
+    "cast": [
+      [
+        "Lauren Graham",
+        "Cast"
+      ],
+      [
+        "Alexis Bledel",
+        "Cast"
+      ],
+      [
+        "Kelly Bishop",
+        "Cast"
+      ]
+    ]
+  },
+  "insecure": {
+    "creator": "Issa Rae · Larry Wilmore",
+    "genre": "Comedy · Drama",
+    "synopsis": "Two close friends in Los Angeles navigate careers, romance and the uncertain transitions of adulthood.",
+    "cast": [
+      [
+        "Issa Rae",
+        "Cast"
+      ],
+      [
+        "Yvonne Orji",
+        "Cast"
+      ],
+      [
+        "Jay Ellis",
+        "Cast"
+      ]
+    ]
+  },
+  "bridgerton": {
+    "creator": "Chris Van Dusen",
+    "genre": "Period drama · Romance",
+    "synopsis": "In Regency-era London, members of an influential family seek love and independence amid society's rigid expectations and competitive marriage market.",
+    "cast": [
+      [
+        "Nicola Coughlan",
+        "Cast"
+      ],
+      [
+        "Jonathan Bailey",
+        "Cast"
+      ],
+      [
+        "Simone Ashley",
+        "Cast"
+      ]
+    ]
+  },
+  "gossip-girl": {
+    "creator": "Josh Schwartz · Stephanie Savage",
+    "genre": "Teen drama · Romance",
+    "synopsis": "A mysterious blogger chronicles the scandals and relationships of wealthy teenagers on Manhattan's Upper East Side.",
+    "cast": [
+      [
+        "Blake Lively",
+        "Cast"
+      ],
+      [
+        "Leighton Meester",
+        "Cast"
+      ],
+      [
+        "Penn Badgley",
+        "Cast"
+      ]
+    ]
+  },
+  "stranger-things": {
+    "creator": "Matt Duffer · Ross Duffer",
+    "genre": "Science fiction · Horror",
+    "synopsis": "After a boy disappears in a small Indiana town, his friends uncover a secret experiment, a mysterious girl and a dangerous alternate dimension.",
+    "cast": [
+      [
+        "Millie Bobby Brown",
+        "Cast"
+      ],
+      [
+        "Finn Wolfhard",
+        "Cast"
+      ],
+      [
+        "Winona Ryder",
+        "Cast"
+      ]
+    ]
+  },
+  "chernobyl": {
+    "creator": "Craig Mazin",
+    "genre": "Historical drama · Miniseries",
+    "synopsis": "The disaster at the Chernobyl nuclear power plant unfolds through the experiences of responders, scientists and officials confronting its devastating consequences.",
+    "cast": [
+      [
+        "Jared Harris",
+        "Cast"
+      ],
+      [
+        "Stellan Skarsgård",
+        "Cast"
+      ],
+      [
+        "Emily Watson",
+        "Cast"
+      ]
+    ]
+  },
+  "demon-slayer": {
+    "creator": "Koyoharu Gotouge (original manga)",
+    "genre": "Anime · Action · Fantasy",
+    "synopsis": "After demons destroy his family, Tanjiro trains as a swordsman to protect others and find a way to restore his sister's humanity."
+  },
+  "avatar-the-last-airbender": {
+    "creator": "Michael Dante DiMartino · Bryan Konietzko",
+    "genre": "Animation · Adventure · Fantasy",
+    "synopsis": "A young airbender awakens in a world at war and must master the four elements to restore balance alongside his new friends.",
+    "cast": [
+      [
+        "Zach Tyler Eisen",
+        "Cast"
+      ],
+      [
+        "Mae Whitman",
+        "Cast"
+      ],
+      [
+        "Dante Basco",
+        "Cast"
+      ]
+    ]
+  },
+  "love-island-usa": {
+    "genre": "Reality · Dating",
+    "synopsis": "A group of single contestants lives together in a villa, forming romantic pairings while facing recouplings, challenges and public votes."
+  },
+  "criminal-minds": {
+    "creator": "Jeff Davis",
+    "genre": "Crime · Procedural drama",
+    "synopsis": "A team of FBI profilers investigates violent crimes by studying patterns of behavior and the people behind them.",
+    "cast": [
+      [
+        "Joe Mantegna",
+        "Cast"
+      ],
+      [
+        "A. J. Cook",
+        "Cast"
+      ],
+      [
+        "Kirsten Vangsness",
+        "Cast"
+      ]
+    ]
+  },
+  "mindhunter": {
+    "creator": "Joe Penhall",
+    "genre": "Crime · Psychological drama",
+    "synopsis": "Two FBI agents and a psychologist interview incarcerated serial killers while developing new methods of understanding violent behavior.",
+    "cast": [
+      [
+        "Jonathan Groff",
+        "Cast"
+      ],
+      [
+        "Holt McCallany",
+        "Cast"
+      ],
+      [
+        "Anna Torv",
+        "Cast"
+      ]
+    ]
+  },
+  "fullmetal-alchemist-brotherhood": {
+    "creator": "Hiromu Arakawa (original manga)",
+    "genre": "Anime · Fantasy · Adventure",
+    "synopsis": "Brothers Edward and Alphonse Elric seek the Philosopher's Stone to restore what they lost after attempting forbidden alchemy."
+  },
+  "station-eleven": {
+    "creator": "Patrick Somerville",
+    "genre": "Post-apocalyptic · Drama",
+    "synopsis": "Decades after a devastating pandemic, survivors preserve art, connection and memory while confronting the consequences of the old world.",
+    "cast": [
+      [
+        "Mackenzie Davis",
+        "Cast"
+      ],
+      [
+        "Himesh Patel",
+        "Cast"
+      ],
+      [
+        "Matilda Lawler",
+        "Cast"
+      ]
+    ]
+  },
+  "severance": {
+    "creator": "Dan Erickson",
+    "genre": "Science fiction · Psychological thriller",
+    "synopsis": "Employees at a mysterious corporation undergo a procedure that separates their work memories from their personal lives, with disturbing consequences.",
+    "cast": [
+      [
+        "Adam Scott",
+        "Cast"
+      ],
+      [
+        "Britt Lower",
+        "Cast"
+      ],
+      [
+        "Patricia Arquette",
+        "Cast"
+      ]
+    ]
+  },
+  "the-leftovers": {
+    "creator": "Damon Lindelof · Tom Perrotta",
+    "genre": "Drama · Mystery",
+    "synopsis": "Three years after two percent of humanity vanishes without explanation, the people left behind struggle with grief, belief and uncertainty.",
+    "cast": [
+      [
+        "Justin Theroux",
+        "Cast"
+      ],
+      [
+        "Carrie Coon",
+        "Cast"
+      ],
+      [
+        "Amy Brenneman",
+        "Cast"
+      ]
+    ]
+  },
+  "succession": {
+    "creator": "Jesse Armstrong",
+    "genre": "Satire · Family drama",
+    "synopsis": "The children of a powerful media tycoon compete for influence and control of the family's global empire.",
+    "cast": [
+      [
+        "Brian Cox",
+        "Cast"
+      ],
+      [
+        "Jeremy Strong",
+        "Cast"
+      ],
+      [
+        "Sarah Snook",
+        "Cast"
+      ]
+    ]
+  },
+  "atlanta": {
+    "creator": "Donald Glover",
+    "genre": "Comedy · Drama",
+    "synopsis": "An aspiring music manager navigates Atlanta's rap scene, family responsibilities and a world that frequently veers into the surreal.",
+    "cast": [
+      [
+        "Donald Glover",
+        "Cast"
+      ],
+      [
+        "Brian Tyree Henry",
+        "Cast"
+      ],
+      [
+        "LaKeith Stanfield",
+        "Cast"
+      ]
+    ]
+  },
+  "dark": {
+    "creator": "Baran bo Odar · Jantje Friese",
+    "genre": "Science fiction · Mystery",
+    "synopsis": "The disappearance of children in a small German town uncovers secrets spanning generations and a web of interconnected timelines.",
+    "cast": [
+      [
+        "Louis Hofmann",
+        "Cast"
+      ],
+      [
+        "Lisa Vicari",
+        "Cast"
+      ],
+      [
+        "Maja Schöne",
+        "Cast"
+      ]
+    ]
+  },
+  "the-good-place": {
+    "creator": "Michael Schur",
+    "genre": "Fantasy · Comedy",
+    "synopsis": "After arriving in an idyllic afterlife, Eleanor tries to become a better person while questioning the rules of her new existence.",
+    "cast": [
+      [
+        "Kristen Bell",
+        "Cast"
+      ],
+      [
+        "Ted Danson",
+        "Cast"
+      ],
+      [
+        "William Jackson Harper",
+        "Cast"
+      ]
+    ]
+  },
+  "sh-gun": {
+    "creator": "Rachel Kondo · Justin Marks",
+    "genre": "Historical drama",
+    "synopsis": "In feudal Japan, an English sailor becomes entangled in the political struggle of a powerful lord as loyalties and cultures collide.",
+    "cast": [
+      [
+        "Hiroyuki Sanada",
+        "Cast"
+      ],
+      [
+        "Cosmo Jarvis",
+        "Cast"
+      ],
+      [
+        "Anna Sawai",
+        "Cast"
+      ]
+    ]
+  },
+  "breaking-bad": {
+    "creator": "Vince Gilligan",
+    "genre": "Crime · Drama",
+    "synopsis": "A chemistry teacher facing a terminal diagnosis begins manufacturing methamphetamine, setting off a transformation that endangers everyone around him.",
+    "cast": [
+      [
+        "Bryan Cranston",
+        "Cast"
+      ],
+      [
+        "Aaron Paul",
+        "Cast"
+      ],
+      [
+        "Anna Gunn",
+        "Cast"
+      ]
+    ]
+  },
+  "beef": {
+    "creator": "Lee Sung Jin",
+    "genre": "Comedy · Drama",
+    "synopsis": "A road-rage encounter between two strangers spirals into an escalating feud that exposes their buried frustrations and complicated lives.",
+    "cast": [
+      [
+        "Steven Yeun",
+        "Cast"
+      ],
+      [
+        "Ali Wong",
+        "Cast"
+      ],
+      [
+        "Joseph Lee",
+        "Cast"
+      ]
+    ]
+  },
+  "yellowjackets": {
+    "creator": "Ashley Lyle · Bart Nickerson",
+    "genre": "Mystery · Psychological drama",
+    "synopsis": "After a plane crash strands a girls' soccer team in the wilderness, their survival story continues to haunt the women decades later.",
+    "cast": [
+      [
+        "Melanie Lynskey",
+        "Cast"
+      ],
+      [
+        "Christina Ricci",
+        "Cast"
+      ],
+      [
+        "Tawny Cypress",
+        "Cast"
+      ]
+    ]
+  }
 }
 );
