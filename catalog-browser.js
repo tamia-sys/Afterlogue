@@ -42,6 +42,7 @@ function render(list){
  for(const title of list){
   const a=document.createElement("a");a.className="catalog-tile";
   a.href="film-details.html?tmdb="+encodeURIComponent(title.id)+"&type="+encodeURIComponent(title.media)+"&from=all-films";
+  a.addEventListener("click",()=>{term=input.value;rememberState();});
   const frame=document.createElement("div");frame.className="catalog-tile-poster";
   const img=document.createElement("img");img.loading="lazy";img.src=title.poster||"";img.alt=title.title+" poster";
   const name=document.createElement("span");name.className="catalog-tile-title";name.textContent=title.title;
@@ -91,7 +92,19 @@ $("catalog-back").addEventListener("click",()=>{
  history.replaceState(null,"",location.pathname+location.search);
 });
 $("catalog-media").addEventListener("change",e=>{media=e.target.value;page=1;load();});
-input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(()=>{term=input.value;page=1;load();},350);});
+input.addEventListener("input",()=>{
+  clearTimeout(timer);
+  // Save the search immediately. A viewer can open a title before the
+  // debounced request completes and should still return to their query.
+  term=input.value;
+  page=1;
+  rememberState();
+  serial++;
+  clear();
+  $("catalog-message").textContent=term.trim().length>=2?"Searching for “"+term.trim()+"”…":"Finding stories…";
+  $("catalog-pagination").hidden=true;
+  timer=setTimeout(load,350);
+});
 [genreBox,decadeBox,sortBox].forEach(el=>el.addEventListener("change",()=>{genre=genreBox.value;decade=decadeBox.value;sort=sortBox.value;page=1;load();}));
 $("catalog-prev").addEventListener("click",()=>{if(page>1){page--;load();}});
 $("catalog-next").addEventListener("click",()=>{if(page<pages){page++;load();}});
