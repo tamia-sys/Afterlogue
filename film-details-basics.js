@@ -483,8 +483,7 @@ window.AfterlogueFilmBasics = Object.freeze({
     ],
     "country": "United States",
     "language": "English"
-  }
-,
+  },
   "malcolm-in-the-middle": {
     "creator": "Linwood Boomer",
     "genre": "Comedy · Family",
@@ -502,7 +501,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Jane Kaczmarek",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "abbott-elementary": {
     "creator": "Quinta Brunson",
@@ -521,7 +523,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Sheryl Lee Ralph",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "gilmore-girls": {
     "creator": "Amy Sherman-Palladino",
@@ -540,7 +545,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Kelly Bishop",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "insecure": {
     "creator": "Issa Rae · Larry Wilmore",
@@ -559,7 +567,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Jay Ellis",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "bridgerton": {
     "creator": "Chris Van Dusen",
@@ -578,7 +589,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Simone Ashley",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "language": "English",
+    "country": "United States · United Kingdom"
   },
   "gossip-girl": {
     "creator": "Josh Schwartz · Stephanie Savage",
@@ -597,7 +611,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Penn Badgley",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "stranger-things": {
     "creator": "Matt Duffer · Ross Duffer",
@@ -616,7 +633,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Winona Ryder",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "chernobyl": {
     "creator": "Craig Mazin",
@@ -635,12 +655,18 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Emily Watson",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Limited series",
+    "country": "United States · United Kingdom",
+    "language": "English"
   },
   "demon-slayer": {
     "creator": "Koyoharu Gotouge (original manga)",
     "genre": "Anime · Action · Fantasy",
-    "synopsis": "After demons destroy his family, Tanjiro trains as a swordsman to protect others and find a way to restore his sister's humanity."
+    "synopsis": "After demons destroy his family, Tanjiro trains as a swordsman to protect others and find a way to restore his sister's humanity.",
+    "runtime": "Series",
+    "country": "Japan",
+    "language": "Japanese · English"
   },
   "avatar-the-last-airbender": {
     "creator": "Michael Dante DiMartino · Bryan Konietzko",
@@ -659,11 +685,17 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Dante Basco",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "love-island-usa": {
     "genre": "Reality · Dating",
-    "synopsis": "A group of single contestants lives together in a villa, forming romantic pairings while facing recouplings, challenges and public votes."
+    "synopsis": "A group of single contestants lives together in a villa, forming romantic pairings while facing recouplings, challenges and public votes.",
+    "runtime": "Reality series",
+    "country": "United States",
+    "language": "English"
   },
   "criminal-minds": {
     "creator": "Jeff Davis",
@@ -682,7 +714,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Kirsten Vangsness",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "mindhunter": {
     "creator": "Joe Penhall",
@@ -701,12 +736,18 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Anna Torv",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "fullmetal-alchemist-brotherhood": {
     "creator": "Hiromu Arakawa (original manga)",
     "genre": "Anime · Fantasy · Adventure",
-    "synopsis": "Brothers Edward and Alphonse Elric seek the Philosopher's Stone to restore what they lost after attempting forbidden alchemy."
+    "synopsis": "Brothers Edward and Alphonse Elric seek the Philosopher's Stone to restore what they lost after attempting forbidden alchemy.",
+    "runtime": "Series",
+    "country": "Japan",
+    "language": "Japanese · English"
   },
   "station-eleven": {
     "creator": "Patrick Somerville",
@@ -725,7 +766,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Matilda Lawler",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "severance": {
     "creator": "Dan Erickson",
@@ -744,7 +788,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Patricia Arquette",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "the-leftovers": {
     "creator": "Damon Lindelof · Tom Perrotta",
@@ -763,7 +810,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Amy Brenneman",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "succession": {
     "creator": "Jesse Armstrong",
@@ -782,7 +832,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Sarah Snook",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "atlanta": {
     "creator": "Donald Glover",
@@ -801,7 +854,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "LaKeith Stanfield",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "dark": {
     "creator": "Baran bo Odar · Jantje Friese",
@@ -820,7 +876,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Maja Schöne",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "Germany",
+    "language": "German"
   },
   "the-good-place": {
     "creator": "Michael Schur",
@@ -839,7 +898,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "William Jackson Harper",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "sh-gun": {
     "creator": "Rachel Kondo · Justin Marks",
@@ -858,7 +920,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Anna Sawai",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "Japan",
+    "language": "Japanese · English"
   },
   "breaking-bad": {
     "creator": "Vince Gilligan",
@@ -877,7 +942,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Anna Gunn",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "beef": {
     "creator": "Lee Sung Jin",
@@ -896,7 +964,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Joseph Lee",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   },
   "yellowjackets": {
     "creator": "Ashley Lyle · Bart Nickerson",
@@ -915,7 +986,10 @@ window.AfterlogueFilmBasics = Object.freeze({
         "Tawny Cypress",
         "Cast"
       ]
-    ]
+    ],
+    "runtime": "Series",
+    "country": "United States",
+    "language": "English"
   }
 }
 );
