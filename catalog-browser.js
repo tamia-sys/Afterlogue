@@ -6,8 +6,11 @@ const $=id=>document.getElementById(id);
 const panel=$("afterlogue-global-catalog");
 if(!panel)return;
 const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
-let media="movie",page=1,pages=1,term="",genre="",decade="",sort="popular",timer=null,serial=0;
+let media="movie",page=1,pages=1,term="",genre="",decade="",sort="popular",timer=null,serial=0,configured=false;
 const input=$("catalog-search"),genreBox=$("catalog-genre"),decadeBox=$("catalog-decade"),sortBox=$("catalog-sort");
+async function readiness(){
+ try{const r=await fetch(endpoint+"?status=1");const data=await r.json();return Boolean(r.ok&&data.ready);}catch(_){return false;}
+}
 async function request(body){
  const res=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
  const json=await res.json();
@@ -46,9 +49,22 @@ async function load(){
   clear();
   $("catalog-message").textContent=error.message||"Expanded catalog currently unavailable.";
   $("catalog-pagination").hidden=true;
+  if(!configured)$("catalog-message").textContent="The full library is not available yet. Our featured films are still ready to explore.";
  }
 }
-$("catalog-open").addEventListener("click",()=>{panel.hidden=false;document.body.classList.remove("explore-gallery-mode");$("explore-gallery-wrap").hidden=true;$("explore-experience").hidden=true;$("explore-results").hidden=true;$("explore-all-films").hidden=true;window.scrollTo(0,0);load();});
+async function openLibrary(){
+  const ready=await readiness();
+  configured=ready;
+  if(!ready){
+    document.getElementById("explore-all-films-open")?.click();
+    return;
+  }
+  panel.hidden=false;document.body.classList.remove("explore-gallery-mode");
+  $("explore-gallery-wrap").hidden=true;$("explore-experience").hidden=true;
+  $("explore-results").hidden=true;$("explore-all-films").hidden=true;
+  window.scrollTo({top:0,behavior:"instant"});load();
+}
+$("catalog-open").addEventListener("click",openLibrary);
 $("catalog-back").addEventListener("click",()=>{panel.hidden=true;$("explore-gallery-wrap").hidden=false;document.body.classList.add("explore-gallery-mode");});
 $("catalog-media").addEventListener("change",e=>{media=e.target.value;page=1;load();});
 input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(()=>{term=input.value;page=1;load();},350);});
