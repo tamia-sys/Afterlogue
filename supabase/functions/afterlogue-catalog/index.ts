@@ -185,7 +185,7 @@ function moodExperience(
    "Distance or an obstacle between people gives this story genuine longing.","distance");
   add(tagged(/\b(unrequited love|forbidden love|lost love|long distance relationship|unfulfilled love)\b/i),7,
    "Its documented theme is love complicated by distance, loss or impossibility.","complicated love");
-  add(cue(/\b(lonel|isolation|isolated|unspoken|secret feelings|desire|miss(es|ing)? (him|her|them)|grapples? with (love|feelings)|cannot forget)\b/i),5,
+  add(cue(/\b(lonely|loneliness|isolation|isolated|unspoken|secret feelings|desire|miss(es|ing)? (him|her|them)|grapples? with (love|feelings)|cannot forget)\b/i),5,
    "Unspoken feelings or isolation give the relationships emotional tension.","unspoken feelings");
   add(tagged(/\bfirst love\b/i),5,
    "The uncertainty and intensity of first love fit a yearning mood.","first love");
@@ -603,7 +603,9 @@ Deno.serve(async (req:Request) => {
       // "US", "Family", "2010s", and "English" all truly hold simultaneously.
       // Limit the candidate count and workers so we never flood TMDB.
       const queue=selected.slice(0,56);
-      const verified:Array<ReturnType<typeof listItem>&{moodReason:string;matchedFilters:string[]}>= [];
+      const verified:Array<ReturnType<typeof listItem>&{
+        moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string
+      }>= [];
       async function verifyOne(v:Record<string,unknown>){
         const p=new URLSearchParams({language:"en-US",append_to_response:media==="movie"?"keywords,release_dates":"keywords,content_ratings"});
         if(excluded.has(Number(v.id)))return;
@@ -638,11 +640,12 @@ Deno.serve(async (req:Request) => {
           .filter((id:number)=>idToTopic.has(id));
         const label=tagged.length?idToTopic.get(tagged[0])||"":""; 
         const editorial=mood==="holidays"&&media==="movie"?SEASONAL_FEATURES[Number(v.id)]:null;
-        const explicit=narrativeMoodEvidence(mood,details,label);
-        // Seasonal picks have editorially documented context; otherwise demand
-        // story evidence, not a popularity score or generic genre label.
-        if(!explicit&&!editorial)return;
-        const reason=explicit||editorial!.reason;
+        const tags=Array.isArray(detailKeywords)?detailKeywords.map((v:Record<string,unknown>)=>String(v.name||"")):[];
+        const experience=moodExperience(mood,details,tags,pace,editorial?.reason||null);
+        // Reject superficial keyword matches when the experience conflicts:
+        // The Ice Storm is not a playful Friday night just because of a party.
+        if(experience.score<5)return;
+        const reason=experience.reason;
         const matching:string[]=[];
         if(countries.length)matching.push("Country: "+countries.filter(c=>produced.includes(c)).join(" or "));
         if(languages.length)matching.push("Language: "+details.original_language);
@@ -651,6 +654,8 @@ Deno.serve(async (req:Request) => {
         if(ratings.length&&certification)matching.push("US rating: "+certification);
         verified.push({
           ...listItem({...details,genre_ids:detailGenreIds},media),certification,moodReason:reason,
+          moodFit:experience.score,moodLane:experience.lane,
+          energySignal:experience.energy,fitVersion:experience.fitVersion,
           matchedFilters:matching
         });
       }
@@ -667,21 +672,10 @@ Deno.serve(async (req:Request) => {
       // Verification jobs are concurrent, so put titles back into the
       // original discovery relevance/popularity order.
       const indexById=new Map(selected.map((x,i)=>[Number(x.id),i]));
-      const storyPace=(synopsis:string)=>{
-        const text=String(synopsis||"").toLowerCase();
-        if(pace==="slow")return (
-          /quiet|gentle|reflective|intimate|contemplative|bittersweet|heartfelt|melanchol|everyday/.test(text)?4:0
-        )-(/chase|explosion|heist|action-packed|race against|wild adventure/.test(text)?3:0);
-        if(pace==="energetic")return (
-          /chaos|wild|adventure|heist|chase|thrill|hilarious|party|fast-paced|race against/.test(text)?5:0
-        )-(/quiet|reflective|contemplative/.test(text)?2:0);
-        return /family|friendship|relationship|community|romance/.test(text)?2:0;
-      };
-      verified.sort((a,b)=>{
-        const aa=genreSignal(a.genreIds.map(Number),pace)+storyPace(a.synopsis);
-        const bb=genreSignal(b.genreIds.map(Number),pace)+storyPace(b.synopsis);
-        return bb-aa||(indexById.get(Number(a.id))??999)-(indexById.get(Number(b.id))??999);
-      });
+      verified.sort((a,b)=>
+        b.moodFit-a.moodFit||
+        genreSignal(b.genreIds.map(Number),pace)-genreSignal(a.genreIds.map(Number),pace)||
+        (indexById.get(Number(a.id))??999)-(indexById.get(Number(b.id))??999));
       if(mood==="holidays"){
         // Interleave evidence from different occasions when those occasions
         // are represented, instead of returning five Christmas posters first.
@@ -713,28 +707,28 @@ Deno.serve(async (req:Request) => {
         }
       }
       else{
-        // Five titles sharing only "first love" is not a curated mood
-        // selection. Round-robin across distinct story themes/genres so
-        // choices have different legitimate reasons to appear when possible.
-        const groups=new Map<string,typeof verified>();
-        for(const item of verified){
-          const evidence=String(item.moodReason||"");
-          const label=evidence.includes("tagged")?evidence.match(/“([^”]+)”/)?.[1]||evidence:evidence;
-          const genus=item.genres?.find((g:string)=>!["Drama","Romance"].includes(g))||item.genres?.[0]||"Story";
-          const key=(label+"|"+genus).toLowerCase();
-          if(!groups.has(key))groups.set(key,[]);
-          groups.get(key)!.push(item);
-        }
-        if(groups.size>1){
-          const ordered=[...groups.values()];
-          verified.splice(0,verified.length);
-          for(let i=0;i<40;i++){
-            for(const group of ordered){if(group[i])verified.push(group[i]);}
+        // Editorial diversity: prefer strong matches first, but avoid a row of
+        // five near-identical reasons when comparably good alternatives exist.
+        const remaining=[...verified],curated:typeof verified=[];
+        const laneCounts=new Map<string,number>();
+        while(remaining.length){
+          let best=0,bestScore=-Infinity;
+          for(let i=0;i<remaining.length;i++){
+            const entry=remaining[i];
+            const lanePenalty=(laneCounts.get(entry.moodLane)||0)*2.4;
+            const seenGenre=curated.filter(selected=>
+              selected.genreIds.some(id=>entry.genreIds.includes(id))).length;
+            const adjusted=entry.moodFit-lanePenalty-Math.min(2,seenGenre)*0.4;
+            if(adjusted>bestScore){bestScore=adjusted;best=i;}
           }
+          const [winner]=remaining.splice(best,1);
+          curated.push(winner);
+          laneCounts.set(winner.moodLane,(laneCounts.get(winner.moodLane)||0)+1);
         }
+        verified.splice(0,verified.length,...curated);
       }
       return response({
-        mood,matching:"verified-theme-and-details",pace,
+        mood,matching:"experience-evidence-v1",pace,
         items:verified.slice(0,24),
         note:verified.length?"These stories have a verified thematic reason and match your filters."
           :"No fresh matches found in this part of the catalog. Try searching further or broaden your choices.",
