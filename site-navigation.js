@@ -108,17 +108,48 @@
   avatarStyles.textContent="details.account-menu>summary.member-avatar{width:34px!important;height:34px!important;min-width:34px!important;border-radius:50%!important;overflow:hidden!important;border:1px solid #ad9772!important;background-repeat:no-repeat!important}details.account-menu>summary.member-avatar svg{display:none!important}";
   document.head.append(avatarStyles);
 
-  // Keep the account menu consistent even on pages that use older header markup.
-  const menu=document.querySelector('details.account-menu .account-dropdown');
-  if(menu&&!menu.querySelector('a[href="account-settings.html"]')){
-    const old=menu.querySelector('.account-settings');
-    if(old){
-      const link=document.createElement('a');
-      link.className='account-settings';
-      link.href='account-settings.html';
-      link.textContent='Account settings ↗';
-      old.replaceWith(link);
+  // The account icon is the direct entry point for public profile and editing.
+  // Keep these links consistent across Home, Explore, Log, Discuss and member profiles.
+  function updateAccountMenu(user){
+    const isMember=Boolean(user);
+    for(const menu of document.querySelectorAll('details.account-menu .account-dropdown')){
+      let edit=menu.querySelector('a.account-settings[href="account-settings.html"]');
+      if(!edit){
+        const old=menu.querySelector('.account-settings');
+        if(old){
+          edit=document.createElement('a');
+          old.replaceWith(edit);
+        }else{
+          edit=document.createElement('a');
+          const divider=menu.querySelector('.account-divider');
+          if(divider)divider.insertAdjacentElement('afterend',edit);
+          else menu.prepend(edit);
+        }
+      }
+      edit.className='account-settings';
+      edit.href='account-settings.html';
+      edit.textContent='Edit profile ↗';
+      edit.style.display=isMember?'block':'none';
+      edit.style.marginBottom='12px';
+      edit.setAttribute('aria-label','Edit your Afterlogue profile');
+
+      let view=menu.querySelector('a.account-profile-link');
+      if(!view){
+        view=document.createElement('a');
+        view.className='account-profile-link';
+        edit.insertAdjacentElement('beforebegin',view);
+      }
+      view.textContent='View my profile ↗';
+      view.href=isMember?'member-profile.html?id='+encodeURIComponent(user.id):'signup.html?mode=signin';
+      view.style.display=isMember?'block':'none';
+      view.style.marginBottom='12px';
+      view.style.fontSize='13px';
+      view.style.color='#e8d6b5';
+      view.style.textDecoration='none';
+
+      const signin=menu.querySelector('#account-signin');
+      if(signin)signin.hidden=isMember;
     }
   }
-  sessionPromise.then(user => {updateNavigation(user);showMemberAvatar(user);});
+  sessionPromise.then(user => {updateNavigation(user);updateAccountMenu(user);showMemberAvatar(user);});
 })();
