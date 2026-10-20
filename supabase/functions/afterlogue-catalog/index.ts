@@ -642,21 +642,46 @@ Deno.serve(async (req:Request) => {
       const decades=want("decades",v=>/^(19[3-9]0|20[0-2]0)$/.test(v));
       const ratings=want("ratings",v=>[...US_FILM_RATINGS,...US_TV_RATINGS].includes(v));
       const mood=typeof input.mood==="string"&&MOOD_TOPICS[input.mood]?input.mood:"";
-      const params=new URLSearchParams({language:"en-US",page:"1"});
-      const sources=await Promise.allSettled([
-        tmdb("/"+media+"/"+id+"/recommendations",params,token),
-        tmdb("/"+media+"/"+id+"/similar",params,token)
-      ]);
+      const exclude=new Set((Array.isArray(input.excludeIds)?input.excludeIds:[])
+        .slice(0,40).map(Number).filter(v=>Number.isSafeInteger(v)&&v>0));
+      exclude.add(id);
+      const sourceFilm=await tmdb("/"+media+"/"+id,new URLSearchParams({language:"en-US"}),token);
+      const sourceGenres=(sourceFilm.genres||[]).map((g:Record<string,unknown>)=>Number(g.id));
+      const params=(page:number)=>new URLSearchParams({language:"en-US",page:String(page)});
+      const endpoints=Array.from({length:3},(_,i)=>i+1)
+        .flatMap(page=>[
+          {path:"/"+media+"/"+id+"/recommendations",params:params(page),kind:0},
+          {path:"/"+media+"/"+id+"/similar",params:params(page),kind:1}
+        ]);
+      // Broader genre discovery is a backup, never a replacement for a
+      // verified story connection to this film and the selected mood.
+      if(sourceGenres.length){
+        for(let page=1;page<=2;page++){
+          const query=new URLSearchParams({
+            language:"en-US",page:String(page),sort_by:"vote_average.desc",
+            "vote_count.gte":"70",include_adult:"false",
+            with_genres:sourceGenres.slice(0,2).join("|")
+          });
+          if(languages.length===1)query.set("with_original_language",languages[0]);
+          if(media==="tv"&&countries.length===1)query.set("with_origin_country",countries[0]);
+          endpoints.push({path:"/discover/"+media,params:query,kind:2});
+        }
+      }
+      const sources=await Promise.allSettled(endpoints.map(e=>tmdb(e.path,e.params,token)));
       const options=new Map<number,Record<string,unknown>>();
       for(const [index,result] of sources.entries()){
         if(result.status!=="fulfilled")continue;
         for(const item of result.value.results||[]){
-          if(!eligible(item,media,20)||Number(item.id)===id)continue;
-          if(!options.has(Number(item.id)))options.set(Number(item.id),{...item,source:index});
+          const identifier=Number(item.id);
+          if(!eligible(item,media,15)||exclude.has(identifier)||options.has(identifier))continue;
+          const overlap=(item.genre_ids||[]).filter((g:number)=>sourceGenres.includes(Number(g))).length;
+          if(!overlap)continue;
+          options.set(identifier,{...item,source:endpoints[index].kind,overlap});
         }
       }
       if(!options.size)return response({items:[],note:"No related stories are available yet."});
-      const selected=Array.from(options.values()).slice(0,24);
+      const selected=[...options.values()].sort((a,b)=>
+        Number(a.source)-Number(b.source)||Number(b.overlap)-Number(a.overlap)).slice(0,90);
       const allowedKeywords=mood?new Set(await moodKeywordIds(mood,token)) :null;
       const results:Array<ReturnType<typeof listItem>&{certification:string|null;whyRelated:string}>=[];
       const queue=[...selected];
@@ -693,13 +718,13 @@ Deno.serve(async (req:Request) => {
             results.push({
               ...listItem({...detail,genre_ids:genreIds},media),
               certification,
-              whyRelated:Number(v.source)===0?"Recommended by the same-title discovery network."
-                :"Shares narrative or genre qualities with this title."
+              whyRelated:Number(v.source)===0?"Connected through TMDB story recommendations."
+                :Number(v.source)===1?"Similar story and genre qualities.":"Shares this title’s genres and your chosen mood."
             });
           }catch(error){console.warn("Related title check unavailable",String(error));}
         }
       }
-      await Promise.all([verify(),verify(),verify()]);
+      await Promise.all([verify(),verify(),verify(),verify(),verify(),verify()]);
       return response({items:results.slice(0,5),note:results.length
         ?"Related stories matching your current browsing preferences."
         :"No related stories meet every selected filter right now."});
