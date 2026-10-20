@@ -1586,6 +1586,19 @@ function paintMoodPicks(five){
   view("results");
 }
 
+// Incomplete batches stay in the reservoir until there are five legitimate
+// unseen stories. A refresh should never present two scraps as a "new set".
+const moodReservoirKey="afterlogue.explore.pending-mood-picks.v1";
+const moodReservoir=(()=>{
+ try{
+  const saved=JSON.parse(sessionStorage.getItem(moodReservoirKey)||"{}");
+  return saved&&typeof saved==="object"&&!Array.isArray(saved)?saved:{};
+ }catch(_){return {};}
+})();
+function rememberPendingMood(scope,items){
+ moodReservoir[scope]=items.slice(0,18);
+ try{sessionStorage.setItem(moodReservoirKey,JSON.stringify(moodReservoir));}catch(_){}
+}
 async function displayResults(){
   const requestId=window.afterlogueMoodRequestId=(window.afterlogueMoodRequestId||0)+1;
   const host=$("explore-picks");
@@ -1607,12 +1620,21 @@ async function displayResults(){
     const alreadyShown=new Set(previousMoodTitles(scope));
     const rated=ratedTitles(),excluded=new Set([...rated,...(window.AfterlogueSeen?.seen||[])]);
     const pace=state.pace||"medium";
-    const unique=new Set(),titles=[];
     const desired=isSurprise?1:5;
+    const priorPending=Array.isArray(moodReservoir[scope])?moodReservoir[scope]:[];
+    const titles=[],unique=new Set();
+    for(const item of priorPending){
+      if(!item?.id||!item?.poster)continue;
+      const type=item.media==="tv"?"tv":"movie";
+      const historyKey=type+":"+item.id,key="tmdb-"+type+"-"+item.id;
+      if(!alreadyShown.has(historyKey)&&!excluded.has(key)&&!unique.has(key)){
+        unique.add(key);titles.push(item);
+      }
+    }
     let searched=0,notes=[];
     // A single TMDB discover page cannot establish that a mood has run out.
     // Continue to the next pages when the first pass has no fresh matches.
-    while(searched<2&&titles.length<desired){
+    while(searched<5&&titles.length<desired){
       const cursor=state.offset;
       const requests=await Promise.all(media.map(async type=>{
         const resp=await fetch("https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog",{
@@ -1647,16 +1669,19 @@ async function displayResults(){
       }
     }
     const five=titles.slice(0,desired);
-    if(!five.length){
+    if(five.length<desired){
+      rememberPendingMood(scope,titles);
       host.replaceChildren();
       const notice=document.createElement("p");notice.className="explore-question";
-      notice.textContent="No fresh matches found in these catalog pages. You can search further or broaden your choices.";
+      notice.textContent="Still gathering a complete set of five new stories that fit your choices. Search further, or adjust the filters.";
       host.append(notice);
-      $("explore-results-detail").textContent=notes[0]||"No new matches in this search yet.";
+      $("explore-results-detail").textContent="Found "+five.length+" fresh qualifying "+(five.length===1?"story":"stories")+
+        " so far; saving them until the full selection is ready.";
       $("explore-again").textContent="Search further ↗";
       $("explore-again").disabled=false;
       return;
     }
+    rememberPendingMood(scope,[]);
     rememberMoodTitles(scope,five);
     paintMoodPicks(five);
     saveMoodSnapshot(five);
