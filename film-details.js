@@ -535,17 +535,18 @@ async function loadRelatedStories(){
  if(!response.ok)throw Error('Related recommendations unavailable');
  const data=await response.json();
  container.replaceChildren();
- if(!data.items?.length){
-  // Do not fill the shelf with unrelated titles just to keep it full.
-  if(activeExplore){block.hidden=false;
-   const message=document.createElement('p');message.className='film-watch-notice';
-   message.textContent='Not enough verified related stories fit these choices yet. Try a wider country, language, or mood filter.';
-   container.append(message);
-  }
+ const usable=(Array.isArray(data.items)?data.items:[])
+  .filter(candidate=>candidate?.poster&&candidate?.id&&Number(candidate.id)!==id
+    &&!excludedMoodIds.includes(Number(candidate.id))).slice(0,5);
+ if(usable.length<3){
+  // Never dress up one or two leftover posters as a complete related shelf.
+  block.hidden=false;
+  const message=document.createElement('p');message.className='film-watch-notice';
+  message.textContent='We could not find three similar stories that meet every selected filter yet. Broaden your choices in Explore for more.';
+  container.append(message);
   return;
  }
- for(const candidate of data.items){
-  if(!candidate.poster||!candidate.id)continue;
+ for(const candidate of usable){
   const a=document.createElement('a');a.className='film-other-link';
   a.href='film-details.html?tmdb='+encodeURIComponent(candidate.id)
    +'&type='+encodeURIComponent(candidate.media)+'&from='+encodeURIComponent(origin);
