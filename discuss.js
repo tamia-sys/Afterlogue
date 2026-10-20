@@ -28,6 +28,13 @@
     copy.appendChild(make('p', 'discuss-thread-excerpt', excerpt(t.body, t.has_spoilers)));
     const meta = make('p', 'discuss-meta',
       (t.author_id ? 'Afterlogue member' : 'Afterlogue') + '  /  ' + fmtDate(t.created_at));
+    if(t.author_id){
+      const author=document.createElement('a');
+      author.href='member-profile.html?id='+encodeURIComponent(t.author_id);
+      author.textContent='View member profile ↗';
+      author.style.cssText='display:inline-block;color:#d4bc91;font-size:12px;margin-top:7px;text-decoration:none';
+      copy.appendChild(author);
+    }
     copy.appendChild(meta);
     const link = make('a', 'discuss-open', 'Read conversation  ↗');
     link.href = threadUrl(t.id);
