@@ -64,7 +64,7 @@ async function load(){
   const result=await request({mode:isSearch?"search":"discover",query:term.trim(),media,page,genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
   if(id!==serial)return;
   pages=result.totalPages||1;render(result.items||[]);
-  $("catalog-message").textContent=(result.totalResults||0).toLocaleString()+" titles · Page "+page+" of "+pages;
+  $("catalog-message").textContent=(typeof result.totalResults==="number"?result.totalResults.toLocaleString()+" titles":"Matching titles")+" · Page "+page+" of "+pages;
   $("catalog-prev").disabled=page<=1;$("catalog-next").disabled=page>=pages;
   $("catalog-pagination").hidden=pages<=1;
  }catch(error){
