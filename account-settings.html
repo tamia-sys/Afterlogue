@@ -43,6 +43,13 @@
 .avatar-picker{max-width:480px}
 .avatar-picker summary{padding:5px 0;font-size:12px;letter-spacing:.01em}
 @media(max-width:650px){.avatar-grid{grid-template-columns:repeat(4,minmax(0,1fr));max-width:340px;gap:12px}}
+</style><style>
+/* Fixed-size circular character picker; prevent inherited button sizing */
+.avatar-grid{display:grid!important;grid-template-columns:repeat(6,64px)!important;gap:12px!important;width:max-content!important;max-width:100%!important}
+.avatar-option{display:block!important;position:relative!important;width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important;max-width:64px!important;max-height:64px!important;aspect-ratio:1/1!important;border-radius:50%!important;padding:3px!important;box-sizing:border-box!important;overflow:hidden!important;line-height:0!important}
+.avatar-art{display:block!important;width:100%!important;height:100%!important;aspect-ratio:1/1!important;border-radius:50%!important;background-image:url('assets/afterlogue-avatars.png')!important;background-size:400% 300%!important;background-repeat:no-repeat!important}
+.account-avatar.is-preset{background-image:url('assets/afterlogue-avatars.png')!important;background-size:400% 300%!important;background-repeat:no-repeat!important}
+@media(max-width:650px){.avatar-grid{grid-template-columns:repeat(4,64px)!important;gap:10px!important}}
 </style></head>
 <body><header class="site-header"><a href="index.html" class="logo">afterlogue.</a><nav aria-label="Main navigation"><a href="discover.html">Home</a><a href="explore.html">Explore</a><a href="my-log.html">Log</a><a href="discuss.html">Discuss</a></nav></header>
 <main class="account-page"><p class="account-eyebrow">AFTERLOGUE / YOUR ACCOUNT</p><h1>Make it yours.</h1><p class="account-intro">A little space for the person behind the perspective.</p>
