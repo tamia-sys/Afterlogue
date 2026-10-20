@@ -249,13 +249,12 @@ const trailerLink=$('film-trailer');
 if(trailer){
  trailerLink.href=trailer;
  trailerLink.innerHTML='<span aria-hidden="true">▷</span> Watch trailer';
+ trailerLink.title='Watch the official distributor trailer on YouTube';
 }else{
- trailerLink.removeAttribute('href');
- trailerLink.removeAttribute('target');
- trailerLink.setAttribute('aria-disabled','true');
- trailerLink.classList.add('is-unavailable');
- trailerLink.textContent='Official trailer unavailable';
- trailerLink.title='An official distributor trailer has not been verified for this title.';
+ const searchTerms=[item.title,item.year,isTV?'series':'film','trailer'].filter(Boolean).join(' ');
+ trailerLink.href='https://www.youtube.com/results?search_query='+encodeURIComponent(searchTerms);
+ trailerLink.innerHTML='<span aria-hidden="true">▷</span> Browse trailers';
+ trailerLink.title='Choose from trailer results on YouTube';
 }
 const jw=rich.watch||'https://www.justwatch.com/us/search?q='+encodeURIComponent(item.title);
 $('film-justwatch').href=jw;
