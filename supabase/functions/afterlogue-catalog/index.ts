@@ -565,6 +565,82 @@ Deno.serve(async (req:Request) => {
         filters:{genres,countries,languages,decades,ratings},excludedCount:excluded.size
       });
     }
+    // A title-to-title match, not a repeat of Afterlogue's manually
+    // selected featured collection. Preserve originating Explore facets.
+    if(mode==="related"){
+      const id=Number(input.id);
+      if(!Number.isInteger(id)||id<=0||id>100000000)return response({error:"Invalid title"},400);
+      const genresMap=media==="movie"?GENRES:TV_GENRES;
+      const want=(key:string,allows:(v:string)=>boolean):string[]=>
+        Array.isArray(input[key])?[...new Set(input[key].filter((v:unknown)=>typeof v==="string").map(String).filter(allows))].slice(0,6):[];
+      const countries=want("countries",v=>/^[A-Z]{2}$/.test(v));
+      const languages=want("languages",v=>/^[a-z]{2,3}$/.test(v));
+      const genres=want("genres",v=>Boolean(genresMap[v]));
+      const decades=want("decades",v=>/^(19[3-9]0|20[0-2]0)$/.test(v));
+      const ratings=want("ratings",v=>[...US_FILM_RATINGS,...US_TV_RATINGS].includes(v));
+      const mood=typeof input.mood==="string"&&MOOD_TOPICS[input.mood]?input.mood:"";
+      const params=new URLSearchParams({language:"en-US",page:"1"});
+      const sources=await Promise.allSettled([
+        tmdb("/"+media+"/"+id+"/recommendations",params,token),
+        tmdb("/"+media+"/"+id+"/similar",params,token)
+      ]);
+      const options=new Map<number,Record<string,unknown>>();
+      for(const [index,result] of sources.entries()){
+        if(result.status!=="fulfilled")continue;
+        for(const item of result.value.results||[]){
+          if(!eligible(item,media,20)||Number(item.id)===id)continue;
+          if(!options.has(Number(item.id)))options.set(Number(item.id),{...item,source:index});
+        }
+      }
+      if(!options.size)return response({items:[],note:"No related stories are available yet."});
+      const selected=Array.from(options.values()).slice(0,24);
+      const allowedKeywords=mood?new Set(await moodKeywordIds(mood,token)) :null;
+      const results:Array<ReturnType<typeof listItem>&{certification:string|null;whyRelated:string}>=[];
+      const queue=[...selected];
+      async function verify(){
+        while(queue.length&&results.length<8){
+          const v=queue.shift();if(!v)return;
+          try{
+            const q=new URLSearchParams({
+              language:"en-US",
+              append_to_response:media==="movie"?"keywords,release_dates":"keywords,content_ratings"
+            });
+            const detail=await tmdb("/"+media+"/"+Number(v.id),q,token);
+            const date=String(media==="movie"?detail.release_date:detail.first_air_date||"");
+            if(detail.adult||!date||date>new Date().toISOString().slice(0,10))continue;
+            if(media==="movie"&&(detail.status!=="Released"||Number(detail.runtime)<40))continue;
+            const countrySet=media==="movie"
+              ?(detail.production_countries||[]).map((x:Record<string,unknown>)=>x.iso_3166_1)
+              :(detail.origin_country||[]);
+            if(countries.length&&!countries.some(c=>countrySet.includes(c)))continue;
+            if(languages.length&&!languages.includes(String(detail.original_language||"")))continue;
+            const year=yearOf(date);
+            if(decades.length&&(!year||!decades.includes(String(Math.floor(year/10)*10))))continue;
+            const genreIds=(detail.genres||[]).map((g:Record<string,unknown>)=>Number(g.id));
+            if(genres.length&&!genres.some(g=>genreIds.includes(genresMap[g])))continue;
+            const certification=usCertification(detail,media);
+            if(ratings.length&&(!certification||!ratings.includes(certification)))continue;
+            if(mood){
+              const keywords=media==="movie"?detail.keywords?.keywords:detail.keywords?.results;
+              const tagged=(Array.isArray(keywords)?keywords:[])
+                .some((tag:Record<string,unknown>)=>allowedKeywords?.has(Number(tag.id)));
+              if(mood==="holidays"&&!holidayEvidence(detail))continue;
+              if(!tagged&&!narrativeMoodEvidence(mood,detail,""))continue;
+            }
+            results.push({
+              ...listItem({...detail,genre_ids:genreIds},media),
+              certification,
+              whyRelated:Number(v.source)===0?"Recommended by the same-title discovery network."
+                :"Shares narrative or genre qualities with this title."
+            });
+          }catch(error){console.warn("Related title check unavailable",String(error));}
+        }
+      }
+      await Promise.all([verify(),verify(),verify()]);
+      return response({items:results.slice(0,5),note:results.length
+        ?"Related stories matching your current browsing preferences."
+        :"No related stories meet every selected filter right now."});
+    }
     // Cross-title recommendations, anchored exclusively in titles the viewer liked.
     // Inputs are titles, not private account data or raw credentials.
     if(mode==="recommend"){
