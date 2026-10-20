@@ -1001,6 +1001,24 @@ body.explore-body > header.site-header {
 @media(min-width:651px) and (max-width:850px){.explore-films-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.explore-film-poster img{transition:none}}
 
+
+/* Expanded cinema library */
+#afterlogue-global-catalog[hidden]{display:none!important}
+.catalog-toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0}
+.catalog-toolbar input,.catalog-toolbar select{background:#171614;color:#F4EADD;border:1px solid rgba(212,180,135,.4);border-radius:24px;padding:12px 15px;font:12px Arial,sans-serif}
+.catalog-toolbar input{flex:2 1 230px;min-width:0}
+.catalog-toolbar select{flex:1 1 120px;min-width:0}
+.catalog-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:24px 15px}
+.catalog-tile{min-width:0;display:flex;flex-direction:column;gap:7px;color:#F4EADD;text-decoration:none}
+.catalog-tile-poster{background:#24211F;aspect-ratio:2/3;overflow:hidden;border-radius:8px}
+.catalog-tile-poster img{width:100%;height:100%;object-fit:cover;display:block}
+.catalog-tile-title{font:15px/1.3 Georgia,serif}.catalog-tile-year{font:11px Arial,sans-serif;color:#BAA98C}
+.catalog-page-controls{display:flex;align-items:center;justify-content:center;gap:15px;margin:35px 0}
+.catalog-page-controls button,.catalog-back{background:transparent;color:#D4B487;border:1px solid #826A4E;border-radius:99px;padding:10px 19px;cursor:pointer}
+.catalog-page-controls button:disabled{opacity:.35;cursor:default}
+.catalog-intro{font:14px/1.5 Arial,sans-serif;color:#C3B19A}
+@media(max-width:1000px){.catalog-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:650px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:19px 12px}.catalog-toolbar{gap:8px}}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 </head>
@@ -1049,7 +1067,7 @@ body.explore-body > header.site-header {
     <label>Format <select id="explore-format"><option value="all">Movies &amp; TV</option><option value="movies">Movies</option><option value="tv">TV Shows</option></select></label>
     <button type="button" id="explore-clear" hidden>Clear ×</button>
   </div>
-  <div class="explore-browse-foot"><p id="explore-browse-note">Search and filter our curated starter catalog.</p>
+  <div class="explore-browse-foot"><button type="button" class="explore-all-films-open" id="catalog-open">Expanded library ↗</button><p id="explore-browse-note">Search and filter our curated starter catalog.</p>
     <button type="button" class="explore-all-films-open" id="explore-all-films-open" aria-controls="explore-all-films">All Films <span aria-hidden="true">↗</span></button>
   </div>
 </section>
@@ -1129,6 +1147,23 @@ body.explore-body > header.site-header {
   <p id="explore-film-count" class="explore-film-count" role="status" aria-live="polite"></p>
   <div id="explore-films-grid" class="explore-films-grid"></div>
   <p id="explore-films-empty" class="explore-film-empty" hidden>No films match those filters. Try another search or genre.</p>
+</section>
+<section id="afterlogue-global-catalog" hidden>
+<button type="button" id="catalog-back" class="catalog-back">← Back to Explore</button>
+<p class="explore-eyebrow" style="margin-top:30px">AFTERLOGUE / THE EXPANDED LIBRARY</p>
+<h2 style="font:400 clamp(40px,5vw,65px) Georgia,serif;margin:8px 0">Explore cinema.</h2>
+<p class="catalog-intro">Look beyond our featured collection. Browse films and television from across the world.</p>
+<div class="catalog-toolbar">
+<input type="search" id="catalog-search" placeholder="Search a title..." aria-label="Search the expanded catalog">
+<select id="catalog-media" aria-label="Film or television"><option value="movie">Films</option><option value="tv">TV shows</option></select>
+<select id="catalog-genre" aria-label="Genre"><option value="">All genres</option><option>Drama</option><option>Comedy</option><option>Thriller</option><option>Horror</option><option>Romance</option><option>Documentary</option><option>Animation</option><option>Action</option><option>Science Fiction</option></select>
+<select id="catalog-decade" aria-label="Decade"><option value="">Any decade</option><option value="2020">2020s</option><option value="2010">2010s</option><option value="2000">2000s</option><option value="1990">1990s</option><option value="1980">1980s</option><option value="1970">1970s</option><option value="1960">1960s</option><option value="1950">1950s</option></select>
+<select id="catalog-sort" aria-label="Sort by"><option value="popular">Popular</option><option value="newest">Newest</option><option value="oldest">Oldest</option></select>
+</div>
+<p id="catalog-message" class="catalog-intro" role="status" aria-live="polite"></p>
+<div id="catalog-grid" class="catalog-grid"></div>
+<div id="catalog-pagination" class="catalog-page-controls" hidden><button id="catalog-prev" type="button">← Previous</button><button id="catalog-next" type="button">Next →</button></div>
+<p style="font:11px Arial,sans-serif;color:#A99A82">Film and TV information provided by <a style="color:#D4B487" href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>. Afterlogue is not endorsed or certified by TMDB.</p>
 </section>
 <section class="explore-experience" id="explore-experience" aria-live="polite" hidden>
   <button type="button" class="explore-back" id="explore-back">← All moods</button>
@@ -1696,5 +1731,6 @@ $("explore-again").addEventListener("click",()=>{
 });
 })();
 </script>
+<script src="catalog-browser.js?v=1"></script>
 </body>
 </html>
