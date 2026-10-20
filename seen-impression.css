@@ -1,1 +1,29 @@
-.afterlogue-seen-eye{display:inline-grid;place-items:center;width:32px;height:32px;padding:5px;border:0;border-radius:50%;background:transparent;color:#c1ad91;cursor:pointer}.afterlogue-seen-eye:hover,.afterlogue-seen-eye.is-seen{color:#f4eadd}.afterlogue-seen-eye.is-seen svg{stroke:#d4b487;stroke-width:2.2}.afterlogue-seen-eye:focus-visible{outline:2px solid #d4b487}.afterlogue-seen-modal[hidden]{display:none!important}.afterlogue-seen-modal{position:fixed;inset:0;z-index:100200;background:rgba(5,6,7,.9);display:grid;place-items:center;padding:20px}.afterlogue-seen-panel{position:relative;width:min(100%,440px);padding:32px;background:#171716;color:#f4eadd;border:1px solid rgba(212,180,135,.38);text-align:center}.afterlogue-seen-close{position:absolute;right:14px;top:9px;font:28px Georgia,serif;background:transparent;border:0;color:#d4b487;cursor:pointer}.afterlogue-seen-eyebrow{font:10px Arial,sans-serif;letter-spacing:.15em;color:#d4b487}.afterlogue-seen-panel h2{font:400 38px Georgia,serif;margin:12px 0}.afterlogue-seen-title{font:15px Georgia,serif;color:#bdb1a2;margin:0 0 27px}.afterlogue-seen-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.afterlogue-seen-choices button,.afterlogue-seen-only{background:transparent;border:1px solid #766247;border-radius:99px;padding:12px 14px;color:#f4eadd;font:12px Arial,sans-serif;cursor:pointer}.afterlogue-seen-only{margin:20px auto 0;width:100%}.afterlogue-seen-choices button:hover,.afterlogue-seen-only:hover{background:#d4b487;color:#151311}.afterlogue-seen-feedback{font:12px Arial,sans-serif;color:#d4b487;min-height:14px}body.afterlogue-seen-open{overflow:hidden}
+/* Quiet, intentional eye controls shared by Home and Explore. */
+.afterlogue-seen-eye{
+  appearance:none;display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 34px;width:34px;height:34px;min-width:34px;min-height:34px;
+  box-sizing:border-box;padding:7px;margin:0;border:1px solid transparent;
+  border-radius:50%;background:transparent;color:#b9aa95;cursor:pointer;
+  line-height:1;transition:color .18s ease,background .18s ease,border-color .18s ease;
+}
+.afterlogue-seen-eye svg{display:block;flex:none;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.afterlogue-seen-eye:hover,.afterlogue-seen-eye:focus-visible{color:#f2e3ce;background:rgba(212,180,135,.10)}
+.afterlogue-seen-eye.is-seen{color:#d4b487;background:rgba(212,180,135,.10);border-color:rgba(212,180,135,.26)}
+.afterlogue-seen-eye.is-seen svg{stroke-width:1.85}
+.afterlogue-seen-eye:focus-visible{outline:2px solid #d4b487;outline-offset:2px}
+.afterlogue-seen-modal[hidden]{display:none!important}
+.afterlogue-seen-modal{position:fixed;inset:0;z-index:100200;background:rgba(5,6,7,.87);display:grid;place-items:center;padding:18px}
+.afterlogue-seen-panel{position:relative;width:min(100%,410px);box-sizing:border-box;padding:36px 29px 28px;background:#191816;color:#f4eadd;border:1px solid rgba(212,180,135,.36);border-radius:10px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,.55)}
+.afterlogue-seen-close{position:absolute;right:13px;top:12px;display:grid;place-items:center;width:32px;height:32px;font:25px Georgia,serif;background:transparent;border:0;border-radius:50%;color:#cbb18c;cursor:pointer}
+.afterlogue-seen-close:hover{background:rgba(212,180,135,.1)}
+.afterlogue-seen-eyebrow{font:10px Arial,sans-serif;letter-spacing:.14em;color:#d4b487;margin:0 0 20px}
+.afterlogue-seen-panel h2{font:400 36px/1.12 Georgia,serif;margin:0 0 12px}
+.afterlogue-seen-title{font:15px/1.5 Georgia,serif;color:#bdb1a2;margin:0 0 26px}
+.afterlogue-seen-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.afterlogue-seen-choices button,.afterlogue-seen-only{background:transparent;border:1px solid rgba(212,180,135,.42);border-radius:999px;padding:12px 8px;color:#eee3d3;font:12px Arial,sans-serif;cursor:pointer;transition:background .17s,color .17s}
+.afterlogue-seen-only{margin:16px auto 0;width:100%}
+.afterlogue-seen-choices button:hover,.afterlogue-seen-only:hover{background:#d4b487;color:#151311}
+.afterlogue-seen-panel button:focus-visible{outline:2px solid #d4b487;outline-offset:3px}
+.afterlogue-seen-feedback{font:12px/1.5 Arial,sans-serif;color:#d4b487;min-height:18px;margin:15px 0 0}
+body.afterlogue-seen-open{overflow:hidden}
+@media(max-width:480px){.afterlogue-seen-panel{padding:36px 20px 24px}}
