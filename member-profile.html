@@ -1,7 +1,82 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Member profile — Afterlogue</title><link rel="stylesheet" href="style.css?v=29"><link rel="stylesheet" href="mobile-header.css?v=3">
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101113">
+<title>Member profile — Afterlogue</title>
+<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="mobile-header.css?v=3">
 <style>
-.member-page{max-width:920px;margin:65px auto 90px;padding:0 26px;color:#eee6d8}.member-kicker{font-size:11px;letter-spacing:.18em;color:#bba780}.member-head{display:flex;align-items:center;gap:24px;margin:25px 0 42px}.member-picture{width:105px;height:105px;flex:none;border-radius:50%;background:#34312c center/cover no-repeat;border:1px solid #766b57}.member-name{font:normal clamp(31px,5vw,52px) Georgia,serif;margin:0 0 5px}.member-handle{font-size:14px;color:#d4bc91}.member-since{font-size:12px;color:#999086;margin-top:9px}.member-bio{font-size:14px;color:#bfb5a6;line-height:1.65;max-width:530px;margin:14px 0 0;white-space:pre-wrap}.member-section{border-top:1px solid #544b3e;padding-top:20px}.member-section h2{font:normal 26px Georgia,serif;margin:0 0 20px}.member-thread{padding:20px 0;border-bottom:1px solid #38342f}.member-thread a{color:#eee6d8;font:normal 22px Georgia,serif;text-decoration:none}.member-thread a:hover{color:#d4bc91}.member-thread p{font-size:12px;color:#a89e8d}.member-note{color:#a69d90;font-size:13px;line-height:1.7}.member-picture.preset{background-size:400% 300%}@media(max-width:600px){.member-page{margin-top:30px}.member-head{gap:15px}.member-picture{width:75px;height:75px}.member-name{font-size:29px}}
-</style></head><body><header class="site-header"><a class="logo" href="index.html">afterlogue.</a><nav aria-label="Main navigation"><a href="discover.html">Home</a><a href="explore.html">Explore</a><a href="my-log.html">Log</a><a href="discuss.html">Discuss</a></nav></header>
-<main class="member-page"><p class="member-kicker">AFTERLOGUE / MEMBER PROFILE</p><div class="member-head"><div id="member-picture" class="member-picture" role="img" aria-label="Member avatar"></div><div><h1 id="member-name" class="member-name">Member profile</h1><div id="member-handle" class="member-handle"></div><div id="member-since" class="member-since"></div><p id="member-bio" class="member-bio" hidden></p></div></div><section class="member-section"><h2>Conversations.</h2><div id="member-conversations"><p class="member-note">Loading conversations…</p></div></section><p class="member-note">Their Log, impressions, and watchlist remain private.</p></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-client.js"></script><script src="site-navigation.js?v=4"></script><script src="member-profile.js?v=2"></script></body></html>
+.member-page{width:min(950px,calc(100% - 48px));margin:34px auto 95px;color:#eae1d0}
+.member-navigation{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:48px}
+.member-navigation a{color:#ceb996;font:12px Arial,Helvetica,sans-serif;text-decoration:none;letter-spacing:.025em}
+.member-navigation a:hover{text-decoration:underline}
+.member-kicker,.member-section-label{font:10px Arial,Helvetica,sans-serif;letter-spacing:.18em;color:#c7b087;text-transform:uppercase}
+.member-head{display:flex;gap:26px;align-items:center;margin:23px 0 58px}
+.member-picture{width:110px;height:110px;min-width:110px;border-radius:50%;background:#34312c center/cover no-repeat;border:1px solid #7e715b}
+.member-picture.preset{background-size:400% 300%}
+.member-name{font:400 clamp(34px,5.5vw,57px)/1.06 Georgia,serif;margin:0 0 9px;letter-spacing:-.03em;overflow-wrap:anywhere}
+.member-handle{font:13px Arial,Helvetica,sans-serif;color:#d6bc8e}
+.member-since{font:11px Arial,Helvetica,sans-serif;color:#999084;margin-top:8px}
+.member-bio{font:14px/1.65 Arial,Helvetica,sans-serif;color:#cfc5b5;max-width:590px;margin:15px 0 0;white-space:pre-wrap}
+.member-section{border-top:1px solid rgba(211,188,149,.43);padding:22px 0 35px;margin-bottom:10px}
+.member-section-header{margin:0 0 23px}
+.member-section h2{font:400 clamp(27px,3.2vw,36px)/1.1 Georgia,serif;letter-spacing:-.02em;margin:12px 0 6px}
+.member-section-description{font:12px/1.6 Arial,Helvetica,sans-serif;color:#a9a091;margin:0}
+.member-featured-grid{display:grid;grid-template-columns:repeat(3,minmax(0,154px));gap:19px;align-items:start}
+.member-poster-card{min-width:0}
+.member-poster-frame{display:flex;align-items:center;justify-content:center;aspect-ratio:2/3;border:1px solid #4a4339;background:linear-gradient(155deg,#26221e,#141517);overflow:hidden}
+.member-poster-frame img{width:100%;height:100%;object-fit:cover;display:block}
+.member-poster-name{font:13px/1.4 Georgia,serif;margin:9px 0 2px}
+.member-poster-year{font:10px Arial,Helvetica,sans-serif;color:#aa9b85}
+.member-poster-placeholder{border:1px dashed #675a45;background:#171716;display:grid;place-items:center;aspect-ratio:2/3;text-decoration:none;color:#cfbc9d;font:32px Georgia,serif}
+.member-poster-placeholder:hover{background:#242019}
+.member-featured-empty-text{font:12px/1.5 Arial,Helvetica,sans-serif;color:#a9a091;margin:18px 0 0}
+.member-featured-empty-text a{color:#dec595;text-decoration:none;border-bottom:1px solid #8d7958}
+.member-thread{padding:20px 0 22px;border-bottom:1px solid rgba(211,188,149,.24)}
+.member-thread:first-child{padding-top:0}
+.member-thread-eyebrow{font:10px Arial,Helvetica,sans-serif;letter-spacing:.12em;color:#b8a47f;text-transform:uppercase;margin:0 0 9px}
+.member-thread-title{font:400 clamp(23px,3vw,30px)/1.18 Georgia,serif;color:#eee5d5;text-decoration:none}
+.member-thread-title:hover{color:#dfc390}
+.member-thread-preview{font:13px/1.65 Arial,Helvetica,sans-serif;color:#b7ad9f;max-width:770px;margin:9px 0}
+.member-thread-meta{font:11px Arial,Helvetica,sans-serif;color:#9b907f;margin:0}
+.member-note{color:#a69d90;font:13px/1.7 Arial,Helvetica,sans-serif}
+@media(max-width:650px){
+.member-page{width:calc(100% - 36px);margin:25px auto 65px}
+.member-navigation{margin-bottom:37px}
+.member-head{gap:16px;margin:17px 0 42px;align-items:flex-start}
+.member-picture{width:78px;height:78px;min-width:78px}
+.member-name{font-size:32px}
+.member-featured-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.member-section{padding-top:18px}
+.member-poster-name{font-size:11px}
+}
+</style>
+</head>
+<body>
+<header class="site-header"><a class="logo" href="index.html">afterlogue.</a>
+<nav aria-label="Main navigation"><a href="discover.html">Home</a><a href="explore.html">Explore</a><a href="my-log.html">Log</a><a href="discuss.html">Discuss</a>
+<details class="account-menu"><summary aria-label="Open account menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/></svg></summary><div class="account-dropdown"><p class="account-heading">Your account</p><p id="account-email">Checking your account…</p><p id="account-status"></p><div class="account-divider"></div><a class="account-settings" href="account-settings.html">Account settings ↗</a><button type="button" id="account-signout" hidden>Sign out</button><a id="account-signin" href="signup.html?mode=signin" hidden>Sign in / Create account</a></div></details>
+</nav></header>
+<main class="member-page">
+<div class="member-navigation"><a id="member-back-home" href="discover.html">← Back to Home</a><a id="member-edit-profile" href="account-settings.html" hidden>Edit profile ↗</a></div>
+<p class="member-kicker">AFTERLOGUE / A POINT OF VIEW</p>
+<section class="member-head" aria-label="Member identity"><div id="member-picture" class="member-picture" role="img" aria-label="Member avatar"></div>
+<div><h1 id="member-name" class="member-name">Member profile</h1><div id="member-handle" class="member-handle"></div><div id="member-since" class="member-since"></div><p id="member-bio" class="member-bio" hidden></p></div></section>
+<section class="member-section" id="member-featured-section" hidden>
+<div class="member-section-header"><div class="member-section-label">01 — The selection</div><h2>Three that stayed with me.</h2><p class="member-section-description">A few stories worth keeping close.</p></div>
+<div id="member-featured-grid" class="member-featured-grid"></div>
+<p id="member-featured-empty" class="member-featured-empty-text" hidden>Choose your three in <a href="account-settings.html">Account Settings ↗</a></p>
+</section>
+<section class="member-section" aria-labelledby="member-conversations-heading">
+<div class="member-section-header"><div class="member-section-label">02 — The conversation</div><h2 id="member-conversations-heading">Conversations.</h2><p class="member-section-description">Perspectives they've chosen to share.</p></div>
+<div id="member-conversations"><p class="member-note">Loading conversations…</p></div>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="site-navigation.js?v=5"></script>
+<script src="featured-catalog.js?v=1"></script>
+<script src="member-profile.js?v=3"></script>
+</body></html>
