@@ -16,6 +16,8 @@ async function init(){
   const {data,error}=await client.auth.getUser();if(error)throw error;
   if(!data.user){location.replace('signup.html?mode=signin');return;}
   user=data.user;
+  const profileLink=$('view-public-profile');
+  if(profileLink){profileLink.href='member-profile.html?id='+encodeURIComponent(user.id);profileLink.hidden=false;}
   const {data:profile,error:profileError}=await client.from('member_profiles').select('username,display_name,avatar_path,avatar_preset,bio').eq('user_id',user.id).maybeSingle();
   if(profileError)throw profileError;
   $('username').value=profile?.username||'';
@@ -25,10 +27,28 @@ async function init(){
   selectedPreset=profile?.avatar_preset||null;if(selectedPreset){previewPreset(selectedPreset);document.querySelector('[data-preset="'+selectedPreset+'"]')?.setAttribute('aria-pressed','true');}else if(originalPath) $('avatar-preview').src=client.storage.from('member-avatars').getPublicUrl(originalPath).data.publicUrl;
  }catch(e){console.error(e);message('Could not load your account. Please refresh.');}
 }
-$('avatar-file').addEventListener('change',()=>{
- const file=$('avatar-file').files[0];if(!file)return;
- if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>2097152){message('Choose a JPEG, PNG, or WebP image under 2 MB.');$('avatar-file').value='';return;}
- selectedFile=file;removeAvatar=false;selectedPreset=null;clearPreset();document.querySelectorAll('.avatar-option').forEach(b=>b.setAttribute('aria-pressed','false'));$('avatar-preview').src=URL.createObjectURL(file);message('Photo selected. Save changes to upload.');
+$('avatar-file').addEventListener('change',async()=>{
+ const file=$('avatar-file').files[0];
+ if(!file)return;
+ if(!file.type.startsWith('image/')||file.size>15*1024*1024){
+  message('Choose an image smaller than 15 MB.');
+  $('avatar-file').value='';return;
+ }
+ try{
+  const cropped=await window.AfterlogueCropPhoto(file);
+  $('avatar-file').value='';
+  if(!cropped){message('Crop cancelled. Your photo remains unchanged.');return;}
+  selectedFile=cropped;
+  removeAvatar=false;selectedPreset=null;
+  clearPreset();
+  document.querySelectorAll('.avatar-option').forEach(b=>b.setAttribute('aria-pressed','false'));
+  $('avatar-preview').src=URL.createObjectURL(cropped);
+  message('Photo framed. Save changes to upload your cropped picture.');
+ }catch(error){
+  console.error('Photo crop failed',error);
+  $('avatar-file').value='';
+  message(error.message||'This photo could not be cropped. Please try another.');
+ }
 });
 $('avatar-remove').addEventListener('click',()=>{selectedFile=null;removeAvatar=true;selectedPreset=null;clearPreset();document.querySelectorAll('.avatar-option').forEach(b=>b.setAttribute('aria-pressed','false'));$('avatar-file').value='';$('avatar-preview').src=fallback;message('Photo will be removed when you save.');});
 $('profile-form').addEventListener('submit',async event=>{
