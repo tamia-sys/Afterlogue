@@ -120,3 +120,16 @@ body.film-lightbox-open{overflow:hidden}
  .film-lightbox-arrow{width:35px;height:35px;font-size:18px}
  .film-lightbox img{max-width:calc(100vw - 88px)}
 }
+
+/* In-page cinematic trailer player */
+.film-trailer-modal[hidden]{display:none!important}
+.film-trailer-modal{position:fixed;inset:0;z-index:100100;background:rgba(3,4,5,.94);display:grid;place-items:center;padding:25px}
+.film-trailer-dialog{width:min(100%,1000px);color:#f0e7d9}
+.film-trailer-heading{display:flex;justify-content:space-between;align-items:center;gap:18px;font:clamp(22px,3vw,35px) Georgia,serif;margin-bottom:18px}
+.film-trailer-heading button{background:transparent;color:#f0e7d9;border:1px solid #bfa682;border-radius:50%;height:43px;width:43px;font-size:28px;cursor:pointer}
+.film-trailer-screen{width:100%;aspect-ratio:16/9;background:#08090a;border:1px solid rgba(212,180,135,.24)}
+.film-trailer-screen iframe{height:100%;width:100%;border:0;display:block}
+#film-trailer-status{font:12px/1.6 Arial,sans-serif;color:#bcb1a1;min-height:20px}
+#film-trailer-external{color:#d4b487;font:12px Arial,sans-serif;text-decoration:underline;text-underline-offset:4px}
+body.film-trailer-open{overflow:hidden}
+@media(max-width:600px){.film-trailer-modal{padding:12px}.film-trailer-heading{font-size:21px}}
