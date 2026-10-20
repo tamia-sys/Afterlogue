@@ -168,7 +168,7 @@
     const controls = el('div', 'archive-actions');
     controls.appendChild(action('◉ Details', 'Edit details for ' + record.title,
       function () { openDetails(record); }));
-    const filmLink = el('a', 'archive-action', '↗ Film page');
+    const filmLink = el('a', 'archive-action', 'Film page');
     filmLink.href = 'film-details.html?title=' + encodeURIComponent(record.key) + '&from=log';
     filmLink.setAttribute('aria-label', 'View film details for ' + record.title);
     filmLink.style.textDecoration = 'none';
@@ -177,7 +177,7 @@
     controls.appendChild(filmLink);
     controls.appendChild(action('♧ Share', 'Share ' + record.title,
       function () { shareTitle(record); }));
-    controls.appendChild(action('↗ Discuss', 'Start a discussion about ' + record.title,
+    controls.appendChild(action('Discuss', 'Start a discussion about ' + record.title,
       function () { discussFromLog(record); }));
     body.appendChild(controls);
 
