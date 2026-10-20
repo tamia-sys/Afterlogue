@@ -1034,6 +1034,25 @@ body.explore-body > header.site-header {
 .explore-global-matches{margin:22px 0 30px;padding:18px 0;border-top:1px solid rgba(212,180,135,.23)}
 .explore-global-detail{color:#d4b487;font:11px Arial,sans-serif;text-decoration:none;border-bottom:1px solid rgba(212,180,135,.45);padding-bottom:3px}
 .explore-global-matches[hidden]{display:none!important}
+
+/* Compact multiple-choice facets; only their menus expand. */
+.explore-browse,.explore-filters{overflow:visible}
+.explore-filter-menu{position:relative;min-width:104px;z-index:9;color:#c9b598;font:11px Inter,Arial,sans-serif}
+.explore-filter-menu[open]{z-index:95}
+.explore-filter-menu summary{display:flex;align-items:center;gap:9px;justify-content:space-between;list-style:none;cursor:pointer;height:38px;box-sizing:border-box;padding:0 14px;border:1px solid rgba(212,180,135,.4);border-radius:999px;background:#11100f;user-select:none}
+.explore-filter-menu summary::-webkit-details-marker{display:none}
+.explore-filter-menu summary:hover,.explore-filter-menu summary:focus-visible,.explore-filter-menu[open] summary{border-color:#d4b487;color:#f4eadd}
+.explore-filter-menu.has-selection summary{border-color:#b89a73;color:#efd7b5}
+.explore-filter-name{white-space:nowrap}
+.explore-filter-selected{font-size:10px;color:#d4b487}
+.explore-filter-chevron{font-size:15px;color:#c6ab84;line-height:1}
+.explore-filter-options{position:absolute;top:calc(100% + 7px);left:0;z-index:100;min-width:210px;max-height:268px;overflow-y:auto;padding:9px;background:#191714;border:1px solid rgba(212,180,135,.55);border-radius:12px;box-shadow:0 12px 35px rgba(0,0,0,.58)}
+.explore-filter-menu[data-facet="decades"] .explore-filter-options{left:auto;right:0}
+.explore-filters .explore-filter-option{display:flex;align-items:center;justify-content:flex-start;gap:9px;box-sizing:border-box;min-height:32px;height:auto;border:0;padding:6px 8px;border-radius:6px;background:transparent;color:#e5d8c7;font:12px Inter,Arial,sans-serif;cursor:pointer}
+.explore-filters .explore-filter-option:hover,.explore-filters .explore-filter-option:focus-within{background:rgba(212,180,135,.12)}
+.explore-filter-option input{accent-color:#d4b487;width:15px;height:15px;flex-shrink:0}
+.explore-filter-menu .explore-filter-option{max-width:none}
+@media(max-width:650px){.explore-filter-menu{flex:1 1 auto}.explore-filter-options{min-width:192px;max-width:min(260px,80vw)}}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 <link rel="stylesheet" href="seen-impression.css?v=2">
