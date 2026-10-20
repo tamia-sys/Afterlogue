@@ -1,0 +1,96 @@
+# Afterlogue — recommendation intelligence, editorial v1
+
+Updated October 20, 2026
+
+## Goal
+
+Recommend a **viewing experience**, not merely a movie that happens to contain
+an associated word. Relevance is personal and contextual: a party in a bleak
+family tragedy is not interchangeable with an energetic party-game horror-comedy.
+
+## What the research supports
+
+- **Mood management:** energy/arousal, emotional valence, absorption and how
+  connected media content feels to the viewer's current state are distinguishable
+  dimensions (Reinecke, “Mood Management Theory”; Zillmann, “Mood Management in
+  the Context of Selective Exposure Theory”).
+- **Meaningful vs pleasurable:** some viewers deliberately choose bittersweet
+  and emotionally challenging works; melancholy is not an error for *yearning*
+  (Oliver & Hartmann, 2010; Luong & Knobloch-Westerwick, 2021).
+- **Content beyond genre:** GroupLens' MovieLens Tag Genome research shows the
+  value of movie properties such as atmospheric, realistic, reflective, and
+  quirky rather than relying solely on broad genres.
+- **Existing emotion-aware systems:** a systematic scoping review found
+  categorical and dimensional approaches; simple emotion labels do not
+  establish reliable individual preference without evaluation.
+
+Primary references:
+- https://onlinelibrary.wiley.com/doi/10.1002/9781118783764.wbieme0085
+- https://academic.oup.com/anncom/article-abstract/23/1/103/7850326
+- https://academic.oup.com/edited-volume/34268/chapter-abstract/290537332
+- https://doi.org/10.3167/proj.2010.040208
+- https://doi.org/10.1155/2022/7831013
+- https://grouplens.org/datasets/movielens/tag-genome/
+- https://files.grouplens.org/datasets/tag-genome/README.html
+
+Critical evaluation examples consulted (editorial learning, no imported review text):
+- https://www.rogerebert.com/reviews/the-ice-storm-1997
+- https://www.rogerebert.com/reviews/call-me-by-your-name-2017
+- https://www.rogerebert.com/reviews/bodies-bodies-bodies-movie-review-2022
+
+## Implemented now
+
+1. Keep the user's country, language, decade, genre and classification as **hard filters**.
+2. Identify documentary evidence from plot descriptions and TMDB story
+   keywords. Movie genre alone is not a mood.
+3. Estimate the experience with editorially constructed rules for emotional
+   tension, narrative energy, social atmosphere, and negative mismatch signals.
+4. Reject strong mismatches, rank the surviving candidates by fit, and
+   diversify reasons only among comparably relevant titles.
+5. Show a **reason grounded in a narrative/theme cue**, not “this story
+   contains romance”.
+6. Track versions and editorial scores internally for auditing, not as a
+   scientific psychological measurement.
+7. Preserve five verified recommendations per set; if fewer qualify, search
+   further rather than inserting irrelevant titles.
+
+### Benchmark cases
+
+- **Yearning:** *Call Me by Your Name*, *Her*, *20th Century Girl*, and *Romeo
+  and Juliet* are plausible because of uncertainty, separation, absence or
+  difficult attachment. Generic happy romance is not sufficient.
+- **Friday:** *Bodies Bodies Bodies* and *Girls Trip* are defensible;
+  *The Ice Storm* should fail because its party is embedded in a bleak,
+  distressing family drama.
+- **Holidays:** a direct holiday premise differs from an incidental Christmas
+  mention (*Scent of a Woman*) or a loosely related Irish setting.
+- **Winding down:** gentle/reflective content should outrank distressing,
+  violent or frantic viewing when alternatives exist.
+
+These are *editorial acceptance criteria*, not universal user preferences.
+
+## Important limitations and safeguards
+
+- The current system uses **hand-authored, deterministic rules**; it is **not a
+  trained AI film critic** and does not claim to measure anyone's psychology.
+- Movie plot descriptions, genre tags and TMDB keywords are often sparse,
+  vague or mislabeled. Reviewer assessments guide our rule design but are
+  **not copied into film records**. No reviews are scraped for training.
+- Individual response varies: give users an explicit way to narrow the desired
+  tone, and collect optional feedback rather than assuming all viewers want
+  the same experience.
+- TMDB's terms may require additional rights for commercial use and restrict
+  API content in AI/ML applications. Resolve those rights before attempting
+  embeddings, training, or model inference over TMDB content:
+  https://www.themoviedb.org/api-terms-of-use
+- Testing needs to track precision@5 by mood, diversity, non-repetition,
+  median search latency, reason-grounding, and how frequently strict filters
+  produce fewer than five titles.
+- Never quietly relax selected hard filters to meet a recommendation quota.
+
+## Next validation phase
+
+Have real testers review 10–20 sets for each mood, rate emotional fit 1–5,
+mark misleading “why” claims, and note which picks they actually watch.
+Use anonymized *opt-in* feedback to tune the editorial rules. Measure whether
+the updated engine improves **mood fit** without hurting diversity and coverage.
