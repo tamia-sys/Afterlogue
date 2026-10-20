@@ -75,6 +75,43 @@
     };
   }
 
+  async function recoverMissingCatalogTitles() {
+    const helper = window.AfterlogueCatalogMetadata;
+    if (!helper || !state.user) return;
+    const keys = new Set([...state.seen,...state.impressions,...state.watchlist,...state.metadata]
+      .map(row => row.title_key));
+    // Bound background calls. New saves already persist metadata immediately.
+    const missing = [...keys].filter(key => helper.identify(key) && !catalogue[key]).slice(0,32);
+    if (!missing.length) return;
+    let updated = false;
+    const endpoint = 'https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog';
+    const jobs = [...missing];
+    async function worker() {
+      while (jobs.length) {
+        const key = jobs.shift();
+        if (!key) return;
+        const {id,media} = helper.identify(key);
+        try {
+          const response = await fetch(endpoint, {
+            method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({mode:'detail',id,media})
+          });
+          if (!response.ok) continue;
+          const details = await response.json();
+          const entry = helper.normalize({key,title:details.title,year:details.year,poster:details.poster});
+          if (!entry) continue;
+          await helper.save(client,state.user.id,entry);
+          catalogue[key] = entry;
+          updated = true;
+        } catch (error) {
+          console.warn('Could not recover catalog title', key, error);
+        }
+      }
+    }
+    await Promise.all([worker(),worker(),worker()]);
+    if (updated) render();
+  }
+
   function impression(key) {
     return state.impressions.find(function (item) { return item.title_key === key; }) || null;
   }
@@ -170,7 +207,10 @@
     // The Details action always opens this story's cinematic film/TV page,
     // regardless of whether this card appears under Watched, Watchlist or Favorites.
     const filmLink = el('a', 'archive-action', 'ⓘ Details');
-    filmLink.href = 'film-details.html?title=' + encodeURIComponent(record.key) + '&from=log';
+    const tmdb = window.AfterlogueCatalogMetadata?.identify(record.key);
+    filmLink.href = tmdb
+      ? 'film-details.html?tmdb=' + encodeURIComponent(tmdb.id) + '&type=' + tmdb.media + '&from=log'
+      : 'film-details.html?title=' + encodeURIComponent(record.key) + '&from=log';
     filmLink.setAttribute('aria-label', 'View A Film in Focus for ' + record.title);
     filmLink.style.textDecoration = 'none';
     filmLink.style.display = 'inline-flex';
@@ -611,7 +651,9 @@
         client.from('log_entries').select('title_key,category,private_note,is_favorite,share_note_preference,updated_at')
           .eq('user_id', state.user.id).order('updated_at', { ascending: false }),
         client.from('log_share_settings').select('note_share_default')
-          .eq('user_id', state.user.id).maybeSingle()
+          .eq('user_id', state.user.id).maybeSingle(),
+        client.from('user_catalog_titles').select('title_key,title,year,poster,category')
+          .eq('user_id', state.user.id)
       ]);
       const broken = result.find(function (r) { return r.error; });
       if (broken) throw broken.error;
@@ -620,8 +662,18 @@
       state.watchlist = result[2].data || [];
       state.metadata = result[3].data || [];
       state.shareDefault = (result[4].data && result[4].data.note_share_default) || 'ask';
+      for (const row of result[5].data || []) {
+        if (window.AfterlogueCatalogMetadata?.identify(row.title_key)) {
+          catalogue[row.title_key] = {
+            title:row.title,year:row.year,poster:row.poster,category:row.category
+          };
+        }
+      }
       showMessage('');
       render();
+      // Recover older TMDB saves that predate metadata storage. The main Log
+      // appears immediately; the legacy entries fill in when TMDB responds.
+      recoverMissingCatalogTitles().catch(error => console.warn('Catalog recovery unavailable', error));
     } catch (error) {
       console.error('Afterlogue Log loading error', error);
       counter.textContent = '';
