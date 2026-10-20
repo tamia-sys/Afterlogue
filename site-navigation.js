@@ -128,7 +128,7 @@
       }
       edit.className='account-settings';
       edit.href='account-settings.html';
-      edit.textContent='Edit profile ↗';
+      edit.textContent='Edit profile';
       edit.style.display=isMember?'block':'none';
       edit.style.marginBottom='12px';
       edit.setAttribute('aria-label','Edit your Afterlogue profile');
@@ -139,7 +139,7 @@
         view.className='account-profile-link';
         edit.insertAdjacentElement('beforebegin',view);
       }
-      view.textContent='View my profile ↗';
+      view.textContent='View my profile';
       view.href=isMember?'member-profile.html?id='+encodeURIComponent(user.id):'signup.html?mode=signin';
       view.style.display=isMember?'block':'none';
       view.style.marginBottom='12px';
