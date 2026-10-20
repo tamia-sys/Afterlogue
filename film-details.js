@@ -43,7 +43,7 @@ const rich=dynamicDetails?{
  synopsis:dynamicDetails.synopsis,director:dynamicDetails.director,
  creator:dynamicDetails.creator,country:dynamicDetails.country,
  language:dynamicDetails.language,runtime:dynamicDetails.runtime,
- genre:dynamicDetails.genre,cast:dynamicDetails.cast,crew:dynamicDetails.crew,
+ genre:dynamicDetails.genre,certification:dynamicDetails.certification,cast:dynamicDetails.cast,crew:dynamicDetails.crew,
  still:dynamicDetails.backdrop,stills:dynamicDetails.stills,
  trailer:dynamicDetails.trailer
 }:{...(window.AfterlogueFilmBasics?.[key]||{}),...(editorial[key]||{})};
@@ -65,7 +65,7 @@ $('film-title').textContent=item.title;
 $('film-eyebrow').textContent='AFTERLOGUE / '+(isTV?'A SERIES IN FOCUS':'A FILM IN FOCUS');
 const synopsis=rich.synopsis|| (fromExplore?fromExplore.reason+' Further synopsis and credits are being curated.':'A story in the Afterlogue collection. Detailed synopsis and credits are being curated.');
 $('film-lead').textContent=synopsis;
-const meta=[String(item.year||''),rich.country||'',rich.genre||'',rich.runtime||''].filter(Boolean);
+const meta=[String(item.year||''),rich.country||'',rich.certification?('US '+rich.certification):'',rich.genre||'',rich.runtime||''].filter(Boolean);
 for(const value of meta){const el=document.createElement('span');el.textContent=value;$('film-meta').append(el);}
 
 if(rich.perspective){$('film-perspective').textContent=rich.perspective;$('film-perspective').hidden=false;}
