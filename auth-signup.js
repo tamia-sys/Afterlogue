@@ -42,7 +42,7 @@ function describeAuthError(error){
  const detail=String(error?.message||"").toLowerCase();
  const status=Number(error?.status);
  if(status===429||/rate.limit|too many requests|too many emails|email send rate limit|security purposes/.test(code+" "+detail)){
-  return "Too many attempts or verification emails have been requested. Please wait before trying again. If you already received a confirmation email, use that link instead of creating another account.";
+  return "Afterlogue cannot send another confirmation email right now because the email limit was reached. Please wait and contact the person who invited you. Do not keep submitting signup requests.";
  }
  if(/email.not.confirmed|email not confirmed/.test(code+" "+detail)){
   return "Please open the confirmation link in your email first. Once verified, you'll go directly to First Impressions.";
@@ -113,7 +113,7 @@ form.addEventListener("submit",async event=>{
    // Confirmation-enabled projects intentionally return NO session.
    // The verification link returns here, where resumeSession() routes.
    passwordField.value="";
-   inform("Please check your email for a confirmation link. After confirming, you'll be taken straight to First Impressions—no second sign-in required.","success");
+   inform("Your Afterlogue account needs email confirmation. Check your inbox and spam folder for the confirmation link. After confirming, you'll be taken straight to First Impressions—no second sign-in required. If no email arrives, please tell the person who invited you instead of creating another account.","info");
   }
  }catch(error){
   inform(describeAuthError(error),"error");
