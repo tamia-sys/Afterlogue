@@ -255,7 +255,7 @@ function getTrailerId(value){
   const url=new URL(value);
   if(url.hostname==='youtu.be')return /^[a-zA-Z0-9_-]{11}$/.test(url.pathname.slice(1))?url.pathname.slice(1):null;
   if(['youtube.com','www.youtube.com','m.youtube.com'].includes(url.hostname)){
-   const id=url.searchParams.get('v')||url.pathname.match(/^\\/(?:embed|shorts)\\/([a-zA-Z0-9_-]{11})/)?.[1];
+   const id=url.searchParams.get('v')||url.pathname.split('/').filter(Boolean).slice(-1)[0];
    return /^[a-zA-Z0-9_-]{11}$/.test(id||'')?id:null;
   }
  }catch(_){}
