@@ -1053,6 +1053,14 @@ body.explore-body > header.site-header {
 .explore-filter-option input{accent-color:#d4b487;width:15px;height:15px;flex-shrink:0}
 .explore-filter-menu .explore-filter-option{max-width:none}
 @media(max-width:650px){.explore-filter-menu{flex:1 1 auto}.explore-filter-options{min-width:192px;max-width:min(260px,80vw)}}
+
+/* Evidence stays visible under every mood result instead of being an inert info icon. */
+.explore-mood-why{margin:7px 0 9px;padding:8px 1px 0;border-top:1px solid rgba(212,180,135,.22);font:11px/1.55 Inter,Arial,sans-serif;color:#cdbfae;min-height:58px}
+.explore-mood-why strong{display:block;margin:0 0 4px;color:#d6b98f;font-size:9px;letter-spacing:.11em;font-weight:600}
+.explore-mood-why p{margin:0;color:#c9bbae;line-height:1.5}
+.explore-mood-filter-proof{margin:5px 0 0}
+.explore-mood-filter-proof summary{cursor:pointer;display:inline-block;color:#d0af81;font:10px Inter,Arial,sans-serif;text-decoration:underline;text-underline-offset:3px}
+.explore-mood-filter-proof p{margin:6px 0 2px;color:#a99b88;font-size:10px;line-height:1.55}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 <link rel="stylesheet" href="seen-impression.css?v=2">
@@ -1517,18 +1525,20 @@ async function displayResults(){
          decades:facetChoices.decades||[]})
       });
       if(!resp.ok)throw Error("Mood catalog unavailable");
-      return (await resp.json()).items||[];
+      return await resp.json();
     }));
     if(requestId!==window.afterlogueMoodRequestId)return;
     const rated=ratedTitles();
     const excluded=new Set([...rated,...(window.AfterlogueSeen?.seen||[])]);
     const unique=new Set(),titles=[];
-    for(const item of requests.flat()){
+    for(const payload of requests){
+      for(const item of payload.items||[]){
       const key="tmdb-"+item.media+"-"+item.id;
       if(!item.poster||unique.has(key)||excluded.has(key))continue;
       unique.add(key);
       titles.push({...item,key,media:item.media==="tv"?"tv":"movies",
         reason:item.moodReason||"Selected for the mood you chose."});
+      }
     }
     // TMDB returns eligible, mood-tagged results in popularity order. Avoid
     // random reordering that buries stronger matches behind weaker ones.
@@ -1541,14 +1551,30 @@ async function displayResults(){
       const img=document.createElement("img");img.src=item.poster;img.alt=item.title+" poster";img.loading="lazy";link.append(img);
       const title=document.createElement("h3");title.textContent=item.title;
       const year=document.createElement("p");year.className="explore-year";year.textContent=(item.year||"")+" / "+(item.media==="tv"?"TV":"FILM");
+      // Every recommendation must display the evidence for its mood match,
+      // with an optional expansion for the exact verified country/language/genre/decade.
+      const why=document.createElement("div");why.className="explore-mood-why";
+      const whyHeading=document.createElement("strong");whyHeading.textContent="WHY THIS STORY";
+      const whyText=document.createElement("p");
+      whyText.textContent=item.moodReason||"This story was matched to your chosen mood.";
+      why.append(whyHeading,whyText);
+      if(Array.isArray(item.matchedFilters)&&item.matchedFilters.length){
+        const details=document.createElement("details");details.className="explore-mood-filter-proof";
+        const summary=document.createElement("summary");summary.textContent="Matching filters ↗";
+        const filters=document.createElement("p");filters.textContent=item.matchedFilters.join(" · ");
+        details.append(summary,filters);why.append(details);
+      }
       const actions=document.createElement("div");actions.className="explore-pick-actions";
       actions.append(window.AfterlogueSeen.button({key:item.key,title:item.title,year:item.year,poster:item.poster,category:item.media}));
       const detail=document.createElement("a");detail.href=link.href;detail.textContent="View details";detail.className="explore-global-detail";actions.append(detail);
-      el.append(link,title,year,actions);host.append(el);
+      el.append(link,title,year,why,actions);host.append(el);
     }
-    if(!five.length)host.textContent="No matching released stories for this mood and filter combination. Try clearing a choice or choosing another mood.";
+    if(!five.length){
+      host.textContent=requests.map(x=>x.note).filter(Boolean)[0]
+        ||"No verified stories match this mood and filter combination. Try clearing a filter.";
+    }
     $("explore-results-title").textContent=isSurprise?"A story you didn't ask for.":"A little something for you.";
-    $("explore-results-detail").textContent=data.moods[state.mood].intro+" Every title must actually match this mood.";
+    $("explore-results-detail").textContent=data.moods[state.mood].intro+" Each selection includes a specific reason for appearing.";
     $("explore-results-label").textContent="AFTERLOGUE / "+data.moods[state.mood].short.toUpperCase();
     $("explore-adjust").hidden=isSurprise;
     $("explore-again").textContent=isSurprise?"Another surprise ↗":"Another selection ↗";
