@@ -108,5 +108,17 @@
   avatarStyles.textContent="details.account-menu>summary.member-avatar{width:34px!important;height:34px!important;min-width:34px!important;border-radius:50%!important;overflow:hidden!important;border:1px solid #ad9772!important;background-repeat:no-repeat!important}details.account-menu>summary.member-avatar svg{display:none!important}";
   document.head.append(avatarStyles);
 
+  // Keep the account menu consistent even on pages that use older header markup.
+  const menu=document.querySelector('details.account-menu .account-dropdown');
+  if(menu&&!menu.querySelector('a[href="account-settings.html"]')){
+    const old=menu.querySelector('.account-settings');
+    if(old){
+      const link=document.createElement('a');
+      link.className='account-settings';
+      link.href='account-settings.html';
+      link.textContent='Account settings ↗';
+      old.replaceWith(link);
+    }
+  }
   sessionPromise.then(user => {updateNavigation(user);showMemberAvatar(user);});
 })();
