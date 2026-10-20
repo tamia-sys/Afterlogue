@@ -36,6 +36,8 @@ jobs:
           node-version: '22'
       - name: Install test dependencies
         run: npm install --no-audit --no-fund
+      - name: Check recommendation intelligence rules
+        run: npm run test:rules
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser checks
