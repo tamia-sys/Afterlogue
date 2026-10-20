@@ -57,7 +57,7 @@ const label=(name,value)=>{if(!value)return;const dt=document.createElement('dt'
 function info(s){$('film-feedback').textContent=s;}
 const referrer=(()=>{try{const url=new URL(document.referrer);return url.origin===location.origin?url.pathname.split('/').pop():'';}catch(_){return '';}})();
 const origin=params.get('from')||(referrer==='my-log.html'?'log':referrer==='explore.html'?'explore':referrer==='member-profile.html'?'profile':'discover');
-const returns={log:['my-log.html','← Back to Log'],explore:['explore.html','← Back to Explore'],'all-films':['explore.html#all-films','← Back to All Films'],profile:['account-settings.html','← Back to your profile'],discover:['discover.html','← Back to Discover']};
+const returns={log:['my-log.html','← Back to Log'],explore:['explore.html','← Back to Explore'],mood:['explore.html#mood-results','← Back to your five stories'],'all-films':['explore.html#all-films','← Back to All Films'],profile:['account-settings.html','← Back to your profile'],discover:['discover.html','← Back to Discover']};
 let [href,title]=returns[origin]||returns.discover;
 if(origin==='profile'&&document.referrer&&referrer==='member-profile.html'){href=document.referrer;}
 $('film-back').href=href;$('film-back').textContent=title;
@@ -473,20 +473,81 @@ if(member){
   }catch(_){}
  });
 }
-const related=Object.entries(catalog).filter(([k,v])=>k!==key&&v.category===item.category)
- .sort((a,b)=>Math.abs((a[1].year||2000)-(item.year||2000))-Math.abs((b[1].year||2000)-(item.year||2000)))
- .slice(0,5);
-if(related.length){
- const host=$('film-related-grid');
- for(const [k,v] of related){
-  const a=document.createElement('a');a.className='film-other-link';
-  a.href='film-details.html?title='+encodeURIComponent(k)+'&from='+encodeURIComponent(origin);
-  const img=document.createElement('img');img.loading='lazy';img.src=v.poster;img.alt=v.title+' poster';
-  const span=document.createElement('span');span.textContent=v.title;
-  a.append(img,span);host.append(a);
+// Keep exploring uses current film's TMDB relationships, not a fixed set
+// of same-year titles from the hand-picked Afterlogue collection.
+async function loadRelatedStories(){
+ const container=$('film-related-grid');
+ const block=$('film-related');
+ const endpoint='https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog';
+ let id=Number(externalId);
+ const media=isTV?'tv':'movie';
+ if(!dynamicDetails){
+  const q=await fetch(endpoint,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({mode:'search',query:item.title,media,page:1})
+  });
+  if(!q.ok)throw Error('Could not resolve related film');
+  const data=await q.json();
+  const norm=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
+  const match=(data.items||[]).find(x=>norm(x.title)===norm(item.title)&&Number(x.year)===Number(item.year));
+  if(!match)return;
+  id=Number(match.id);
  }
- $('film-related').hidden=false;
+ if(!Number.isSafeInteger(id)||id<1)return;
+ const activeExplore=['mood','explore','all-films'].includes(origin);
+ let facets={};
+ if(activeExplore){
+  try{
+   const state=JSON.parse(sessionStorage.getItem('afterlogue.explore.mood-filters.v1')||'{}');
+   if(state&&typeof state==='object')facets=state;
+  }catch(_){}
+ }
+ let mood='';
+ if(origin==='mood'){
+  try{
+   const saved=JSON.parse(sessionStorage.getItem('afterlogue.explore.return-to-picks.v1')||'null');
+   if(saved?.mood&&Date.now()-Number(saved.savedAt)<4*60*60*1000)mood=saved.mood;
+  }catch(_){}
+ }
+ if(origin==='all-films'){
+  try{
+   const prefs=JSON.parse(sessionStorage.getItem('afterlogue.explore.all-films.v1')||'null');
+   if(prefs){
+    if(prefs.genre)facets.genres=[prefs.genre];
+    if(prefs.decade)facets.decades=[String(prefs.decade)];
+   }
+  }catch(_){}
+ }
+ const criteria={genres:facets.genres||[],countries:facets.countries||[],
+  languages:facets.languages||[],decades:facets.decades||[],ratings:facets.ratings||[]};
+ const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({mode:'related',media,id,mood,...criteria})});
+ if(!response.ok)throw Error('Related recommendations unavailable');
+ const data=await response.json();
+ container.replaceChildren();
+ if(!data.items?.length){
+  // Do not fill the shelf with unrelated titles just to keep it full.
+  if(activeExplore){block.hidden=false;
+   const message=document.createElement('p');message.className='film-watch-notice';
+   message.textContent='No similar stories match all your current filters. Adjust your Explore choices for more.';
+   container.append(message);
+  }
+  return;
+ }
+ for(const candidate of data.items){
+  if(!candidate.poster||!candidate.id)continue;
+  const a=document.createElement('a');a.className='film-other-link';
+  a.href='film-details.html?tmdb='+encodeURIComponent(candidate.id)
+   +'&type='+encodeURIComponent(candidate.media)+'&from='+encodeURIComponent(origin);
+  const img=document.createElement('img');img.loading='lazy';img.src=candidate.poster;img.alt=candidate.title+' poster';
+  const span=document.createElement('span');span.textContent=candidate.title;
+  const subtitle=document.createElement('small');
+  subtitle.textContent=[candidate.year,candidate.certification].filter(Boolean).join(' · ');
+  a.append(img,span,subtitle);container.append(a);
+ }
+ block.hidden=container.children.length===0;
 }
+loadRelatedStories().catch(error=>console.warn('Related stories unavailable',error));
 $('film-loading').hidden=true;
 $('film-content').hidden=false;
 const target=location.hash.slice(1);
