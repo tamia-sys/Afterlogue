@@ -1452,7 +1452,8 @@ function drawPick(item){
   more.textContent="View details";
   more.setAttribute("aria-label","View details for "+item.title);
   more.style.cssText="display:inline-block;margin-top:10px;color:#d4b487;font:11px Arial,sans-serif;text-decoration:none;border-bottom:1px solid rgba(212,180,135,.45);padding-bottom:3px";
-  const eye=window.AfterlogueSeen.button({key:slug(item.title),title:item.title,category:item.media});
+  const canonicalKey=Object.keys(window.AfterlogueFeaturedCatalog||{}).find(k=>window.AfterlogueFeaturedCatalog[k].title===item.title)||slug(item.title);
+  const eye=window.AfterlogueSeen.button({key:canonicalKey,title:item.title,category:item.media});
   const controls=document.createElement("div");controls.className="explore-pick-actions";controls.append(eye,more);
   card.append(art,h,year,controls);return card;
 }
