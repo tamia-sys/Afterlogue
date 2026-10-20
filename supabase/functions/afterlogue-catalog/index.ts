@@ -148,6 +148,13 @@ function narrativeMoodEvidence(mood:string,details:Record<string,unknown>,tag:st
  if(tag)return 'The film is tagged “'+tag+'” in the catalog.';
  return null;
 }
+const HOLIDAY_GROUPS:string[][]=[
+ ["christmas","christmas eve","christmas holiday","santa claus"],
+ ["thanksgiving","new year's eve","new year"],
+ ["hanukkah","diwali","lunar new year","ramadan","eid al-fitr"],
+ ["valentine's day","easter","leap year","leap day"],
+ ["halloween","st. patrick's day","mid-autumn festival"]
+];
 const SEASONAL_FEATURES:Record<number,{event:string;reason:string}>={
   25195:{event:"Leap Day",reason:"The story centers on an Irish Leap Day proposal tradition."},
   1019420:{event:"Irish seasonal viewing",reason:"An Irish-set romance suited to St. Patrick’s season; it is not a St. Patrick’s Day plot."},
@@ -363,7 +370,16 @@ Deno.serve(async (req:Request) => {
           "vote_count.gte":String(media==="movie"?30:20)
         });
         const keywordSearch=ids.length>0&&i<Math.ceil(total/2);
-        if(keywordSearch)params.set("with_keywords",ids.join("|"));
+        if(keywordSearch){
+          let queryIds=ids;
+          if(mood==="holidays"){
+            // Search separate occasions rather than filling every page with Christmas.
+            const group=HOLIDAY_GROUPS[(i+offset)%HOLIDAY_GROUPS.length];
+            const specific=group.map(label=>keywordCache.get(label)?.id||0).filter(Boolean);
+            if(specific.length)queryIds=specific;
+          }
+          params.set("with_keywords",queryIds.join("|"));
+        }
         // A second discovery stream uses broader genres, then verifies the
         // actual synopsis or keywords. It catches titles with poor tag coverage.
         const broader=GENRE_MOODS[mood][media][i%GENRE_MOODS[mood][media].length];
@@ -479,6 +495,36 @@ Deno.serve(async (req:Request) => {
         const bb=genreSignal(b.genreIds.map(Number),pace);
         return bb-aa||(indexById.get(Number(a.id))??999)-(indexById.get(Number(b.id))??999);
       });
+      if(mood==="holidays"){
+        // Interleave evidence from different occasions when those occasions
+        // are represented, instead of returning five Christmas posters first.
+        const buckets=new Map<string,typeof verified>();
+        for(const v of verified){
+          const why=v.moodReason.toLowerCase();
+          const occasion=why.includes("christmas")||why.includes("santa")?"Christmas"
+            :why.includes("leap")?"Leap Day"
+            :why.includes("october")||why.includes("halloween")?"Halloween/October"
+            :why.includes("irish")||why.includes("patrick")?"St Patrick's season"
+            :why.includes("valentine")?"Valentine's Day"
+            :why.includes("new year")?"New Year"
+            :why.includes("thanksgiving")?"Thanksgiving"
+            :why.includes("easter")?"Easter"
+            :why.includes("diwali")?"Diwali"
+            :why.includes("lunar")?"Lunar New Year"
+            :why.includes("eid")?"Eid"
+            :why.includes("hanukkah")?"Hanukkah":"Other";
+          if(!buckets.has(occasion))buckets.set(occasion,[]);
+          buckets.get(occasion)!.push(v);
+        }
+        const order=[...buckets.keys()].sort((a,b)=>Number(a==="Christmas")-Number(b==="Christmas"));
+        verified.splice(0,verified.length);
+        for(let round=0;round<25;round++){
+          for(const key of order){
+            const entry=buckets.get(key)?.[round];
+            if(entry)verified.push(entry);
+          }
+        }
+      }
       return response({
         mood,matching:"verified-theme-and-details",pace,
         items:verified.slice(0,24),
