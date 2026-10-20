@@ -3,15 +3,35 @@
 const client=window.afterlogueSupabase;
 const guest=new URLSearchParams(location.search).get('guest')==='1';
 const slug=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-let user=null,loaded=false,active=null,lastFocus=null;
+let user=null,initPromise=null,active=null,lastFocus=null;
 const seen=new Set(), ratings=new Map();
 try{JSON.parse(localStorage.getItem('afterlogue.seen.guest.v1')||'[]').forEach(k=>seen.add(k));}catch(e){}
 function refresh(){document.querySelectorAll('[data-seen-key]').forEach(b=>{const yes=seen.has(b.dataset.seenKey)||ratings.has(b.dataset.seenKey);b.classList.toggle('is-seen',yes);b.setAttribute('aria-pressed',String(yes));b.title=yes?'Seen — edit impression':'Mark as seen or leave an impression';b.setAttribute('aria-label',(yes?'Edit impression for ':'Mark as seen: ')+(b.dataset.seenTitle||b.dataset.seenKey));});}
-async function initialize(){if(loaded)return;loaded=true;if(guest||!client)return;try{const a=await client.auth.getUser();user=a.data?.user||null;if(!user)return;const results=await Promise.all([client.from('seen_entries').select('title_key').eq('user_id',user.id),client.from('impressions').select('title_key,rating').eq('user_id',user.id)]);if(results.some(x=>x.error))throw Error('Unable to load seen records');seen.clear();(results[0].data||[]).forEach(x=>seen.add(x.title_key));(results[1].data||[]).forEach(x=>{seen.add(x.title_key);ratings.set(x.title_key,x.rating);});refresh();}catch(e){console.warn('Seen records unavailable',e);}}
+async function initialize(){
+ if(initPromise)return initPromise;
+ initPromise=(async()=>{
+  if(guest||!client)return;
+  try{
+   const a=await client.auth.getUser();
+   user=a.data?.user||null;
+   if(!user)return;
+   const results=await Promise.all([
+    client.from('seen_entries').select('title_key').eq('user_id',user.id),
+    client.from('impressions').select('title_key,rating').eq('user_id',user.id)
+   ]);
+   if(results.some(x=>x.error))throw Error('Unable to load seen records');
+   seen.clear();ratings.clear();
+   (results[0].data||[]).forEach(x=>seen.add(x.title_key));
+   (results[1].data||[]).forEach(x=>{seen.add(x.title_key);ratings.set(x.title_key,x.rating);});
+  }catch(error){console.warn('Seen records unavailable',error);}
+  finally{refresh();}
+ })();
+ return initPromise;
+}
 const modal=document.createElement('div');modal.className='afterlogue-seen-modal';modal.hidden=true;modal.innerHTML='<div class="afterlogue-seen-panel" role="dialog" aria-modal="true" aria-labelledby="afterlogue-seen-heading"><button class="afterlogue-seen-close" type="button" aria-label="Close">×</button><p class="afterlogue-seen-eyebrow">AFTERLOGUE / YOUR IMPRESSION</p><h2 id="afterlogue-seen-heading">Seen it?</h2><p class="afterlogue-seen-title"></p><div class="afterlogue-seen-choices"></div><button class="afterlogue-seen-only" type="button">Seen it — no rating</button><p class="afterlogue-seen-feedback" role="status"></p></div>';document.body.append(modal);
 function close(){modal.hidden=true;document.body.classList.remove('afterlogue-seen-open');lastFocus?.focus?.();active=null;}
 modal.querySelector('.afterlogue-seen-close').addEventListener('click',close);modal.addEventListener('click',e=>{if(e.target===modal)close();});document.addEventListener('keydown',e=>{if(!modal.hidden&&e.key==='Escape')close();});
-async function save(rating){if(!active)return;const info=active;const status=modal.querySelector('.afterlogue-seen-feedback');const controls=modal.querySelectorAll('button');controls.forEach(b=>b.disabled=true);status.textContent='Saving…';try{if(!guest&&!user){location.assign('signup.html?mode=signin');return;}if(user){if(window.AfterlogueCatalogMetadata?.identify(info.key)){await window.AfterlogueCatalogMetadata.save(client,user.id,info);}const a=await client.from('seen_entries').upsert({user_id:user.id,title_key:info.key,category:info.category},{onConflict:'user_id,title_key'});if(a.error)throw a.error;if(rating){const b=await client.from('impressions').upsert({user_id:user.id,title_key:info.key,rating},{onConflict:'user_id,title_key'});if(b.error)throw b.error;}}else{const stored=new Set(JSON.parse(localStorage.getItem('afterlogue.seen.guest.v1')||'[]'));stored.add(info.key);localStorage.setItem('afterlogue.seen.guest.v1',JSON.stringify([...stored]));if(rating)localStorage.setItem('afterlogue-'+info.key,rating);}seen.add(info.key);if(rating)ratings.set(info.key,rating);document.dispatchEvent(new CustomEvent('afterlogue:impression-updated',{detail:{key:info.key,rating,seen:true}}));refresh();close();}catch(e){console.warn(e);status.textContent='Could not save. Please try again.';}finally{controls.forEach(b=>b.disabled=false);}}
+async function save(rating){if(!active)return;const info=active;const status=modal.querySelector('.afterlogue-seen-feedback');const controls=modal.querySelectorAll('button');controls.forEach(b=>b.disabled=true);status.textContent='Saving…';try{await initialize();if(!guest&&!user){location.assign('signup.html?mode=signin');return;}if(user){if(window.AfterlogueCatalogMetadata?.identify(info.key)){await window.AfterlogueCatalogMetadata.save(client,user.id,info);}const a=await client.from('seen_entries').upsert({user_id:user.id,title_key:info.key,category:info.category},{onConflict:'user_id,title_key'});if(a.error)throw a.error;if(rating){const b=await client.from('impressions').upsert({user_id:user.id,title_key:info.key,rating},{onConflict:'user_id,title_key'});if(b.error)throw b.error;}}else{const stored=new Set(JSON.parse(localStorage.getItem('afterlogue.seen.guest.v1')||'[]'));stored.add(info.key);localStorage.setItem('afterlogue.seen.guest.v1',JSON.stringify([...stored]));if(rating)localStorage.setItem('afterlogue-'+info.key,rating);}seen.add(info.key);if(rating)ratings.set(info.key,rating);document.dispatchEvent(new CustomEvent('afterlogue:impression-updated',{detail:{key:info.key,rating,seen:true}}));refresh();close();}catch(e){console.warn(e);status.textContent='Could not save. Please try again.';}finally{controls.forEach(b=>b.disabled=false);}}
 ['Loved','Liked','Okay','Not for me'].forEach(r=>{const b=document.createElement('button');b.type='button';b.textContent=r;b.addEventListener('click',()=>save(r));modal.querySelector('.afterlogue-seen-choices').append(b);});modal.querySelector('.afterlogue-seen-only').addEventListener('click',()=>save(null));
 function button(item){const key=item.key||slug(item.title);const b=document.createElement('button');b.type='button';b.className='afterlogue-seen-eye';b.dataset.seenKey=key;b.dataset.seenTitle=item.title;b.setAttribute('aria-label','Mark as seen: '+item.title);b.setAttribute('aria-pressed','false');b.innerHTML='<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';b.addEventListener('click',()=>{active={key,title:item.title,year:item.year??null,poster:item.poster||null,category:item.category==='tv'?'tv':'movies'};lastFocus=b;modal.querySelector('.afterlogue-seen-title').textContent=item.title;modal.querySelector('.afterlogue-seen-feedback').textContent='';modal.hidden=false;document.body.classList.add('afterlogue-seen-open');modal.querySelector('.afterlogue-seen-close').focus();});initialize();queueMicrotask(refresh);return b;}
 window.AfterlogueSeen=Object.freeze({button,initialize,has:key=>seen.has(key)||ratings.has(key),get seen(){return new Set([...seen,...ratings.keys()]);}});
