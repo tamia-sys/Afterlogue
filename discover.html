@@ -48,7 +48,7 @@
 
       <div class="account-divider"></div>
 
-      <a class="account-settings" href="account-settings.html">Account settings ↗</a>
+      <a class="account-settings" href="account-settings.html">Account settings</a>
 
       <button type="button" id="account-signout">
         Sign out
@@ -72,7 +72,7 @@
         </p>
         <div class="discover-hero-actions">
           <button type="button" id="discover-again" class="discover-again-button">
-            Discover again <span aria-hidden="true">→</span>
+            Discover again
           </button>
           <span class="discover-hero-note">PERSONALIZED / FIVE AT A TIME</span>
         </div>
@@ -637,7 +637,7 @@ bookmarkButton.setAttribute(
  detailLink.className="discovery-detail";
  detailLink.setAttribute("aria-label","View film details for "+item.title);
  detailLink.title="Film details";
- detailLink.textContent="↗";
+ detailLink.textContent="ⓘ";
  detailLink.style.cssText="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;color:#c1ad91;font:18px Georgia,serif;text-decoration:none";
  actions.append(infoButton, bookmarkButton, detailLink);
 
@@ -670,7 +670,7 @@ document.querySelectorAll(".discovery-category").forEach(button => {
 // their first five films and first five TV shows, until they create an account.
 const discoverAgainButton = document.getElementById("discover-again");
 if (isGuestMode) {
-  discoverAgainButton.innerHTML = 'Create an account for more <span aria-hidden="true">→</span>';
+  discoverAgainButton.innerHTML = 'Create an account for more';
   document.querySelector(".discover-hero-note").textContent = "YOUR FIRST FIVE PICKS ARE FREE TO EXPLORE";
 }
 discoverAgainButton.addEventListener("click", () => {
