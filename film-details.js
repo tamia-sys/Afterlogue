@@ -72,40 +72,94 @@ label('Runtime',rich.runtime);
 label('Genre',rich.genre);
 label('Release',String(item.year||''));
 if(!rich.director&&!rich.creator)label('Format',isTV?'Television':'Feature film');
-const gallery=Array.isArray(rich.stills)?[...new Set(rich.stills)].slice(0,3):[];
 const galleryHost=$('film-stills');
 const lightbox=$('film-lightbox');
 const lightboxImage=$('film-lightbox-image');
-function openLightbox(src){lightboxImage.src=src;lightboxImage.alt='Enlarged film still from '+item.title;$('film-lightbox-caption').textContent=item.title;lightbox.hidden=false;document.body.classList.add('film-lightbox-open');$('film-lightbox-close').focus();}
-function closeLightbox(){lightbox.hidden=true;document.body.classList.remove('film-lightbox-open');lightboxImage.removeAttribute('src');}
-$('film-lightbox-close').addEventListener('click',closeLightbox);
-lightbox.addEventListener('click',e=>{if(e.target===lightbox)closeLightbox();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!lightbox.hidden)closeLightbox();});
-if(!gallery.length && window.AfterlogueFilmArtwork){
- window.AfterlogueFilmArtwork.resolve(item.title,item.year,isTV).then(url=>{
-  if(!url)return;
-  const frame=document.createElement('div');frame.className='film-still-frame';
-  const button=document.createElement('button');button.type='button';
-  button.setAttribute('aria-label','Enlarge a still from '+item.title);
-  const image=document.createElement('img');image.src=url;image.loading='lazy';image.alt='A still from '+item.title;
-  image.addEventListener('error',()=>{frame.remove();galleryHost.hidden=true;});
-  button.addEventListener('click',()=>openLightbox(url));
-  button.append(image);frame.append(button);galleryHost.replaceChildren(frame);
-  galleryHost.classList.add('is-single');galleryHost.hidden=false;
- }).catch(()=>{});
+let previousLightboxFocus=null;
+function openLightbox(src){
+ previousLightboxFocus=document.activeElement;
+ lightboxImage.src=src;
+ lightboxImage.alt='Enlarged scene from '+item.title;
+ $('film-lightbox-caption').textContent=item.title;
+ lightbox.hidden=false;
+ document.body.classList.add('film-lightbox-open');
+ $('film-lightbox-close').focus();
 }
-if(gallery.length){
- if(gallery.length===1)galleryHost.classList.add('is-single');
- for(const src of gallery){
-  const frame=document.createElement('div');frame.className='film-still-frame';
-  const open=document.createElement('button');open.type='button';open.setAttribute('aria-label','Enlarge a still from '+item.title);
-  const img=document.createElement('img');img.loading='lazy';img.alt='A scene from '+item.title;img.src=src;
-  img.addEventListener('error',()=>{frame.remove();if(!galleryHost.children.length){galleryHost.hidden=true;$('film-stills-credit').hidden=true;}});
-  open.append(img);frame.append(open);galleryHost.append(frame);
-  open.addEventListener('click',()=>openLightbox(src));
+function closeLightbox(){
+ lightbox.hidden=true;
+ document.body.classList.remove('film-lightbox-open');
+ lightboxImage.removeAttribute('src');
+ if(previousLightboxFocus?.focus)previousLightboxFocus.focus();
+}
+$('film-lightbox-close').addEventListener('click',closeLightbox);
+lightbox.addEventListener('click',event=>{if(event.target===lightbox)closeLightbox();});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!lightbox.hidden)closeLightbox();});
+// Keep the hero separate from the scene gallery. Never display a lettered poster
+// as a gallery frame, and never repeat the hero image as the first thumbnail.
+const seenSources=new Set();
+const galleryPool=[];
+const ignoredSources=new Set([item.poster,rich.still].filter(Boolean));
+const sameImage=(a,b)=>String(a||'').split('?')[0]===String(b||'').split('?')[0];
+function refreshGallery(){
+ const count=galleryHost.querySelectorAll('.film-still-frame').length;
+ galleryHost.hidden=count===0;
+ galleryHost.classList.toggle('is-single',count===1);
+ $('film-stills-credit').hidden=count===0;
+}
+function fillGallery(){
+ while(galleryHost.children.length<3 && galleryPool.length){
+  const src=galleryPool.shift();
+  if(ignoredSources.has(src)||sameImage(src,hero.src)||sameImage(src,hero.currentSrc))continue;
+  const frame=document.createElement('div');
+  frame.className='film-still-frame';
+  frame.dataset.src=src;
+  const button=document.createElement('button');
+  button.type='button';
+  button.setAttribute('aria-label','Enlarge still from '+item.title);
+  const img=document.createElement('img');
+  img.loading='lazy';img.alt='A scene from '+item.title;img.src=src;
+  img.addEventListener('error',()=>{
+   frame.remove();
+   fillGallery();
+   refreshGallery();
+  });
+  button.addEventListener('click',()=>openLightbox(src));
+  button.append(img);frame.append(button);galleryHost.append(frame);
  }
- galleryHost.hidden=false;
- if(rich.imageCredit){$('film-stills-credit').textContent=rich.imageCredit;$('film-stills-credit').hidden=false;}
+ refreshGallery();
+}
+function queueGallery(urls){
+ if(!Array.isArray(urls))return;
+ for(const src of urls){
+  if(typeof src!=='string'||!/^https:\/\//i.test(src))continue;
+  const signature=src.split('?')[0];
+  if(seenSources.has(signature)||ignoredSources.has(src))continue;
+  seenSources.add(signature);galleryPool.push(src);
+ }
+ fillGallery();
+}
+function removeHeroDuplicate(){
+ const src=hero.currentSrc||hero.src;
+ for(const frame of galleryHost.querySelectorAll('.film-still-frame')){
+  if(sameImage(frame.dataset.src,src))frame.remove();
+ }
+ fillGallery();
+}
+hero.addEventListener('load',removeHeroDuplicate);
+const curated=(window.AfterlogueCuratedStills||{})[key]||[];
+queueGallery(curated);
+queueGallery(Array.isArray(rich.stills)?rich.stills:[]);
+if(window.AfterlogueFilmArtwork?.resolveGallery){
+ window.AfterlogueFilmArtwork.resolveGallery(item.title,item.year,isTV).then(queueGallery).catch(error=>{
+  console.warn('Supplementary scene images unavailable',error);
+ });
+}
+if(curated.length) {
+ $('film-stills-credit').textContent='Selected images from the film. All imagery belongs to its respective rights holders.';
+ $('film-stills-credit').hidden=galleryHost.children.length===0;
+} else if(rich.imageCredit) {
+ $('film-stills-credit').textContent=rich.imageCredit;
+ $('film-stills-credit').hidden=galleryHost.children.length===0;
 }
 function showCredits(){
  const host=$('film-credits');host.replaceChildren();
