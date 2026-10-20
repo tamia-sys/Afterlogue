@@ -244,6 +244,17 @@ Deno.serve(async (req:Request) => {
     if(mode==="discover"||mode==="search"){
       params.set("include_adult","false");
       const query=String(input.query||"").trim().slice(0,100);
+      const availableCountries=new Set(["US","GB","CA","AU","FR","DE","IT","ES","MX","BR","AR","IN","JP","KR","CN","TW","NG","ZA","TH","TR","SE","NL","NZ","EG","PH","PL","DK","NO"]);
+      const availableLanguages=new Set(["en","es","fr","de","it","pt","hi","ja","ko","zh","ar","ta","te","bn","th","tr","sv","nl","pl","id","tl","ru"]);
+      const country=typeof input.country==="string"&&availableCountries.has(input.country)?input.country:"";
+      const originalLanguage=typeof input.originalLanguage==="string"&&availableLanguages.has(input.originalLanguage)?input.originalLanguage:"";
+      const categoryGenres=media==="movie"?GENRES:TV_GENRES;
+      const requestedGenre=typeof input.genre==="string"&&categoryGenres[input.genre]?categoryGenres[input.genre]:0;
+      const requestedDecade=Number(input.decade);
+      const hasDecade=Number.isInteger(requestedDecade)&&requestedDecade>=1900&&requestedDecade<=new Date().getUTCFullYear()&&requestedDecade%10===0;
+      if(originalLanguage&&mode==="discover")params.set("with_original_language",originalLanguage);
+      if(country&&media==="tv"&&mode==="discover")params.set("with_origin_country",country);
+
       let endpoint="";
       if(mode==="search"){
         if(query.length<2)return response({error:"Search needs at least 2 characters"},400);
@@ -270,12 +281,35 @@ Deno.serve(async (req:Request) => {
         params.set(media==="movie"?"primary_release_date.lte":"first_air_date.lte",params.get(media==="movie"?"primary_release_date.lte":"first_air_date.lte")||new Date().toISOString().slice(0,10));
       }
       const body=await tmdb(endpoint,params,token);
+      const filtered=(body.results||[]).filter((v:Record<string,unknown>)=>{
+        if(v.adult||!v.poster_path||!v.overview)return false;
+        if(originalLanguage&&v.original_language!==originalLanguage)return false;
+        if(requestedGenre&&!(Array.isArray(v.genre_ids)&&v.genre_ids.includes(requestedGenre)))return false;
+        if(hasDecade){
+          const year=yearOf(media==="movie"?v.release_date:v.first_air_date);
+          if(!year||Math.floor(year/10)*10!==requestedDecade)return false;
+        }
+        if(country&&media==="tv"&&(!Array.isArray(v.origin_country)||!v.origin_country.includes(country)))return false;
+        return true;
+      });
+      let verified=filtered;
+      if(country&&media==="movie"){
+        // Movie search/discovery summaries do not give reliable production
+        // countries; verify them against their full TMDB production record.
+        const entries=await Promise.allSettled(filtered.map(async (v:Record<string,unknown>)=>{
+          const details=await tmdb("/movie/"+Number(v.id),new URLSearchParams({language:"en-US"}),token);
+          return (details.production_countries||[]).some((c:Record<string,unknown>)=>c.iso_3166_1===country)?v:null;
+        }));
+        verified=entries.filter((x):x is PromiseFulfilledResult<Record<string,unknown>|null>=>x.status==="fulfilled")
+          .map(x=>x.value).filter((v):v is Record<string,unknown>=>Boolean(v));
+      }
       return response({
         page:Number(body.page)||1,
         totalPages:Math.min(Number(body.total_pages)||1,100),
-        totalResults:Number(body.total_results)||0,
-        items:(body.results||[]).filter((v:Record<string,unknown>)=>!v.adult&&v.poster_path&&v.overview)
-          .map((v:Record<string,unknown>)=>listItem(v,media))
+        // TMDB's total_results is prefilter when we verify productions
+        // ourselves, so do not present it as an exact filtered count.
+        totalResults:country||mode==="search"&&(requestedGenre||hasDecade||originalLanguage)?null:Number(body.total_results)||0,
+        items:verified.map((v:Record<string,unknown>)=>listItem(v,media))
       });
     }
     if(mode==="onboarding"){
