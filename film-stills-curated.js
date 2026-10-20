@@ -34,5 +34,10 @@ window.AfterlogueCuratedStills=Object.freeze({
     "https://townsquare.media/site/442/files/2023/05/attachment-past-lives-2.jpg",
     "https://images.squarespace-cdn.com/content/v1/58e41216414fb56455ed6f0e/d70432df-9117-44a8-85b5-6e0c2caaa7af/Past%2BLives%2B19.jpeg",
     "https://image.idn.media/post/20231109/lives-3-4ff00e20ab5a6fb20cd9ef4c47d4705f.jpg"
+  ],
+  "aftersun": [
+    "https://assets.upflix.pl/media/n/69616/2023/z29407704ampfrankie-corio-i-paul-mescal-w-filmie-aftersun_1.jpg",
+    "https://images.squarespace-cdn.com/content/v1/56047552e4b00047c4e83900/1ee282a0-0ea0-46fa-b4ec-ba2d552aad60/Aftersun_2.jpg",
+    "https://media.meer.com/attachments/7ae8e266311fcb61be79f2771dc2acb0965c5c7d/store/fill/860/645/6f118fc43ecd6b620b6cdea0754c11772ab3cfd03969f5ac878642880be2/Atores-principais-do-filme-Aftersun-interpretando-pai-e-filha-em-um-dialogo-na-praia.jpg"
   ]
 });
