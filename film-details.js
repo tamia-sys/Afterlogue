@@ -181,12 +181,17 @@ async function loadDiscussions(){
  if(!member){box.textContent='Sign in to read film and TV conversations from Afterlogue members.';return;}
  box.textContent='Loading conversations…';
  try{
-  const {data,error}=await client.from('discussion_threads').select('id,title,created_at,has_spoilers')
-   .eq('kind','title').ilike('work_title',item.title).eq('work_type',isTV?'tv':'film')
-   .eq('is_hidden',false).order('created_at',{ascending:false}).limit(12);
+  const {data,error}=await client.from('discussion_threads').select('id,title,created_at,has_spoilers,work_title')
+   .eq('kind','title').eq('work_type',isTV?'tv':'film')
+   .eq('is_hidden',false).order('created_at',{ascending:false}).limit(200);
   if(error)throw error;box.replaceChildren();
-  if(!data?.length){const p=document.createElement('p');p.className='film-watch-notice';p.textContent='No conversations for this title yet. You could start the first.';box.append(p);return;}
-  for(const t of data){
+  // Match normalized film titles so punctuation and year suffixes do not hide discussions.
+  const matching=(data||[]).filter(t=>{
+    const work=String(t.work_title||'').replace(/[,\s]+\d{4}\.?$/,'').trim();
+    return slug(work)===slug(item.title);
+  }).slice(0,12);
+  if(!matching.length){const p=document.createElement('p');p.className='film-watch-notice';p.textContent='No conversations for this title yet. You could start the first.';box.append(p);return;}
+  for(const t of matching){
    const article=document.createElement('article');article.className='film-discuss-card';
    const heading=document.createElement('h3');
    const link=document.createElement('a');link.href='discuss-thread.html?id='+encodeURIComponent(t.id);
