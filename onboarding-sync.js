@@ -58,6 +58,31 @@ window.saveFirstImpressions = async function (client) {
     if (saveError) throw saveError;
   }
 
+ // Sync extra TMDB titles along with ratings, preserving poster and year.
+ const tmdbRows=[];
+ for(let i=0;i<localStorage.length;i++){
+  const k=localStorage.key(i);
+  if(!k?.startsWith('afterlogue.onboarding.tmdb.'))continue;
+  try{
+   const item=JSON.parse(localStorage.getItem(k)||'null');
+   if(!item || !/^tmdb-(movie|tv)-[1-9][0-9]{0,9}$/.test(item.key))continue;
+   if(!validRatings.includes(localStorage.getItem('afterlogue-'+item.key)))continue;
+   const title=String(item.title||'').trim().slice(0,250);
+   if(!title)continue;
+   const yr=Number(item.year);
+   tmdbRows.push({
+    user_id:user.id,title_key:item.key,title,
+    year:Number.isInteger(yr)&&yr>=1870&&yr<=2100?yr:null,
+    poster:/^https:\/\/image\.tmdb\.org\/t\/p\/(?:w[0-9]+|original)\/[A-Za-z0-9_./-]+\.(?:jpg|png|webp)$/.test(item.poster||'')?item.poster:null,
+    category:item.key.startsWith('tmdb-tv-')?'tv':'movies'
+   });
+  }catch(_){}
+ }
+ if(tmdbRows.length){
+  const {error:metadataError}=await client.from('user_catalog_titles').upsert(tmdbRows,{onConflict:'user_id,title_key'});
+  if(metadataError)throw metadataError;
+ }
+
  // Mark onboarding complete after impressions are saved.
 
 const { error: completionError } = await client
