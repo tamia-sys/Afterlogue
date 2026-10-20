@@ -104,9 +104,19 @@ async function populate(media,sectionId,requestId){
   grid.replaceChildren(...cards);
   if(heading)heading.textContent=items.length+' TITLES · SELECTED FOR THIS VISIT';
  }catch(error){
-  console.warn('Using featured first impressions as a fallback',error);
+  if(requestId!==sequence)return;
+  statusLine.textContent='Unable to load titles right now. Please try again.';
+  console.warn('First Impressions unavailable',error);
  }
 }
-Promise.allSettled([populate('movie','#films'),populate('tv','#television')]);
+function refresh(){
+ const id=++sequence;
+ statusLine.textContent='Finding familiar films and shows…';
+ Promise.allSettled([populate('movie','#films',id),populate('tv','#television',id)]);
+}
+countrySelect.addEventListener('change',()=>{offset=0;refresh();});
+languageSelect.addEventListener('change',()=>{offset=0;refresh();});
+controls.querySelector('#first-refresh').addEventListener('click',()=>{offset++;refresh();});
+refresh();
 
 })();
