@@ -81,5 +81,32 @@
     });
   }
 
-  sessionPromise.then(updateNavigation);
+
+  async function showMemberAvatar(user){
+    const summaries=[...document.querySelectorAll("details.account-menu > summary")];
+    if(!summaries.length||!user||!client)return;
+    try{
+      const {data,error}=await client.from("member_profiles").select("avatar_path,avatar_preset").eq("user_id",user.id).maybeSingle();
+      if(error||!data)return;
+      for(const el of summaries){
+        if(data.avatar_path){
+          const imageUrl=client.storage.from("member-avatars").getPublicUrl(data.avatar_path).data.publicUrl;
+          el.style.backgroundImage="url("+imageUrl+")";
+          el.style.backgroundSize="cover";
+          el.style.backgroundPosition="center";
+        }else if(data.avatar_preset){
+          const n=data.avatar_preset;
+          el.style.backgroundImage="url(assets/afterlogue-avatars.png)";
+          el.style.backgroundSize="400% 300%";
+          el.style.backgroundPosition=((n-1)%4)*100/3+"% "+Math.floor((n-1)/4)*50+"%";
+        }else continue;
+        el.classList.add("member-avatar");
+      }
+    }catch(error){console.warn("Account avatar unavailable",error);}
+  }
+  const avatarStyles=document.createElement("style");
+  avatarStyles.textContent="details.account-menu>summary.member-avatar{width:34px!important;height:34px!important;min-width:34px!important;border-radius:50%!important;overflow:hidden!important;border:1px solid #ad9772!important;background-repeat:no-repeat!important}details.account-menu>summary.member-avatar svg{display:none!important}";
+  document.head.append(avatarStyles);
+
+  sessionPromise.then(user => {updateNavigation(user);showMemberAvatar(user);});
 })();
