@@ -179,7 +179,7 @@ function moodExperience(
  const bleak=cue(/\b(grief|mourning|tragic|tragedy|depression|depressed|devastat|suicid|hopeless|despair|terminal illness|mourning|abuse|brutal murder|domestic violence|dysfunction|estranged|family crisis)\b/i);
  const frantic=cue(/\b(chaos|chaotic|heist|game goes wrong|goes awry|party game|nightclub|wild night|thrilling|adventure|chase|murder mystery|killer|race against time|hilarious|cat.and.mouse|survive the night|unexpected twist|out of control)\b/i);
  const tender=cue(/\b(tender|bittersweet|gentle|intimate|reflective|quiet|contemplat|wistful|melanchol|everyday|ordinary life|slice of life|heartwarming|reconnect|self.discovery)\b/i);
- const distressing=cue(/\b(disappear|disappeared|missing daughters?|vanish|violence|trauma|traumatic|terroris|radicaliz|war crimes|torture|abduction|genocide|sexual assault|violent assault|domestic abuse)\b/i);
+ const distressing=cue(/\b(disappear|disappeared|missing daughters?|vanish|violence|trauma|traumatic|terroris|radicaliz|war crimes|torture|abduction|genocide|sexual assault|violent assault|domestic abuse|death row|execution|penitentiary|capital punishment|killing two|convicted of murdering)\b/i);
  const light=cue(/\b(comedy|comedic|funny|hilarious|playful|celebrat|uplifting|joyful|witty|adventure|laughter)\b/i);
  if(mood==="yearning"){
   add(cue(/\b(unrequited|forbidden|secret love|love across|lovers? separated|separated by|long.distance|apart|years apart|heartbreak|heartbroken|lost love|yearn|longing|impossible love|love against|reunite|cannot be together|struggle to be together|unfulfilled|not meant to be)\b/i),8,
@@ -248,7 +248,9 @@ function moodExperience(
   const formallyUnusual=cue(/\b(surreal|dream.like|alternate reality|parallel world|time travel|absurd|experimental|nonlinear|body swap)\b/i)
     ||tagged(/\b(surrealism|absurdism|experimental film|alternate reality|parallel universe)\b/i);
   if(!formallyUnusual&&cue(/\b(bizarre|strange|unusual)\b/i))score-=5;
-  if(Number(film.id)===950387)score-=5; // Game adaptation with conventional story structure.
+  if(Number(film.id)===950387)score=Math.min(score,0);
+  // Reviewed case: a videogame fantasy's surreal-looking world does not
+  // establish unconventional plot structure or a genuine narrative surprise.
   if(!signals.some(x=>x.points>=6))score-=4;
  }else if(mood==="holidays"){
   const evidence=holidayEvidence(film);
