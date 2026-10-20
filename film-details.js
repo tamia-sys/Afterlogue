@@ -57,7 +57,7 @@ const label=(name,value)=>{if(!value)return;const dt=document.createElement('dt'
 function info(s){$('film-feedback').textContent=s;}
 const referrer=(()=>{try{const url=new URL(document.referrer);return url.origin===location.origin?url.pathname.split('/').pop():'';}catch(_){return '';}})();
 const origin=params.get('from')||(referrer==='my-log.html'?'log':referrer==='explore.html'?'explore':referrer==='member-profile.html'?'profile':'discover');
-const returns={log:['my-log.html','← Back to Log'],explore:['explore.html','← Back to Explore'],profile:['account-settings.html','← Back to your profile'],discover:['discover.html','← Back to Discover']};
+const returns={log:['my-log.html','← Back to Log'],explore:['explore.html','← Back to Explore'],'all-films':['explore.html#all-films','← Back to All Films'],profile:['account-settings.html','← Back to your profile'],discover:['discover.html','← Back to Discover']};
 let [href,title]=returns[origin]||returns.discover;
 if(origin==='profile'&&document.referrer&&referrer==='member-profile.html'){href=document.referrer;}
 $('film-back').href=href;$('film-back').textContent=title;
