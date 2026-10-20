@@ -102,6 +102,30 @@ async function moodKeywordIds(mood:string,token:string):Promise<number[]>{
  return [...new Set(results.filter((v):v is PromiseFulfilledResult<number>=>v.status==="fulfilled")
   .map(v=>v.value).filter(v=>Number.isInteger(v)&&v>0))];
 }
+
+/* The holidays need an explicit story connection. A keyword-only match can
+ * reflect one incidental scene (and is not sufficient). */
+function holidayEvidence(v:Record<string,unknown>):string|null{
+ const title=String(v.title||v.name||"");
+ const overview=String(v.overview||"");
+ const holidaySubjects=[
+  {label:"Christmas",pattern:/\bchristmas\b|\bsanta claus\b|\bsanta's\b|\bchristmas eve\b|\bnorth pole\b|\breindeer\b/i},
+  {label:"Thanksgiving",pattern:/\bthanksgiving\b/i},
+  {label:"New Year's",pattern:/\bnew year(?:['’]s)?(?: eve| day)?\b/i},
+  {label:"Hanukkah",pattern:/\bhanukkah\b|\bchanukah\b/i},
+  {label:"Diwali",pattern:/\bdiwali\b/i},
+  {label:"Lunar New Year",pattern:/\blunar new year\b|\bchinese new year\b/i},
+  {label:"holiday season",pattern:/\bduring the holidays\b|\bfor the holidays\b|\bover the holidays\b|\bholiday season\b|\bholiday spirit\b|\bholiday cheer\b|\bholiday party\b|\bholiday festivities\b|\bholiday celebrations\b/i}
+ ];
+ for(const event of holidaySubjects){
+  if(event.pattern.test(title))return "The title explicitly refers to "+event.label+".";
+  if(event.pattern.test(overview))return "The synopsis explicitly references "+event.label+".";
+ }
+ return null;
+}
+function exactCodes(x:unknown):string[]{
+ return Array.isArray(x)?x.filter((v:unknown)=>typeof v==="string").map(String):[];
+}
 function listItem(entry: Record<string,unknown>,media:Media){
   return {
     id:entry.id, media, title:media==="tv"?entry.name:entry.title,
@@ -328,10 +352,75 @@ Deno.serve(async (req:Request) => {
           seen.add(Number(entry.id));selected.push(entry);
         }
       }
+      const idToTopic=new Map<number,string>();
+      for(const label of MOOD_TOPICS[mood].labels){
+        const id=keywordCache.get(label)?.id;
+        if(id)idToTopic.set(id,label);
+      }
+      // Recheck source details before displaying a result. This ensures that
+      // "US", "Family", "2010s", and "English" all truly hold simultaneously.
+      // Limit the candidate count and workers so we never flood TMDB.
+      const queue=selected.slice(0,26);
+      const verified:Array<ReturnType<typeof listItem>&{moodReason:string;matchedFilters:string[]}>= [];
+      async function verifyOne(v:Record<string,unknown>){
+        const p=new URLSearchParams({language:"en-US",append_to_response:"keywords"});
+        const details=await tmdb("/"+media+"/"+Number(v.id),p,token);
+        const dateString=String(media==="movie"?details.release_date:details.first_air_date||"");
+        if(!dateString||dateString>now||details.adult)return;
+        if(media==="movie"){
+          if(details.status!=="Released"||Number(details.runtime)<40
+            ||!Array.isArray(details.production_companies)||!details.production_companies.length)return;
+        }else{
+          if(!Array.isArray(details.networks)||!details.networks.length)return;
+        }
+        const produced=media==="movie"
+          ?(details.production_countries||[]).map((c:Record<string,unknown>)=>String(c.iso_3166_1||""))
+          :exactCodes(details.origin_country);
+        if(countries.length&&!countries.some(c=>produced.includes(c)))return;
+        if(languages.length&&!languages.includes(String(details.original_language||"")))return;
+        const year=yearOf(dateString);
+        if(decades.length&&(!year||!decades.includes(String(Math.floor(year/10)*10))))return;
+        const detailGenreIds=(details.genres||[]).map((g:Record<string,unknown>)=>Number(g.id));
+        if(genres.length&&!genres.some(g=>detailGenreIds.includes(categoryGenres[g])))return;
+        const detailKeywords=media==="movie"
+          ?details.keywords?.keywords:details.keywords?.results;
+        const tagged=(Array.isArray(detailKeywords)?detailKeywords:[])
+          .map((v:Record<string,unknown>)=>Number(v.id))
+          .filter((id:number)=>idToTopic.has(id));
+        if(!tagged.length)return;
+        const label=idToTopic.get(tagged[0])||MOOD_TOPICS[mood].labels[0];
+        const phrase=mood==="holidays"?holidayEvidence(details):null;
+        if(mood==="holidays"&&!phrase)return;
+        const reason=phrase||("TMDB tags this story with “"+label+"”, matching this mood.");
+        const matching:string[]=[];
+        if(countries.length)matching.push("Country: "+countries.filter(c=>produced.includes(c)).join(" or "));
+        if(languages.length)matching.push("Language: "+details.original_language);
+        if(genres.length)matching.push("Genre: "+genres.filter(g=>detailGenreIds.includes(categoryGenres[g])).join(" or "));
+        if(decades.length&&year)matching.push("Decade: "+Math.floor(year/10)*10+"s");
+        verified.push({
+          ...listItem(v,media),moodReason:reason,
+          matchedFilters:matching
+        });
+      }
+      async function worker(){
+        while(queue.length){
+          const item=queue.shift();
+          if(!item)return;
+          try{await verifyOne(item);}catch(error){
+            console.warn("Mood title verification unavailable",String(error));
+          }
+        }
+      }
+      await Promise.all([worker(),worker(),worker(),worker(),worker()]);
+      // Verification jobs are concurrent, so put titles back into the
+      // original discovery relevance/popularity order.
+      const indexById=new Map(selected.map((x,i)=>[Number(x.id),i]));
+      verified.sort((a,b)=>(indexById.get(Number(a.id))??999)-(indexById.get(Number(b.id))??999));
       return response({
-        mood,matching:"topic-keywords",
-        items:selected.slice(0,50).map(v=>({...listItem(v,media),moodReason:MOOD_TOPICS[mood].reason})),
-        note:selected.length?"Mood-tagged stories matching your choices.":"No genuinely mood-related titles match this combination. Try fewer filters.",
+        mood,matching:"verified-theme-and-details",
+        items:verified.slice(0,24),
+        note:verified.length?"These stories have a verified thematic reason and match your filters."
+          :"No verified stories match this mood and filter combination. Try fewer filters.",
         filters:{genres,countries,languages,decades}
       });
     }
