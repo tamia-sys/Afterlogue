@@ -177,8 +177,74 @@ Deno.serve(async (req:Request) => {
           .map((v:Record<string,unknown>)=>listItem(v,media))
       });
     }
-    if(mode==="onboarding"||mode==="mood"){
-      const isOnboarding=mode==="onboarding";
+    if(mode==="onboarding"){
+      // Country = production origin, language = original spoken language.
+      // Validate against an explicit selection instead of forwarding arbitrary API inputs.
+      const countries=new Set(["US","GB","CA","AU","FR","DE","IT","ES","MX","BR","AR","CO","IN","JP","KR","CN","TW","TH","PH","ID","NG","ZA","TR","SE","NO","DK","NL","PL","EG","NZ"]);
+      const languages=new Set(["en","es","fr","de","it","pt","hi","ta","te","bn","ja","ko","zh","th","tl","id","tr","ar","ru","nl","sv","no","da","pl","vi","ml"]);
+      const country=typeof input.country==="string"&&countries.has(input.country)?input.country:"";
+      const originalLanguage=typeof input.originalLanguage==="string"&&languages.has(input.originalLanguage)?input.originalLanguage:"";
+      const scoped=Boolean(country||originalLanguage);
+      const minimum=media==="movie"?(scoped?85:550):(scoped?45:220);
+      const offset=number(input.offset,0,25,0);
+      const seed=hashSeed(String(input.seed??"0").slice(0,64)+":"+media+":"+country+":"+originalLanguage);
+      // Popularity determines the candidate pool. Diverse genres make the
+      // first twelve useful without falling into a single film niche.
+      const buckets=media==="movie"?[18,35,28,10749,878,9648,16,27]:[18,35,10765,9648,10759,16];
+      const chosen=[...buckets].sort((a,b)=>hashSeed(seed+":"+a)-hashSeed(seed+":"+b)).slice(0,6);
+      const today=new Date().toISOString().slice(0,10);
+      const candidates=await Promise.allSettled(chosen.map(async (genre,i)=>{
+        const query=new URLSearchParams({
+          language:"en-US",include_adult:"false",sort_by:"popularity.desc",
+          "vote_count.gte":String(minimum),
+          "vote_average.gte":"5.5",
+          page:String(1+((seed+i*7+offset*11)%3)),
+          with_genres:String(genre)
+        });
+        if(media==="movie")query.set("include_video","false");
+        query.set(media==="movie"?"primary_release_date.lte":"first_air_date.lte",today);
+        if(country)query.set("with_origin_country",country);
+        if(originalLanguage)query.set("with_original_language",originalLanguage);
+        const data=await tmdb("/discover/"+media,query,token);
+        return (data.results||[]).filter((v:Record<string,unknown>)=>
+          eligible(v,media,minimum)
+          &&(!originalLanguage||v.original_language===originalLanguage)
+          &&(!country||media!=="tv"||(v.origin_country||[]).includes(country)));
+      }));
+      const successful=candidates.filter((p):p is PromiseFulfilledResult<Record<string,unknown>[]>=>p.status==="fulfilled");
+      if(!successful.length)return response({error:"catalogue_unavailable",message:"First Impressions is temporarily unavailable."},502);
+      const groups=successful.map(x=>x.value),unique=new Set<number>(),balanced:Record<string,unknown>[]=[];
+      for(let round=0;round<20;round++){
+        for(const group of groups){
+          const v=group[round];
+          if(!v||unique.has(Number(v.id)))continue;
+          unique.add(Number(v.id));balanced.push(v);
+        }
+      }
+      // TMDB's release date alone is not enough: verify the production status
+      // and production/network metadata on the actual title record.
+      const shortlist=balanced.slice(0,26);
+      const checked=await Promise.allSettled(shortlist.map(async v=>{
+        const details=await tmdb("/"+media+"/"+Number(v.id),new URLSearchParams({language:"en-US"}),token);
+        const aired=String(media==="movie"?details.release_date:details.first_air_date||"");
+        const official=media==="movie"
+          ?details.status==="Released"&&Number(details.runtime)>=40
+            &&Array.isArray(details.production_companies)&&details.production_companies.length>0
+          :["Returning Series","Ended","Canceled","Cancelled","In Production"].includes(String(details.status))
+            &&Array.isArray(details.networks)&&details.networks.length>0;
+        return official&&/^\\d{4}-\\d{2}-\\d{2}$/.test(aired)&&aired<=today?v:null;
+      }));
+      const verified=checked.filter((p):p is PromiseFulfilledResult<Record<string,unknown>>=>
+        p.status==="fulfilled"&&p.value!==null).map(p=>p.value);
+      return response({
+        items:verified.slice(0,12).map(v=>listItem(v,media)),
+        country:country||null,originalLanguage:originalLanguage||null,
+        selection:"popular_officially_released",
+        note:verified.length?"Popular, released titles matching your choices.":"No verified popular titles match these filters. Try another country or language."
+      });
+    }
+    if(mode==="mood"){
+      const isOnboarding=false;
       const mood=String(input.mood||"yearning");
       if(!isOnboarding&&!GENRE_MOODS[mood])return response({error:"Unknown mood"},400);
       const seed=hashSeed(String(input.seed??"0").slice(0,64)+":"+media+":"+String(input.offset||0));
