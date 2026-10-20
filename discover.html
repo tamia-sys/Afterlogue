@@ -806,7 +806,7 @@ async function loadAccountImpressions() {
                 position:500+i,tmdb:{id:x.id,media:x.media},
                 reason:"Related to "+(x.matched||[]).join(", ")+".",
                 synopsis:x.synopsis,
-                directMatches:(x.matched||[]).map(name=>name.toLowerCase().normalize("NFKD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")),
+                directMatches:(x.matched||[]).map(name=>name.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")),
                 facets:{themes:[],tones:[],pace:null,genres:(x.genres||[]).map(g=>g.toLowerCase())}
               };
             }).filter(x=>!excluded.has(x.key)&&!discoveryFeaturedKeys.has(x.key));
