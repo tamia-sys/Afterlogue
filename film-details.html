@@ -5,7 +5,7 @@
 <title>Film details — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="mobile-header.css?v=3">
-<link rel="stylesheet" href="film-details.css?v=7">
+<link rel="stylesheet" href="film-details.css?v=8">
 </head><body class="film-detail-page">
 <header class="site-header">
 <a href="index.html" class="logo">afterlogue.</a>
@@ -93,6 +93,13 @@
 </section>
 </div>
 </main>
+<div id="film-trailer-modal" class="film-trailer-modal" role="dialog" aria-modal="true" aria-label="Watch trailer" hidden>
+<div class="film-trailer-dialog">
+<div class="film-trailer-heading"><span id="film-trailer-heading">Trailer.</span><button type="button" id="film-trailer-close" aria-label="Close trailer">×</button></div>
+<div class="film-trailer-screen"><iframe id="film-trailer-player" title="Film trailer" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+<p id="film-trailer-status" role="status" aria-live="polite"></p>
+<a id="film-trailer-external" href="#" target="_blank" rel="noopener noreferrer">Watch on YouTube ↗</a>
+</div></div>
 <div id="film-lightbox" class="film-lightbox" role="dialog" aria-modal="true" aria-label="Film still viewer" hidden>
 <button type="button" id="film-lightbox-close" class="film-lightbox-close" aria-label="Close image">×</button>
 <button type="button" id="film-lightbox-prev" class="film-lightbox-arrow film-lightbox-prev" aria-label="Previous still">←</button>
@@ -107,7 +114,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-stills-curated.js?v=3"></script>
-<script src="film-artwork.js?v=2"></script>
+<script src="film-artwork.js?v=3"></script>
 <script src="film-official-trailers.js?v=1"></script>
-<script src="film-details.js?v=8"></script>
+<script src="film-details.js?v=9"></script>
 </body></html>
