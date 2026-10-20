@@ -1370,7 +1370,9 @@ renderAllFilms();
 
 function start(mood) {
   if (!data.moods[mood]) return;
-  Object.assign(state,{mood,stage:0,format:null,pace:null,offset:0,randomPick:false});
+  const filteredFormat=$("explore-format").value;
+  Object.assign(state,{mood,stage:filteredFormat==="all"?0:1,
+    format:filteredFormat==="all"?null:filteredFormat,pace:null,offset:0,randomPick:false});
   renderQuestion();
   view("experience");
 
@@ -1501,13 +1503,18 @@ async function displayResults(){
   view("results");
   try{
     const isSurprise=state.randomPick;
-    const media=state.format==="tv"?["tv"]:state.format==="movies"?["movie"]:["movie","tv"];
+    const selectedFormat=$("explore-format").value;
+    const useFormat=selectedFormat==="all"?state.format:selectedFormat;
+    const media=useFormat==="tv"?["tv"]:useFormat==="movies"?["movie"]:["movie","tv"];
+    const facetChoices=window.AfterlogueExploreFilters?.get()||{};
     const requests=await Promise.all(media.map(async type=>{
       const resp=await fetch("https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog",{
        method:"POST",headers:{"Content-Type":"application/json"},
        body:JSON.stringify({mode:"mood",mood:isSurprise?"unexpected":state.mood,
          media:type,seed:sessionStorage.getItem("afterlogue.first.impressions.seed.v2")||"mood",
-         offset:state.offset})
+         offset:state.offset,genres:facetChoices.genres||[],
+         countries:facetChoices.countries||[],languages:facetChoices.languages||[],
+         decades:facetChoices.decades||[]})
       });
       if(!resp.ok)throw Error("Mood catalog unavailable");
       return (await resp.json()).items||[];
@@ -1541,7 +1548,7 @@ async function displayResults(){
       const detail=document.createElement("a");detail.href=link.href;detail.textContent="View details";detail.className="explore-global-detail";actions.append(detail);
       el.append(link,title,year,actions);host.append(el);
     }
-    if(!five.length)host.textContent="No suitable matches this time. Try another selection.";
+    if(!five.length)host.textContent="No matching released stories for this mood and filter combination. Try clearing a choice or choosing another mood.";
     $("explore-results-title").textContent=isSurprise?"A story you didn't ask for.":"A little something for you.";
     $("explore-results-detail").textContent=data.moods[state.mood].intro;
     $("explore-results-label").textContent="AFTERLOGUE / "+data.moods[state.mood].short.toUpperCase();
@@ -1550,7 +1557,13 @@ async function displayResults(){
     $("explore-again").disabled=false;
   }catch(error){
     if(requestId!==window.afterlogueMoodRequestId)return;
-    // Offline fallback preserves the pre-existing mood experience.
+    // Never undermine explicitly selected filters with unrelated old titles.
+    if(window.AfterlogueExploreFilters?.active()||$("explore-format").value!=="all"){
+      const host=$("explore-picks");host.replaceChildren();
+      const note=document.createElement("p");note.className="explore-question";
+      note.textContent="We couldn't load stories matching these filters. Please try again.";
+      host.append(note);$("explore-again").disabled=false;return;
+    }
     displayLocalMoodResults();
   }
 }
@@ -1816,7 +1829,7 @@ $("explore-next").addEventListener("click",()=>{
   if(state.stage===0){state.stage=1;renderQuestion();}
   else displayResults();
 });
-$("explore-adjust").addEventListener("click",()=>{state.stage=0;state.offset=0;renderQuestion();view("experience");});
+$("explore-adjust").addEventListener("click",()=>{const format=$("explore-format").value;state.stage=format==="all"?0:1;if(format!=="all")state.format=format;state.offset=0;renderQuestion();view("experience");});
 $("explore-surprise").addEventListener("click",()=>{Object.assign(state,{randomPick:true,mood:"unexpected",format:"either",pace:"medium",offset:0});displayResults();});
 $("explore-again").addEventListener("click",()=>{
   if(state.randomPick) {state.offset+=1;displayResults();return;}
