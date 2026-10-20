@@ -65,6 +65,7 @@ test('Email-confirmation required: say what to do without forcing another sign-i
   await start(page);
   await fill(page);
   await page.locator('.signup-submit').click();
+  await expect(page.locator('#signup-message')).toContainText('Your Afterlogue account needs email confirmation');
   await expect(page.locator('#signup-message')).toContainText('confirmation link');
   await expect(page.locator('#signup-message')).toContainText('no second sign-in required');
   await expect(page).toHaveURL(/\/signup\.html$/);
@@ -81,7 +82,7 @@ test('Rate-limited email signup shows useful message without automatic retries',
   });
   await fill(page);
   await page.locator('.signup-submit').click();
-  await expect(page.locator('#signup-message')).toContainText('Too many attempts');
+  await expect(page.locator('#signup-message')).toContainText('email limit was reached');
   await expect(page.locator('.signup-submit')).toBeEnabled();
   await expect(page).toHaveURL(/\/signup\.html$/);
 });
