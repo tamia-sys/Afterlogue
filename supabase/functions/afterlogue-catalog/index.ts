@@ -490,9 +490,19 @@ Deno.serve(async (req:Request) => {
       // Verification jobs are concurrent, so put titles back into the
       // original discovery relevance/popularity order.
       const indexById=new Map(selected.map((x,i)=>[Number(x.id),i]));
+      const storyPace=(synopsis:string)=>{
+        const text=String(synopsis||"").toLowerCase();
+        if(pace==="slow")return (
+          /quiet|gentle|reflective|intimate|contemplative|bittersweet|heartfelt|melanchol|everyday/.test(text)?4:0
+        )-(/chase|explosion|heist|action-packed|race against|wild adventure/.test(text)?3:0);
+        if(pace==="energetic")return (
+          /chaos|wild|adventure|heist|chase|thrill|hilarious|party|fast-paced|race against/.test(text)?5:0
+        )-(/quiet|reflective|contemplative/.test(text)?2:0);
+        return /family|friendship|relationship|community|romance/.test(text)?2:0;
+      };
       verified.sort((a,b)=>{
-        const aa=genreSignal(a.genreIds.map(Number),pace);
-        const bb=genreSignal(b.genreIds.map(Number),pace);
+        const aa=genreSignal(a.genreIds.map(Number),pace)+storyPace(a.synopsis);
+        const bb=genreSignal(b.genreIds.map(Number),pace)+storyPace(b.synopsis);
         return bb-aa||(indexById.get(Number(a.id))??999)-(indexById.get(Number(b.id))??999);
       });
       if(mood==="holidays"){
