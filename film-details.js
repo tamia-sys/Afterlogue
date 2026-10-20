@@ -63,13 +63,22 @@ label('Release',String(item.year||''));
 if(!rich.director&&!rich.creator)label('Format',isTV?'Television':'Feature film');
 const gallery=Array.isArray(rich.stills)?[...new Set(rich.stills)].slice(0,3):[];
 const galleryHost=$('film-stills');
+const lightbox=$('film-lightbox');
+const lightboxImage=$('film-lightbox-image');
+function openLightbox(src){lightboxImage.src=src;lightboxImage.alt='Enlarged film still from '+item.title;$('film-lightbox-caption').textContent=item.title;lightbox.hidden=false;document.body.classList.add('film-lightbox-open');$('film-lightbox-close').focus();}
+function closeLightbox(){lightbox.hidden=true;document.body.classList.remove('film-lightbox-open');lightboxImage.removeAttribute('src');}
+$('film-lightbox-close').addEventListener('click',closeLightbox);
+lightbox.addEventListener('click',e=>{if(e.target===lightbox)closeLightbox();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!lightbox.hidden)closeLightbox();});
 if(gallery.length){
  if(gallery.length===1)galleryHost.classList.add('is-single');
  for(const src of gallery){
   const frame=document.createElement('div');frame.className='film-still-frame';
+  const open=document.createElement('button');open.type='button';open.setAttribute('aria-label','Enlarge a still from '+item.title);
   const img=document.createElement('img');img.loading='lazy';img.alt='A scene from '+item.title;img.src=src;
   img.addEventListener('error',()=>{frame.remove();if(!galleryHost.children.length){galleryHost.hidden=true;$('film-stills-credit').hidden=true;}});
-  frame.append(img);galleryHost.append(frame);
+  open.append(img);frame.append(open);galleryHost.append(frame);
+  open.addEventListener('click',()=>openLightbox(src));
  }
  galleryHost.hidden=false;
  if(rich.imageCredit){$('film-stills-credit').textContent=rich.imageCredit;$('film-stills-credit').hidden=false;}
@@ -95,10 +104,10 @@ function showCredits(){
 showCredits();
 const trailer=rich.trailer||'https://www.youtube.com/results?search_query='+encodeURIComponent(item.title+' '+item.year+' official trailer');
 $('film-trailer').href=trailer;
-$('film-trailer').innerHTML='<span aria-hidden="true">▷</span> '+(rich.trailer?'Watch trailer ↗':'Find trailer ↗');
+$('film-trailer').innerHTML='<span aria-hidden="true">▷</span> '+(rich.trailer?'Watch trailer':'Find trailer');
 const jw=rich.watch||'https://www.justwatch.com/us/search?q='+encodeURIComponent(item.title);
 $('film-justwatch').href=jw;
-$('film-justwatch').textContent=rich.watch&&rich.watch.includes('justwatch.com')?'Check viewing options ↗':rich.watch?'View provider information ↗':'Search viewing options ↗';
+$('film-justwatch').textContent=rich.watch&&rich.watch.includes('justwatch.com')?'Check viewing options':rich.watch?'View provider information':'Search viewing options';
 const account=await client.auth.getUser();
 const member=account.error?null:account.data?.user;
 if($('account-email'))$('account-email').textContent=member?(member.email||'Afterlogue member'):'Browsing as guest';
@@ -145,7 +154,7 @@ watchBtn.addEventListener('click',async()=>{
 });
 $('film-to-log').href=member?'my-log.html':'signup.html?mode=signin';
 $('film-to-log').title=member?'Open personal Log':'Sign in to use your Log';
-const watchSection=()=>{};
+
 function switchTab(id,updateHash=true){
  for(const tab of document.querySelectorAll('.film-tab')){
   const active=tab.dataset.tab===id;
