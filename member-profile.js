@@ -6,12 +6,13 @@ const list=document.getElementById('member-conversations');
 const note=message=>{list.textContent=message;};
 if(!valid){note('This member profile could not be found.');return;}
 try{
-const {data:p,error}=await client.from('member_profiles').select('username,display_name,avatar_path,avatar_preset,created_at').eq('user_id',id).maybeSingle();
+const {data:p,error}=await client.from('member_profiles').select('username,display_name,avatar_path,avatar_preset,created_at,bio').eq('user_id',id).maybeSingle();
 if(error)throw error;
 if(!p){note('This member has not created a public profile yet.');return;}
 document.getElementById('member-name').textContent=p.display_name||'Afterlogue member';
 document.getElementById('member-handle').textContent=p.username?'@'+p.username:'';
 document.getElementById('member-since').textContent='Member since '+new Date(p.created_at).toLocaleDateString(undefined,{month:'long',year:'numeric'});
+if(p.bio){const bio=document.getElementById('member-bio');bio.textContent=p.bio;bio.hidden=false;}
 const avatar=document.getElementById('member-picture');
 if(p.avatar_path)avatar.style.backgroundImage='url('+client.storage.from('member-avatars').getPublicUrl(p.avatar_path).data.publicUrl+')';
 else if(p.avatar_preset){const n=p.avatar_preset;avatar.classList.add('preset');avatar.style.backgroundImage='url(assets/afterlogue-avatars.png)';avatar.style.backgroundPosition=((n-1)%4)*100/3+'% '+Math.floor((n-1)/4)*50+'%';}
