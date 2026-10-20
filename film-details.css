@@ -148,3 +148,9 @@ body.film-trailer-open{overflow:hidden}
 .film-hero-actions .film-seen-action.is-seen{color:#d4b487;background:rgba(212,180,135,.12);border-color:#d4b487}
 .film-hero-actions .film-seen-action svg{flex:none;width:18px;height:18px}
 @media(max-width:480px){.film-hero-actions .film-seen-action{min-height:39px;height:39px;padding:0 13px;font-size:11px}}
+
+/* Plot description belongs in the hero, immediately below the title metadata. */
+.film-synopsis-lead{font:14px/1.72 Arial,Helvetica,sans-serif;color:#d5cbbf;max-width:630px;margin:6px 0 23px;letter-spacing:.003em}
+.film-other-grid .film-other-link small{display:block;margin-top:5px;color:#a99a86;font:11px/1.4 Arial,sans-serif}
+.film-other-grid>.film-watch-notice{grid-column:1/-1}
+@media(max-width:790px){.film-synopsis-lead{font-size:14px;line-height:1.64}}
