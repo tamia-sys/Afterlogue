@@ -8,7 +8,7 @@
   <title>Discover — Afterlogue</title>
 
   <link rel="stylesheet" href="style.css?v=29">
-  <link rel="stylesheet" href="discover-home.css?v=8">
+  <link rel="stylesheet" href="discover-home.css?v=9">
   <link rel="stylesheet" href="mobile-header.css?v=1">
 </head>
 
@@ -104,8 +104,8 @@
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
 <script src="recommendation-engine.js?v=3"></script>
-<link rel="stylesheet" href="seen-impression.css?v=1">
-<script src="seen-impression.js?v=1"></script>
+<link rel="stylesheet" href="seen-impression.css?v=2">
+<script src="seen-impression.js?v=2"></script>
 <script>
   
 const isGuestMode =
@@ -627,7 +627,7 @@ bookmarkButton.setAttribute(
  detailLink.setAttribute("aria-label","View film details for "+item.title);
  detailLink.title="Film details";
  detailLink.textContent="ⓘ";
- detailLink.style.cssText="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;color:#c1ad91;font:18px Georgia,serif;text-decoration:none";
+ // Shared stylesheet sets the icon sizing and spacing.
  actions.append(bookmarkButton,window.AfterlogueSeen.button({key:item.catalogKey||item.key,title:item.title,category}),detailLink);
 
  card.append(poster, title, year, actions);
