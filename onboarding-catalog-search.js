@@ -53,8 +53,18 @@ input.addEventListener('input',schedule);format.addEventListener('change',()=>{r
 const seedKey='afterlogue.first.impressions.seed.v2';
 let seed=sessionStorage.getItem(seedKey);
 if(!seed){seed=String(Math.floor(Math.random()*1e9));sessionStorage.setItem(seedKey,seed);}
-const loading=new Set();
-async function populate(media,sectionId){
+const countries=[["","All countries"],["US","United States"],["GB","United Kingdom"],["CA","Canada"],["AU","Australia"],["FR","France"],["DE","Germany"],["IT","Italy"],["ES","Spain"],["MX","Mexico"],["BR","Brazil"],["AR","Argentina"],["CO","Colombia"],["IN","India"],["JP","Japan"],["KR","South Korea"],["CN","China"],["TW","Taiwan"],["TH","Thailand"],["PH","Philippines"],["ID","Indonesia"],["NG","Nigeria"],["ZA","South Africa"],["TR","Turkey"],["SE","Sweden"],["NO","Norway"],["DK","Denmark"],["NL","Netherlands"],["PL","Poland"],["EG","Egypt"],["NZ","New Zealand"]];
+const languages=[["","All languages"],["en","English"],["es","Spanish"],["fr","French"],["de","German"],["it","Italian"],["pt","Portuguese"],["hi","Hindi"],["ta","Tamil"],["te","Telugu"],["bn","Bengali"],["ja","Japanese"],["ko","Korean"],["zh","Chinese"],["th","Thai"],["tl","Filipino"],["id","Indonesian"],["tr","Turkish"],["ar","Arabic"],["ru","Russian"],["nl","Dutch"],["sv","Swedish"],["no","Norwegian"],["da","Danish"],["pl","Polish"],["vi","Vietnamese"],["ml","Malayalam"]];
+const options=(values)=>values.map(([value,label])=>{const o=document.createElement('option');o.value=value;o.textContent=label;return o;});
+const controls=document.createElement('div');controls.className='impressions-location-filters';
+controls.innerHTML='<label>Production country<select id="first-country"></select></label><label>Original language<select id="first-language"></select></label><button type="button" id="first-refresh">Different selection ↻</button>';
+const countrySelect=controls.querySelector('#first-country'),languageSelect=controls.querySelector('#first-language');
+countrySelect.append(...options(countries));languageSelect.append(...options(languages));
+document.querySelector('#films')?.before(controls);
+const statusLine=document.createElement('p');statusLine.className='impressions-selection-status';statusLine.setAttribute('role','status');
+controls.after(statusLine);
+let offset=0,sequence=0;
+async function populate(media,sectionId,requestId){
  const parent=document.querySelector(sectionId);
  if(!parent)return;
  const grid=parent.querySelector('.log-film-grid');
@@ -62,11 +72,13 @@ async function populate(media,sectionId){
  if(!grid)return;
  try{
   const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mode:'onboarding',media,seed})});
+    body:JSON.stringify({mode:'onboarding',media,seed,country:countrySelect.value,originalLanguage:languageSelect.value,offset})});
   if(!response.ok)throw Error('Onboarding catalog unavailable');
   const payload=await response.json();
+  if(requestId!==sequence)return;
   const items=(payload.items||[]).filter(item=>item.poster).slice(0,12);
-  if(items.length<6)throw Error('Insufficient titles');
+  if(!items.length){grid.replaceChildren();if(heading)heading.textContent='0 TITLES';statusLine.textContent='No popular released titles matched this combination. Try another country or language.';return;}
+  statusLine.textContent='Choose any titles you recognize. Your impressions stay saved when you change the selection.';
   const cards=items.map(item=>{
    const key=keyFor(item),card=document.createElement('article');card.className='impressions-more-card';
    card.dataset.tmdbKey=key;
