@@ -539,7 +539,7 @@ bookmarkButton.setAttribute(
 
     if (!userData.user) return;
 
-    const titleKey = item.title
+    const titleKey = item.catalogKey || item.key || item.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
@@ -582,7 +582,7 @@ bookmarkButton.addEventListener("click", async () => {
       return;
     }
 
-    const titleKey = item.title
+    const titleKey = item.catalogKey || item.key || item.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
@@ -806,7 +806,7 @@ async function loadAccountImpressions() {
                 position:500+i,tmdb:{id:x.id,media:x.media},
                 reason:"Related to "+(x.matched||[]).join(", ")+".",
                 synopsis:x.synopsis,
-                directMatches:[],
+                directMatches:(x.matched||[]).map(name=>name.toLowerCase().normalize("NFKD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")),
                 facets:{themes:[],tones:[],pace:null,genres:(x.genres||[]).map(g=>g.toLowerCase())}
               };
             }).filter(x=>!excluded.has(x.key)&&!discoveryFeaturedKeys.has(x.key));
