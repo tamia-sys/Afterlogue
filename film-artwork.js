@@ -130,58 +130,97 @@
     galleryPending.set(key, task);
     try { return await task; } finally { galleryPending.delete(key); }
   }
-  // Film/TV metadata occasionally includes an actual YouTube trailer ID.
-  // We only accept an exact title match (and nearby release year), never guessed IDs.
+  // Reusable trailer finder for every film and series in the Afterlogue catalog.
+  // Official links in film-official-trailers.js always take precedence in the UI.
+  // Look up only the exact matching title and near release year, to avoid wrong trailers.
   const trailerPending = new Map();
-  const trailerCachePrefix = 'afterlogue:trailer-id:v1:';
+  const trailerCachePrefix = 'afterlogue:trailer-id:v2:';
   const youtubeId = value => {
     if (typeof value !== 'string') return null;
     if (/^[a-zA-Z0-9_-]{11}$/.test(value)) return value;
     try {
       const url = new URL(value);
       if (url.hostname === 'youtu.be') {
-        const id = url.pathname.slice(1).split('/')[0];
-        return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : null;
+        const id = url.pathname.split('/').filter(Boolean)[0];
+        return /^[a-zA-Z0-9_-]{11}$/.test(id || '') ? id : null;
       }
       if (['www.youtube.com','youtube.com','m.youtube.com','www.youtube-nocookie.com'].includes(url.hostname)) {
-        const id = url.searchParams.get('v') || url.pathname.match(/^\/(?:embed|shorts)\/([a-zA-Z0-9_-]{11})/)?.[1];
+        const id = url.searchParams.get('v') || url.pathname.match(/^\/(?:embed|shorts|live)\/([a-zA-Z0-9_-]{11})/)?.[1];
         return /^[a-zA-Z0-9_-]{11}$/.test(id || '') ? id : null;
       }
     } catch (_) {}
     return null;
+  };
+  const trailerCandidate = record => {
+    if (typeof record === 'string') return youtubeId(record) ? {id:youtubeId(record),rank:3} : null;
+    if (!record || typeof record !== 'object') return null;
+    const description = [record.title,record.name,record.type,record.videoType,record.description].filter(Boolean).join(' ').toLowerCase();
+    if (/interview|behind.the.scenes|featurette|deleted.scene|clip|reaction|recap|review|fan.made/.test(description)) return null;
+    const values = [
+      record.ytId,record.youtubeId,record.youtubeVideoId,record.videoId,
+      record.youtubeUrl,record.videoUrl,record.url,record.externalUrl,
+      record.source,record.embedUrl,record.link
+    ];
+    const id = values.map(youtubeId).find(Boolean) || null;
+    if (!id) return null;
+    const rank = /official.+trailer|trailer.+official/.test(description) ? 0
+      : /trailer/.test(description) ? 1
+      : /teaser/.test(description) ? 3 : 2;
+    return {id,rank};
   };
   async function resolveTrailer(title, year, isTV) {
     const type = isTV ? 'series' : 'movie';
     const key = trailerCachePrefix + type + ':' + normalized(title) + ':' + String(year || '');
     try {
       const cached = JSON.parse(localStorage.getItem(key) || 'null');
-      if (cached && Date.now() - cached.at < 7 * 24 * 3600 * 1000) return cached.id || null;
+      if (cached && Date.now() - cached.at < 7 * 24 * 3600 * 1000)
+        return cached.id || null;
     } catch (_) {}
     if (trailerPending.has(key)) return trailerPending.get(key);
     const task = (async () => {
       try {
         const catalog = await requestJson(ROOT + '/catalog/' + type + '/top/search=' + encodeURIComponent(title) + '.json');
-        const candidates = (catalog.metas || []).filter(entry =>
-          normalized(entry.name) === normalized(title) && /^tt\d+$/.test(entry.id || ''));
         const target = Number(year);
-        const release = entry => Number(String(entry.releaseInfo || entry.year || '').slice(0,4));
-        const chosen = candidates.find(entry => !target || !release(entry) || Math.abs(release(entry)-target) <= 2);
-        if (!chosen) return null;
-        const response = await requestJson(ROOT + '/meta/' + type + '/' + chosen.id + '.json');
-        const meta = response.meta || {};
-        const records = [...(Array.isArray(meta.trailerStreams) ? meta.trailerStreams : []),
-                         ...(Array.isArray(meta.trailers) ? meta.trailers : [])];
-        const playable = records.map(entry => {
-          const kind = String(entry.type || entry.title || entry.name || 'Trailer').toLowerCase();
-          if (/clip|teaser|featurette|interview|behind.the.scenes/.test(kind)) return null;
-          const id = youtubeId(entry.ytId || entry.youtubeId || entry.source || entry.url || '');
-          return id ? {id,rank:/official/.test(kind) ? 0 : /trailer/.test(kind) ? 1 : 2} : null;
-        }).filter(Boolean).sort((a,b) => a.rank - b.rank);
-        const id = playable[0]?.id || null;
-        try { localStorage.setItem(key, JSON.stringify({at:Date.now(),id})); } catch (_) {}
+        const yearOf = entry => Number(String(entry.releaseInfo || entry.year || '').slice(0,4));
+        const match = (catalog.metas || []).filter(entry =>
+          normalized(entry.name) === normalized(title) &&
+          /^tt\d+$/.test(entry.id || '') &&
+          (!target || !yearOf(entry) || Math.abs(yearOf(entry)-target) <= 2)
+        ).sort((a,b)=>Math.abs(yearOf(a)-target)-Math.abs(yearOf(b)-target))[0];
+        if (!match) return null;
+        let choices = [];
+        try {
+          const result = await requestJson(ROOT + '/meta/' + type + '/' + match.id + '.json');
+          const meta = result.meta || {};
+          choices = [
+            ...(Array.isArray(meta.trailerStreams) ? meta.trailerStreams : []),
+            ...(Array.isArray(meta.trailers) ? meta.trailers : []),
+            meta.trailer,meta.youtubeTrailer,meta.youtubeTrailerId
+          ].map(trailerCandidate).filter(Boolean);
+        } catch (error) {
+          console.warn('Primary trailer source unavailable',error);
+        }
+        // Optional second metadata source can fill titles missing a Cinemeta trailer.
+        // Only explicit YouTube IDs/links are playable; never fabricate a video ID.
+        if (!choices.length) {
+          try {
+            const result = await requestJson('https://api.imdbapi.dev/titles/' + encodeURIComponent(match.id) + '/videos?pageSize=50');
+            const records = Array.isArray(result.videos) ? result.videos
+              : Array.isArray(result.videos?.items) ? result.videos.items
+              : Array.isArray(result.data?.videos) ? result.data.videos
+              : Array.isArray(result.data?.videos?.items) ? result.data.videos.items
+              : Array.isArray(result.items) ? result.items : [];
+            choices = records.map(trailerCandidate).filter(Boolean);
+          } catch (error) {
+            console.warn('Supplementary trailer metadata unavailable',error);
+          }
+        }
+        choices.sort((a,b)=>a.rank-b.rank);
+        const id = choices[0]?.id || null;
+        try { localStorage.setItem(key,JSON.stringify({at:Date.now(),id})); } catch (_) {}
         return id;
       } catch (error) {
-        console.warn('Film trailer metadata unavailable for', title, error);
+        console.warn('Trailer lookup unavailable for',title,error);
         return null;
       }
     })();
