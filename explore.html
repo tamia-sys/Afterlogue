@@ -1513,7 +1513,7 @@ function moodScopeKey(){
  const facet=window.AfterlogueExploreFilters?.get()||{};
  return JSON.stringify([
   state.mood,$("explore-format").value==="all"?state.format:$("explore-format").value,
-  state.pace||"medium",...["countries","languages","genres","decades"].map(k=>(facet[k]||[]).slice().sort().join(","))
+  state.pace||"medium",...["countries","languages","genres","decades","ratings"].map(k=>(facet[k]||[]).slice().sort().join(","))
  ]);
 }
 function previousMoodTitles(scope){return shownByScope[scope]||[];}
@@ -1558,7 +1558,8 @@ async function displayResults(){
             offset:cursor,pace,
             excludeIds:[...alreadyShown].filter(k=>k.startsWith(type+":")).map(k=>Number(k.split(":")[1])),
             genres:facetChoices.genres||[],countries:facetChoices.countries||[],
-            languages:facetChoices.languages||[],decades:facetChoices.decades||[]})
+            languages:facetChoices.languages||[],decades:facetChoices.decades||[],
+            ratings:facetChoices.ratings||[]})
         });
         if(!resp.ok)throw Error("Mood catalog unavailable");
         return await resp.json();
@@ -1678,7 +1679,7 @@ function displayLocalMoodResults(){
 const searchField=$("explore-search");
 const browseState={format:"all"};
 const foldText=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
-const chosenFilters=()=>window.AfterlogueExploreFilters?.get()||{genres:[],countries:[],languages:[],decades:[]};
+const chosenFilters=()=>window.AfterlogueExploreFilters?.get()||{genres:[],countries:[],languages:[],decades:[],ratings:[]};
 function matchesFilters(item){
  const f=chosenFilters();
  const genres=(item.genres||[]).map(foldText),countries=(item.countries||[]).map(foldText);
