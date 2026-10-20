@@ -284,7 +284,7 @@
       window.location.assign('discuss.html');
     } catch (error) {
       console.error('Could not delete conversation', error);
-      window.alert('Could not delete this conversation. Please try again.');
+      window.alert('Could not delete this conversation. ' + (error?.message || 'Unknown error') + (error?.code ? ' (code: ' + error.code + ')' : '') + '. Please share this message so we can fix it.');
       button.disabled = false;
       busy = false;
     }
