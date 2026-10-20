@@ -79,7 +79,7 @@ const GENRE_MOODS:Record<string,{movie:number[][],tv:number[][],caption:string}>
 
 /* Exact subject tags, not genres, decide whether a title belongs in a mood. */
 const MOOD_TOPICS:Record<string,{labels:string[];reason:string}>={
- holidays:{labels:["christmas","christmas eve","christmas holiday","thanksgiving","new year's eve","new year","hanukkah","diwali","lunar new year","santa claus"],reason:"A story centered on a holiday"},
+ holidays:{labels:["christmas","christmas eve","christmas holiday","thanksgiving","new year's eve","new year","hanukkah","diwali","lunar new year","santa claus","valentine's day","easter","halloween","st. patrick's day","leap year","leap day","ramadan","eid al-fitr","festival of lights","mid-autumn festival"],reason:"A story connected to a holiday or seasonal occasion"},
  yearning:{labels:["unrequited love","long distance relationship","first love","forbidden love","lost love","unfulfilled love"],reason:"A story about longing and connection"},
  winding:{labels:["slice of life","self discovery","small town","healing","friendship","everyday life","feel-good"],reason:"A reflective story for winding down"},
  friday:{labels:["party","night out","road trip","heist","nightclub","music festival","concert","dance party"],reason:"An energetic Friday-night story"},
@@ -115,6 +115,14 @@ function holidayEvidence(v:Record<string,unknown>):string|null{
   {label:"Hanukkah",pattern:/\bhanukkah\b|\bchanukah\b/i},
   {label:"Diwali",pattern:/\bdiwali\b/i},
   {label:"Lunar New Year",pattern:/\blunar new year\b|\bchinese new year\b/i},
+  {label:"Valentine’s Day",pattern:/\bvalentine(?:[’\']s)? day\b|\bvalentine(?:[’\']s)?\b/i},
+  {label:"Easter",pattern:/\beaster\b/i},
+  {label:"Halloween",pattern:/\bhalloween\b|\btrick.or.treat\b/i},
+  {label:"St. Patrick’s Day",pattern:/\bst[.]? patrick(?:[’\']s)? day\b/i},
+  {label:"Leap Day",pattern:/\bleap day\b|\bleap year\b|\bfebruary 29(?:th)?\b|\bfeb[.]? 29\b/i},
+  {label:"Eid",pattern:/\beid al.fitr\b|\beid al.adha\b|\beid celebrations?\b/i},
+  {label:"Diwali",pattern:/\bdiwali\b|\bdeepavali\b/i},
+  {label:"Ramadan",pattern:/\bramadan\b/i},
   {label:"holiday season",pattern:/\bduring the holidays\b|\bfor the holidays\b|\bover the holidays\b|\bholiday season\b|\bholiday spirit\b|\bholiday cheer\b|\bholiday party\b|\bholiday festivities\b|\bholiday celebrations\b/i}
  ];
  for(const event of holidaySubjects){
@@ -123,6 +131,28 @@ function holidayEvidence(v:Record<string,unknown>):string|null{
  }
  return null;
 }
+// Stronger than a genre label, but not an AI claim about emotional tone.
+// Only cite the synopsis or topic tag if it actually contains the evidence.
+function narrativeMoodEvidence(mood:string,details:Record<string,unknown>,tag:string):string|null{
+ const synopsis=String(details.overview||"");
+ if(mood==="holidays")return holidayEvidence(details);
+ const patterns:Record<string,RegExp>={
+  yearning:/\bunrequited\b|\bforbidden love\b|\bsecret(ly)? in love\b|\blong.distance\b|\bheartbreak\b|\bsecond chance\b|\blost love\b|\bfalls? in love\b|\bfalling in love\b|\brelationship\b|\breunite\b|\bromance\b|\bromantic\b|\blongs? for\b|\byearns? for\b|\baffair\b/i,
+  winding:/\bquiet\b|\breflect\b|\bslice of life\b|\bday.to.day\b|\beveryday\b|\bsmall town\b|\bfriendship\b|\bhealing\b|\bself.discovery\b|\bfinds? (him|her|them)self\b|\bheartwarming\b|\bslow life\b|\bfamily bonds\b/i,
+  friday:/\bparty\b|\bnight out\b|\bheist\b|\badventure\b|\bchase\b|\broad trip\b|\bconcert\b|\bnightclub\b|\bdance\b|\bcelebrat\b|\bthrilling\b|\bwild night\b/i,
+  fall:/\bhalloween\b|\bautumn\b|\bfall season\b|\bharvest\b|\bghosts?\b|\bhaunted\b|\bwitch(es)?\b|\bpumpkin\b|\bsmall town mystery\b|\bcreepy\b|\bspooky\b/i,
+  unexpected:/\bsurreal\b|\btime travel\b|\balternate reality\b|\bparallel universe\b|\bweird\b|\bstrange\b|\bbizarre\b|\babsurd\b|\botherworldly\b|\bdream world\b/i
+ };
+ const p=patterns[mood];const match=p?.exec(synopsis);
+ if(match)return "The synopsis features "+match[0].toLowerCase()+", fitting this mood.";
+ if(tag)return 'The film is tagged “'+tag+'” in the catalog.';
+ return null;
+}
+const SEASONAL_FEATURES:Record<number,{event:string;reason:string}>={
+  25195:{event:"Leap Day",reason:"The story centers on an Irish Leap Day proposal tradition."},
+  1019420:{event:"Irish seasonal viewing",reason:"An Irish-set romance suited to St. Patrick’s season; it is not a St. Patrick’s Day plot."},
+  417028:{event:"October seasonal viewing",reason:"A Disney Channel film premiered during its October Monstober programming; its plot is not about Halloween."}
+};
 function exactCodes(x:unknown):string[]{
  return Array.isArray(x)?x.filter((v:unknown)=>typeof v==="string").map(String):[];
 }
