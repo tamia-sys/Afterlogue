@@ -359,6 +359,24 @@ if($('account-signout')){
 }
 if($('account-signin'))$('account-signin').hidden=!!member;
 const watchBtn=$('film-watchlist');
+const catalogMeta = window.AfterlogueCatalogMetadata;
+const dynamicEntry = dynamicDetails && catalogMeta?.identify(key) ? {
+ key, title:item.title,year:item.year,poster:item.poster,category:item.category
+} : null;
+async function preserveDynamicTitle(){
+ if (dynamicEntry && member) await catalogMeta.save(client,member.id,dynamicEntry);
+}
+// A Seen impression saves its TMDB metadata before the watched state, so
+// the story always has a proper name and image in the owner's personal Log.
+if (window.AfterlogueSeen) {
+ const eye = window.AfterlogueSeen.button({
+  key,title:item.title,year:item.year,poster:item.poster,category:item.category
+ });
+ eye.classList.add('film-seen-action');
+ eye.title='Mark as seen or leave an impression';
+ eye.appendChild(document.createTextNode(' Seen it'));
+ watchBtn.before(eye);
+}
 let saved=false,watchId=null;
 function displaySaved(){
  watchBtn.classList.toggle('is-selected',saved);
@@ -382,6 +400,7 @@ watchBtn.addEventListener('click',async()=>{
    if(result.error)throw result.error;
    saved=false;watchId=null;info('Removed from your Watchlist.');
   }else{
+   await preserveDynamicTitle();
    const result=await client.from('watchlist').insert({user_id:member.id,title_key:key,category:item.category==='tv'?'tv':'movies'}).select('id').single();
    if(result.error)throw result.error;
    saved=true;watchId=result.data.id;info('Saved to your private Watchlist.');
