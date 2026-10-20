@@ -239,14 +239,14 @@
     $('thread-category').textContent =
       t.kind === 'general' ? 'Open conversation' :
       (t.work_type === 'tv' ? 'TV' : 'Film') + ' · ' + (t.work_title || '');
-    $('thread-byline').textContent = t.author_id ? 'Afterlogue member' : 'Afterlogue';
+    $('thread-byline').textContent = t.author_id ? 'Created by: ' : 'Afterlogue';
     if(t.author_id){
       const byline=$('thread-byline');
       const link=document.createElement('a');
       link.href=profileUrl(t.author_id);link.textContent='Afterlogue member';
-      link.style.color='inherit';link.style.textDecoration='none';
-      byline.replaceChildren(link);
-      memberInfo(t.author_id).then(p=>{if(p)link.textContent=p.display_name|| (p.username?'@'+p.username:'Afterlogue member');});
+      link.style.color='#d4bc91';link.style.textDecoration='none';
+      byline.append(link);
+      memberInfo(t.author_id).then(p=>{if(p)link.textContent=p.username?'@'+p.username:'Afterlogue member';});
     }
     $('thread-date').textContent = fmtDate(t.created_at);
     $('thread-spoiler-label').hidden = !t.has_spoilers;
