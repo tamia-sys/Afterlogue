@@ -53,7 +53,9 @@ $('profile-form').addEventListener('submit',async event=>{
    if(!file.size){message('Your name and username were saved. The selected photo is empty; please choose it again.');selectedFile=null;return;}
    const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
    const uploadPath=user.id+'/'+crypto.randomUUID()+'.'+ext;
-   const uploadResult=await client.storage.from('member-avatars').upload(uploadPath,file,{contentType:file.type,upsert:false});
+   const bytes=await file.arrayBuffer();
+   if(!bytes.byteLength)throw new Error('The photo file is empty. Please choose it again.');
+   const uploadResult=await client.storage.from('member-avatars').upload(uploadPath,bytes,{contentType:file.type,upsert:false,cacheControl:'3600'});
    if(uploadResult.error){
     console.warn('Photo upload failed',uploadResult.error);
     selectedFile=null;originalPath=path;
