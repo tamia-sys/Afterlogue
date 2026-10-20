@@ -15,6 +15,8 @@ test('All Films title returns to the expanded catalog with search intact', async
   await page.goto('explore.html');
   await page.locator('#catalog-open').click();
   await expect(page.locator('#afterlogue-global-catalog')).toBeVisible({ timeout: 45_000 });
+  await page.locator('#catalog-country').selectOption('US');
+  await page.locator('#catalog-language').selectOption('en');
   await page.locator('#catalog-search').fill('Moonlight');
   // Wait for the *searched title*, not any stale tile from the prior page.
   const moonlight = page.locator('#catalog-grid .catalog-tile').filter({
@@ -26,6 +28,8 @@ test('All Films title returns to the expanded catalog with search intact', async
   await page.locator('#film-back').click();
   await expect(page.locator('#afterlogue-global-catalog')).toBeVisible({ timeout: 45_000 });
   await expect(page.locator('#catalog-search')).toHaveValue('Moonlight');
+  await expect(page.locator('#catalog-country')).toHaveValue('US');
+  await expect(page.locator('#catalog-language')).toHaveValue('en');
 });
 
 test('Mood film details return to the exact prior recommendations', async ({ page }) => {
@@ -37,12 +41,24 @@ test('Mood film details return to the exact prior recommendations', async ({ pag
   await page.locator('#explore-next').click();
   const firstCard = page.locator('#explore-picks .explore-pick').first();
   await expect(firstCard).toBeVisible({ timeout: 110_000 });
+  await expect(page.locator('#explore-picks .explore-pick')).toHaveCount(5);
+  const initialLinks = await page.locator('#explore-picks .explore-pick a.explore-global-detail').evaluateAll(a=>a.map(x=>x.href));
   const title = await firstCard.locator('h3').innerText();
   await firstCard.locator('a.explore-global-detail').click();
   await expect(page.locator('#film-back')).toContainText('your five stories', { timeout: 60_000 });
+  const related = page.locator('#film-related-grid .film-other-link');
+  await expect.poll(()=>related.count(),{timeout:90_000}).toBeGreaterThanOrEqual(3);
+  expect(await related.count()).toBeLessThanOrEqual(5);
+  const ids = links => links.map(x=>new URL(x).searchParams.get('tmdb')).filter(Boolean);
+  const relatedLinks = await related.evaluateAll(a=>a.map(x=>x.href));
+  for(const id of ids(relatedLinks))expect(ids(initialLinks)).not.toContain(id);
   await page.locator('#film-back').click();
   await expect(page.locator('#explore-results')).toBeVisible({ timeout: 45_000 });
   await expect(page.locator('#explore-picks .explore-pick').first().locator('h3')).toHaveText(title);
+  await page.locator('#explore-again').click();
+  await expect(page.locator('#explore-picks .explore-pick')).toHaveCount(5,{timeout:110_000});
+  const refreshedLinks = await page.locator('#explore-picks .explore-pick a.explore-global-detail').evaluateAll(a=>a.map(x=>x.href));
+  for(const id of ids(refreshedLinks))expect(ids(initialLinks)).not.toContain(id);
 });
 
 test('Test member can sign in (only after GitHub secrets are added)', async ({ page }) => {
