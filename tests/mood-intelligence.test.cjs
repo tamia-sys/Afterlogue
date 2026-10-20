@@ -84,3 +84,20 @@ test('Explanations do not leak claims about numerical mood scores',()=>{
  assert.equal(result.fitVersion,'editorial-v1');
  assert.equal(typeof result.score,'number');
 });
+
+test('Winding down: intimate does not mean gentle when the story is traumatic',()=>{
+ const four=movie(1069193,'Four Daughters',
+   'An intimate journey through the disappearance of two daughters, violence and family rebellion.',[99,18]);
+ const fashion=movie(1234,'The Devil Wears Prada 2',
+   'A reflective return to a demanding world of fashion rivalry.',[35,18]);
+ assert.ok(fit('winding',four,['self discovery'],'slow').score<5);
+ assert.ok(fit('winding',fashion,[],'slow').score<5);
+});
+test('Unexpected: a conventional fantasy franchise is not automatically surprising',()=>{
+ const minecraft=movie(950387,'A Minecraft Movie',
+   'Four friends travel to a bizarre cubic fantasy world to return home.',[14,10751,35]);
+ const surreal=movie(200,'Survive Style 5+',
+   'Absurd surreal stories collide in an experimental narrative.',[14,9648]);
+ assert.ok(fit('unexpected',minecraft,[],'energetic').score<5);
+ assert.ok(fit('unexpected',surreal,['surrealism'],'energetic').score>=5);
+});
