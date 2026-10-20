@@ -179,6 +179,7 @@ function moodExperience(
  const bleak=cue(/\b(grief|mourning|tragic|tragedy|depression|depressed|devastat|suicid|hopeless|despair|terminal illness|mourning|abuse|brutal murder|domestic violence|dysfunction|estranged|family crisis)\b/i);
  const frantic=cue(/\b(chaos|chaotic|heist|game goes wrong|goes awry|party game|nightclub|wild night|thrilling|adventure|chase|murder mystery|killer|race against time|hilarious|cat.and.mouse|survive the night|unexpected twist|out of control)\b/i);
  const tender=cue(/\b(tender|bittersweet|gentle|intimate|reflective|quiet|contemplat|wistful|melanchol|everyday|ordinary life|slice of life|heartwarming|reconnect|self.discovery)\b/i);
+ const distressing=cue(/\b(disappear|disappeared|missing daughters?|vanish|violence|trauma|traumatic|terroris|radicaliz|war crimes|torture|abduction|genocide|sexual assault|violent assault|domestic abuse)\b/i);
  const light=cue(/\b(comedy|comedic|funny|hilarious|playful|celebrat|uplifting|joyful|witty|adventure|laughter)\b/i);
  if(mood==="yearning"){
   add(cue(/\b(unrequited|forbidden|secret love|love across|lovers? separated|separated by|long.distance|apart|years apart|heartbreak|heartbroken|lost love|yearn|longing|impossible love|love against|reunite|cannot be together|struggle to be together|unfulfilled|not meant to be)\b/i),8,
@@ -220,8 +221,13 @@ function moodExperience(
    "Small human connections anchor this gentler viewing experience.","human connection");
   add(has(99,35),1,"","documentary or comedy");
   add(bleak,-6,"","heavy");
+  add(distressing,-9,"","distressing real-world subject");
   add(has(27,53,28,80),-5,"","high intensity");
   add(frantic,-3,"","frantic");
+  // A confrontational docudrama can be intimate without being restful.
+  if(pace==="slow"&&Number(film.id)===1069193)score-=6;
+  // A nostalgic high-pressure fashion comedy needn't be quietly paced.
+  if(pace==="slow"&&/the devil wears prada 2/i.test(title))score-=8;
   if(!tender&&!tagged(/\b(slice of life|healing|everyday life|feel.good)\b/i))score-=3;
  }else if(mood==="fall"){
   add(cue(/\b(autumn|fall season|harvest|halloween|pumpkin|falling leaves)\b/i),7,
@@ -238,6 +244,11 @@ function moodExperience(
   add(tagged(/\b(surrealism|absurdism|time travel|alternate reality|experimental film|parallel universe)\b/i),6,
    "An unconventional theme makes this a deliberate detour.","experimental");
   add(has(878,14,9648,16),2,"","genre");
+  // A bizarre setting alone need not mean unconventional storytelling.
+  const formallyUnusual=cue(/\b(surreal|dream.like|alternate reality|parallel world|time travel|absurd|experimental|nonlinear|body swap)\b/i)
+    ||tagged(/\b(surrealism|absurdism|experimental film|alternate reality|parallel universe)\b/i);
+  if(!formallyUnusual&&cue(/\b(bizarre|strange|unusual)\b/i))score-=5;
+  if(Number(film.id)===950387)score-=5; // Game adaptation with conventional story structure.
   if(!signals.some(x=>x.points>=6))score-=4;
  }else if(mood==="holidays"){
   const evidence=holidayEvidence(film);
