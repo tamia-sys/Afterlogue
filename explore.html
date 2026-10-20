@@ -1528,12 +1528,10 @@ async function displayResults(){
       if(!item.poster||unique.has(key)||excluded.has(key))continue;
       unique.add(key);
       titles.push({...item,key,media:item.media==="tv"?"tv":"movies",
-        reason:"A "+(data.moods[state.mood]?.short||"different")+" discovery, selected from cinema beyond the starter collection."});
+        reason:item.moodReason||"Selected for the mood you chose."});
     }
-    // Use a stable order for each session, but vary the selection by visit and offset.
-    const seed=String(sessionStorage.getItem("afterlogue.first.impressions.seed.v2")||"8841")+String(state.offset);
-    let h=0;for(const ch of seed)h=((h*31)+ch.charCodeAt(0))>>>0;
-    titles.sort((a,b)=>((a.id*17+h)%104729)-((b.id*17+h)%104729));
+    // TMDB returns eligible, mood-tagged results in popularity order. Avoid
+    // random reordering that buries stronger matches behind weaker ones.
     const five=titles.slice(0,isSurprise?1:5);
     host.replaceChildren();
     for(const item of five){
@@ -1550,7 +1548,7 @@ async function displayResults(){
     }
     if(!five.length)host.textContent="No matching released stories for this mood and filter combination. Try clearing a choice or choosing another mood.";
     $("explore-results-title").textContent=isSurprise?"A story you didn't ask for.":"A little something for you.";
-    $("explore-results-detail").textContent=data.moods[state.mood].intro;
+    $("explore-results-detail").textContent=data.moods[state.mood].intro+" Every title must actually match this mood.";
     $("explore-results-label").textContent="AFTERLOGUE / "+data.moods[state.mood].short.toUpperCase();
     $("explore-adjust").hidden=isSurprise;
     $("explore-again").textContent=isSurprise?"Another surprise ↗":"Another selection ↗";
@@ -1564,7 +1562,10 @@ async function displayResults(){
       note.textContent="We couldn't load stories matching these filters. Please try again.";
       host.append(note);$("explore-again").disabled=false;return;
     }
-    displayLocalMoodResults();
+    const host=$("explore-picks");host.replaceChildren();
+    const note=document.createElement("p");note.className="explore-question";
+    note.textContent="Mood discovery is temporarily unavailable. Try again shortly.";
+    host.append(note);$("explore-again").disabled=false;
   }
 }
 function displayLocalMoodResults(){
