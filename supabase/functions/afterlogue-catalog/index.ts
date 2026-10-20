@@ -12,7 +12,7 @@ type Media = "movie" | "tv";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 const JSON_HEADERS = { ...CORS, "Content-Type": "application/json; charset=utf-8" };
 const TMDB = "https://api.themoviedb.org/3";
@@ -30,7 +30,7 @@ const TV_GENRES: Record<string, number> = {
   "War & Politics":10768, Western:37,
 };
 const codes: Record<number,string> = Object.fromEntries(
-  Object.entries({...GENRES, ...TV_GENRES}).map(([name,id]) => [id,name])
+  Object.entries({...TV_GENRES, ...GENRES}).map(([name,id]) => [id,name])
 );
 const response = (body: unknown,status = 200) =>
   new Response(JSON.stringify(body),{status,headers:{...JSON_HEADERS,"Cache-Control":"public, max-age=300"}});
@@ -73,11 +73,24 @@ async function tmdb(path:string,params:URLSearchParams,token:string){
 }
 Deno.serve(async (req:Request) => {
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers:CORS});
-  if(req.method!=="POST")return response({error:"Method not allowed"},405);
   const token=Deno.env.get("TMDB_READ_ACCESS_TOKEN");
-  if(!token)return response({error:"catalogue_not_configured",message:"TMDB credential has not been configured."},503);
+  // Safe setup check for the public library. Never return or log the token.
+  if(req.method==="GET"){
+    const url=new URL(req.url);
+    if(url.searchParams.get("status")==="1")
+      return response({service:"afterlogue-catalog",ready:Boolean(token),version:2});
+    return response({error:"Method not allowed"},405);
+  }
+  if(req.method!=="POST")return response({error:"Method not allowed"},405);
+  if(!token)return response({error:"catalogue_not_configured",message:"Expanded library is being prepared. Browse the featured collection for now."},503);
   let input: Record<string,unknown>;
-  try{input=await req.json();}catch(_){return response({error:"Invalid JSON"},400);}
+  try{
+    if(Number(req.headers.get("content-length")||0)>4096)return response({error:"Request too large"},413);
+    const text=await req.text();
+    if(text.length>4096)return response({error:"Request too large"},413);
+    input=JSON.parse(text);
+    if(!input || typeof input!=="object" || Array.isArray(input))throw Error("Invalid body");
+  }catch(_){return response({error:"Invalid JSON"},400);}
   const mode=input.mode;
   const media:Media=input.media==="tv"?"tv":"movie";
   const page=number(input.page,1,100,1);
