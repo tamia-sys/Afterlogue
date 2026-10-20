@@ -29,7 +29,7 @@ function render(list){
   const sub=document.createElement("span");sub.className="catalog-tile-year";sub.textContent=title.year||"";
   frame.append(img);a.append(frame,name,sub);
   const tile=document.createElement("div");tile.className="catalog-tile-wrap";
-  const eye=window.AfterlogueSeen?.button({key:"tmdb-"+title.media+"-"+title.id,title:title.title,category:title.media==="tv"?"tv":"movies"});
+  const eye=window.AfterlogueSeen?.button({key:"tmdb-"+title.media+"-"+title.id,title:title.title,year:title.year,poster:title.poster,category:title.media==="tv"?"tv":"movies"});
   tile.append(a);if(eye)tile.append(eye);$("catalog-grid").append(tile);
  }
 }
