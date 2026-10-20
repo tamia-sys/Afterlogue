@@ -5,7 +5,7 @@
 <title>Film details — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="mobile-header.css?v=3">
-<link rel="stylesheet" href="film-details.css?v=6">
+<link rel="stylesheet" href="film-details.css?v=7">
 </head><body class="film-detail-page">
 <header class="site-header">
 <a href="index.html" class="logo">afterlogue.</a>
@@ -48,7 +48,11 @@
 <section class="film-panel" role="tabpanel" id="film-panel-overview" aria-labelledby="film-tab-overview">
 <div class="film-overview-grid">
 <div class="film-overview-primary">
-<div class="film-photo-rail" id="film-stills" hidden></div>
+<div class="film-gallery" id="film-gallery" hidden>
+<div class="film-gallery-heading"><span>Scenes from the story.</span>
+<div class="film-gallery-controls"><button type="button" id="film-gallery-prev" aria-label="Scroll stills left">←</button><button type="button" id="film-gallery-next" aria-label="Scroll stills right">→</button></div></div>
+<div class="film-photo-rail" id="film-stills" role="region" aria-label="Scene stills, scroll horizontally for more" tabindex="0" hidden></div>
+</div>
 <p class="film-still-credit" id="film-stills-credit" hidden></p>
 <h2 class="film-section-title">About.</h2>
 <p class="film-about" id="film-about"></p>
@@ -89,7 +93,13 @@
 </section>
 </div>
 </main>
-<div id="film-lightbox" class="film-lightbox" role="dialog" aria-modal="true" aria-label="Film still viewer" hidden><button type="button" id="film-lightbox-close" class="film-lightbox-close" aria-label="Close image">×</button><img id="film-lightbox-image" alt=""><p id="film-lightbox-caption"></p></div>
+<div id="film-lightbox" class="film-lightbox" role="dialog" aria-modal="true" aria-label="Film still viewer" hidden>
+<button type="button" id="film-lightbox-close" class="film-lightbox-close" aria-label="Close image">×</button>
+<button type="button" id="film-lightbox-prev" class="film-lightbox-arrow film-lightbox-prev" aria-label="Previous still">←</button>
+<img id="film-lightbox-image" alt="">
+<button type="button" id="film-lightbox-next" class="film-lightbox-arrow film-lightbox-next" aria-label="Next still">→</button>
+<p id="film-lightbox-caption" aria-live="polite"></p>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script src="site-navigation.js?v=6"></script>
@@ -98,5 +108,5 @@
 <script src="film-details-data.js?v=2"></script>
 <script src="film-stills-curated.js?v=3"></script>
 <script src="film-artwork.js?v=2"></script>
-<script src="film-details.js?v=7"></script>
+<script src="film-details.js?v=8"></script>
 </body></html>
