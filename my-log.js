@@ -46,6 +46,7 @@
     currentTab: 'watched',
     category: 'movies',
     impressions: [],
+    seen: [],
     watchlist: [],
     metadata: [],
     openKey: null,
@@ -86,7 +87,7 @@
 
   function collection() {
     let base;
-    if (state.currentTab === 'watched') base = state.impressions;
+    if (state.currentTab === 'watched') base = [...state.impressions,...state.seen];
     else if (state.currentTab === 'watchlist') base = state.watchlist;
     else base = state.metadata.filter(function (item) { return item.is_favorite; });
 
@@ -161,7 +162,7 @@
       ratingLabel.appendChild(document.createTextNode(rated.rating));
     } else {
       ratingLabel.classList.add('is-neutral');
-      ratingLabel.textContent = state.currentTab === 'watchlist' ? 'Saved for later' : 'Not yet rated';
+      ratingLabel.textContent = state.currentTab === 'watchlist' ? 'Saved for later' : 'Seen · No impression yet';
     }
     body.appendChild(ratingLabel);
 
@@ -299,7 +300,7 @@
       grid.hidden = true;
       const kind = state.category === 'tv' ? 'series' : 'films';
       if (state.currentTab === 'watched') {
-        empty.textContent = 'No ' + kind + ' in your watched collection yet. Your saved impressions will appear here.';
+        empty.textContent = 'No ' + kind + ' watched yet. Mark stories as seen from Home or Explore to find them here.';
       } else if (state.currentTab === 'watchlist') {
         empty.replaceChildren();
         empty.appendChild(document.createTextNode('Your ' + kind + ' watchlist is empty. Save stories from '));
@@ -379,6 +380,14 @@
     dialogError.textContent = '';
 
     try {
+      // Saving an impression on any Log entry also records it as watched.
+      if(wantedRating && !state.seen.some(row=>row.title_key===key)){
+        const seenSave=await client.from('seen_entries').upsert({
+          user_id:state.user.id,title_key:key,category:latest.category
+        },{onConflict:'user_id,title_key'});
+        if(seenSave.error)throw seenSave.error;
+        state.seen.unshift({title_key:key,category:latest.category});
+      }
       if ((oldRating ? oldRating.rating : '') !== wantedRating) {
         if (wantedRating) {
           const result = await client.from('impressions').upsert({
@@ -593,6 +602,8 @@
       signout.hidden = false;
 
       const result = await Promise.all([
+        client.from('seen_entries').select('title_key,category,seen_at')
+          .eq('user_id', state.user.id).order('seen_at', { ascending: false }),
         client.from('impressions').select('title_key,rating,updated_at')
           .eq('user_id', state.user.id).order('updated_at', { ascending: false }),
         client.from('watchlist').select('title_key,category,created_at')
@@ -604,10 +615,11 @@
       ]);
       const broken = result.find(function (r) { return r.error; });
       if (broken) throw broken.error;
-      state.impressions = result[0].data || [];
-      state.watchlist = result[1].data || [];
-      state.metadata = result[2].data || [];
-      state.shareDefault = (result[3].data && result[3].data.note_share_default) || 'ask';
+      state.seen = result[0].data || [];
+      state.impressions = result[1].data || [];
+      state.watchlist = result[2].data || [];
+      state.metadata = result[3].data || [];
+      state.shareDefault = (result[4].data && result[4].data.note_share_default) || 'ask';
       showMessage('');
       render();
     } catch (error) {
