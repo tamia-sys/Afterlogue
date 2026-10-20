@@ -103,7 +103,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=2"></script>
+<script src="recommendation-engine.js?v=3"></script>
 <link rel="stylesheet" href="seen-impression.css?v=1">
 <script src="seen-impression.js?v=1"></script>
 <script>
@@ -419,6 +419,7 @@ tv: [
 let discoveryFavorites=[];
 let discoveryWatchlist=[];
 let discoverySeen=[];
+try{if(isGuestMode)discoverySeen=JSON.parse(localStorage.getItem("afterlogue.seen.guest.v1")||"[]");}catch(_){discoverySeen=[];}
 const discoveryEntries=window.AfterlogueRecommendationEngine?.normalizeEntries(
   window.AfterlogueFeaturedCatalog||{},
   window.afterlogueExploreData?.titles||[],
