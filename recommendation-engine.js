@@ -167,7 +167,14 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
   remaining.splice(remaining.indexOf(best),1);
  }
  return ordered.map(entry=>{
-   const strongest=entry.matched.find(x=>x.similarity.sharedThemes.length||x.similarity.sharedTones.length||x.similarity.sharedGenre.length)||entry.matched[0];
+   // A direct TMDB recommendation linked to a film the member enjoyed is
+   // more meaningful than an incidental overlap with another film.
+   const directlyLinked=entry.matched.find(x=>
+     (entry.directMatches||[]).includes(x.source.key)||
+     (entry.directMatches||[]).includes(slug(x.source.title)));
+   const strongest=directlyLinked||
+     entry.matched.find(x=>x.similarity.sharedThemes.length||x.similarity.sharedTones.length||x.similarity.sharedGenre.length)||
+     entry.matched[0];
    let why=null;
    if(strongest){
     const {source,signal,similarity}=strongest;
@@ -177,11 +184,15 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
     if(theme.length)why=intro+"this story also explores "+(theme.length===2?theme.join(" and "):theme[0])+".";
     else if(similarity.sharedTones.length)why=intro+"this shares a "+similarity.sharedTones[0]+" tone.";
     else if(similarity.sharedGenre.length)why=intro+"it offers another perspective on "+similarity.sharedGenre[0]+".";
+    else if(directlyLinked)why=intro+"this title appears among stories recommended alongside it in the wider catalog.";
    }
-   // If taste evidence is too thin, use truthful editorial copy, never a fake personalized claim.
-   if(!why)why=entry.reason||entry.synopsis||"Discover another story from the Afterlogue collection.";
-   return {...entry,why,personalized:Boolean(strongest)};
+   // A plot synopsis is not an explanation of taste. Be clear when there
+   // is too little evidence to call a pick personalized.
+   if(!why)why=entry.reason
+     ? "An editorial selection: "+entry.reason
+     : "From the Afterlogue collection. Share more impressions to see what connects the next story to your taste.";
+   return {...entry,why,personalized:Boolean(strongest&&why.startsWith("Because you "))};
  });
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"1.0",normalizeEntries,rank,facets:tags});
+root.AfterlogueRecommendationEngine=Object.freeze({version:"1.1",normalizeEntries,rank,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
