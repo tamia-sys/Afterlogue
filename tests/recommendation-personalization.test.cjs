@@ -59,12 +59,27 @@ test('Both rotating First Impressions cards and search cards use on-poster ratin
   assert.doesNotMatch(code,/card\.append\(picture,name,year,buttons\)/);
 });
 
-test('First five never reserve two slots for the original editorial catalog', () => {
+test('Home shows only verified wider-catalog picks, not manually curated filler', () => {
   const html=read('discover.html');
   assert.doesNotMatch(html,/expanded\.slice\(0,3\),\.\.\.editorial\.slice\(0,2\)/);
-  assert.match(html,/entry\.matched\.some\(match=>/);
-  assert.match(html,/entry\.personalized\|\|entry\.score<=0/);
-  assert.match(html,/selected\.filter\(meaningful\)/);
+  assert.match(html,/if\(!entry\.tmdb\|\|!entry\.personalized/);
+  assert.match(html,/editorialTitles\.has\(key\)/);
+  assert.match(html,/directlyLinked/);
+  assert.match(html,/selected\.filter\(entry=>/);
+});
+test('Authenticated impressions come only from Supabase, not browser-local rating copies', () => {
+  const home=read('discover.html');
+  const beforeLoad=home.split('const savedImpressions = {}')[1].split('const impressionCount')[0];
+  assert.match(beforeLoad,/if\(isGuestMode\)/);
+  assert.doesNotMatch(beforeLoad,/localStorage/);
+  assert.match(home,/\.from\("impressions"\)/);
+  assert.match(home,/legacy rating cleanup unavailable/);
+  const sync=read('onboarding-sync.js');
+  assert.match(sync,/sessionStorage\.setItem|sessionStorage\.removeItem/);
+  assert.match(sync,/localStorage\.removeItem/);
+  const onboarding=read('log.html');
+  assert.match(onboarding,/afterlogueSavedRatings/);
+  assert.doesNotMatch(onboarding,/localStorage\./);
 });
 
 test('Explicit production country and original language are saved with member onboarding', () => {
@@ -89,5 +104,5 @@ test('Server verifies BOTH filters on production details, not merely search summ
   const home=read('discover.html');
   assert.match(home,/if\(scoped\)\{/);
   assert.match(home,/if\(!entry\.filterVerified\)return false/);
-  assert.match(home,/if\(scoped\)return false/);
+  assert.match(home,/if\(!entry\.tmdb\|\|!entry\.personalized/);
 });
