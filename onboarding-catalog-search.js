@@ -56,8 +56,8 @@ function makeCard(item){
    button.textContent=rating;
    button.addEventListener('click',event=>{
      event.stopPropagation();
-     localStorage.setItem('afterlogue-'+key,rating);
-     localStorage.setItem('afterlogue.onboarding.tmdb.'+key,JSON.stringify({
+     sessionStorage.setItem('afterlogue-'+key,rating);
+     sessionStorage.setItem('afterlogue.onboarding.tmdb.'+key,JSON.stringify({
        key,title:item.title,year:item.year,poster:item.poster,
        category:item.media==='tv'?'tv':'movies'
      }));
@@ -85,7 +85,7 @@ function makeCard(item){
  const year=document.createElement('p');
  year.textContent=item.year?String(item.year):'';
  card.append(poster,name,year);
- showRating(localStorage.getItem('afterlogue-'+key));
+ showRating(sessionStorage.getItem('afterlogue-'+key));
  return card;
 }
 async function search(){
@@ -117,7 +117,7 @@ controls.innerHTML='<label>Production country<select id="first-country"></select
 const countrySelect=controls.querySelector('#first-country'),languageSelect=controls.querySelector('#first-language');
 countrySelect.append(...options(countries));languageSelect.append(...options(languages));
 // Keep the filter selection through the signup-to-Home transition without
-// using a shared cross-account localStorage preference.
+// using a shared cross-account sessionStorage preference.
 const countryKey="afterlogue.onboarding.country";
 const languageKey="afterlogue.onboarding.language";
 const validCountry=new Set(countries.map(([code])=>code));
