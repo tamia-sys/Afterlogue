@@ -1070,10 +1070,14 @@ body.explore-body.explore-gallery-mode>.explore-shell{
   padding-bottom:60px!important;
 }
 body.explore-body.explore-gallery-mode .explore-gallery-wrap{display:block!important;overflow:visible!important;}
-body.explore-body.explore-gallery-mode .explore-gallery{
-  height:auto!important;max-height:none!important;min-height:0!important;
-  flex:none!important;grid-template-rows:1fr!important;overflow-x:auto!important;
-  overflow-y:hidden!important;
+/* Preserve the approved four-column, vertically scrollable moodboard
+   on desktop/tablets and two-card horizontal swipe on phones. */
+@media(min-width:700px){
+ body.explore-body.explore-gallery-mode .explore-gallery{
+   height:auto!important;max-height:clamp(340px,49vh,545px)!important;
+   min-height:0!important;flex:none!important;grid-auto-flow:row!important;
+   grid-template-rows:none!important;overflow-y:auto!important;overflow-x:hidden!important;
+ }
 }
 .explore-gallery .mood-wildcard{background:#090909;border:1px solid rgba(212,180,135,.5);display:flex;align-items:center;justify-content:center;}
 .explore-gallery .mood-wildcard::after{display:none}
