@@ -294,15 +294,29 @@ let trailerPreviousFocus=null;
 function closeTrailer(){
  if(trailerModal.hidden)return;
  trailerModal.hidden=true;
+ if(trailerTimer){clearTimeout(trailerTimer);trailerTimer=null;}
  trailerPlayer.removeAttribute('src'); // Stop video and sound on close.
  document.body.classList.remove('film-trailer-open');
  trailerPreviousFocus?.focus?.();
 }
+let trailerTimer=null;
+trailerPlayer.addEventListener("load",()=>{
+ if(trailerModal.hidden)return;
+ if(trailerTimer){clearTimeout(trailerTimer);trailerTimer=null;}
+ trailerStatus.textContent="If your browser blocks playback, tap Watch on YouTube below.";
+});
 function playTrailer(id){
  if(trailerModal.hidden)return;
- trailerExternal.href='https://www.youtube.com/watch?v='+encodeURIComponent(id);
+ const url='https://www.youtube.com/watch?v='+encodeURIComponent(id);
+ trailerExternal.href=url;
  trailerExternal.textContent='Watch on YouTube ↗';
- trailerStatus.textContent='Opening trailer… If YouTube blocks playback, use “Watch on YouTube” below.';
+ trailerStatus.textContent='Loading the player… The YouTube link below is ready now.';
+ if(trailerTimer)clearTimeout(trailerTimer);
+ trailerTimer=setTimeout(()=>{
+  if(!trailerModal.hidden){
+   trailerStatus.textContent='The embedded player is taking too long. Open the trailer on YouTube instead.';
+  }
+ },6500);
  trailerPlayer.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&rel=0&playsinline=1';
 }
 trailerLink.href='#film-trailer-modal';
