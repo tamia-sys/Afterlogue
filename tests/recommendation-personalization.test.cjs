@@ -202,3 +202,44 @@ test('Film Details keeps the editorial heading as a question',()=>{
  assert.match(details,/Another story, perhaps\?/);
  assert.doesNotMatch(details,/Another story, perhaps\.<\/h2>/);
 });
+
+
+test('Explore keeps the restrained moodboard layout and improves caption readability',()=>{
+ const html=read('explore.html');
+ assert.match(html,/A story for whatever you're feeling\.<\/p>/);
+ assert.doesNotMatch(html,/Follow a mood, or search for something specific/);
+ assert.match(html,/\.explore-body \.explore-gallery \.mood-bottom\{/);
+ assert.match(html,/font-size:clamp\(11px,\.9vw,12\.5px\)!important/);
+});
+test('Discover is the default, with conventional sort choices still available',()=>{
+ const html=read('explore.html'),client=read('catalog-browser.js');
+ assert.match(html,/<option value="discover" selected>Discover<\/option>/);
+ for(const sort of ['popular','newest','oldest'])assert.match(html,new RegExp('<option value="'+sort+'">'));
+ assert.match(client,/sort="discover"/);
+ assert.match(client,/afterlogue\.explore\.all-films\.v2/);
+ assert.match(client,/const filtered=hasActiveFilters\(\)/);
+ assert.match(client,/if\(filtered&&sort==="discover"\)/);
+});
+test('Discover draws from balanced decades, international cinema and under-seen work, not a popularity list',()=>{
+ const code=read('supabase/functions/afterlogue-catalog/index.ts');
+ assert.match(code,/String\(input\.sort\)==="discover"/);
+ for(const lane of ['archive','eighties-and-nineties','noughties','twenty-tens','recent','europe','asia-world','documentaries','animation','underseen']){
+   assert.ok(code.includes('id:"'+lane+'"'),lane+' stream is missing');
+ }
+ assert.match(code,/with_original_language/);
+ assert.match(code,/vote_count\.lte/);
+ assert.match(code,/const mixed:Record<string,unknown>\[\]=\[\],used=new Set<number>\(\)/);
+ assert.match(code,/if\(mixed\.length===60\)break/);
+ assert.match(code,/eligible\(v,media,45\)/);
+ assert.match(code,/selection:"discover"/);
+});
+test('All Films does not invent a capped total or block Next without its provider signal',()=>{
+ const html=read('explore.html'),browser=read('catalog-browser.js');
+ const backend=read('supabase/functions/afterlogue-catalog/index.ts');
+ assert.match(html,/catalog-browser\.js\?v=8/);
+ assert.match(browser,/hasNext=typeof result\.hasMore==="boolean"/);
+ assert.match(browser,/" · Page "\+page;/);
+ assert.doesNotMatch(browser,/" of "\+pages/);
+ assert.match(backend,/totalPages:null,totalResults:null/);
+ assert.match(backend,/hasMore:page<100&&lanesReady\.some/);
+});
