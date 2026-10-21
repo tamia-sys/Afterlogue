@@ -823,6 +823,10 @@ document.getElementById("discovery-results").replaceChildren(pending);
 document.querySelectorAll(".discovery-category").forEach(button => {
   button.addEventListener("click", () => {
     const category = button.dataset.category;
+    if(discoverAgainButton.dataset.exhaustedFor&&discoverAgainButton.dataset.exhaustedFor!==category){
+      delete discoverAgainButton.dataset.exhaustedFor;
+      if(!isGuestMode)discoverAgainButton.textContent="Discover another selection →";
+    }
     if(discoveryReady)displayDiscoveryRecommendations(category, discoveryPages[category]);
   });
 });
@@ -843,11 +847,18 @@ discoverAgainButton.addEventListener("click", () => {
   const category =
     document.querySelector(".discovery-category.active").dataset.category;
 
-  let nextPage = discoveryPages[category] + 1;
-  if (getDiscoveryRecommendations(category, nextPage).length === 0) {
-    discoverAgainButton.textContent="You’ve explored these matches · Add more impressions";
+  if(discoverAgainButton.dataset.exhaustedFor===category){
+    window.location.assign("explore.html");
     return;
   }
+  let nextPage = discoveryPages[category] + 1;
+  if (getDiscoveryRecommendations(category, nextPage).length === 0) {
+    discoverAgainButton.dataset.exhaustedFor=category;
+    discoverAgainButton.textContent="Explore the full archive →";
+    discoverAgainButton.title="Browse All Films & TV instead of repeating your first selection";
+    return;
+  }
+  delete discoverAgainButton.dataset.exhaustedFor;
   discoveryPages[category] = nextPage;
   rememberDiscovery();
   displayDiscoveryRecommendations(category, nextPage);
