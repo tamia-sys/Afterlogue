@@ -129,6 +129,7 @@ async function showThree(){
 }
 async function loadWatchlist(){
  clear();
+ status.textContent='Opening your Watchlist…';
  if(guest||!client){
   status.textContent='Sign in to revisit stories from your private Watchlist.';
   watchlistLink.href='signup.html?mode=signin';
