@@ -491,7 +491,10 @@ backButton.addEventListener("click", event => {
 
       const rating = button.dataset.rating;
 
-      (window.afterlogueImpressionDraftStore||sessionStorage).setItem(filmKey, rating);
+      const draft=window.afterlogueImpressionDraftStore||sessionStorage;
+      draft.setItem(filmKey,rating);
+      draft.setItem("afterlogue.onboarding.category."+filmKey.slice("afterlogue-".length),
+        card.closest("#television")?"tv":"movies");
       if(new URLSearchParams(location.search).get("guest")==="1")
         localStorage.setItem("afterlogue.guest.impressions.pending.v1","1");
       showSavedRating(rating);
