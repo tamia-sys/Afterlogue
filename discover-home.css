@@ -555,3 +555,127 @@ body.discovery-home-page {
     border-top:1px solid rgba(212,180,135,.2)
   }
 }
+
+/* Home is a small cinematic exhibition, not a dashboard:
+   give the hero, the five posters, and the saved collection distinct space. */
+@media(min-width:651px){
+ .discovery-home-page .discover-hero{margin-bottom:clamp(52px,6vw,92px)}
+ .discovery-home-page .discovery-selections{padding:0;max-width:1220px;margin:0 auto}
+ .discovery-home-page .discovery-top{padding-bottom:19px}
+ .discovery-home-page .discovery-category-buttons{margin-top:26px;gap:13px}
+ .discovery-home-page .discovery-results{
+   max-width:1160px;margin:34px auto 0;
+   gap:clamp(21px,3.2vw,45px);justify-content:center
+ }
+ .discovery-home-page .discovery-card{max-width:208px}
+}
+@media(max-width:650px){
+ .discovery-home-page .discover-hero{margin-bottom:42px}
+ .discovery-home-page .discovery-selections{margin:0;padding:0 6%}
+ .discovery-home-page .discovery-top{padding-bottom:20px}
+ .discovery-home-page .discovery-category-buttons{margin-top:23px}
+ .discovery-home-page .discovery-results{margin-top:25px;gap:26px 18px}
+}
+/* Invitation beneath the personalized shelf: collapsed by default and
+   unobtrusive until a viewer chooses to revisit their own saved titles. */
+.discovery-home-page .watchlist-reminder{
+  box-sizing:border-box;max-width:1220px;
+  margin:clamp(85px,10vw,145px) auto 34px;
+  padding:clamp(26px,3vw,44px) 0 0;
+  border-top:1px solid rgba(212,180,135,.3);
+}
+.discovery-home-page .watchlist-reminder-eyebrow{
+  margin:0 0 13px;font:600 10px/1.4 Inter,Arial,sans-serif;
+  letter-spacing:.18em;color:#c9ae87
+}
+.discovery-home-page .watchlist-reminder h2{
+  margin:0 0 12px;font:400 clamp(27px,3vw,43px)/1.16 Georgia,serif;
+  color:#f4eadd;letter-spacing:-.025em
+}
+.discovery-home-page .watchlist-reminder-caption{
+  margin:0 0 23px;color:#bcafa0;font:13px/1.65 Inter,Arial,sans-serif
+}
+.discovery-home-page .watchlist-reminder-toggle{
+  display:inline-flex;align-items:center;gap:12px;min-height:45px;
+  max-width:100%;padding:11px 19px;border:1px solid rgba(212,180,135,.68);
+  border-radius:999px;background:transparent;color:#ecd6b5;
+  font:12px/1.45 Inter,Arial,sans-serif;text-align:left;cursor:pointer;
+  transition:background .2s,color .2s,border-color .2s
+}
+.discovery-home-page .watchlist-reminder-toggle:hover,
+.discovery-home-page .watchlist-reminder-toggle:focus-visible{
+  background:#d4b487;color:#171615;border-color:#d4b487
+}
+.discovery-home-page .watchlist-reminder-symbol{font:18px/1 Georgia,serif;flex:none}
+.discovery-home-page .watchlist-reminder-content{
+  max-width:800px;padding:32px 0 0
+}
+.discovery-home-page .watchlist-reminder-status{
+  margin:0 0 13px;color:#bead95;font:12px/1.6 Inter,Arial,sans-serif
+}
+.discovery-home-page .watchlist-reminder-status:empty{display:none}
+.discovery-home-page .watchlist-reminder-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(14px,2vw,26px);align-items:start
+}
+.discovery-home-page .watchlist-reminder-card{min-width:0}
+.discovery-home-page .watchlist-reminder-poster{
+  display:flex;align-items:center;justify-content:center;aspect-ratio:2/3;
+  overflow:hidden;border:1px solid rgba(212,180,135,.2);
+  border-radius:8px;background:linear-gradient(140deg,#282522,#181817);
+  color:#f0dfc5;text-decoration:none
+}
+.discovery-home-page .watchlist-reminder-poster img{
+  display:block;width:100%;height:100%;object-fit:cover;
+  transition:transform .3s ease
+}
+.discovery-home-page .watchlist-reminder-poster:hover img,
+.discovery-home-page .watchlist-reminder-poster:focus-visible img{transform:scale(1.04)}
+.discovery-home-page .watchlist-reminder-poster:focus-visible{
+  outline:2px solid #d4b487;outline-offset:3px
+}
+.discovery-home-page .watchlist-reminder-poster-fallback{
+  font:italic 23px/1.2 Georgia,serif;text-align:center;padding:16px;
+  overflow-wrap:anywhere
+}
+.discovery-home-page .watchlist-reminder-card-title{
+  display:block;text-decoration:none;margin:11px 0 4px;
+  color:#f4eadd;font:500 14px/1.35 Inter,Arial,sans-serif
+}
+.discovery-home-page .watchlist-reminder-card-title:hover{
+  text-decoration:underline;text-underline-offset:3px
+}
+.discovery-home-page .watchlist-reminder-meta{
+  margin:0;color:#a99b88;font:11px/1.4 Inter,Arial,sans-serif
+}
+.discovery-home-page .watchlist-reminder-footer{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:18px;margin:24px 0 0
+}
+.discovery-home-page .watchlist-reminder-next{
+  border:0;background:transparent;padding:8px 0;
+  color:#d4b487;cursor:pointer;font:12px Inter,Arial,sans-serif
+}
+.discovery-home-page .watchlist-reminder-next:hover,
+.discovery-home-page .watchlist-reminder-next:focus-visible{text-decoration:underline;text-underline-offset:3px}
+.discovery-home-page .watchlist-reminder-all{
+  color:#d4b487;text-decoration:none;font:12px Inter,Arial,sans-serif
+}
+.discovery-home-page .watchlist-reminder-all:hover{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:650px){
+ .discovery-home-page .watchlist-reminder{
+  margin:83px 6% 22px;padding-top:29px
+ }
+ .discovery-home-page .watchlist-reminder-content{padding-top:27px}
+ .discovery-home-page .watchlist-reminder-grid{gap:11px}
+ .discovery-home-page .watchlist-reminder-card-title{font-size:11px}
+ .discovery-home-page .watchlist-reminder-meta{font-size:10px}
+ .discovery-home-page .watchlist-reminder h2{font-size:29px}
+}
+@media(max-width:370px){
+ .discovery-home-page .watchlist-reminder-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){
+ .discovery-home-page .watchlist-reminder-poster img,
+ .discovery-home-page .watchlist-reminder-toggle{transition:none}
+}

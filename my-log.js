@@ -43,7 +43,9 @@
 
   const state = {
     user: null,
-    currentTab: 'watched',
+    // Home's saved-story reminder should open the Watchlist tab directly.
+    currentTab: new URLSearchParams(location.search).get('tab') === 'watchlist'
+      ? 'watchlist' : 'watched',
     category: 'movies',
     impressions: [],
     seen: [],

@@ -8,7 +8,7 @@
   <title>Discover — Afterlogue</title>
 
   <link rel="stylesheet" href="style.css?v=29">
-  <link rel="stylesheet" href="discover-home.css?v=11">
+  <link rel="stylesheet" href="discover-home.css?v=12">
   <link rel="stylesheet" href="mobile-header.css?v=1">
 </head>
 
@@ -95,6 +95,24 @@
         <!-- The existing recommendation engine renders five personalized picks here. -->
       </div>
     </section>
+    <section class="watchlist-reminder" aria-labelledby="watchlist-reminder-title">
+      <p class="watchlist-reminder-eyebrow">AFTERLOGUE / A LITTLE REMINDER</p>
+      <h2 id="watchlist-reminder-title">A story already waiting.</h2>
+      <p class="watchlist-reminder-caption">A story you saved might be just what you're looking for.</p>
+      <button type="button" id="watchlist-reminder-toggle" class="watchlist-reminder-toggle"
+        aria-expanded="false" aria-controls="watchlist-reminder-content">
+        <span class="watchlist-reminder-symbol" aria-hidden="true">↗</span>
+        Something from your collection, perhaps?
+      </button>
+      <div id="watchlist-reminder-content" class="watchlist-reminder-content" hidden>
+        <p id="watchlist-reminder-status" class="watchlist-reminder-status" role="status" aria-live="polite"></p>
+        <div class="watchlist-reminder-grid" id="watchlist-reminder-grid" aria-label="Three stories from your Watchlist"></div>
+        <div class="watchlist-reminder-footer">
+          <button type="button" id="watchlist-reminder-next" class="watchlist-reminder-next" hidden>Another three ↻</button>
+          <a class="watchlist-reminder-all" href="my-log.html?tab=watchlist">View Watchlist ↗</a>
+        </div>
+      </div>
+    </section>
   </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
@@ -107,6 +125,7 @@
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
+<script src="home-watchlist-reminder.js?v=1" defer></script>
 <script>
   
 const isGuestMode =
