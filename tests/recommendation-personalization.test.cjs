@@ -325,3 +325,26 @@ test('Archive browsing and filters still use original source-based 60/70-title p
  assert.match(client,/collection:activeCollection,cursors:/);
  assert.match(client,/if\(activeCollection\)return;/);
 });
+
+test('All four featured collections offer distinct films with no cross-collection repetition',()=>{
+ const server=read('supabase/functions/afterlogue-catalog/index.ts');
+ const start=server.indexOf('const EDITORIAL_COLLECTIONS:Record<string,CollectionTitle[]>={');
+ const end=server.indexOf('\n};',start);
+ assert.ok(start>0&&end>start,'Curated selection source must exist');
+ const listings=server.slice(start,end);
+ const ids=['modern-classics','around-the-world','love-in-all-forms','animation-discoveries'];
+ const seen=new Map();
+ for(const id of ids){
+   const section=listings.match(new RegExp('"'+id+'":\\[([\\s\\S]*?)\\n \\]'));
+   assert.ok(section,id+' collection must exist');
+   const films=[...section[1].matchAll(/\\{title:"([^"]+)",year:(\\d+)\\}/g)];
+   assert.equal(films.length,12,id+' must contain 12 distinct film selections');
+   for(const film of films){
+     const normalized=film[1].normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g,'');
+     const key=normalized+':'+film[2];
+     assert.ok(!seen.has(key),film[1]+' repeats in '+seen.get(key)+' and '+id);
+     seen.set(key,id);
+   }
+ }
+ assert.equal(seen.size,48,'Four collections should introduce 48 distinct titles');
+});
