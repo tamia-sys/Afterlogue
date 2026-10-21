@@ -62,6 +62,66 @@ function eligible(v:Record<string,unknown>,media:Media,minVotes=35){
  if(media==="tv"&&genres.some(g=>[10763,10764,10767].includes(g)))return false;
  return true;
 }
+/* Independently reviewed sources for Discover's opening film lineup.
+ * LABEL IS NOT A PRODUCTION CLAIM: distribution or an official film catalog
+ * counts, including territory-specific film releases by Curzon, NEON, Focus.
+ * Sources: film.curzon.com/film-library/, a24films.com/films,
+ * neonrated.com/films/all, focusfeatures.com/films,
+ * blumhouse.com/catalogue, shop.laika.com/collections/all,
+ * m oma.org Tim Burton exhibition (Skellington), sonypictures.com/steamboy.
+ * Search matches are resolved to real, released TMDB films at request time.
+ * We do not infer a distribution credit from TMDB production_companies.
+ */
+type EditorialAnchor={title:string;year:number;label:string;relation:"produced"|"released"|"distributed"|"filmography"};
+const EDITORIAL_FILMS:EditorialAnchor[]=[
+ {title:"Parasite",year:2019,label:"Curzon Film",relation:"distributed"},
+ {title:"Past Lives",year:2023,label:"A24",relation:"released"},
+ {title:"Coraline",year:2009,label:"LAIKA",relation:"produced"},
+ {title:"Get Out",year:2017,label:"Blumhouse",relation:"produced"},
+ {title:"Portrait of a Lady on Fire",year:2019,label:"Curzon Film",relation:"distributed"},
+ {title:"The Holdovers",year:2023,label:"Focus Features",relation:"released"},
+ {title:"Anatomy of a Fall",year:2023,label:"NEON",relation:"distributed"},
+ {title:"Everything Everywhere All at Once",year:2022,label:"A24",relation:"released"},
+ {title:"Cold War",year:2018,label:"Curzon Film",relation:"distributed"},
+ {title:"Kubo and the Two Strings",year:2016,label:"LAIKA",relation:"produced"},
+ {title:"The Nightmare Before Christmas",year:1993,label:"Skellington Productions",relation:"produced"},
+ {title:"Perfect Days",year:2023,label:"NEON",relation:"distributed"},
+ {title:"Phantom Thread",year:2017,label:"Focus Features",relation:"released"},
+ {title:"The Farewell",year:2019,label:"A24",relation:"released"},
+ {title:"Steamboy",year:2004,label:"Triumph Films / Sony",relation:"distributed"},
+ {title:"The Worst Person in the World",year:2021,label:"NEON",relation:"distributed"},
+ {title:"The Square",year:2017,label:"Curzon Film",relation:"distributed"},
+ {title:"Whiplash",year:2014,label:"Blumhouse",relation:"filmography"},
+ {title:"Anora",year:2024,label:"NEON",relation:"distributed"},
+ {title:"45 Years",year:2015,label:"Curzon Film",relation:"distributed"},
+ {title:"ParaNorman",year:2012,label:"LAIKA",relation:"produced"},
+ {title:"Moonlight",year:2016,label:"A24",relation:"released"},
+ {title:"Atonement",year:2007,label:"Focus Features",relation:"released"},
+ {title:"Amour",year:2012,label:"Curzon Film",relation:"distributed"}
+];
+// A24's official television catalog and an editorial selection of acclaimed
+// independently produced/international television. TV networks and distributors
+// are NOT represented as original production credits in the UI.
+const EDITORIAL_TELEVISION:EditorialAnchor[]=[
+ {title:"Beef",year:2023,label:"A24 Television",relation:"filmography"},
+ {title:"Fleabag",year:2016,label:"BBC / Two Brothers",relation:"filmography"},
+ {title:"Pachinko",year:2022,label:"Apple TV+",relation:"filmography"},
+ {title:"My Brilliant Friend",year:2018,label:"Rai / HBO",relation:"filmography"},
+ {title:"Ramy",year:2019,label:"A24 Television",relation:"filmography"},
+ {title:"The Bear",year:2022,label:"FX",relation:"filmography"},
+ {title:"Normal People",year:2020,label:"BBC / Element Pictures",relation:"filmography"},
+ {title:"The Bureau",year:2015,label:"CANAL+",relation:"filmography"},
+ {title:"Euphoria",year:2019,label:"A24 Television",relation:"filmography"},
+ {title:"I May Destroy You",year:2020,label:"BBC / HBO",relation:"filmography"},
+ {title:"The Sympathizer",year:2024,label:"A24 Television",relation:"filmography"},
+ {title:"Severance",year:2022,label:"Apple TV+",relation:"filmography"},
+ {title:"Mo",year:2022,label:"A24 Television",relation:"filmography"},
+ {title:"The Curse",year:2023,label:"A24 Television",relation:"filmography"},
+ {title:"Dark",year:2017,label:"Wiedemann & Berg",relation:"filmography"},
+ {title:"The Returned",year:2012,label:"CANAL+",relation:"filmography"},
+ {title:"Detectorists",year:2014,label:"BBC",relation:"filmography"},
+ {title:"The Sympathizer",year:2024,label:"A24 Television",relation:"filmography"}
+];
 const hashSeed=(str:string)=>{
  let h=2166136261;
  for(const ch of str){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}
@@ -510,16 +570,40 @@ Deno.serve(async (req:Request) => {
           id:string;entries:Record<string,unknown>[];more:boolean
         }>=>r.status==="fulfilled").map(x=>x.value);
         if(lanesReady.length<5)throw Error("Diverse library temporarily unavailable");
-        // Interleave the lanes instead of grouping by country, decade or
-        // genre. Different streams may include the same TMDB ID, so dedupe.
+        // A studio-backed opening dozen is engaging, but not a wall of
+        // blockbusters. We verify release and the exact title/year at TMDB.
+        // Curzon is intentionally well represented as a UK distributor.
+        // The other 45+ slots still explore the broader film/TV landscape.
+        const allAnchors=media==="movie"?EDITORIAL_FILMS:EDITORIAL_TELEVISION;
+        const reviewed=page===1?allAnchors.slice(0,16)
+                     :page===2?allAnchors.slice(16,24):[];
+        const normalized=(title:unknown)=>String(title||"").normalize("NFKD")
+          .replace(/[\u0300-\u036f]/g,"").toLowerCase()
+          .replace(/[^a-z0-9]+/g," ").trim();
+        const anchorMatches=await Promise.allSettled(reviewed.map(async anchor=>{
+          const query=new URLSearchParams({
+            query:anchor.title,language:"en-US",page:"1",include_adult:"false"
+          });
+          const found=await tmdb("/search/"+media,query,token);
+          const movie=(found.results||[]).find((item:Record<string,unknown>)=>
+            normalized(media==="movie"?item.title:item.name)===normalized(anchor.title)
+            &&yearOf(media==="movie"?item.release_date:item.first_air_date)===anchor.year
+            &&eligible(item,media,30));
+          return movie||null;
+        }));
+        const editorial=anchorMatches
+          .filter((x):x is PromiseFulfilledResult<Record<string,unknown>|null>=>x.status==="fulfilled")
+          .map(x=>x.value).filter((x):x is Record<string,unknown>=>Boolean(x));
         const mixed:Record<string,unknown>[]=[],used=new Set<number>();
+        const append=(item:Record<string,unknown>|undefined)=>{
+          const id=Number(item?.id);
+          if(!item||!Number.isInteger(id)||used.has(id)||mixed.length>=60)return;
+          used.add(id);mixed.push(item);
+        };
+        editorial.forEach(append);
+        // Interleave the rest; never repeat an anchor that occurs in a lane.
         for(let i=0;i<20&&mixed.length<60;i++){
-          for(const lane of lanesReady){
-            const item=lane.entries[i],id=Number(item?.id);
-            if(!item||used.has(id))continue;
-            used.add(id);mixed.push(item);
-            if(mixed.length===60)break;
-          }
+          for(const lane of lanesReady)append(lane.entries[i]);
         }
         return response({
           page,items:mixed.map(v=>listItem(v,media)),selection:"discover",
