@@ -109,3 +109,36 @@ test('Winding down: gentle tone in a death-row drama does not erase its emotiona
    'A gentle prison guard confronts a supernatural inmate on death row before an execution.',[18,80,14]);
  assert.ok(fit('winding',green,[],'slow').score<5);
 });
+
+test('Fall: an academic literary drama qualifies without Halloween, ghosts, or horror',()=>{
+ const school=movie(207,'Dead Poets Society',
+   'At a boarding school a professor introduces students to poetry and literature.',[18]);
+ const score=fit('fall',school);
+ assert.ok(score.score>=5,JSON.stringify(score));
+ assert.match(score.reason,/academic|literary|back.to.school/i);
+});
+test('Fall: woodland, cozy town, and campus stories are not drowned out by generic horror',()=>{
+ const wooded=movie(10315,'Fantastic Mr. Fox',
+   'A family of foxes live in a forest and venture into the woods.',[16,10751]);
+ const campus=movie(207,'Dead Poets Society',
+   'A new school term begins as a teacher inspires his students to write poetry.',[18]);
+ const genericHorror=movie(123456,'A Horror Night',
+   'A ghost appears at a haunted house on Halloween night.',[27]);
+ const w=fit('fall',wooded),c=fit('fall',campus),h=fit('fall',genericHorror,['halloween']);
+ assert.ok(w.score>=5,JSON.stringify(w));
+ assert.ok(c.score>=5,JSON.stringify(c));
+ assert.ok(w.score>h.score,'Woodland fall story should beat a purely Halloween horror tag');
+ assert.ok(c.score>h.score,'Literary drama should beat a purely Halloween horror tag');
+});
+test('Fall: editorial atmosphere is explicitly identified, not invented by genre',()=>{
+ const film=movie(334541,'Manchester by the Sea','A man returns to the coastal town where he grew up.',[18]);
+ const analysis=moodExperience('fall',film,[],'slow',
+   'Its coastal New England setting and reflective tone suit a somber autumn watch.');
+ assert.ok(analysis.score>=5);
+ assert.match(analysis.reason,/New England|reflective/i);
+ const source=fs.readFileSync(path.join(__dirname,'../supabase/functions/afterlogue-catalog/index.ts'),'utf8');
+ for(const name of ['Twilight','Dead Poets Society',"You've Got Mail",'Manchester by the Sea','Fantastic Mr. Fox']){
+  assert.ok(source.includes(JSON.stringify(name)),name+' must be a reviewed reference');
+ }
+ assert.match(source,/if\(has\(27\)&&!editorialReason\)score-=4/);
+});
