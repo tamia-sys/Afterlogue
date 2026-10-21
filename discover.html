@@ -488,9 +488,9 @@ function displayDiscoveryRecommendations(category, page = 0) {
     const message = document.createElement("p");
     message.className = "discovery-empty";
     message.textContent =
-      "discoveryPreferences.country||discoveryPreferences.originalLanguage
+      discoveryPreferences.country || discoveryPreferences.originalLanguage
         ? "No verified stories match both your taste and the country/language you selected yet. You can change these filters in First Impressions."
-        : "Add a few Loved or Liked impressions to discover stories genuinely connected to your taste."";
+        : "Add a few Loved or Liked impressions to discover stories genuinely connected to your taste.";
 
     container.appendChild(message);
     return;
