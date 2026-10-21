@@ -58,3 +58,36 @@ test('Both rotating First Impressions cards and search cards use on-poster ratin
   assert.match(code,/impressions-more-check/);
   assert.doesNotMatch(code,/card\.append\(picture,name,year,buttons\)/);
 });
+
+test('First five never reserve two slots for the original editorial catalog', () => {
+  const html=read('discover.html');
+  assert.doesNotMatch(html,/expanded\.slice\(0,3\),\.\.\.editorial\.slice\(0,2\)/);
+  assert.match(html,/entry\.matched\.some\(match=>/);
+  assert.match(html,/entry\.personalized\|\|entry\.score<=0/);
+  assert.match(html,/selected\.filter\(meaningful\)/);
+});
+
+test('Explicit production country and original language are saved with member onboarding', () => {
+  const sync=read('onboarding-sync.js');
+  assert.match(sync,/discovery_country/);
+  assert.match(sync,/discovery_language/);
+  assert.match(sync,/sessionStorage\.getItem\(countryKey\)/);
+  const discovery=read('discover.html');
+  assert.match(discovery,/select\("discovery_country,discovery_language"\)/);
+  assert.match(discovery,/country:discoveryPreferences\.country\|\|""/);
+  assert.match(discovery,/originalLanguage:discoveryPreferences\.originalLanguage\|\|""/);
+});
+
+test('Server verifies BOTH filters on production details, not merely search summaries', () => {
+  const source=read('supabase/functions/afterlogue-catalog/index.ts');
+  const recommend=source.split('if(mode==="recommend"){')[1].split('if(mode==="detail"){')[0];
+  assert.match(recommend,/details\.production_countries/);
+  assert.match(recommend,/details\.original_language/);
+  assert.match(recommend,/if\(country&&!countries\.includes\(country\)\)continue/);
+  assert.match(recommend,/if\(originalLanguage&&language!==originalLanguage\)continue/);
+  assert.match(recommend,/filterVerified:true/);
+  const home=read('discover.html');
+  assert.match(home,/if\(scoped\)\{/);
+  assert.match(home,/if\(!entry\.filterVerified\)return false/);
+  assert.match(home,/if\(scoped\)return false/);
+});
