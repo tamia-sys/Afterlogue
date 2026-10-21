@@ -12,24 +12,80 @@ const result=section.querySelector('#impressions-search-grid'),status=section.qu
 const endpoint='https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog';
 let serial=0,timer;
 const keyFor=item=>'tmdb-'+item.media+'-'+item.id;
+/* Shared poster interaction for the rotating 24 titles and search results.
+   The controls stay ON the poster; choosing a rating reveals a centered check. */
 function makeCard(item){
- const key=keyFor(item),card=document.createElement('article');card.className='impressions-more-card';
- const img=document.createElement('img');img.loading='lazy';img.alt=item.title+' poster';img.src=item.poster||'';
- const title=document.createElement('p');title.className='impressions-more-title';title.textContent=item.title+' ('+(item.year||'—')+')';
- const buttons=document.createElement('div');buttons.className='impressions-more-ratings';
- const current=localStorage.getItem('afterlogue-'+key);
- for(const rating of ['Loved','Liked','Okay','Not for me']){
-  const b=document.createElement('button');b.type='button';b.textContent=rating;
-  b.setAttribute('aria-pressed',String(current===rating));
-  b.addEventListener('click',()=>{
-    localStorage.setItem('afterlogue-'+key,rating);
-    localStorage.setItem('afterlogue.onboarding.tmdb.'+key,JSON.stringify({key,title:item.title,year:item.year,poster:item.poster,category:item.media==='tv'?'tv':'movies'}));
-    buttons.querySelectorAll('button').forEach(button=>button.setAttribute('aria-pressed',String(button===b)));
-    status.textContent='Saved your impression of '+item.title+'.';
-  });
-  buttons.append(b);
+ const key=keyFor(item);
+ const card=document.createElement('article');
+ card.className='impressions-more-card';
+ card.dataset.tmdbKey=key;
+ const poster=document.createElement('div');
+ poster.className='impressions-more-poster';
+ poster.tabIndex=0;
+ poster.setAttribute('role','group');
+ const picture=document.createElement('img');
+ picture.loading='lazy';
+ picture.alt=item.title+' poster';
+ picture.src=item.poster||'';
+ const overlay=document.createElement('div');
+ overlay.className='impressions-more-rating-overlay';
+ const heading=document.createElement('p');
+ heading.textContent='YOUR IMPRESSION';
+ overlay.append(heading);
+ const buttons=[];
+ const check=document.createElement('span');
+ check.className='impressions-more-check';
+ check.setAttribute('aria-hidden','true');
+ check.innerHTML='<svg viewBox="0 0 48 48"><path d="M9 25 L20 35 L40 12" fill="none" stroke="#F4EADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ const choice=document.createElement('span');
+ choice.className='impressions-more-choice';
+ function showRating(rating){
+   poster.classList.toggle('is-rated',Boolean(rating));
+   poster.classList.remove('is-open');
+   poster.setAttribute('aria-expanded','false');
+   poster.setAttribute('aria-label',item.title+(rating?': '+rating+'. Activate to change your impression.':'. Activate to choose your impression.'));
+   check.hidden=!rating;
+   choice.hidden=!rating;
+   choice.textContent=rating||'';
+   buttons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.rating===rating)));
  }
- card.append(img,title,buttons);
+ for(const rating of ['Loved','Liked','Okay','Not for me']){
+   const button=document.createElement('button');
+   button.type='button';
+   button.dataset.rating=rating;
+   button.textContent=rating;
+   button.addEventListener('click',event=>{
+     event.stopPropagation();
+     localStorage.setItem('afterlogue-'+key,rating);
+     localStorage.setItem('afterlogue.onboarding.tmdb.'+key,JSON.stringify({
+       key,title:item.title,year:item.year,poster:item.poster,
+       category:item.media==='tv'?'tv':'movies'
+     }));
+     showRating(rating);
+     if(status && card.closest('#impressions-search-grid'))status.textContent='Saved your impression of '+item.title+'.';
+   });
+   buttons.push(button);
+   overlay.append(button);
+ }
+ function toggleChoices(){
+   const isOpen=poster.classList.toggle('is-open');
+   poster.setAttribute('aria-expanded',String(isOpen));
+ }
+ poster.addEventListener('click',event=>{
+   if(event.target.closest('button'))return;
+   toggleChoices();
+ });
+ poster.addEventListener('keydown',event=>{
+   if(event.target!==poster)return;
+   if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleChoices();}
+ });
+ poster.append(picture,overlay,check,choice);
+ const name=document.createElement('h4');
+ name.textContent=item.title;
+ const year=document.createElement('p');
+ year.textContent=item.year?String(item.year):'';
+ card.append(poster,name,year);
+ showRating(localStorage.getItem('afterlogue-'+key));
  return card;
 }
 async function search(){
@@ -68,7 +124,7 @@ async function populate(media,sectionId,requestId){
  const parent=document.querySelector(sectionId);
  if(!parent)return;
  const grid=parent.querySelector('.log-film-grid');
- if(grid&&requestId===sequence)grid.replaceChildren();
+ // Keep the curated fallback visible until the wider selection successfully loads.
  const heading=parent.querySelector('.log-section-heading span');
  if(!grid)return;
  try{
@@ -80,28 +136,7 @@ async function populate(media,sectionId,requestId){
   const items=(payload.items||[]).filter(item=>item.poster).slice(0,12);
   if(!items.length){grid.replaceChildren();if(heading)heading.textContent='0 TITLES';statusLine.textContent='No popular released titles matched this combination. Try another country or language.';return;}
   statusLine.textContent='Choose any titles you recognize. Your impressions stay saved when you change the selection.';
-  const cards=items.map(item=>{
-   const key=keyFor(item),card=document.createElement('article');card.className='impressions-more-card';
-   card.dataset.tmdbKey=key;
-   const picture=document.createElement('img');picture.loading='lazy';picture.alt=item.title+' poster';picture.src=item.poster;
-   const name=document.createElement('h4');name.textContent=item.title;
-   const year=document.createElement('p');year.textContent=String(item.year||'');
-   const buttons=document.createElement('div');buttons.className='impressions-more-ratings';
-   for(const rating of ['Loved','Liked','Okay','Not for me']){
-    const button=document.createElement('button');button.type='button';button.textContent=rating;
-    button.setAttribute('aria-pressed',String(localStorage.getItem('afterlogue-'+key)===rating));
-    button.addEventListener('click',()=>{
-     localStorage.setItem('afterlogue-'+key,rating);
-     localStorage.setItem('afterlogue.onboarding.tmdb.'+key,JSON.stringify({
-      key,title:item.title,year:item.year,poster:item.poster,category:media==='tv'?'tv':'movies'
-     }));
-     buttons.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
-    });
-    buttons.append(button);
-   }
-   card.append(picture,name,year,buttons);
-   return card;
-  });
+  const cards=items.map(makeCard);
   grid.replaceChildren(...cards);
   if(heading)heading.textContent=items.length+' TITLES · SELECTED FOR THIS VISIT';
  }catch(error){
