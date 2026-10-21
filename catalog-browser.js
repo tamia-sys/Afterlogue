@@ -83,6 +83,30 @@ async function request(body){
  if(!res.ok)throw Error(json.message||"Expanded catalog is not configured yet.");
  return json;
 }
+let catalogMember=null,catalogWatchlist=new Set(),catalogAccountJob=null;
+async function catalogAccount(){
+ if(catalogAccountJob)return catalogAccountJob;
+ catalogAccountJob=(async()=>{
+  const client=window.afterlogueSupabase;
+  if(!client)return null;
+  const {data,error}=await client.auth.getUser();
+  if(error||!data?.user)return null;
+  catalogMember=data.user;
+  const rows=await client.from("watchlist").select("title_key").eq("user_id",catalogMember.id);
+  if(!rows.error)catalogWatchlist=new Set((rows.data||[]).map(x=>x.title_key));
+  document.querySelectorAll(".catalog-save").forEach(button=>{
+   showCatalogSaved(button,catalogWatchlist.has(button.dataset.watchKey));
+  });
+  return catalogMember;
+ })().catch(error=>{console.warn("Watchlist loading",error);return null});
+ return catalogAccountJob;
+}
+function showCatalogSaved(button,saved){
+ button.setAttribute("aria-pressed",String(saved));
+ button.setAttribute("aria-label",saved?"Saved to Watchlist":"Save "+button.dataset.watchTitle+" to Watchlist");
+ button.title=saved?"In your Watchlist":"Save to Watchlist";
+ button.textContent=saved?"✓ Saved":"+ Save";
+}
 function clear(){ $("catalog-grid").replaceChildren(); }
 function render(list){
  clear();
@@ -97,7 +121,42 @@ function render(list){
   frame.append(img);a.append(frame,name,sub);
   const tile=document.createElement("div");tile.className="catalog-tile-wrap";
   const eye=window.AfterlogueSeen?.button({key:"tmdb-"+title.media+"-"+title.id,title:title.title,year:title.year,poster:title.poster,category:title.media==="tv"?"tv":"movies"});
-  tile.append(a);if(eye)tile.append(eye);$("catalog-grid").append(tile);
+  const watchKey="tmdb-"+title.media+"-"+title.id;
+  const save=document.createElement("button");
+  save.type="button";save.className="catalog-save";
+  save.dataset.watchKey=watchKey;save.dataset.watchTitle=title.title;
+  showCatalogSaved(save,catalogWatchlist.has(watchKey));
+  save.addEventListener("click",async()=>{
+   if(save.disabled)return;
+   save.disabled=true;
+   try{
+    const member=await catalogAccount();
+    if(!member){location.assign("signup.html?mode=signin");return;}
+    if(catalogWatchlist.has(watchKey)){showCatalogSaved(save,true);return;}
+    const client=window.afterlogueSupabase;
+    const metadata=window.AfterlogueCatalogMetadata;
+    if(metadata?.save)await metadata.save(client,member.id,{
+      key:watchKey,title:title.title,year:title.year,poster:title.poster,
+      category:title.media==="tv"?"tv":"movies"
+    });
+    const {error}=await client.from("watchlist").insert({
+      user_id:member.id,title_key:watchKey,category:title.media==="tv"?"tv":"movies"
+    });
+    if(error&&error.code!=="23505")throw error;
+    catalogWatchlist.add(watchKey);
+    document.querySelectorAll(".catalog-save").forEach(button=>{
+     if(button.dataset.watchKey===watchKey)showCatalogSaved(button,true);
+    });
+   }catch(error){
+    console.warn("Could not save catalog title",error);
+    $("catalog-message").textContent="Couldn't save that title. Please try again.";
+   }finally{save.disabled=false;}
+  });
+  const actions=document.createElement("div");
+  actions.className="catalog-tile-actions";
+  if(eye)actions.append(eye);
+  actions.append(save);
+  tile.append(a,actions);$("catalog-grid").append(tile);
  }
 }
 async function load(){
@@ -115,6 +174,7 @@ async function load(){
     const result=await request({mode:"collection",collection:activeCollection});
     if(id!==serial)return;
     render(result.items||[]);
+  catalogAccount();
     const count=(result.items||[]).length;
     $("catalog-message").textContent=count+" "+(count===1?"film":"films")+" · Curated by Afterlogue";
     $("catalog-pagination").hidden=true;
@@ -143,6 +203,7 @@ async function load(){
     else pageCursors.delete(page+1);
   }
   render(result.items||[]);
+  catalogAccount();
   const totalShown=(result.items||[]).length;
   $("catalog-message").textContent=totalShown+" "+(totalShown===1?"story":"stories")+" · Page "+page;
   $("catalog-prev").disabled=page<=1;$("catalog-next").disabled=!hasNext;
