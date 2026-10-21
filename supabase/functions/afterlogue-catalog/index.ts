@@ -508,7 +508,8 @@ Deno.serve(async (req:Request) => {
                   }))
                 :[];
               for(let j=0;j<chunk.length;j++){
-                if(country&&media==="movie"&&!(verified[j]?.status==="fulfilled"&&verified[j].value))continue;
+                const proof=verified[j];
+                if(country&&media==="movie"&&(proof?.status!=="fulfilled"||!proof.value))continue;
                 const {item,index}=chunk[j];
                 if(found.length===limit){
                   nextCursor=current+":" +index;break browse; // 71st match starts page two.
