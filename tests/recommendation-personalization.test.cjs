@@ -338,7 +338,7 @@ test('All four featured collections offer distinct films with no cross-collectio
    const section=listings.match(new RegExp('"'+id+'":\\[([\\s\\S]*?)\\n \\]'));
    assert.ok(section,id+' collection must exist');
    const films=[...section[1].matchAll(/\{title:"([^"]+)",year:(\d+)\}/g)];
-   assert.equal(films.length,12,id+' must contain 12 distinct film selections');
+   assert.equal(films.length,18,id+' must contain 18 distinct curated candidates');
    for(const film of films){
      const normalized=film[1].normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g,'');
      const key=normalized+':'+film[2];
