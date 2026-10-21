@@ -1,7 +1,10 @@
 
 /* AFTERLOGUE — SAVE FIRST IMPRESSIONS */
 
-window.saveFirstImpressions = async function (client) {
+window.saveFirstImpressions = async function (client, options = {}) {
+  // Guest drafts may cross tabs while verifying an email; signed-in editing
+  // drafts are session-only. Caller explicitly opts into guest import.
+  const ratingStore = options.importGuest === true ? localStorage : sessionStorage;
 
   // Identify the signed-in account.
   const { data, error: userError } = await client.auth.getUser();
@@ -28,12 +31,12 @@ window.saveFirstImpressions = async function (client) {
   const impressions = [];
 
   // Collect the impressions stored on this device.
-  for (let i = 0; i < sessionStorage.length; i++) {
-    const key = sessionStorage.key(i);
+  for (let i = 0; i < ratingStore.length; i++) {
+    const key = ratingStore.key(i);
 
     if (!key || !key.startsWith("afterlogue-")) continue;
 
-    const rating = sessionStorage.getItem(key);
+    const rating = ratingStore.getItem(key);
 
     if (!validRatings.includes(rating)) continue;
 
@@ -58,13 +61,13 @@ window.saveFirstImpressions = async function (client) {
 
  // Sync extra TMDB titles along with ratings, preserving poster and year.
  const tmdbRows=[];
- for(let i=0;i<sessionStorage.length;i++){
-  const k=sessionStorage.key(i);
+ for(let i=0;i<ratingStore.length;i++){
+  const k=ratingStore.key(i);
   if(!k?.startsWith('afterlogue.onboarding.tmdb.'))continue;
   try{
-   const item=JSON.parse(sessionStorage.getItem(k)||'null');
+   const item=JSON.parse(ratingStore.getItem(k)||'null');
    if(!item || !/^tmdb-(movie|tv)-[1-9][0-9]{0,9}$/.test(item.key))continue;
-   if(!validRatings.includes(sessionStorage.getItem('afterlogue-'+item.key)))continue;
+   if(!validRatings.includes(ratingStore.getItem('afterlogue-'+item.key)))continue;
    const title=String(item.title||'').trim().slice(0,250);
    if(!title)continue;
    const yr=Number(item.year);
@@ -124,5 +127,6 @@ window.saveFirstImpressions = async function (client) {
    }
   }
  }catch(error){console.warn("Afterlogue: legacy rating cleanup unavailable",error);}
+ try{localStorage.removeItem("afterlogue.guest.impressions.pending.v1");}catch(_){}
  return profile?.onboarding_completed?"impressions-refreshed":"onboarding-completed";
 };
