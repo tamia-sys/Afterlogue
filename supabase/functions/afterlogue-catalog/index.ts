@@ -447,6 +447,93 @@ Deno.serve(async (req:Request) => {
         params.set("vote_count.gte","10");
         params.set(media==="movie"?"primary_release_date.lte":"first_air_date.lte",params.get(media==="movie"?"primary_release_date.lte":"first_air_date.lte")||new Date().toISOString().slice(0,10));
       }
+
+      // On filtered pages, the viewer's 70 slots count *matching films*,
+      // not 70 unfiltered candidates from TMDB. A stateless cursor tracks
+      // the exact source position and prevents duplicates or skipped titles.
+      // No fabricated count of 100 post-filter pages.
+      if(Number(input.pageSize)===70){
+        if(mode==="discover"&&country)params.set("with_origin_country",country);
+        const rawCursor=typeof input.cursor==="string"?input.cursor:"";
+        if(rawCursor&&!/^[1-9][0-9]{0,2}:(?:[0-9]|1[0-9])$/.test(rawCursor)){
+          return response({error:"Invalid catalog cursor"},400);
+        }
+        let sourcePage=rawCursor?Number(rawCursor.split(":")[0]):1;
+        let sourceOffset=rawCursor?Number(rawCursor.split(":")[1]):0;
+        const limit=70,found:Record<string,unknown>[]=[];
+        let nextCursor:string|null=null,scanned=0,ended=false;
+        const matches=(v:Record<string,unknown>)=>{
+          if(v.adult||!v.poster_path||!v.overview)return false;
+          if(originalLanguage&&v.original_language!==originalLanguage)return false;
+          if(requestedGenre&&!(Array.isArray(v.genre_ids)&&v.genre_ids.includes(requestedGenre)))return false;
+          if(hasDecade){
+            const date=String(media==="movie"?v.release_date:v.first_air_date||"");
+            const year=yearOf(date);
+            if(!year||Math.floor(year/10)*10!==requestedDecade)return false;
+          }
+          if(country&&media==="tv"&&(!Array.isArray(v.origin_country)||!v.origin_country.includes(country)))return false;
+          return true;
+        };
+        // Up to twelve source pages per request to bound latency/rate limits.
+        // With source-level genre + origin + language filtering, most
+        // selections fill before this cap.
+        browse: while(sourcePage<=500&&scanned<12){
+          const pages=Array.from({length:Math.min(4,12-scanned)},(_,index)=>sourcePage+index);
+          const retrieved=await Promise.allSettled(pages.map(async number=>{
+            const p=new URLSearchParams(params);
+            p.set("page",String(number));
+            return tmdb(endpoint,p,token);
+          }));
+          let available=false;
+          for(let batch=0;batch<retrieved.length;batch++){
+            const part=retrieved[batch];
+            const current=pages[batch];
+            if(part.status!=="fulfilled")continue;
+            const body=part.value;
+            const total=Number(body.total_pages)||0;
+            if(current>total||!(body.results||[]).length){ended=true;break browse;}
+            available=true;
+            const indexed=(body.results||[])
+              .map((item:Record<string,unknown>,index:number)=>({item,index}))
+              .slice(current===sourcePage?sourceOffset:0)
+              .filter(({item}:{item:Record<string,unknown>})=>matches(item));
+            // Verify production-country semantics; origin is applied at TMDB
+            // before this finer verification so few candidates are discarded.
+            for(let k=0;k<indexed.length;k+=12){
+              const chunk=indexed.slice(k,k+12);
+              const verified=country&&media==="movie"
+                ?await Promise.allSettled(chunk.map(async ({item}:{item:Record<string,unknown>})=>{
+                    const details=await tmdb("/movie/"+Number(item.id),new URLSearchParams({language:"en-US"}),token);
+                    return (details.production_countries||[]).some((c:Record<string,unknown>)=>c.iso_3166_1===country);
+                  }))
+                :[];
+              for(let j=0;j<chunk.length;j++){
+                if(country&&media==="movie"&&!(verified[j]?.status==="fulfilled"&&verified[j].value))continue;
+                const {item,index}=chunk[j];
+                if(found.length===limit){
+                  nextCursor=current+":" +index;break browse; // 71st match starts page two.
+                }
+                found.push(item);
+              }
+            }
+            if(current>=total){ended=true;break browse;}
+          }
+          scanned+=pages.length;
+          sourcePage=pages[pages.length-1]+1;
+          sourceOffset=0;
+          if(!available){ended=true;break;}
+        }
+        // If a very restrictive combination couldn't finish within the
+        // request budget, allow the user to continue scanning without lying
+        // about the number of results or claiming the catalog is exhausted.
+        if(!ended&&!nextCursor&&scanned>=12)nextCursor=sourcePage+":0";
+        return response({
+          page,items:found.map(v=>listItem(v,media)),
+          totalPages:null,totalResults:null,
+          nextCursor,hasMore:Boolean(nextCursor),
+          limitedScan:Boolean(nextCursor&&found.length<limit)
+        });
+      }
       // TMDB returns 20 records per page. Translate Afterlogue's 60/70
       // item pages into overlapping API pages with exact absolute offsets.
       // This avoids silently skipping 10-30 titles at each page boundary.
