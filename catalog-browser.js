@@ -61,10 +61,11 @@ async function load(){
  const isSearch=term.trim().length>=2;
  $("catalog-message").textContent="Finding stories…";
  try{
-  const result=await request({mode:isSearch?"search":"discover",query:term.trim(),media,page,genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
+  const result=await request({mode:isSearch?"search":"discover",query:term.trim(),media,page,pageSize:60,genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
   if(id!==serial)return;
   pages=result.totalPages||1;render(result.items||[]);
-  $("catalog-message").textContent=(typeof result.totalResults==="number"?result.totalResults.toLocaleString()+" titles":"Matching titles")+" · Page "+page+" of "+pages;
+  const totalShown=(result.items||[]).length;
+  $("catalog-message").textContent=totalShown+" "+(totalShown===1?"story":"stories")+" · Page "+page+" of "+pages;
   $("catalog-prev").disabled=page<=1;$("catalog-next").disabled=page>=pages;
   $("catalog-pagination").hidden=pages<=1;
  }catch(error){
@@ -72,16 +73,13 @@ async function load(){
   clear();
   $("catalog-message").textContent=error.message||"Expanded catalog currently unavailable.";
   $("catalog-pagination").hidden=true;
-  if(!configured)$("catalog-message").textContent="The full library is not available yet. Our featured films are still ready to explore.";
+  if(!configured)$("catalog-message").textContent="The film library is temporarily unavailable. Please try again.";
  }
 }
 async function openLibrary(){
-  const ready=await readiness();
-  configured=ready;
-  if(!ready){
-    document.getElementById("explore-all-films-open")?.click();
-    return;
-  }
+  // Show the same combined catalog for everybody. No separate "featured"
+  // fallback or extra readiness network trip before posters can load.
+  configured=true;
   panel.hidden=false;document.body.classList.remove("explore-gallery-mode");
   if(location.hash!=="#all-films")history.replaceState(null,"",location.pathname+location.search+"#all-films");
   $("explore-gallery-wrap").hidden=true;$("explore-experience").hidden=true;
@@ -102,10 +100,13 @@ input.addEventListener("input",()=>{
   page=1;
   rememberState();
   serial++;
-  clear();
+  if(term.trim().length===1){
+    $("catalog-message").textContent="Keep typing to search…";
+    return; // One character must not clear the catalog grid.
+  }
   $("catalog-message").textContent=term.trim().length>=2?"Searching for “"+term.trim()+"”…":"Finding stories…";
   $("catalog-pagination").hidden=true;
-  timer=setTimeout(load,350);
+  timer=setTimeout(load,260);
 });
 [genreBox,countryBox,languageBox,decadeBox,sortBox].forEach(el=>el.addEventListener("change",()=>{genre=genreBox.value;country=countryBox.value;language=languageBox.value;decade=decadeBox.value;sort=sortBox.value;page=1;load();}));
 $("catalog-prev").addEventListener("click",()=>{if(page>1){page--;load();}});
