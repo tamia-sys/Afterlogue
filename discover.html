@@ -103,7 +103,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=4"></script>
+<script src="recommendation-engine.js?v=5"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -420,6 +420,9 @@ tv: [
 let discoveryFavorites=[];
 let discoveryExpandedEntries=[];
 let discoverySourceEntries=[];
+// Explicit onboarding preferences are HARD eligibility filters, not score
+// bonuses. Country means production origin, language means original language.
+const discoveryPreferences={country:null,originalLanguage:null};
 const discoveryFeaturedKeys=new Set(Object.keys(window.AfterlogueFeaturedCatalog||{}));
 let discoveryWatchlist=[];
 let discoverySeen=[];
@@ -431,28 +434,50 @@ const discoveryEntries=window.AfterlogueRecommendationEngine?.normalizeEntries(
   window.AfterlogueFilmBasics||{}
 )||[];
 function getDiscoveryRecommendations(category, page = 0) {
-  if (!window.AfterlogueRecommendationEngine) return discoveryLibrary[category].slice(page*5,page*5+5);
+  if(!window.AfterlogueRecommendationEngine)return [];
+  // No one gets curated filler just to make a row contain five titles.
+  const hasPositive=Object.values(savedImpressions).some(v=>v==="Loved"||v==="Liked")
+    ||discoveryFavorites.length>0;
+  if(!hasPositive)return [];
   const selected=window.AfterlogueRecommendationEngine.rank({
-    entries:[...discoveryEntries,...discoverySourceEntries,...discoveryExpandedEntries],category,impressions:savedImpressions,
+    entries:[...discoveryEntries,...discoverySourceEntries,...discoveryExpandedEntries],
+    category,impressions:savedImpressions,
     favorites:discoveryFavorites,watchlist:discoveryWatchlist,seen:discoverySeen
   });
-  // When a viewer has rated stories, give genuine expanded matches room
-  // alongside the editorial catalog, instead of letting its small pool dominate.
-  const expanded=selected.filter(x=>x.tmdb&&x.directMatches?.length&&x.score>0);
-  const editorial=selected.filter(x=>!x.tmdb);
-  const diversified=expanded.length&&Object.values(savedImpressions).some(v=>v==="Loved"||v==="Liked")
-    ? [...expanded.slice(0,3),...editorial.slice(0,2),...expanded.slice(3),...editorial.slice(2)]
-    : selected;
-  const unique=[...new Map(diversified.map(x=>[x.key,x])).values()];
+  const scoped=Boolean(discoveryPreferences.country||discoveryPreferences.originalLanguage);
+  const meaningful=(entry)=>{
+    if(!entry.personalized||entry.score<=0||!entry.matched?.length)return false;
+    if(entry.tmdb){
+      // These are recommendations linked to at least one genuinely liked
+      // source title; if scoped, the backend verified BOTH selected filters.
+      if(!entry.directMatches?.length)return false;
+      if(scoped){
+        if(!entry.filterVerified)return false;
+        if(discoveryPreferences.country&&!entry.countries?.includes(discoveryPreferences.country))return false;
+        if(discoveryPreferences.originalLanguage!==null&&entry.originalLanguage!==discoveryPreferences.originalLanguage)return false;
+      }
+      return true;
+    }
+    // Legacy curated entries can still earn a place, but only when the
+    // member's positive feedback supports a substantial thematic/tonal
+    // connection. There is no reserved editorial quota.
+    if(scoped)return false; // Original curated entries lack verified origin metadata.
+    return entry.matched.some(match=>{
+      if(match.signal.weight<1.5)return false;
+      const similarity=match.similarity;
+      const themes=similarity.sharedThemes||[];
+      const tones=similarity.sharedTones||[];
+      const specific=themes.filter(v=>!["identity","family","control","belonging","survival","love","friendship","loss"].includes(v));
+      return (specific.length>=1&&tones.length>=1)
+        ||(themes.length>=2&&tones.length>=1)
+        ||(specific.length>=2);
+    });
+  };
+  const unique=[...new Map(selected.filter(meaningful).map(item=>[item.key,item])).values()];
   return unique.slice(page*5,page*5+5).map(item=>({
-    ...item,
-    reason:item.why,
-    // Keep canonical IDs, particularly for titles whose display names contain punctuation.
-    catalogKey:item.key,
-    tmdb:item.tmdb||null
+    ...item,reason:item.why,catalogKey:item.key,tmdb:item.tmdb||null
   }));
 }
-
 function displayDiscoveryRecommendations(category, page = 0) {
   const container = document.getElementById("discovery-results");
   const selected = getDiscoveryRecommendations(category, page);
@@ -463,7 +488,9 @@ function displayDiscoveryRecommendations(category, page = 0) {
     const message = document.createElement("p");
     message.className = "discovery-empty";
     message.textContent =
-      "Share a few more impressions in your Log to discover stories selected for you.";
+      "discoveryPreferences.country||discoveryPreferences.originalLanguage
+        ? "No verified stories match both your taste and the country/language you selected yet. You can change these filters in First Impressions."
+        : "Add a few Loved or Liked impressions to discover stories genuinely connected to your taste."";
 
     container.appendChild(message);
     return;
@@ -719,7 +746,7 @@ async function populateExpandedRecommendations(userId){
  let dynamic=[];
  if(userId){
   const response=await client.from("user_catalog_titles")
-    .select("title_key,title,category").eq("user_id",userId);
+    .select("title_key,title,year,poster,category").eq("user_id",userId);
   if(!response.error)dynamic=response.data||[];
  }else{
   // Guest onboarding selections are stored only in this browser.
@@ -760,13 +787,20 @@ async function populateExpandedRecommendations(userId){
   try{
    const media=category==="tv"?"tv":"movie";
    const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({mode:"recommend",media,titles})});
+    body:JSON.stringify({
+      mode:"recommend",media,titles,
+      country:discoveryPreferences.country||"",
+      originalLanguage:discoveryPreferences.originalLanguage||""
+    })});
    if(!response.ok)return [];
    const data=await response.json();
    return (data.items||[]).filter(x=>x.poster&&x.synopsis&&x.matched?.length).map((x,index)=>{
     const key="tmdb-"+x.media+"-"+x.id;
     return {key,title:x.title,year:x.year,poster:x.poster,category,
      position:400+index,tmdb:{id:x.id,media:x.media},
+     filterVerified:x.filterVerified===true,
+     countries:Array.isArray(x.countries)?x.countries:[],
+     originalLanguage:x.originalLanguage||null,
      reason:"Related to "+x.matched.join(", ")+".",
      synopsis:x.synopsis,
      directMatches:x.matched.map(name=>name.toLowerCase().normalize("NFKD")
@@ -783,6 +817,9 @@ async function populateExpandedRecommendations(userId){
 async function loadAccountImpressions() {
   try {
     if (isGuestMode) {
+      // Guest First Impressions only persist for this browser tab.
+      discoveryPreferences.country=sessionStorage.getItem("afterlogue.onboarding.country")||null;
+      discoveryPreferences.originalLanguage=sessionStorage.getItem("afterlogue.onboarding.language")||null;
       document.querySelector(".discover-eyebrow").textContent =
         "AFTERLOGUE / FIRST DISCOVERIES";
 
@@ -822,11 +859,17 @@ async function loadAccountImpressions() {
       .select("title_key, rating")
       .eq("user_id", userData.user.id);
     // Favorites give a modest positive signal; watchlist items aren't re-recommended.
-    const [favoriteResult,watchlistResult,seenResult]=await Promise.all([
+    const [favoriteResult,watchlistResult,seenResult,preferenceResult]=await Promise.all([
       client.from("log_entries").select("title_key").eq("user_id",userData.user.id).eq("is_favorite",true),
       client.from("watchlist").select("title_key").eq("user_id",userData.user.id),
-      client.from("seen_entries").select("title_key").eq("user_id",userData.user.id)
+      client.from("seen_entries").select("title_key").eq("user_id",userData.user.id),
+      client.from("profiles").select("discovery_country,discovery_language").eq("user_id",userData.user.id).maybeSingle()
     ]);
+    // If filters cannot be read, never serve unfiltered titles as if they met
+    // the user's preferences.
+    if(preferenceResult.error)throw preferenceResult.error;
+    discoveryPreferences.country=preferenceResult.data?.discovery_country||null;
+    discoveryPreferences.originalLanguage=preferenceResult.data?.discovery_language||null;
     if(favoriteResult.error)console.warn("Recommendation favorites unavailable",favoriteResult.error);
     if(watchlistResult.error)console.warn("Recommendation watchlist unavailable",watchlistResult.error);
     discoveryFavorites=favoriteResult.data||[];
