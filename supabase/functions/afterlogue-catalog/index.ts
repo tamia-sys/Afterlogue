@@ -858,32 +858,90 @@ Deno.serve(async (req:Request) => {
     // Cross-title recommendations, anchored exclusively in titles the viewer liked.
     // Inputs are titles, not private account data or raw credentials.
     if(mode==="recommend"){
-      const terms=Array.isArray(input.titles)?input.titles.slice(0,4)
-        .filter((v:unknown)=>typeof v==="string"&&v.trim().length>=2&&v.length<=110):[];
-      if(!terms.length)return response({items:[]});
+      // Country means VERIFIED production origin (not release country);
+      // language means ORIGINAL language (not subtitle/translation language).
+      const allowedCountries=new Set(["US","GB","CA","AU","FR","DE","IT","ES","MX","BR","AR","CO","IN","JP","KR","CN","TW","TH","PH","ID","NG","ZA","TR","SE","NO","DK","NL","PL","EG","NZ"]);
+      const allowedLanguages=new Set(["en","es","fr","de","it","pt","hi","ta","te","bn","ja","ko","zh","th","tl","id","tr","ar","ru","nl","sv","no","da","pl","vi","ml"]);
+      const country=typeof input.country==="string"&&allowedCountries.has(input.country)?input.country:"";
+      const originalLanguage=typeof input.originalLanguage==="string"&&allowedLanguages.has(input.originalLanguage)?input.originalLanguage:"";
+      const scoped=Boolean(country||originalLanguage);
+      const terms=Array.isArray(input.titles)?[...new Set(input.titles.slice(0,4)
+        .filter((v:unknown)=>typeof v==="string"&&v.trim().length>=2&&v.length<=110)
+        .map((v:string)=>v.trim()))]:[];
+      if(!terms.length)return response({items:[],filters:{country,originalLanguage}});
       const all=new Map<number,{item:ReturnType<typeof listItem>,votes:number,matched:string[]}>();
-      for(const rawTitle of terms){
-        const term=String(rawTitle).trim();
-        const searchParams=new URLSearchParams({query:term,language:"en-US",page:"1",include_adult:"false"});
-        const searchData=await tmdb("/search/"+media,searchParams,token);
-        const norm=(x:string)=>x.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+      const normalizeTitle=(x:string)=>x.normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
+        .toLowerCase().replace(/[^a-z0-9]/g,"");
+      // A recommendation must trace to an actual positively rated title.
+      // Similar is a backup that expands the source pool, not a generic
+      // popular-movie replacement or editorial quota.
+      const found=await Promise.allSettled(terms.map(async term=>{
+        const searchData=await tmdb("/search/"+media,
+          new URLSearchParams({query:term,language:"en-US",page:"1",include_adult:"false"}),token);
         const source=(searchData.results||[]).find((v:Record<string,unknown>)=>
-          norm(String(media==="tv"?v.name:v.title||""))===norm(term));
-        if(!source?.id)continue;
-        const q=new URLSearchParams({language:"en-US",page:"1"});
-        const recommends=await tmdb("/"+media+"/"+source.id+"/recommendations",q,token);
-        for(const v of recommends.results||[]){
-          if(!eligible(v,media,media==="movie"?40:25))continue;
+          normalizeTitle(String(media==="tv"?v.name:v.title||""))===normalizeTitle(term));
+        if(!source?.id)return {term,results:[] as Record<string,unknown>[]};
+        const endpoint="/"+media+"/"+source.id;
+        const jobs=[
+          tmdb(endpoint+"/recommendations",new URLSearchParams({language:"en-US",page:"1"}),token),
+          tmdb(endpoint+"/similar",new URLSearchParams({language:"en-US",page:"1"}),token)
+        ];
+        const replies=await Promise.allSettled(jobs);
+        const pool:Record<string,unknown>[]=[];
+        for(const reply of replies)if(reply.status==="fulfilled")pool.push(...(reply.value.results||[]));
+        return {term,results:pool};
+      }));
+      for(const outcome of found){
+        if(outcome.status!=="fulfilled")continue;
+        const {term,results}=outcome.value;
+        const seenForSource=new Set<number>();
+        for(const v of results){
+          const id=Number(v.id);
+          if(seenForSource.has(id))continue;
+          seenForSource.add(id);
+          if(!eligible(v,media,scoped?5:media==="movie"?40:25))continue;
+          if(originalLanguage&&v.original_language!==originalLanguage)continue;
+          if(country&&media==="tv"&&!(Array.isArray(v.origin_country)&&v.origin_country.includes(country)))continue;
           const title=listItem(v,media);
-          const prev=all.get(Number(v.id));
+          const prev=all.get(id);
           if(prev){prev.votes+=1;prev.matched.push(term);}
-          else all.set(Number(v.id),{item:title,votes:1,matched:[term]});
+          else all.set(id,{item:title,votes:1,matched:[term]});
         }
       }
-      return response({items:[...all.values()]
-        .sort((a,b)=>b.votes-a.votes)
-        .slice(0,50)
-        .map(v=>({...v.item,matched:v.matched,matchCount:v.votes}))});
+      const candidates=[...all.values()].sort((a,b)=>b.votes-a.votes);
+      if(!scoped)return response({items:candidates.slice(0,70)
+        .map(v=>({...v.item,matched:v.matched,matchCount:v.votes})),
+        filters:{country:null,originalLanguage:null}});
+      // Search summaries cannot confirm a film's production country. Check
+      // actual TMDB details, and never silently relax either selected filter.
+      const selected=Array<typeof candidates[number]&{verifiedCountries:string[],originalLanguage:string}>=[];
+      const queue=candidates.slice(0,110);
+      let next=0;
+      async function verify(){
+        while(next<queue.length){
+          const item=queue[next++];
+          try{
+            const details=await tmdb("/"+media+"/"+item.item.id,
+              new URLSearchParams({language:"en-US"}),token);
+            const countries=media==="movie"
+              ?(details.production_countries||[]).map((v:Record<string,unknown>)=>String(v.iso_3166_1||""))
+              :exactCodes(details.origin_country);
+            const language=String(details.original_language||"");
+            if(country&&!countries.includes(country))continue;
+            if(originalLanguage&&language!==originalLanguage)continue;
+            if(details.adult===true)continue;
+            selected.push({...item,verifiedCountries:countries,originalLanguage:language});
+          }catch(_){/* No proof means the film cannot pass a hard filter. */}
+        }
+      }
+      await Promise.all([verify(),verify(),verify(),verify(),verify()]);
+      selected.sort((a,b)=>b.votes-a.votes||a.item.title.localeCompare(b.item.title));
+      return response({
+        items:selected.slice(0,70).map(v=>({...v.item,matched:v.matched,
+          matchCount:v.votes,countries:v.verifiedCountries,
+          originalLanguage:v.originalLanguage,filterVerified:true})),
+        filters:{country:country||null,originalLanguage:originalLanguage||null}
+      });
     }
     if(mode==="detail"){
       const id=Number(input.id);
