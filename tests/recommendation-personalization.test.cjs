@@ -121,7 +121,7 @@ test('Explore presents existing moodboard first and full searchable library unde
  assert.doesNotMatch(html,/id="explore-search"/);
  assert.doesNotMatch(html,/explore-global-search\.js/);
  assert.doesNotMatch(html,/id="explore-all-films"/);
- assert.match(html,/catalog-browser\.js\?v=7/);
+ assert.match(html,/catalog-browser\.js\?v=8/);
  assert.match(catalog,/IntersectionObserver/);
  assert.doesNotMatch(catalog,/\$\("catalog-open"\)/);
 });
@@ -167,7 +167,7 @@ test('All Films collects up to 70 actual filtered matches using cursor paginatio
  assert.match(backend,/const limit=70,found:/);
  assert.match(backend,/nextCursor=current\+":" \+index/);
  assert.match(backend,/totalPages:null,totalResults:null/);
- assert.match(client,/Page "\+page\+\(filtered\?"":/);
+ assert.match(client,/" · Page "\+page;/);
  assert.doesNotMatch(client,/filtered.*Page .* of "+pages/);
 });
 test('Filtered page 2 uses the next genuine matching-title cursor, not an unfiltered offset',()=>{
