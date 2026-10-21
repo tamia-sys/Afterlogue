@@ -108,3 +108,28 @@ test('Server verifies BOTH filters on production details, not merely search summ
   assert.match(home,/if\(!entry\.filterVerified\)return false/);
   assert.match(home,/if\(!entry\.tmdb\|\|!entry\.personalized/);
 });
+
+test('Explore uses one combined featured and wider-catalog search rail',()=>{
+ const html=read('explore.html'),search=read('explore-global-search.js');
+ assert.match(html,/explore-global-search\.js\?v=2/);
+ assert.match(search,/explore-match-picks/);
+ assert.match(search,/byTitle=new Map/);
+ assert.match(search,/Searching films and television/);
+ assert.match(search,/Promise\.all\(jobs\.map/);
+ assert.doesNotMatch(search,/ACROSS CINEMA & TELEVISION/);
+ assert.match(search,/No matching titles found/);
+ const local=html.split('function updateBrowse(){')[1].split('searchField.addEventListener',1)[0];
+ assert.match(local,/explore-no-matches"\)\.hidden=true/);
+});
+test('Explore mood loads use bounded passes, show strong partial matches and survive one format failure',()=>{
+ const html=read('explore.html');
+ assert.match(html,/while\(searched<2&&titles\.length<desired\)/);
+ assert.match(html,/const settled=await Promise\.allSettled\(media\.map/);
+ assert.match(html,/paintMoodPicks\(five\)/);
+ assert.match(html,/Search further to complete your five/);
+});
+test('Film Details keeps the editorial heading as a question',()=>{
+ const details=read('film-details.html');
+ assert.match(details,/Another story, perhaps\?/);
+ assert.doesNotMatch(details,/Another story, perhaps\.<\/h2>/);
+});
