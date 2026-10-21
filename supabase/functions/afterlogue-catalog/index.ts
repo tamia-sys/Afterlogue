@@ -462,7 +462,9 @@ Deno.serve(async (req:Request) => {
       if(!succeeded.length)throw Error("Film catalog request failed");
       const body=succeeded[0].value;
       const collected=succeeded.flatMap(r=>r.value.results||[]);
-      const distinct=[...new Map(collected.map((v:Record<string,unknown>)=>[Number(v.id),v])).values()];
+      const distinct=[...new Map<number,Record<string,unknown>>(
+        collected.map((v:Record<string,unknown>):[number,Record<string,unknown>]=>[Number(v.id),v])
+      ).values()];
       const filtered=distinct.filter((v:Record<string,unknown>)=>{
         if(v.adult||!v.poster_path||!v.overview)return false;
         if(originalLanguage&&v.original_language!==originalLanguage)return false;
@@ -487,7 +489,7 @@ Deno.serve(async (req:Request) => {
       }
       return response({
         page,
-        totalPages:Math.min(Math.ceil((Number(body.total_pages)||1)/pagesToFetch),batched?100:100),
+        totalPages:Math.min(Math.ceil((Number(body.total_pages)||1)/pagesToFetch),100),
         // TMDB's total_results is prefilter when we verify productions
         // ourselves, so do not present it as an exact filtered count.
         totalResults:country||mode==="search"&&(requestedGenre||hasDecade||originalLanguage)?null:Number(body.total_results)||0,
