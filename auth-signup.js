@@ -169,6 +169,7 @@ async function socialSignIn(provider,control){
  try{
   // Prevent routing people to a broken provider consent page before the
   // OAuth client ID and secret are enabled in this Supabase project.
+  let providerEnabled=true;
   try{
    if(client.supabaseUrl&&client.supabaseKey){
     const settings=await fetch(client.supabaseUrl+"/auth/v1/settings",{
@@ -177,12 +178,13 @@ async function socialSignIn(provider,control){
     if(settings.ok){
       const values=await settings.json();
       if(values.external?.[provider]===false){
-        throw Error((provider==="google"?"Google":"Apple")+
-          " sign-in still needs provider setup. Email sign-in works in the meantime.");
+        providerEnabled=false;
       }
     }
    }
   }catch(error){console.warn("Provider status could not be checked",error);}
+  if(!providerEnabled)throw Error((provider==="google"?"Google":"Apple")+
+    " sign-in still needs provider setup. Email sign-in works in the meantime.");
   const {error}=await client.auth.signInWithOAuth({
     provider,options:{redirectTo:callbackUrl}
   });
