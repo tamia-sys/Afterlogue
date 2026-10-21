@@ -151,5 +151,19 @@
       if(signin)signin.hidden=isMember;
     }
   }
+  // Native <details> has no outside-click behavior. Close account menus
+  // when focus moves away, the page is tapped, or Escape is pressed.
+  document.addEventListener("pointerdown",event=>{
+    for(const menu of document.querySelectorAll("details.account-menu[open]")){
+      if(!menu.contains(event.target))menu.open=false;
+    }
+  });
+  document.addEventListener("keydown",event=>{
+    if(event.key!=="Escape")return;
+    const open=[...document.querySelectorAll("details.account-menu[open]")];
+    if(!open.length)return;
+    open.forEach(menu=>menu.open=false);
+    open[open.length-1].querySelector("summary")?.focus();
+  });
   sessionPromise.then(user => {updateNavigation(user);updateAccountMenu(user);showMemberAvatar(user);});
 })();
