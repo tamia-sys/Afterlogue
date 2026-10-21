@@ -28,12 +28,12 @@ window.saveFirstImpressions = async function (client) {
   const impressions = [];
 
   // Collect the impressions stored on this device.
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const key = sessionStorage.key(i);
 
     if (!key || !key.startsWith("afterlogue-")) continue;
 
-    const rating = localStorage.getItem(key);
+    const rating = sessionStorage.getItem(key);
 
     if (!validRatings.includes(rating)) continue;
 
@@ -58,13 +58,13 @@ window.saveFirstImpressions = async function (client) {
 
  // Sync extra TMDB titles along with ratings, preserving poster and year.
  const tmdbRows=[];
- for(let i=0;i<localStorage.length;i++){
-  const k=localStorage.key(i);
+ for(let i=0;i<sessionStorage.length;i++){
+  const k=sessionStorage.key(i);
   if(!k?.startsWith('afterlogue.onboarding.tmdb.'))continue;
   try{
-   const item=JSON.parse(localStorage.getItem(k)||'null');
+   const item=JSON.parse(sessionStorage.getItem(k)||'null');
    if(!item || !/^tmdb-(movie|tv)-[1-9][0-9]{0,9}$/.test(item.key))continue;
-   if(!validRatings.includes(localStorage.getItem('afterlogue-'+item.key)))continue;
+   if(!validRatings.includes(sessionStorage.getItem('afterlogue-'+item.key)))continue;
    const title=String(item.title||'').trim().slice(0,250);
    if(!title)continue;
    const yr=Number(item.year);
@@ -102,5 +102,27 @@ window.saveFirstImpressions = async function (client) {
    .upsert(profileUpdate,{onConflict:"user_id"});
   if(completionError)throw completionError;
  }
+ // Save first, then remove only temporary onboarding ratings and metadata.
+ // Never clear Supabase's own authentication/session storage.
+ for(let i=sessionStorage.length-1;i>=0;i--){
+  const key=sessionStorage.key(i);
+  if(!key)continue;
+  if(key.startsWith("afterlogue.onboarding.tmdb.")||
+     (key.startsWith("afterlogue-")&&validRatings.includes(sessionStorage.getItem(key)))){
+    sessionStorage.removeItem(key);
+  }
+ }
+ // Older versions kept an unnecessary persistent copy of member ratings.
+ // Remove only those legacy Afterlogue keys after successful account sync.
+ try{
+  for(let i=localStorage.length-1;i>=0;i--){
+   const key=localStorage.key(i);
+   if(!key)continue;
+   if(key.startsWith("afterlogue.onboarding.tmdb.")||
+      (key.startsWith("afterlogue-")&&validRatings.includes(localStorage.getItem(key)))){
+     localStorage.removeItem(key);
+   }
+  }
+ }catch(error){console.warn("Afterlogue: legacy rating cleanup unavailable",error);}
  return profile?.onboarding_completed?"impressions-refreshed":"onboarding-completed";
 };
