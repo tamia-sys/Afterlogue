@@ -1,91 +1,139 @@
-/* Afterlogue — full-catalog search integrated into the main Explore field.
-   Curated mood results remain intact; remote matches appear beneath them. */
+/* AFTERLOGUE — ONE Explore search across the featured and TMDB libraries.
+ * The wide catalog is primary; featured cards can appear in the same rail.
+ * Never claim "no matches" until all outstanding remote searches settle.
+ */
 (()=>{
-'use strict';
+"use strict";
 const $=id=>document.getElementById(id);
-const field=$('explore-search'), local=$('explore-match-picks');
-if(!field||!local)return;
-const section=$('explore-search-results');
-const wrap=document.createElement('section');
-wrap.className='explore-global-matches';
-wrap.hidden=true;
-wrap.innerHTML='<div class="explore-group-label"><p>ACROSS CINEMA & TELEVISION</p><span id="explore-global-count"></span></div><div class="explore-picks" id="explore-global-grid"></div><p id="explore-global-status" class="catalog-intro" role="status"></p>';
-section.append(wrap);
-const output=$('explore-global-grid'),state=$('explore-global-status'),count=$('explore-global-count');
-const endpoint='https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog';
-const fold=v=>String(v||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-let timer=null,serial=0;
-function card(item){
- const key='tmdb-'+item.media+'-'+item.id;
- const node=document.createElement('article');node.className='explore-pick';
- const imageLink=document.createElement('a');imageLink.className='explore-art';
- imageLink.href='film-details.html?tmdb='+encodeURIComponent(item.id)+'&type='+item.media+'&from=explore';
- imageLink.setAttribute('aria-label','View '+item.title+' details');
- const img=document.createElement('img');img.loading='lazy';img.alt=item.title+' poster';img.src=item.poster||'';
- imageLink.append(img);
- const title=document.createElement('h3');title.textContent=item.title;
- const year=document.createElement('p');year.className='explore-year';year.textContent=(item.year||'Year unknown')+' / '+(item.media==='tv'?'TV':'FILM');
- const actions=document.createElement('div');actions.className='explore-pick-actions';
- const eye=window.AfterlogueSeen?.button({key,title:item.title,year:item.year,poster:item.poster,category:item.media==='tv'?'tv':'movies'});
- const detail=document.createElement('a');detail.href=imageLink.href;detail.textContent='View details';
- detail.className='explore-global-detail';detail.setAttribute('aria-label','View details for '+item.title);
+const field=$("explore-search"), grid=$("explore-match-picks");
+const counter=$("explore-matches-count"),note=$("explore-browse-note");
+if(!field||!grid)return;
+const status=document.createElement("p");
+status.id="explore-search-progress";status.className="catalog-intro";
+status.setAttribute("role","status");status.setAttribute("aria-live","polite");
+grid.after(status);
+const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
+const fold=v=>String(v||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+const slug=v=>fold(v).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const saved=window.afterlogueExploreData?.titles||[];
+const cache=new Map();
+let version=0,debounce=null,controllers=[];
+function filters(){
+ return {format:$("explore-format")?.value||"all",genre:$("explore-genre")?.value||"all",
+  decade:$("explore-year")?.value||"all",country:$("explore-country")?.value||"all"};
+}
+function eligible(item,f){
+ const media=item.media==="movies"?"movie":item.media;
+ if(f.format!=="all"&&media!==(f.format==="tv"?"tv":"movie"))return false;
+ if(f.genre!=="all"&&!(item.genres||[]).some(x=>fold(x)===fold(f.genre)))return false;
+ if(f.decade!=="all"&&Math.floor(Number(item.year||0)/10)*10!==Number(f.decade))return false;
+ // Only featured items with verified country tags can pass a country filter.
+ if(f.country!=="all"){
+  if(item.source!=="featured")return false;
+  if(!(item.countries||[]).includes(f.country))return false;
+ }
+ return true;
+}
+function featured(query,f){
+ return saved.filter(item=>fold(item.title).includes(fold(query)))
+  .map(item=>({...item,media:item.media==="tv"?"tv":"movie",source:"featured"}))
+  .filter(item=>eligible(item,f)).slice(0,10);
+}
+function ranking(item,query){
+ const title=fold(item.title),q=fold(query);
+ return title===q?0:title.startsWith(q)?1:title.split(/\s+/).some(word=>word.startsWith(q))?2:3;
+}
+function linkFor(item){
+ if(item.source==="featured")return "film-details.html?title="+encodeURIComponent(slug(item.title))+"&from=explore";
+ return "film-details.html?tmdb="+encodeURIComponent(item.id)+"&type="+item.media+"&from=explore";
+}
+function renderCard(item){
+ const key=item.source==="featured"?slug(item.title):"tmdb-"+item.media+"-"+item.id;
+ const node=document.createElement("article");node.className="explore-pick";
+ const art=document.createElement("a");art.className="explore-art";art.href=linkFor(item);
+ const img=document.createElement("img");img.loading="lazy";img.alt=item.title+" poster";img.src=item.poster||"";
+ art.append(img);
+ const title=document.createElement("h3");title.textContent=item.title;
+ const year=document.createElement("p");year.className="explore-year";
+ year.textContent=(item.year||"—")+" / "+(item.media==="tv"?"TV":"FILM");
+ const actions=document.createElement("div");actions.className="explore-pick-actions";
+ const eye=window.AfterlogueSeen?.button({key,title:item.title,year:item.year,poster:item.poster,category:item.media==="tv"?"tv":"movies"});
+ const detail=document.createElement("a");detail.className="explore-global-detail";
+ detail.href=art.href;detail.textContent="View details";
  if(eye)actions.append(eye);
- actions.append(detail);node.append(imageLink,title,year,actions);
+ actions.append(detail);node.append(art,title,year,actions);
  return node;
 }
-function finish(items,failed,query){
- const format=$('explore-format')?.value||'all';
- const genre=$('explore-genre')?.value||'all',year=$('explore-year')?.value||'all';
- const country=$('explore-country')?.value||'all';
- const locally=new Set([...local.querySelectorAll('.explore-pick')].map(node=>fold(node.querySelector('h3')?.textContent)));
- const seen=new Set();
- const relevant=items.filter(item=>{
-   const title=fold(item.title);
-   const key=item.media+'-'+item.id;
-   if(seen.has(key)||locally.has(title)||!item.poster)return false;
-   seen.add(key);
-   if(format!=='all'&&item.media!== (format==='tv'?'tv':'movie'))return false;
-   if(genre!=='all'&&!(item.genres||[]).some(g=>fold(g)===fold(genre)))return false;
-   if(year!=='all'&&Math.floor((Number(item.year)||0)/10)*10!==Number(year))return false;
-   // Search results do not include verified production-country metadata.
-   if(country!=='all')return false;
-   return true;
- }).slice(0,12);
- output.replaceChildren(...relevant.map(card));
- count.textContent=relevant.length+' '+(relevant.length===1?'story':'stories');
- if(relevant.length){
-   $('explore-no-matches').hidden=true;
-   state.textContent='';
- }else if(failed){
-   state.textContent='The full catalog could not be searched right now. Try again shortly.';
- }else if(country!=='all'){
-   state.textContent='Country filtering currently applies to curated stories. Clear Country to search the full library.';
- }else{
-   state.textContent='No additional titles found for “'+query+'”.';
+function render(remote,local,query,loading,failures=0){
+ const byTitle=new Map();
+ // Prefer a TMDB record when it duplicates a featured title; they appear
+ // together in ONE result list, rather than in two separate collections.
+ for(const item of [...remote,...local]){
+  if(!item?.poster)continue;
+  const key=(item.media==="movies"?"movie":item.media)+":"+fold(item.title)+":"+String(item.year||"");
+  if(!byTitle.has(key))byTitle.set(key,item);
  }
- // Preserve the curated results count and avoid claiming it covers TMDB.
- $('explore-browse-note').textContent='Search results from our featured collection and the wider cinema catalog.';
+ const combined=[...byTitle.values()].sort((a,b)=>
+  ranking(a,query)-ranking(b,query)||Number(a.source==="featured")-Number(b.source==="featured")||
+  String(a.title).localeCompare(String(b.title))).slice(0,12);
+ grid.replaceChildren(...combined.map(renderCard));
+ counter.textContent=combined.length?combined.length+" matching "+(combined.length===1?"story":"stories"):"";
+ $("explore-no-matches").hidden=true;
+ if(loading)status.textContent=combined.length?"Searching more films and television…":"Searching films and television…";
+ else if(combined.length)status.textContent=failures?"Showing available results. Some catalog searches couldn't finish.":"";
+ else if(failures)status.textContent="The wider catalog couldn't finish searching. Please try again.";
+ else status.textContent="No matching titles found. Try a different title or fewer filters.";
+ note.textContent="Search films and television from the full catalog, including featured stories.";
 }
-async function search(){
- const id=++serial;const query=field.value.trim();
- const active=query.length>=2;
- wrap.hidden=!active;
- output.replaceChildren();
- if(!active){state.textContent='';return;}
- state.textContent='Searching the wider catalog…';count.textContent='';
- const format=$('explore-format')?.value||'all';
- const media=format==='movies'?['movie']:format==='tv'?['tv']:['movie','tv'];
- const results=await Promise.allSettled(media.map(async type=>{
-   const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'search',query,media:type,page:1})});
-   if(!r.ok)throw Error('TMDB search unavailable');
-   return (await r.json()).items||[];
- }));
- if(id!==serial||field.value.trim()!==query)return;
- const items=results.filter(x=>x.status==='fulfilled').flatMap(x=>x.value);
- finish(items,results.every(x=>x.status==='rejected'),query);
+function start(){
+ clearTimeout(debounce);
+ for(const controller of controllers)controller.abort();
+ controllers=[];
+ const id=++version,query=field.value.trim(),f=filters();
+ if(query.length<2){
+  grid.replaceChildren();counter.textContent="";status.textContent="";
+  $("explore-no-matches").hidden=true;
+  return;
+ }
+ const local=featured(query,f);
+ if(f.country!=="all"){
+  render([],local,query,false,0);
+  status.textContent="Country search currently requires verified country metadata. Clear Country to search the wider library.";
+  return;
+ }
+ render([],local,query,true);
+ debounce=setTimeout(async()=>{
+  if(id!==version)return;
+  const media=f.format==="movies"?["movie"]:f.format==="tv"?["tv"]:["movie","tv"];
+  const remote=[];let remaining=media.length,failures=0;
+  const jobs=media.map(async type=>{
+   const key=JSON.stringify([query,type,f.genre,f.decade]);
+   if(cache.has(key))return cache.get(key);
+   const controller=new AbortController();controllers.push(controller);
+   const timeout=setTimeout(()=>controller.abort(),9000);
+   try{
+    const resp=await fetch(endpoint,{method:"POST",signal:controller.signal,
+     headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"search",media:type,query,page:1})});
+    if(!resp.ok)throw Error("Catalog returned "+resp.status);
+    const payload=await resp.json(),items=(payload.items||[]).filter(item=>eligible(item,f));
+    if(cache.size>35)cache.delete(cache.keys().next().value);
+    cache.set(key,items);
+    return items;
+   }finally{clearTimeout(timeout);}
+  });
+  await Promise.all(jobs.map(async promise=>{
+   try{const items=await promise;remote.push(...items);}
+   catch(error){failures++;console.warn("Afterlogue search temporarily unavailable",error);}
+   remaining--;
+   if(id!==version)return;
+   render(remote,local,query,remaining>0,failures);
+  }));
+ },210);
 }
-function schedule(){clearTimeout(timer);++serial;if(field.value.trim().length<2){wrap.hidden=true;output.replaceChildren();state.textContent='';return;}timer=setTimeout(search,380);}
-field.addEventListener('input',schedule);
-['explore-format','explore-genre','explore-year','explore-country'].forEach(id=>$(id)?.addEventListener('change',schedule));
-$('explore-clear')?.addEventListener('click',()=>{clearTimeout(timer);++serial;wrap.hidden=true;output.replaceChildren();});
+field.addEventListener("input",start);
+["explore-format","explore-genre","explore-year","explore-country"].forEach(id=>$(id)?.addEventListener("change",start));
+$("explore-clear")?.addEventListener("click",()=>{
+ clearTimeout(debounce);version++;for(const c of controllers)c.abort();controllers=[];
+ grid.replaceChildren();status.textContent="";counter.textContent="";
+});
 })();
