@@ -5,7 +5,7 @@ const root=document.querySelector('.log-page');
 if(!root)return;
 const section=document.createElement('section');
 section.className='impressions-more';
-section.innerHTML='<p class="impressions-kicker">MORE FIRST IMPRESSIONS</p><h2>Know another story?</h2><p>Search a film or series you have seen and share your impression. No need to rate everything.</p><div class="impressions-more-toolbar"><input type="search" id="impressions-search" placeholder="Search films or TV shows…" aria-label="Find more titles to rate"><select id="impressions-type" aria-label="Search category"><option value="movie">Films</option><option value="tv">TV Shows</option></select></div><p id="impressions-search-status" role="status"></p><div class="impressions-more-grid" id="impressions-search-grid"></div>';
+section.innerHTML='<p class="impressions-kicker">MORE FIRST IMPRESSIONS</p><h2>Know another story?</h2><p>Search a film or series you have seen and share your impression. No need to rate everything.</p><div class="impressions-more-toolbar"><input type="search" id="impressions-search" placeholder="Search films or TV shows…" aria-label="Find more titles to rate"><select id="impressions-type" aria-label="Search category"><option value="all" selected>Films &amp; TV</option><option value="movie">Films</option><option value="tv">TV Shows</option></select></div><p id="impressions-search-status" role="status"></p><div class="impressions-more-grid" id="impressions-search-grid"></div>';
 const anchor=document.querySelector('.log-continue-section');anchor?.before(section);
 const input=section.querySelector('#impressions-search'),format=section.querySelector('#impressions-type');
 const result=section.querySelector('#impressions-search-grid'),status=section.querySelector('#impressions-search-status');
@@ -86,7 +86,7 @@ function makeCard(item){
  const name=document.createElement('h4');
  name.textContent=item.title;
  const year=document.createElement('p');
- year.textContent=item.year?String(item.year):'';
+ year.textContent=(item.media==='tv'?'TV show':'Film')+(item.year?' · '+item.year:'');
  card.append(poster,name,year);
  // For signed-in members, account ratings are read directly from Supabase
  // without copying them into browser storage. Unsaved edits in this tab win.
@@ -104,15 +104,36 @@ async function search(){
  const id=++serial,query=input.value.trim(),media=format.value;
  if(query.length<2){result.replaceChildren();status.textContent='';return;}
  status.textContent='Finding titles…';
- try{
-  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'search',query,media,page:1})});
-  if(!response.ok)throw Error('Unavailable');
-  const data=await response.json();
-  if(id!==serial)return;
-  const items=(data.items||[]).filter(x=>x.poster).slice(0,8);
-  result.replaceChildren(...items.map(makeCard));
-  status.textContent=items.length?'Choose your impression for any title you recognize.':'No titles found. Try another search.';
- }catch(error){if(id===serial)status.textContent='Search is temporarily unavailable. Your existing choices are safe.';}
+ const types=media==='all'?['movie','tv']:[media];
+ const outcomes=await Promise.allSettled(types.map(async type=>{
+   const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({mode:'search',query,media:type,page:1})});
+   if(!response.ok)throw Error('Unavailable');
+   const data=await response.json();
+   return (data.items||[]).filter(item=>item.poster);
+ }));
+ if(id!==serial)return;
+ const lists=outcomes.map(outcome=>outcome.status==='fulfilled'?outcome.value:[]);
+ // Alternate film and television matches, then fill remaining slots from
+ // either type so a sparse category doesn't hide relevant results.
+ const items=[];
+ for(let position=0;items.length<8&&lists.some(group=>group.length>position);position++){
+   for(const group of lists){
+     if(items.length>=8)break;
+     if(group[position])items.push(group[position]);
+   }
+ }
+ result.replaceChildren(...items.map(makeCard));
+ const failures=outcomes.filter(outcome=>outcome.status==='rejected').length;
+ if(failures===types.length){
+   status.textContent='Search is temporarily unavailable. Your existing choices are safe.';
+ }else if(items.length){
+   status.textContent=failures
+     ?'Showing available titles. Some results could not load.'
+     :'Choose your impression for any title you recognize.';
+ }else{
+   status.textContent='No titles found. Try another search.';
+ }
 }
 function schedule(){clearTimeout(timer);++serial;timer=setTimeout(search,340);}
 input.addEventListener('input',schedule);format.addEventListener('change',()=>{result.replaceChildren();schedule();});
