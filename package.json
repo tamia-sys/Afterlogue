@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "test:e2e": "playwright test",
-    "test:rules": "node --test tests/mood-intelligence.test.cjs"
+    "test:rules": "node --test tests/*.test.cjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
