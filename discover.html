@@ -511,7 +511,18 @@ function getDiscoveryRecommendations(category, page = 0) {
   // use bridged suggestions only to fill missing seats in the five.
   expanded.sort((a,b)=>Number(a.matchMethod==="shared_genre")-
     Number(b.matchMethod==="shared_genre")||b.score-a.score);
-  return diversifyDiscoverResults(expanded,category).slice(page*5,page*5+5).map(item=>{
+  // When the matching service has fewer than five reliable suggestions,
+  // fill missing places with honestly labeled archive discoveries.
+  const rated=new Set(Object.keys(savedImpressions).map(key=>key.replace(/^afterlogue-/,"")));
+  const watched=new Set(discoveryWatchlist.map(x=>x.title_key));
+  const viewed=new Set(discoverySeen);
+  const expansionKeys=new Set(expanded.map(item=>item.key));
+  const extras=discoveryExpandedEntries.filter(item=>item.category===category&&item.starter
+    &&!rated.has(item.key)&&!watched.has(item.key)&&!viewed.has(item.key)
+    &&!expansionKeys.has(item.key));
+  return diversifyDiscoverResults([...expanded,...extras],category)
+   .slice(page*5,page*5+5).map(item=>{
+    if(item.starter)return {...item,why:item.reason,personalized:false,catalogKey:item.key};
     let why=item.why;
     if(item.matchMethod==="shared_genre"){
       const strongest=item.matched[0];
@@ -531,8 +542,13 @@ function getDiscoveryRecommendations(category, page = 0) {
 function displayDiscoveryRecommendations(category, page = 0) {
   const container = document.getElementById("discovery-results");
   const selected = getDiscoveryRecommendations(category, page);
-
+  const priorCards=container.querySelectorAll(".discovery-card").length;
+  // A transient provider error should not erase five real cards already
+  // shown for this exact media section.
+  if(!selected.length&&priorCards&&container.dataset.category===category
+     &&["loading","error","empty"].includes(discoveryCatalogState[category]))return;
   container.replaceChildren();
+  container.dataset.category=category;
 
   if (selected.length === 0) {
     const message = document.createElement("p");
@@ -783,6 +799,8 @@ function restoreDiscovery(owner){
   }
   if(["movies","tv"].includes(snapshot.category)){
    selectedCategory=snapshot.category;
+   const eyebrow=document.querySelector(".discovery-section-header p");
+   if(eyebrow)eyebrow.textContent="SELECTED / "+String(discoveryPages[selectedCategory]+1).padStart(3,"0");
    document.querySelectorAll(".discovery-category").forEach(button=>{
      const active=button.dataset.category===selectedCategory;
      button.classList.toggle("active",active);
@@ -969,6 +987,30 @@ async function populateExpandedRecommendations(userId){
      }
    }
    entries=[...candidates.values()];
+   if(entries.length<5&&!filters.country&&!filters.originalLanguage){
+     // Fallback titles are clearly marked as archive discoveries, never
+     // falsely claimed as direct taste matches.
+     try{
+       const extra=await request({mode:"discover",media,page:1,
+         pageSize:60,sort:"discover"});
+       const alreadyRated=new Set(Object.keys(savedImpressions)
+         .map(key=>key.replace(/^afterlogue-/,"")));
+       for(const item of extra.items||[]){
+         const key="tmdb-"+item.media+"-"+item.id;
+         if(!item.poster||!item.synopsis||candidates.has(key)||
+            excluded.has(key)||alreadyRated.has(key))continue;
+         const record={key,title:item.title,year:item.year,poster:item.poster,
+           category,position:800+candidates.size,
+           tmdb:{id:item.id,media:item.media},starter:true,
+           reason:"An archive discovery to explore while Afterlogue learns more about your taste.",
+           synopsis:item.synopsis,
+           facets:{themes:[],tones:[],genres:[],pace:null},directMatches:[]};
+         candidates.set(key,record);
+         if(candidates.size>=40)break;
+       }
+       entries=[...candidates.values()];
+     }catch(error){console.warn("Archive fallback unavailable",error);}
+   }
    if(!entries.length&&state!=="error")state="empty";
    // A result can become available as soon as its own medium finishes:
    // don't hold TV hostage while movie queries are still in flight.
