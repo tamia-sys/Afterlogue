@@ -21,10 +21,8 @@ window.saveFirstImpressions = async function (client) {
 
   if (profileError) throw profileError;
 
-  // Never repeat onboarding for an existing account.
-  if (profile?.onboarding_completed) {
-    return "already-completed";
-  }
+  // Returning members may revisit First Impressions to correct earlier
+  // choices; save the current ratings rather than silently ignoring them.
 
   const validRatings = ["Loved", "Liked", "Okay", "Not for me"];
   const impressions = [];
@@ -85,17 +83,18 @@ window.saveFirstImpressions = async function (client) {
 
  // Mark onboarding complete after impressions are saved.
 
-const { error: completionError } = await client
-  .from("profiles")
-  .upsert({
-    user_id: user.id,
-    onboarding_completed: true,
-    onboarding_completed_at: new Date().toISOString()
-  }, {
-    onConflict: "user_id"
-  });
+if (!profile?.onboarding_completed) {
+  const { error: completionError } = await client
+    .from("profiles")
+    .upsert({
+      user_id: user.id,
+      onboarding_completed: true,
+      onboarding_completed_at: new Date().toISOString()
+    }, {
+      onConflict: "user_id"
+    });
+  if (completionError) throw completionError;
+}
 
-if (completionError) throw completionError;
-
-return "onboarding-completed";
+return profile?.onboarding_completed ? "impressions-refreshed" : "onboarding-completed";
 };
