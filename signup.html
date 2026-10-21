@@ -7,6 +7,24 @@
 
   <title>Create Account — Afterlogue</title>
 
+  <script>
+    // A verified guest briefly passes through this page to import saved
+    // impressions. Hide the sign-in form before the browser first paints.
+    if(new URLSearchParams(location.search).get("confirmed")==="1"){
+      document.documentElement.classList.add("auth-confirmed-handoff");
+    }
+  </script>
+  <style>
+    .auth-handoff-status{display:none}
+    html.auth-confirmed-handoff .signup-page{display:none}
+    html.auth-confirmed-handoff .auth-handoff-status{
+      display:grid;place-content:center;text-align:center;
+      min-height:calc(100vh - 105px);padding:32px 20px;
+      background:#101113;color:#f2e8d9
+    }
+    .auth-handoff-status h1{font:400 clamp(32px,5vw,46px)/1.15 Georgia,serif;margin:0 0 16px}
+    .auth-handoff-status p{font:14px/1.6 Arial,sans-serif;color:#c6b6a1;margin:0}
+  </style>
   <link rel="stylesheet" href="style.css?v=10">
 </head>
 
@@ -15,6 +33,13 @@
   <header class="site-header">
     <a href="index.html" class="logo" aria-label="Afterlogue — return to welcome page" title="Back to Afterlogue">afterlogue.</a>
   </header>
+
+  <section class="auth-handoff-status" aria-live="polite" role="status">
+    <div>
+      <h1>Opening your story.</h1>
+      <p>Preparing your Afterlogue impressions…</p>
+    </div>
+  </section>
 
   <main class="signup-page">
 
