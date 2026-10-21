@@ -229,7 +229,7 @@ test('Discover draws from balanced decades, international cinema and under-seen 
  assert.match(code,/with_original_language/);
  assert.match(code,/vote_count\.lte/);
  assert.match(code,/const mixed:Record<string,unknown>\[\]=\[\],used=new Set<number>\(\)/);
- assert.match(code,/if\(mixed\.length===60\)break/);
+ assert.match(code,/if\(!item\|\|!Number\.isInteger\(id\)\|\|used\.has\(id\)\|\|mixed\.length>=60\)return/);
  assert.match(code,/eligible\(v,media,45\)/);
  assert.match(code,/selection:"discover"/);
 });
