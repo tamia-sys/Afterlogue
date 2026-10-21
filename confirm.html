@@ -69,7 +69,29 @@
           if(error)throw error;
           if(!data.session)throw Error("The confirmation succeeded but a session was not returned.");
           status.textContent="Email confirmed. Opening Afterlogue…";
-          location.replace("signup.html?mode=signin");
+          // A guest who saved impressions needs the existing account-import
+          // prompt. Keep that route, but suppress the intermediate signup UI.
+          let guestImportPending=false;
+          try{
+            guestImportPending=localStorage.getItem("afterlogue.guest.impressions.pending.v1")==="1";
+          }catch(_){}
+          if(guestImportPending){
+            location.replace("signup.html?mode=signin&confirmed=1");
+            return;
+          }
+          // A confirmed session is already persisted by verifyOtp. Route
+          // directly to First Impressions, without flashing the sign-in page.
+          let destination="log.html";
+          try{
+            const {data:profile,error:profileError}=await window.afterlogueSupabase
+              .from("profiles").select("onboarding_completed")
+              .eq("user_id",data.session.user.id).maybeSingle();
+            if(profileError)console.warn("Afterlogue: Profile routing unavailable",profileError.code||profileError.message);
+            else if(profile?.onboarding_completed)destination="discover.html";
+          }catch(error){
+            console.warn("Afterlogue: Unable to check onboarding; opening First Impressions.",error?.code||"profile_check");
+          }
+          location.replace(destination);
         }catch(error){
           console.warn("Afterlogue confirmation failed",error?.code||"verification_failed");
           status.textContent="We couldn't confirm this link. It may have expired or already been used. If you have already confirmed, try signing in; otherwise request a new confirmation email.";
