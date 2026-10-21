@@ -13,6 +13,10 @@ const passwordField=document.getElementById("signup-password");
 const switchLink=document.getElementById("signin-link");
 const heading=document.querySelector(".signup-container h1");
 const prompt=document.querySelector(".signup-login");
+const googleButton=document.getElementById("google-signin");
+const appleButton=document.getElementById("apple-signin");
+const resendButton=document.getElementById("signup-resend");
+const callbackUrl=new URL("signup.html?mode=signin",location.href).href;
 let mode=new URLSearchParams(window.location.search).get("mode")==="signin"?"signin":"signup";
 let navigating=false;
 
@@ -56,7 +60,10 @@ async function memberDestination(user,offerImport=false){
  if(!user?.id)throw Error("Unable to verify your account.");
  const {data:profile,error}=await client.from("profiles")
   .select("onboarding_completed").eq("user_id",user.id).maybeSingle();
- if(error)throw error;
+ if(error){
+   console.warn("Profile check unavailable; opening onboarding.",error.code||error.message);
+   navigating=true;location.replace("log.html");return;
+ }
  if(!profile?.onboarding_completed&&offerImport&&typeof window.saveFirstImpressions==="function"){
   const ratings=new Set(["Loved","Liked","Okay","Not for me"]);
   const importGuest=localStorage.getItem("afterlogue.guest.impressions.pending.v1")==="1";
@@ -77,7 +84,7 @@ async function memberDestination(user,offerImport=false){
  if(offerImport&&!profile?.onboarding_completed){
   const latest=await client.from("profiles")
    .select("onboarding_completed").eq("user_id",user.id).maybeSingle();
-  if(latest.error)throw latest.error;
+  if(latest.error)console.warn("Profile refresh unavailable",latest.error.code||latest.error.message);
   if(latest.data?.onboarding_completed){location.replace("discover.html");return;}
  }
  navigating=true;
@@ -101,20 +108,20 @@ form.addEventListener("submit",async event=>{
    const {data,error}=await client.auth.signUp({
     email,password,options:{
      // This is already on the Supabase redirect allowlist.
-     emailRedirectTo:new URL("signup.html",location.href).href
+     emailRedirectTo:callbackUrl
     }
    });
    if(error)throw error;
    // With email confirmation disabled or already fulfilled, Supabase
    // returns a real session. Go directly to First Impressions.
    if(data?.session?.user){
-    navigating=true;
-    location.replace("log.html");
+    await memberDestination(data.session.user,true);
     return;
    }
    // Confirmation-enabled projects intentionally return NO session.
    // The verification link returns here, where resumeSession() routes.
    passwordField.value="";
+   if(resendButton)resendButton.hidden=false;
    inform("Your Afterlogue account needs email confirmation. Check your inbox and spam folder for the confirmation link. After confirming, you'll be taken straight to First Impressions—no second sign-in required. If no email arrives, please tell the person who invited you instead of creating another account.","info");
   }
  }catch(error){
@@ -132,8 +139,11 @@ async function resumeSession(){
  // getSession() runs. Never treat an unverified signup as authenticated.
  try{
   const callback=new URLSearchParams(window.location.hash.slice(1));
-  if(callback.has("error")||callback.has("error_code")){
-   inform("That confirmation link could not be completed or has expired. Please try again using a valid link.","error");
+  const query=new URLSearchParams(location.search);
+  if(callback.has("error")||callback.has("error_code")||query.has("error")||query.has("error_code")){
+   const desc=callback.get("error_description")||query.get("error_description")||"";
+   inform("The confirmation link was rejected"+(desc?": "+desc:"")+". You can request a new link below; use only the newest email.","error");
+   if(resendButton)resendButton.hidden=false;
    return;
   }
   const {data,error}=await client.auth.getSession();
@@ -149,5 +159,38 @@ async function resumeSession(){
   inform("We couldn't finish opening your account automatically. Please sign in to continue.","error");
  }
 }
+googleButton?.addEventListener("click",()=>socialSignIn("google",googleButton));
+appleButton?.addEventListener("click",()=>socialSignIn("apple",appleButton));
+async function socialSignIn(provider,control){
+ if(navigating)return;
+ for(const b of [googleButton,appleButton])if(b)b.disabled=true;
+ control.textContent="Connecting to "+(provider==="google"?"Google":"Apple")+"…";
+ inform("");
+ try{
+  const {error}=await client.auth.signInWithOAuth({
+    provider,options:{redirectTo:callbackUrl}
+  });
+  if(error)throw error;
+  navigating=true;
+ }catch(error){
+  for(const b of [googleButton,appleButton])if(b)b.disabled=false;
+  googleButton.textContent="Continue with Google";
+  appleButton.textContent="Continue with Apple";
+  inform("This sign-in option couldn't start. You can use email while provider setup is completed. "+describeAuthError(error),"error");
+ }
+}
+resendButton?.addEventListener("click",async()=>{
+ const email=emailField.value.trim();
+ if(!email){inform("Enter the email address used to create your account, then request a new link.","error");emailField.focus();return;}
+ resendButton.disabled=true;resendButton.textContent="Sending…";inform("");
+ try{
+  const {error}=await client.auth.resend({
+   type:"signup",email,options:{emailRedirectTo:callbackUrl}
+  });
+  if(error)throw error;
+  inform("If a confirmation is pending, a fresh Afterlogue email is on its way. Open only the newest link.");
+ }catch(error){inform(describeAuthError(error),"error");}
+ finally{resendButton.disabled=false;resendButton.textContent="Resend confirmation";}
+});
 resumeSession();
 })();
