@@ -28,10 +28,7 @@ function eligible(item,f){
  if(f.genre!=="all"&&!(item.genres||[]).some(x=>fold(x)===fold(f.genre)))return false;
  if(f.decade!=="all"&&Math.floor(Number(item.year||0)/10)*10!==Number(f.decade))return false;
  // Only featured items with verified country tags can pass a country filter.
- if(f.country!=="all"){
-  if(item.source!=="featured")return false;
-  if(!(item.countries||[]).includes(f.country))return false;
- }
+ if(f.country!=="all"&&item.source==="featured"&&!(item.countries||[]).includes(f.country))return false;
  return true;
 }
 function featured(query,f){
@@ -79,11 +76,11 @@ function render(remote,local,query,loading,failures=0){
  grid.replaceChildren(...combined.map(renderCard));
  counter.textContent=combined.length?combined.length+" matching "+(combined.length===1?"story":"stories"):"";
  $("explore-no-matches").hidden=true;
- if(loading)status.textContent=combined.length?"Searching more films and television…":"Searching films and television…";
+ if(loading)status.textContent="Searching films and television…";
  else if(combined.length)status.textContent=failures?"Showing available results. Some catalog searches couldn't finish.":"";
- else if(failures)status.textContent="The wider catalog couldn't finish searching. Please try again.";
+ else if(failures)status.textContent="Search couldn't finish. Please try again.";
  else status.textContent="No matching titles found. Try a different title or fewer filters.";
- note.textContent="Search films and television from the full catalog, including featured stories.";
+ // No internal catalog tiers in the visitor-facing interface.
 }
 function start(){
  clearTimeout(debounce);
@@ -96,24 +93,24 @@ function start(){
   return;
  }
  const local=featured(query,f);
- if(f.country!=="all"){
-  render([],local,query,false,0);
-  status.textContent="Country search currently requires verified country metadata. Clear Country to search the wider library.";
-  return;
- }
- render([],local,query,true);
+ // The catalog API verifies production country when supplied.
+ // Wait for full results instead of showing a curated-only shelf first.
+ render([],[],query,true);
  debounce=setTimeout(async()=>{
   if(id!==version)return;
   const media=f.format==="movies"?["movie"]:f.format==="tv"?["tv"]:["movie","tv"];
   const remote=[];let remaining=media.length,failures=0;
   const jobs=media.map(async type=>{
-   const key=JSON.stringify([query,type,f.genre,f.decade]);
+   const key=JSON.stringify([query,type,f.genre,f.decade,f.country]);
    if(cache.has(key))return cache.get(key);
    const controller=new AbortController();controllers.push(controller);
    const timeout=setTimeout(()=>controller.abort(),9000);
    try{
     const resp=await fetch(endpoint,{method:"POST",signal:controller.signal,
-     headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"search",media:type,query,page:1})});
+     headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"search",media:type,query,page:1,
+       country:f.country==="all"?"":f.country,
+       genre:f.genre==="all"?"":f.genre,
+       decade:f.decade==="all"?null:Number(f.decade)})});
     if(!resp.ok)throw Error("Catalog returned "+resp.status);
     const payload=await resp.json(),items=(payload.items||[]).filter(item=>eligible(item,f));
     if(cache.size>35)cache.delete(cache.keys().next().value);
