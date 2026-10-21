@@ -1634,9 +1634,11 @@ async function displayResults(){
     let searched=0,notes=[];
     // A single TMDB discover page cannot establish that a mood has run out.
     // Continue to the next pages when the first pass has no fresh matches.
-    while(searched<5&&titles.length<desired){
+    // Bound the search to two passes: never keep the visitor waiting through
+    // five full backend sweeps just to fill one five-title shelf.
+    while(searched<2&&titles.length<desired){
       const cursor=state.offset;
-      const requests=await Promise.all(media.map(async type=>{
+      const settled=await Promise.allSettled(media.map(async type=>{
         const resp=await fetch("https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog",{
           method:"POST",headers:{"Content-Type":"application/json"},
           body:JSON.stringify({mode:"mood",mood:isSurprise?"unexpected":state.mood,
@@ -1651,6 +1653,8 @@ async function displayResults(){
         return await resp.json();
       }));
       if(requestId!==window.afterlogueMoodRequestId)return;
+      const requests=settled.filter(x=>x.status==="fulfilled").map(x=>x.value);
+      if(!requests.length)throw Error("Mood catalog requests failed");
       searched++;state.offset=cursor+1;
       notes=notes.concat(requests.map(x=>x.note).filter(Boolean));
       // Alternate Movies and TV without weakening the selected mood.
@@ -1669,14 +1673,21 @@ async function displayResults(){
       }
     }
     const five=titles.slice(0,desired);
+    // Show genuine matches immediately, even when a narrow combination has
+    // fewer than five. Never leave a totally empty shelf while waiting for
+    // exhaustive TMDB pages; Search further collects from the next batch.
     if(five.length<desired){
       rememberPendingMood(scope,titles);
-      host.replaceChildren();
-      const notice=document.createElement("p");notice.className="explore-question";
-      notice.textContent="Still gathering a complete set of five new stories that fit your choices. Search further, or adjust the filters.";
-      host.append(notice);
-      $("explore-results-detail").textContent="Found "+five.length+" fresh qualifying "+(five.length===1?"story":"stories")+
-        " so far; saving them until the full selection is ready.";
+      if(!five.length){
+        host.replaceChildren();
+        const notice=document.createElement("p");notice.className="explore-question";
+        notice.textContent="No verified match yet. Search further or adjust your choices.";
+        host.append(notice);
+      }else{
+        paintMoodPicks(five);
+        $("explore-results-detail").textContent="Found "+five.length+" strong "+(five.length===1?"match":"matches")+" for your mood. Search further to complete your five.";
+        saveMoodSnapshot(five);
+      }
       $("explore-again").textContent="Search further ↗";
       $("explore-again").disabled=false;
       return;
