@@ -8,7 +8,7 @@
   <title>Discover — Afterlogue</title>
 
   <link rel="stylesheet" href="style.css?v=29">
-  <link rel="stylesheet" href="discover-home.css?v=10">
+  <link rel="stylesheet" href="discover-home.css?v=11">
   <link rel="stylesheet" href="mobile-header.css?v=1">
 </head>
 
@@ -588,13 +588,7 @@ function displayDiscoveryRecommendations(category, page = 0) {
   const posterStack=document.createElement("div");
   posterStack.className="discovery-poster-stack";
 
-  const title = document.createElement("h3");
-  title.textContent = item.title;
-
-  const year = document.createElement("p");
-  year.className = "discovery-year";
-  year.textContent = `${item.year} · ${category === "tv" ? "TV" : "Film"}`;
-
+  // Poster artwork already carries the title; keep the shelf uncluttered.
   
 const bookmarkButton = document.createElement("button");
 bookmarkButton.type = "button";
@@ -717,17 +711,14 @@ bookmarkButton.setAttribute(
 // Direct details access, Watchlist saving and the existing impression eye.
  const actions=document.createElement("div");
  actions.className="discovery-card-actions";
- const detailLink=document.createElement("a");
- detailLink.href=detailsHref;
- detailLink.className="discovery-detail";
- detailLink.setAttribute("aria-label","View details for "+item.title);
- detailLink.textContent="Details ↗";
+ // Both actions stay beneath the poster; selecting the artwork itself
+ // already opens Film Details, so a second Details link adds no value.
  bookmarkButton.append(document.createTextNode(" Save"));
  const eye=window.AfterlogueSeen?.button({key:item.catalogKey||item.key,title:item.title,year:item.year,poster:item.poster,category});
- actions.append(detailLink,bookmarkButton);
+ actions.append(bookmarkButton);
  if(eye)actions.append(eye);
  posterStack.append(poster,actions);
- card.append(posterStack,title,year);
+ card.append(posterStack);
  container.appendChild(card);
 
 });
