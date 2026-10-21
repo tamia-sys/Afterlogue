@@ -136,13 +136,32 @@ test('Explore returns one complete mood selection with no repeated Search furthe
  assert.doesNotMatch(html,/Search further ↗/);
  assert.match(backend,/while\(queue\.length&&verified\.length<10\)/);
 });
-test('All Films has 60-story batch pages and does not fall back to a tiny featured rail',()=>{
+test('All Films defaults to 60 stories and uses 70 when filters are active',()=>{
  const client=read('catalog-browser.js'),backend=read('supabase/functions/afterlogue-catalog/index.ts');
- assert.match(client,/pageSize:60/);
- assert.match(client,/configured=true/);
+ assert.match(client,/hasFilters\?70:60/);
+ assert.match(client,/pageSize,genre,country/);
+ assert.match(backend,/Number\(input\.pageSize\)===70\?70:/);
+ assert.match(backend,/const firstIndex=\(page-1\)\*requestedSize/);
+ assert.match(backend,/const firstTmdbPage=Math\.floor\(firstIndex\/20\)\+1/);
+ assert.match(backend,/const pageCandidates=collected\.slice\(startOffset,startOffset\+requestedSize\)/);
+ assert.match(backend,/totalPages:Math\.min\(100,Math\.max\(1,/);
  assert.doesNotMatch(client,/explore-all-films-open"\)\?\.click/);
- assert.match(backend,/const pagesToFetch=batched\?4:1/);
- assert.match(backend,/verified\.slice\(0,batched\?60:20\)/);
+});
+test('All Films Next and Previous scroll to the top and load a new page',()=>{
+ const browser=read('catalog-browser.js');
+ assert.match(browser,/function turnPage\(direction\)/);
+ assert.match(browser,/window\.scrollTo\(\{top:0,behavior:"instant"\}\)/);
+ assert.match(browser,/panel\.scrollTop=0/);
+ assert.match(browser,/page=target/);
+ assert.match(browser,/load\(\)/);
+ assert.match(browser,/catalog-next"\)\.addEventListener\("click",\(\)=>turnPage\(1\)\)/);
+});
+test('Explore never attaches events to a removed curated-only catalog button',()=>{
+ const html=read('explore.html');
+ assert.doesNotMatch(html,/\$\("explore-all-films-open"\)\.addEventListener/);
+ assert.match(html,/document\.querySelectorAll\("\.mood-open"\)/);
+ assert.match(html,/searchField\.addEventListener\("input",updateBrowse\)/);
+ assert.match(html,/explore-global-search\.js\?v=3/);
 });
 test('Film Details keeps the editorial heading as a question',()=>{
  const details=read('film-details.html');
