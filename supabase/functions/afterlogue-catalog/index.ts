@@ -921,7 +921,7 @@ Deno.serve(async (req:Request) => {
         filters:{country:null,originalLanguage:null}});
       // Search summaries cannot confirm a film's production country. Check
       // actual TMDB details, and never silently relax either selected filter.
-      const selected=Array<typeof candidates[number]&{verifiedCountries:string[],originalLanguage:string}>=[];
+      const selected: Array<{item:ReturnType<typeof listItem>;votes:number;matched:string[];verifiedCountries:string[];originalLanguage:string}> = [];
       const queue=candidates.slice(0,110);
       let next=0;
       async function verify(){
