@@ -139,9 +139,13 @@ async function populate(media,sectionId,requestId){
  const parent=document.querySelector(sectionId);
  if(!parent)return;
  const grid=parent.querySelector('.log-film-grid');
- // Keep the curated fallback visible until the wider selection successfully loads.
  const heading=parent.querySelector('.log-section-heading span');
  if(!grid)return;
+ // Never display stale, unfiltered posters as though they meet new filters.
+ if(countrySelect.value||languageSelect.value){
+   grid.replaceChildren();
+   if(heading)heading.textContent='FINDING MATCHES…';
+ }
  try{
   const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({mode:'onboarding',media,seed,country:countrySelect.value,originalLanguage:languageSelect.value,offset})});
