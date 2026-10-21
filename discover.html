@@ -434,6 +434,38 @@ const discoveryEntries=window.AfterlogueRecommendationEngine?.normalizeEntries(
   window.AfterlogueFilmDetails||{},
   window.AfterlogueFilmBasics||{}
 )||[];
+// Five distinct stories, not a five-part franchise shelf.
+const discoverySeriesPrefixes=[
+ "the hunger games","harry potter","star wars","the lord of the rings",
+ "the hobbit","twilight","toy story","home alone","scream","the conjuring",
+ "fast and furious","mission impossible","jurassic park","jurassic world",
+ "pirates of the caribbean","maze runner","divergent","john wick",
+ "kung fu panda","the chronicles of narnia"
+];
+function discoveryFranchise(title){
+ const normalized=String(title||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+ return discoverySeriesPrefixes.find(prefix=>normalized.startsWith(prefix))||"single:"+normalized;
+}
+function isSeasonalDiscovery(item){
+ const text=String(item?.title||"")+" "+String(item?.synopsis||"");
+ return /\b(christmas|xmas|santa|north pole|reindeer|holiday season|christmas eve|yule|noelle)\b/i.test(text);
+}
+function diversifyDiscoverResults(entries,category){
+ const picked=[],franchises=new Set();
+ const holidayApproved=Object.entries(savedImpressions).some(([key,rating])=>
+   (rating==="Loved"||rating==="Liked")&&isSeasonalDiscovery({title:key.replace(/-/g," ")}));
+ let holidayCount=0;
+ for(const entry of entries){
+   const franchise=category==="movies"?discoveryFranchise(entry.title):"tv:"+entry.title.toLowerCase();
+   if(franchises.has(franchise))continue;
+   if(picked.length%5===0)holidayCount=0;
+   const holiday=isSeasonalDiscovery(entry);
+   if(holiday&&!holidayApproved&&holidayCount>=1)continue;
+   picked.push(entry);franchises.add(franchise);
+   if(holiday)holidayCount++;
+ }
+ return picked;
+}
 function getDiscoveryRecommendations(category, page = 0) {
   if(!window.AfterlogueRecommendationEngine)return [];
   // No one gets curated filler just to make a row contain five titles.
@@ -466,7 +498,7 @@ function getDiscoveryRecommendations(category, page = 0) {
     const directlyLinked=entry.matched.some(match=>match.signal.weight>=1.5
       &&(entry.directMatches||[]).some(value=>
         value===normalizeTitle(match.source.title)||value===match.source.key));
-    if(!directlyLinked)return false;
+    if(!directlyLinked&&entry.matchMethod!=="shared_genre")return false;
     if(scoped){
       if(!entry.filterVerified)return false;
       if(discoveryPreferences.country&&!entry.countries?.includes(discoveryPreferences.country))return false;
@@ -479,7 +511,7 @@ function getDiscoveryRecommendations(category, page = 0) {
   // use bridged suggestions only to fill missing seats in the five.
   expanded.sort((a,b)=>Number(a.matchMethod==="shared_genre")-
     Number(b.matchMethod==="shared_genre")||b.score-a.score);
-  return expanded.slice(page*5,page*5+5).map(item=>{
+  return diversifyDiscoverResults(expanded,category).slice(page*5,page*5+5).map(item=>{
     let why=item.why;
     if(item.matchMethod==="shared_genre"){
       const strongest=item.matched[0];
@@ -676,6 +708,9 @@ bookmarkButton.setAttribute(
 );
 
 
+    discoveryWatchlist.push({title_key:titleKey});
+    rememberDiscovery();
+    displayDiscoveryRecommendations(category,discoveryPages[category]);
   } catch (error) {
     console.error("Watchlist save error:", error);
     alert("Couldn't save this title. Please try again.");
@@ -689,7 +724,7 @@ bookmarkButton.setAttribute(
  const actions = document.createElement("div");
  actions.className = "discovery-card-actions";
  const detailLink=document.createElement("a");
- detailLink.href=item.tmdb?"film-details.html?tmdb="+item.tmdb.id+"&type="+item.tmdb.media+"&from=discover":"film-details.html?title="+encodeURIComponent(item.catalogKey||item.title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))+"&from=discover";
+ detailLink.href=(item.tmdb?"film-details.html?tmdb="+item.tmdb.id+"&type="+item.tmdb.media+"&from=discover":"film-details.html?title="+encodeURIComponent(item.catalogKey||item.title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))+"&from=discover")+(isGuestMode?"&guest=1":"");
  detailLink.className="discovery-detail";
  detailLink.setAttribute("aria-label","View film details for "+item.title);
  detailLink.title="Film details";
@@ -745,9 +780,11 @@ discoverAgainButton.addEventListener("click", () => {
 
   let nextPage = discoveryPages[category] + 1;
   if (getDiscoveryRecommendations(category, nextPage).length === 0) {
-    nextPage = 0;
+    discoverAgainButton.textContent="You’ve explored these matches · Add more impressions";
+    return;
   }
   discoveryPages[category] = nextPage;
+  rememberDiscovery();
   displayDiscoveryRecommendations(category, nextPage);
 
   const label = document.querySelector(".discovery-section-header p");
