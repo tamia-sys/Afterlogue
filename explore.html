@@ -1417,7 +1417,7 @@ function moodScopeKey(){
  const facet=window.AfterlogueExploreFilters?.get()||{};
  return JSON.stringify([
   state.mood,state.format||"either",
-  state.pace||"medium",...["countries","languages","genres","decades","ratings"].map(k=>(facet[k]||[]).slice().sort().join(","))
+  state.pace||"medium",...["countries","genres","decades","ratings"].map(k=>(facet[k]||[]).slice().sort().join(","))
  ]);
 }
 function previousMoodTitles(scope){return shownByScope[scope]||[];}
@@ -1506,7 +1506,8 @@ async function displayResults(){
     const isSurprise=Boolean(state.randomPick),desired=isSurprise?1:5;
     const format=state.format||"either";
     const media=format==="tv"?["tv"]:format==="movies"?["movie"]:["movie","tv"];
-    const facet=window.AfterlogueExploreFilters?.get()||{};
+    const facet=isSurprise?{genres:[],countries:[],decades:[],ratings:[]}
+      :(window.AfterlogueExploreFilters?.get()||{});
     const scope=moodScopeKey();
     const shown=new Set(previousMoodTitles(scope));
     const rated=ratedTitles();
@@ -1525,8 +1526,7 @@ async function displayResults(){
             offset:cursor,pace:state.pace||"medium",
             excludeIds:[...shown].filter(k=>k.startsWith(type+":")).map(k=>Number(k.split(":")[1])),
             genres:facet.genres||[],countries:facet.countries||[],
-            languages:facet.languages||[],decades:facet.decades||[],
-            ratings:facet.ratings||[]
+            decades:facet.decades||[],ratings:facet.ratings||[]
           })});
         if(!response.ok)throw Error("Mood search returned "+response.status);
         return (await response.json()).items||[];
@@ -1750,7 +1750,7 @@ $("explore-again").addEventListener("click",()=>{
 restoreMoodSnapshot();
 })();
 </script>
-<script src="catalog-browser.js?v=6"></script>
+<script src="catalog-browser.js?v=7"></script>
 
 
 </body>
