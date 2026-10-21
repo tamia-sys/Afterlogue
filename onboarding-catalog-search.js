@@ -1,4 +1,4 @@
-/* First Impressions: opt-in searchable films and TV beyond the first 24 cards. */
+/* First Impressions: 18 initial films + 18 series, plus an unlimited title search. */
 (()=>{
 'use strict';
 const root=document.querySelector('.log-page');
@@ -116,7 +116,7 @@ async function search(){
 }
 function schedule(){clearTimeout(timer);++serial;timer=setTimeout(search,340);}
 input.addEventListener('input',schedule);format.addEventListener('change',()=>{result.replaceChildren();schedule();});
-/* The original cards are a fallback only. Each onboarding gets a broad,
+/* The original 12 static cards are a fallback only. Each onboarding gets a broad,
    stable-to-visitor choice of real releases across different genres. */
 const seedKey='afterlogue.first.impressions.seed.v2';
 let seed=sessionStorage.getItem(seedKey);
@@ -164,9 +164,9 @@ async function populate(media,sectionId,requestId){
   if(!response.ok)throw Error('Onboarding catalog unavailable');
   const payload=await response.json();
   if(requestId!==sequence)return;
-  const items=(payload.items||[]).filter(item=>item.poster).slice(0,12);
+  const items=(payload.items||[]).filter(item=>item.poster).slice(0,18);
   if(!items.length){grid.replaceChildren();if(heading)heading.textContent='0 TITLES';statusLine.textContent='No popular released titles matched this combination. Try another country or language.';return;}
-  statusLine.textContent='Choose any titles you recognize. Your impressions stay saved when you change the selection.';
+  statusLine.textContent='Choose films and shows you know. Loved and Liked help shape both discovery shelves; you can also search for another title.';
   const cards=items.map(makeCard);
   grid.replaceChildren(...cards);
   if(heading)heading.textContent=items.length+' TITLES · SELECTED FOR THIS VISIT';
