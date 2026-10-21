@@ -745,6 +745,53 @@ const discoveryPages = {
   movies: 0,
   tv: 0
 };
+// Return from Film Details to the very same selections in this tab.
+// Account-bound snapshots prevent one person's private tastes being reused
+// for another account on a shared device.
+let discoveryCacheOwner=null;
+const discoveryCacheKey="afterlogue.discover.shelf.v1";
+function discoveryFingerprint(){
+ return JSON.stringify({
+  ratings:Object.entries(savedImpressions).sort((a,b)=>a[0].localeCompare(b[0])),
+  country:discoveryPreferences.country||"",
+  language:discoveryPreferences.originalLanguage||""
+ });
+}
+function rememberDiscovery(){
+ if(!discoveryCacheOwner||!discoveryExpandedEntries.length)return;
+ try{
+  sessionStorage.setItem(discoveryCacheKey,JSON.stringify({
+   owner:discoveryCacheOwner,fingerprint:discoveryFingerprint(),
+   savedAt:Date.now(),entries:discoveryExpandedEntries,
+   sources:discoverySourceEntries,pages:discoveryPages,category:selectedCategory
+  }));
+ }catch(error){console.warn("Discovery snapshot unavailable",error);}
+}
+function restoreDiscovery(owner){
+ discoveryCacheOwner=owner;
+ try{
+  const snapshot=JSON.parse(sessionStorage.getItem(discoveryCacheKey)||"null");
+  if(!snapshot||snapshot.owner!==owner||
+     snapshot.fingerprint!==discoveryFingerprint()||
+     Date.now()-snapshot.savedAt>4*60*60*1000||
+     !Array.isArray(snapshot.entries)||!snapshot.entries.length)return false;
+  discoveryExpandedEntries=snapshot.entries;
+  discoverySourceEntries=Array.isArray(snapshot.sources)?snapshot.sources:[];
+  for(const media of ["movies","tv"]){
+   discoveryCatalogState[media]="ready";
+   discoveryPages[media]=Math.max(0,Number(snapshot.pages?.[media])||0);
+  }
+  if(["movies","tv"].includes(snapshot.category)){
+   selectedCategory=snapshot.category;
+   document.querySelectorAll(".discovery-category").forEach(button=>{
+     const active=button.dataset.category===selectedCategory;
+     button.classList.toggle("active",active);
+     button.setAttribute("aria-pressed",String(active));
+   });
+  }
+  return true;
+ }catch(error){console.warn("Discovery restore unavailable",error);return false;}
+}
 
 // Wait for saved account impressions and the wider catalog before displaying
 // picks. Showing curated cards first wrongly suggests they are final results.
@@ -928,6 +975,7 @@ async function populateExpandedRecommendations(userId){
    discoveryExpandedEntries=discoveryExpandedEntries.filter(x=>x.category!==category).concat(entries);
    discoveryCatalogState[category]=state;
    discoveryPages[category]=0;
+   rememberDiscovery();
    if(discoveryReady&&selectedCategory===category)displayDiscoveryRecommendations(category,0);
  });
  await Promise.allSettled(requests);
@@ -959,6 +1007,10 @@ async function loadAccountImpressions() {
           ?"Five recommendations shaped by your first impressions."
           :"An opening selection. Rate a few titles to make it yours.";
       discoveryReady=true;
+      if(restoreDiscovery("guest")){
+        displayDiscoveryRecommendations(selectedCategory,discoveryPages[selectedCategory]);
+        return;
+      }
       displayDiscoveryRecommendations(selectedCategory,0);
       await populateExpandedRecommendations(null);
       displayDiscoveryRecommendations(selectedCategory,0);
@@ -1041,7 +1093,12 @@ async function loadAccountImpressions() {
 
     // Do not keep the entire Home shelf blank while catalog requests run.
     discoveryReady=true;
+    if(restoreDiscovery(userData.user.id)){
+      displayDiscoveryRecommendations(selectedCategory,discoveryPages[selectedCategory]);
+      return;
+    }
     displayDiscoveryRecommendations(activeCategory,0);
+    discoveryCacheOwner=userData.user.id;
     await populateExpandedRecommendations(userData.user.id);
     displayDiscoveryRecommendations(activeCategory,0);
 
