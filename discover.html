@@ -8,7 +8,7 @@
   <title>Discover — Afterlogue</title>
 
   <link rel="stylesheet" href="style.css?v=29">
-  <link rel="stylesheet" href="discover-home.css?v=9">
+  <link rel="stylesheet" href="discover-home.css?v=10">
   <link rel="stylesheet" href="mobile-header.css?v=1">
 </head>
 
@@ -574,48 +574,19 @@ function displayDiscoveryRecommendations(category, page = 0) {
   const card = document.createElement("article");
   card.className = "discovery-card";
 
-  // Poster container
-  const poster = document.createElement("button");
-  poster.type = "button";
-  poster.className = "discovery-poster";
-  poster.style.setProperty("--afterlogue-poster", `url("${item.poster}")`);
-  poster.setAttribute(
-    "aria-label",
-    `Why we recommend ${item.title}`
-  );
-  poster.setAttribute("aria-expanded", "false");
-
-  // AFTERLOGUE — POSTER ARTWORK
-
-const artwork = document.createElement("img");
-artwork.src = item.poster || "";
-artwork.alt = `${item.title} poster`;
-artwork.className = "discovery-artwork";
-
-if (!item.poster) {
-  artwork.style.display = "none";
-}
-
-  // Description overlay
-  const overlay = document.createElement("div");
-  overlay.className = "discovery-reason";
-
-  const label = document.createElement("span");
-  label.className = "discovery-reason-label";
-  label.textContent = "WHY THIS STORY";
-
-  const explanation = document.createElement("span");
-  explanation.className = "discovery-reason-text";
-  explanation.textContent = item.reason;
-
-  overlay.append(label, explanation);
-  poster.append(artwork, overlay);
-
-  // Tap to reveal or hide the description
-  poster.addEventListener("click", () => {
-    const isOpen = poster.classList.toggle("is-open");
-    poster.setAttribute("aria-expanded", String(isOpen));
-  });
+  // Posters navigate directly; the quick-action panel is separate.
+  const detailsHref=(item.tmdb?"film-details.html?tmdb="+item.tmdb.id+"&type="+item.tmdb.media+"&from=discover"
+    :"film-details.html?title="+encodeURIComponent(item.catalogKey||item.title.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""))+"&from=discover")+(isGuestMode?"&guest=1":"");
+  const poster=document.createElement("a");
+  poster.href=detailsHref;poster.className="discovery-poster";
+  poster.setAttribute("aria-label","View details for "+item.title);
+  const artwork=document.createElement("img");
+  artwork.src=item.poster||"";artwork.alt=item.title+" poster";
+  artwork.className="discovery-artwork";
+  if(!item.poster)artwork.style.display="none";
+  poster.append(artwork);
+  const posterStack=document.createElement("div");
+  posterStack.className="discovery-poster-stack";
 
   const title = document.createElement("h3");
   title.textContent = item.title;
@@ -726,7 +697,15 @@ bookmarkButton.setAttribute(
 
     discoveryWatchlist.push({title_key:titleKey});
     rememberDiscovery();
-    displayDiscoveryRecommendations(category,discoveryPages[category]);
+    // Keep this card visible until the next refresh so it doesn't vanish
+    // under the user after Save; the next selection excludes it.
+    bookmarkButton.setAttribute("aria-label","Saved "+item.title+" to Watchlist");
+    bookmarkButton.lastChild.textContent=" Saved";
+    const notice=document.createElement("span");
+    notice.className="discovery-saved-note";
+    notice.setAttribute("role","status");
+    notice.textContent="Saved. Won't appear in future Home selections.";
+    actions.append(notice);
   } catch (error) {
     console.error("Watchlist save error:", error);
     alert("Couldn't save this title. Please try again.");
@@ -735,20 +714,20 @@ bookmarkButton.setAttribute(
   }
 });
 
-// The poster itself reveals WHY THIS STORY on hover, focus or tap.
- // Keep only Watchlist and the full-detail link in the action row.
- const actions = document.createElement("div");
- actions.className = "discovery-card-actions";
+// Direct details access, Watchlist saving and the existing impression eye.
+ const actions=document.createElement("div");
+ actions.className="discovery-card-actions";
  const detailLink=document.createElement("a");
- detailLink.href=(item.tmdb?"film-details.html?tmdb="+item.tmdb.id+"&type="+item.tmdb.media+"&from=discover":"film-details.html?title="+encodeURIComponent(item.catalogKey||item.title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))+"&from=discover")+(isGuestMode?"&guest=1":"");
+ detailLink.href=detailsHref;
  detailLink.className="discovery-detail";
- detailLink.setAttribute("aria-label","View film details for "+item.title);
- detailLink.title="Film details";
- detailLink.textContent="ⓘ";
- // Shared stylesheet sets the icon sizing and spacing.
- actions.append(bookmarkButton,window.AfterlogueSeen.button({key:item.catalogKey||item.key,title:item.title,year:item.year,poster:item.poster,category}),detailLink);
-
- card.append(poster, title, year, actions);
+ detailLink.setAttribute("aria-label","View details for "+item.title);
+ detailLink.textContent="Details ↗";
+ bookmarkButton.append(document.createTextNode(" Save"));
+ const eye=window.AfterlogueSeen?.button({key:item.catalogKey||item.key,title:item.title,year:item.year,poster:item.poster,category});
+ actions.append(detailLink,bookmarkButton);
+ if(eye)actions.append(eye);
+ posterStack.append(poster,actions);
+ card.append(posterStack,title,year);
  container.appendChild(card);
 
 });
