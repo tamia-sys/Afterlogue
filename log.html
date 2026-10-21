@@ -16,6 +16,23 @@
 .afterlogue-onboarding .impressions-description{color:#E7D8C5;font:clamp(16px,1.35vw,18px)/1.6 Inter,Arial,sans-serif;max-width:545px;margin:0 0 24px}
 .afterlogue-onboarding .impressions-time{display:flex;align-items:center;gap:9px;color:#D0B18A;font-size:12px;margin:0}
 .afterlogue-onboarding .impressions-time svg{width:17px;height:17px}
+.afterlogue-onboarding .impressions-hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px 26px}
+.afterlogue-onboarding .impressions-skip{border:0;background:transparent;color:#d4b487;padding:4px 0;cursor:pointer;font:12px Inter,Arial,sans-serif;text-decoration:underline;text-underline-offset:4px}
+.afterlogue-onboarding .impressions-skip:hover,.afterlogue-onboarding .impressions-skip:focus-visible{color:#f4eadd}
+.afterlogue-onboarding>header.site-header{position:relative;z-index:15}
+.afterlogue-onboarding>header.site-header nav{align-items:center}
+.afterlogue-onboarding>header.site-header nav .account-menu{flex:0 0 auto}
+.afterlogue-onboarding>header.site-header nav .account-dropdown{box-sizing:border-box}
+.afterlogue-onboarding>header.site-header nav .account-dropdown a{display:block;color:#e8d6b5;text-decoration:none;font:13px/1.5 Inter,Arial,sans-serif}
+.afterlogue-onboarding>header.site-header nav .account-dropdown a:hover{color:#f4eadd}
+.afterlogue-onboarding>header.site-header nav .account-dropdown [hidden]{display:none!important}
+.afterlogue-onboarding>header.site-header nav .account-dropdown button[hidden]{display:none!important}
+@media(max-width:600px){
+ .afterlogue-onboarding>header.site-header nav{display:flex;gap:0}
+ .afterlogue-onboarding>header.site-header nav>a{display:none!important}
+ .afterlogue-onboarding>header.site-header nav .account-menu{display:flex}
+ .afterlogue-onboarding>header.site-header nav .account-dropdown{right:0;max-width:calc(100vw - 32px)}
+}
 .afterlogue-onboarding .impressions-visual{margin:0;min-width:0}
 .afterlogue-onboarding .impressions-visual img{display:block;width:100%;height:clamp(240px,28vw,390px);object-fit:cover;object-position:center 42%;border:1px solid rgba(191,165,139,.18)}
 .afterlogue-onboarding .impressions-visual figcaption{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 20px;margin-top:10px;color:#BFA58B;font:10px/1.6 Inter,Arial,sans-serif}
@@ -40,7 +57,7 @@
 @media(max-width:1260px){.afterlogue-onboarding .log-film-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:1000px){.afterlogue-onboarding .log-film-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:800px){.afterlogue-onboarding .impressions-hero{grid-template-columns:1fr;gap:23px}.afterlogue-onboarding .impressions-visual{order:-1}.afterlogue-onboarding .impressions-visual img{height:clamp(240px,53vw,380px)}.afterlogue-onboarding .log-film-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:600px){.afterlogue-onboarding>header{flex-direction:row;padding:20px 5%}.afterlogue-onboarding>header nav{display:none}.afterlogue-onboarding .log-page{padding:15px 5% 55px}.afterlogue-onboarding .impressions-hero{padding-bottom:26px;gap:21px}.afterlogue-onboarding .impressions-visual img{height:54vw;min-height:190px}.afterlogue-onboarding .impressions-copy h1{font-size:clamp(34px,8.2vw,47px)}.afterlogue-onboarding .impressions-description{font-size:16px;line-height:1.55}.afterlogue-onboarding .log-film-section{margin-top:27px}.afterlogue-onboarding .log-section-heading h3{font-size:23px}.afterlogue-onboarding .log-section-heading span{font-size:9px;letter-spacing:1px}.afterlogue-onboarding .log-film-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:23px 12px}.afterlogue-onboarding .log-film-card h4{font-size:13px}.afterlogue-onboarding .rating-overlay{gap:4px;padding:6px}.afterlogue-onboarding .rating-overlay button{font-size:10px;min-height:26px;padding:5px}.afterlogue-onboarding .rating-overlay p{font-size:8px;margin:0 0 3px}.afterlogue-onboarding .log-continue-button{width:auto;max-width:100%;padding:13px 32px}}
+@media(max-width:600px){.afterlogue-onboarding>header{flex-direction:row;padding:20px 5%}.afterlogue-onboarding>header nav>a{display:none}.afterlogue-onboarding .log-page{padding:15px 5% 55px}.afterlogue-onboarding .impressions-hero{padding-bottom:26px;gap:21px}.afterlogue-onboarding .impressions-visual img{height:54vw;min-height:190px}.afterlogue-onboarding .impressions-copy h1{font-size:clamp(34px,8.2vw,47px)}.afterlogue-onboarding .impressions-description{font-size:16px;line-height:1.55}.afterlogue-onboarding .log-film-section{margin-top:27px}.afterlogue-onboarding .log-section-heading h3{font-size:23px}.afterlogue-onboarding .log-section-heading span{font-size:9px;letter-spacing:1px}.afterlogue-onboarding .log-film-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:23px 12px}.afterlogue-onboarding .log-film-card h4{font-size:13px}.afterlogue-onboarding .rating-overlay{gap:4px;padding:6px}.afterlogue-onboarding .rating-overlay button{font-size:10px;min-height:26px;padding:5px}.afterlogue-onboarding .rating-overlay p{font-size:8px;margin:0 0 3px}.afterlogue-onboarding .log-continue-button{width:auto;max-width:100%;padding:13px 32px}}
 .impressions-more{margin:40px 0 25px;padding-top:28px;border-top:1px solid rgba(212,180,135,.3)}.impressions-more h2{font:400 36px Georgia,serif;color:#f4eadd;margin:8px 0 9px}.impressions-more p{color:#c3b2a0;font:13px/1.6 Arial,sans-serif}.impressions-more-toolbar{display:flex;gap:10px;margin:20px 0}.impressions-more-toolbar input,.impressions-more-toolbar select{min-width:0;background:#171614;color:#f4eadd;border:1px solid #7d684e;border-radius:25px;padding:13px 16px;font:12px Arial,sans-serif}.impressions-more-toolbar input{flex:1}.impressions-more-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}.impressions-more-card{min-width:0}.impressions-more-card img{display:block;width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:5px}.impressions-more-title{min-height:36px}.impressions-more-ratings{display:grid;grid-template-columns:1fr 1fr;gap:5px}.impressions-more-ratings button{padding:8px 3px;border:1px solid #685845;border-radius:15px;background:transparent;color:#ead8bf;font-size:11px;cursor:pointer}.impressions-more-ratings button[aria-pressed=true]{background:#d4b487;color:#171411}@media(max-width:700px){.impressions-more-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.impressions-more-toolbar{flex-wrap:wrap}.impressions-more-toolbar input{flex-basis:100%}}
 .impressions-location-filters{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:26px 0 10px}
 .impressions-location-filters label{display:flex;flex-direction:column;gap:8px;color:#cdb89d;font:11px Arial,sans-serif;flex:1 1 190px}
@@ -76,17 +93,27 @@
 </head>
 
 <body class="afterlogue-onboarding">
-  <header>
+  <header class="site-header">
   <h1>
     <a href="index.html" class="logo-link">afterlogue.</a>
   </h1>
-    <nav>
-      <a href="index.html">Home</a>
-     
-<a href="explore.html">Explore</a>
-
-      <a href="log.html">Log</a>
-      <a href="index.html#discuss">Discuss</a>
+    <nav aria-label="Main navigation">
+      <a href="discover.html">Home</a>
+      <a href="explore.html">Explore</a>
+      <a href="my-log.html">Log</a>
+      <a href="discuss.html">Discuss</a>
+      <details class="account-menu">
+        <summary aria-label="Open account menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/></svg></summary>
+        <div class="account-dropdown">
+          <p class="account-heading">Your account</p>
+          <p id="account-email">Checking your account…</p>
+          <p id="account-status"></p>
+          <div class="account-divider"></div>
+          <a class="account-settings" href="account-settings.html">Account settings ↗</a>
+          <button type="button" id="account-signout" hidden>Sign out</button>
+          <a id="account-signin" href="signup.html?mode=signin" hidden>Sign in / Create account</a>
+        </div>
+      </details>
     </nav>
   </header>
 
@@ -96,7 +123,10 @@
         <p class="impressions-kicker">AFTERLOGUE / 01 — FIRST IMPRESSIONS</p>
         <h1 id="impressions-title">Let’s get acquainted.</h1>
         <p class="impressions-description">Tap a poster you’ve seen. Choose Loved, Liked, Okay, or Not for me. Skip anything unfamiliar.</p>
-        <p class="impressions-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>About 2 minutes</p>
+        <div class="impressions-hero-actions">
+          <p class="impressions-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>About 2 minutes</p>
+          <button type="button" class="impressions-skip" id="impressions-skip">Skip for now →</button>
+        </div>
       </div>
       <figure class="impressions-visual">
         <img src="images/still-01.jpg" alt="Black-and-white film still from Carnival of Souls (1962)" loading="eager">
@@ -359,8 +389,8 @@
       ?window.localStorage:window.sessionStorage;
 </script>
 <script src="onboarding-sync.js?v=7"></script>
-<script src="onboarding-catalog-search.js?v=8"></script>
-<script src="site-navigation.js?v=2"></script>
+<script src="onboarding-catalog-search.js?v=9"></script>
+<script src="site-navigation.js?v=6"></script>
   <script>
   // AFTERLOGUE — CHECK SIGNED-IN USER
 
@@ -556,6 +586,9 @@ backButton.addEventListener("click", event => {
   next.closest(".log-continue-section").append(status);
   const originalLabel = next.innerHTML;
   let busy = false;
+  // Skip uses the same safe save/completion route as Continue, even when
+  // no ratings have been chosen, so new members don't repeat onboarding.
+  document.getElementById("impressions-skip")?.addEventListener("click",()=>next.click());
   next.addEventListener("click", async event => {
     if (new URLSearchParams(location.search).get("guest") === "1") return;
     event.preventDefault();
@@ -581,5 +614,42 @@ backButton.addEventListener("click", event => {
 })();
 </script>
 
+<script>
+/* First Impressions shares the same accessible account menu as Explore. */
+(async()=>{
+ const client=window.afterlogueSupabase;
+ const email=document.getElementById("account-email");
+ const status=document.getElementById("account-status");
+ const signin=document.getElementById("account-signin");
+ const signout=document.getElementById("account-signout");
+ const guest=new URLSearchParams(location.search).get("guest")==="1";
+ if(!client)return;
+ try{
+  const {data,error}=guest?{data:{user:null},error:null}:await client.auth.getUser();
+  if(error)throw error;
+  const user=data?.user;
+  email.textContent=user?.email||"Browsing as guest";
+  status.textContent=user?"● Signed in":"Sign in to save your collection.";
+  signin.hidden=Boolean(user);
+  signout.hidden=!user;
+ }catch(error){
+  console.warn("First Impressions account menu unavailable",error);
+  email.textContent="Account unavailable";
+  status.textContent="Try refreshing this page.";
+  signin.hidden=false;
+ }
+ signout.addEventListener("click",async()=>{
+  signout.disabled=true;
+  try{
+   const {error}=await client.auth.signOut();
+   if(error)throw error;
+   location.replace("index.html");
+  }catch(error){
+   signout.disabled=false;
+   status.textContent="Couldn't sign out. Please try again.";
+  }
+ });
+})();
+</script>
 </body>
 </html>
