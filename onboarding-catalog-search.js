@@ -12,6 +12,8 @@ const result=section.querySelector('#impressions-search-grid'),status=section.qu
 const endpoint='https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog';
 let serial=0,timer;
 const keyFor=item=>'tmdb-'+item.media+'-'+item.id;
+const ratingStore=window.afterlogueImpressionDraftStore||sessionStorage;
+const isGuest=new URLSearchParams(location.search).get('guest')==='1';
 /* Shared poster interaction for the rotating 24 titles and search results.
    The controls stay ON the poster; choosing a rating reveals a centered check. */
 function makeCard(item){
@@ -56,8 +58,9 @@ function makeCard(item){
    button.textContent=rating;
    button.addEventListener('click',event=>{
      event.stopPropagation();
-     sessionStorage.setItem('afterlogue-'+key,rating);
-     sessionStorage.setItem('afterlogue.onboarding.tmdb.'+key,JSON.stringify({
+     ratingStore.setItem('afterlogue-'+key,rating);
+     if(isGuest)localStorage.setItem('afterlogue.guest.impressions.pending.v1','1');
+     ratingStore.setItem('afterlogue.onboarding.tmdb.'+key,JSON.stringify({
        key,title:item.title,year:item.year,poster:item.poster,
        category:item.media==='tv'?'tv':'movies'
      }));
@@ -88,7 +91,7 @@ function makeCard(item){
  // For signed-in members, account ratings are read directly from Supabase
  // without copying them into browser storage. Unsaved edits in this tab win.
  card.applyStoredRating=()=>showRating(
-   sessionStorage.getItem('afterlogue-'+key)||window.afterlogueSavedRatings?.[key]||null
+   ratingStore.getItem('afterlogue-'+key)||window.afterlogueSavedRatings?.[key]||null
  );
  card.applyStoredRating();
  return card;
