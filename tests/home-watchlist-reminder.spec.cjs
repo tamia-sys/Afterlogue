@@ -13,6 +13,8 @@ const fakeSupabase=String.raw`
   {title_key:'atlanta',category:'tv',created_at:'2026-01-02'},
   {title_key:'fleabag',category:'tv',created_at:'2026-01-01'}
  ];
+ const stubCount=new URLSearchParams(location.search).get('stub_count');
+ if(stubCount!==null)saved.splice(Math.max(0,Number(stubCount)||0));
  const isGuest=new URLSearchParams(location.search).get('guest')==='1';
  function query(table){
   const q={
@@ -83,4 +85,20 @@ test('Guest collection reminder invites sign-in, not invented saved films',async
  await expect(page.locator('#watchlist-reminder-status')).toContainText('Sign in');
  await expect(page.locator('#watchlist-reminder-grid .watchlist-reminder-card')).toHaveCount(0);
  await expect(page.locator('.watchlist-reminder-all')).toHaveAttribute('href','signup.html?mode=signin');
+});
+
+test('A short Watchlist shows only the saved titles instead of inventing a third',async({page})=>{
+ await setup(page);
+ await page.goto('discover.html?stub_count=2');
+ await page.locator('#watchlist-reminder-toggle').click();
+ await expect(page.locator('#watchlist-reminder-grid .watchlist-reminder-card')).toHaveCount(2,{timeout:20000});
+ await expect(page.locator('#watchlist-reminder-next')).toBeHidden();
+});
+test('Empty Watchlist has a useful prompt and no sample films',async({page})=>{
+ await setup(page);
+ await page.goto('discover.html?stub_count=0');
+ await page.locator('#watchlist-reminder-toggle').click();
+ await expect(page.locator('#watchlist-reminder-grid .watchlist-reminder-card')).toHaveCount(0,{timeout:20000});
+ await expect(page.locator('#watchlist-reminder-status')).toContainText('Nothing in your Watchlist');
+ await expect(page.locator('#watchlist-reminder-next')).toBeHidden();
 });
