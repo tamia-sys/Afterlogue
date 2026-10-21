@@ -26,12 +26,17 @@ function readState(){
   language=typeof record.language==="string"?record.language:"";
   decade=typeof record.decade==="string"?record.decade:"";
   sort=["popular","newest","oldest"].includes(record.sort)?record.sort:"popular";
+  if(Array.isArray(record.cursors)){
+    pageCursors=new Map([[1,null],...record.cursors
+      .filter(item=>Array.isArray(item)&&Number.isInteger(item[0])&&item[0]>=2&&item[0]<=100
+        &&typeof item[1]==="string"&&/^[1-9][0-9]{0,2}:(?:[0-9]|1[0-9])$/.test(item[1]))]);
+  }
   $("catalog-media").value=media;input.value=term;
   genreBox.value=genre;countryBox.value=country;languageBox.value=language;decadeBox.value=decade;sortBox.value=sort;
  }catch(_){}
 }
 function rememberState(){
- try{sessionStorage.setItem(stateKey,JSON.stringify({media,page,term,genre,country,language,decade,sort}));}catch(_){}
+ try{sessionStorage.setItem(stateKey,JSON.stringify({media,page,term,genre,country,language,decade,sort,cursors:[...pageCursors]}));}catch(_){}
 }
 async function readiness(){
  try{const r=await fetch(endpoint+"?status=1");const data=await r.json();return Boolean(r.ok&&data.ready);}catch(_){return false;}
@@ -60,11 +65,11 @@ function render(list){
  }
 }
 async function load(){
- rememberState();
  const id=++serial;
  const isSearch=term.trim().length>=2;
  const filtered=hasActiveFilters();
  if(filtered&&page>1&&!pageCursors.has(page))page=1;
+ rememberState();
  $("catalog-prev").disabled=true;$("catalog-next").disabled=true;
  $("catalog-message").textContent="Finding stories…";
  try{
