@@ -117,18 +117,24 @@ test('Fall: an academic literary drama qualifies without Halloween, ghosts, or h
  assert.ok(score.score>=5,JSON.stringify(score));
  assert.match(score.reason,/academic|literary|back.to.school/i);
 });
-test('Fall: woodland, cozy town, and campus stories are not drowned out by generic horror',()=>{
- const wooded=movie(10315,'Fantastic Mr. Fox',
+test('Fall: a generic forest or small-town tag alone cannot imply autumn',()=>{
+ const woods=movie(10315,'Generic Woodland Story',
    'A family of foxes live in a forest and venture into the woods.',[16,10751]);
- const campus=movie(207,'Dead Poets Society',
-   'A new school term begins as a teacher inspires his students to write poetry.',[18]);
- const genericHorror=movie(123456,'A Horror Night',
-   'A ghost appears at a haunted house on Halloween night.',[27]);
- const w=fit('fall',wooded),c=fit('fall',campus),h=fit('fall',genericHorror,['halloween']);
- assert.ok(w.score>=5,JSON.stringify(w));
- assert.ok(c.score>=5,JSON.stringify(c));
- assert.ok(w.score>h.score,'Woodland fall story should beat a purely Halloween horror tag');
- assert.ok(c.score>h.score,'Literary drama should beat a purely Halloween horror tag');
+ const town=movie(200,'Small Town Business',
+   'A small town business struggles to survive in its community.',[35,18]);
+ const explicit=movie(211,'Autumn Leaves',
+   'The autumn harvest brings old friends home to a school reunion.',[18]);
+ assert.ok(fit('fall',woods).score<5,'Generic woodland is not enough');
+ assert.ok(fit('fall',town,['small town']).score<5,'Generic small town is not enough');
+ assert.ok(fit('fall',explicit).score>=5,'Actual autumn setting should qualify');
+});
+test('Fall: reviewed settings such as Fantastic Mr. Fox are valid without plot keyword stuffing',()=>{
+ const fox=movie(10315,'Fantastic Mr. Fox',
+   'A family of foxes live in a forest and venture into the woods.',[16,10751]);
+ const review='Its woodland world and earthy storybook character create an autumnal feel.';
+ const qualified=moodExperience('fall',fox,[],'medium',review);
+ assert.ok(qualified.score>=5,JSON.stringify(qualified));
+ assert.match(qualified.reason,/woodland world|storybook/i);
 });
 test('Fall: editorial atmosphere is explicitly identified, not invented by genre',()=>{
  const film=movie(334541,'Manchester by the Sea','A man returns to the coastal town where he grew up.',[18]);
@@ -141,4 +147,5 @@ test('Fall: editorial atmosphere is explicitly identified, not invented by genre
   assert.ok(source.includes(JSON.stringify(name)),name+' must be a reviewed reference');
  }
  assert.match(source,/if\(has\(27\)&&!editorialReason\)score-=4/);
+ assert.match(source,/if\(!signals\.some\(x=>x\.points>=5\)\)score=-100/);
 });
