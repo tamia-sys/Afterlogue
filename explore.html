@@ -1605,141 +1605,92 @@ function paintMoodPicks(five){
   view("results");
 }
 
-// Incomplete batches stay in the reservoir until there are five legitimate
-// unseen stories. A refresh should never present two scraps as a "new set".
-const moodReservoirKey="afterlogue.explore.pending-mood-picks.v1";
-const moodReservoir=(()=>{
- try{
-  const saved=JSON.parse(sessionStorage.getItem(moodReservoirKey)||"{}");
-  return saved&&typeof saved==="object"&&!Array.isArray(saved)?saved:{};
- }catch(_){return {};}
-})();
-function rememberPendingMood(scope,items){
- moodReservoir[scope]=items.slice(0,18);
- try{sessionStorage.setItem(moodReservoirKey,JSON.stringify(moodReservoir));}catch(_){}
-}
+/* Each answer produces exactly one verified, five-story selection.
+   Partial attempts are never recycled, and already shown titles never return. */
 async function displayResults(){
   const requestId=window.afterlogueMoodRequestId=(window.afterlogueMoodRequestId||0)+1;
   const host=$("explore-picks");
-  results.classList.toggle("is-surprise",state.randomPick);
+  results.classList.toggle("is-surprise",Boolean(state.randomPick));
   host.replaceChildren();
-  const pending=document.createElement("p");
-  pending.className="explore-question";
-  pending.textContent="Searching for fresh stories that fit your choices…";
+  const pending=document.createElement("p");pending.className="explore-question";
+  pending.textContent="Finding stories for your mood…";
   host.append(pending);
   $("explore-again").disabled=true;
   view("results");
   try{
-    const isSurprise=state.randomPick;
-    const selectedFormat=$("explore-format").value;
-    const useFormat=selectedFormat==="all"?state.format:selectedFormat;
-    const media=useFormat==="tv"?["tv"]:useFormat==="movies"?["movie"]:["movie","tv"];
-    // Wait for the signed-in account's real rated-title list before
-    // excluding already watched/rated TMDB results.
     await memberRatingsReady;
     if(requestId!==window.afterlogueMoodRequestId)return;
-    const facetChoices=window.AfterlogueExploreFilters?.get()||{};
+    const isSurprise=Boolean(state.randomPick),desired=isSurprise?1:5;
+    const chosenFormat=$("explore-format").value;
+    const format=chosenFormat==="all"?state.format:chosenFormat;
+    const media=format==="tv"?["tv"]:format==="movies"?["movie"]:["movie","tv"];
+    const facet=window.AfterlogueExploreFilters?.get()||{};
     const scope=moodScopeKey();
-    const alreadyShown=new Set(previousMoodTitles(scope));
-    const rated=ratedTitles(),excluded=new Set([...rated,...(window.AfterlogueSeen?.seen||[])]);
-    const pace=state.pace||"medium";
-    const desired=isSurprise?1:5;
-    const priorPending=Array.isArray(moodReservoir[scope])?moodReservoir[scope]:[];
-    const titles=[],unique=new Set();
-    for(const item of priorPending){
-      if(!item?.id||!item?.poster)continue;
-      const type=item.media==="tv"?"tv":"movie";
-      const historyKey=type+":"+item.id,key="tmdb-"+type+"-"+item.id;
-      if(!alreadyShown.has(historyKey)&&!excluded.has(key)&&!unique.has(key)){
-        unique.add(key);titles.push(item);
+    const shown=new Set(previousMoodTitles(scope));
+    const rated=ratedTitles();
+    const excluded=new Set([...rated,...(window.AfterlogueSeen?.seen||[])]);
+    const cursor=state.offset++;
+    const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
+    // Make each format request concurrently; one complete batch per mood.
+    const responses=await Promise.allSettled(media.map(async type=>{
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),19000);
+      try{
+        const response=await fetch(endpoint,{method:"POST",signal:controller.signal,
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            mode:"mood",mood:isSurprise?"unexpected":state.mood,media:type,
+            offset:cursor,pace:state.pace||"medium",
+            excludeIds:[...shown].filter(k=>k.startsWith(type+":")).map(k=>Number(k.split(":")[1])),
+            genres:facet.genres||[],countries:facet.countries||[],
+            languages:facet.languages||[],decades:facet.decades||[],
+            ratings:facet.ratings||[]
+          })});
+        if(!response.ok)throw Error("Mood search returned "+response.status);
+        return (await response.json()).items||[];
+      }finally{clearTimeout(timeout);}
+    }));
+    if(requestId!==window.afterlogueMoodRequestId)return;
+    const lists=responses.filter(x=>x.status==="fulfilled").map(x=>x.value);
+    if(!lists.length)throw Error("Mood catalog temporarily unavailable");
+    const picks=[],unique=new Set(),max=Math.max(0,...lists.map(x=>x.length));
+    // Round-robin films and television, while retaining the server's
+    // strength ranking within each format.
+    for(let i=0;i<max&&picks.length<desired;i++){
+      for(const list of lists){
+        const item=list[i];if(!item?.poster||!item.id)continue;
+        const type=item.media==="tv"?"tv":"movie";
+        const key="tmdb-"+type+"-"+item.id,history=type+":"+item.id;
+        if(unique.has(key)||excluded.has(key)||shown.has(history))continue;
+        unique.add(key);
+        picks.push({...item,key,media:type==="tv"?"tv":"movies",
+          reason:item.moodReason||"Selected for your mood."});
+        if(picks.length>=desired)break;
       }
     }
-    let searched=0,notes=[];
-    // A single TMDB discover page cannot establish that a mood has run out.
-    // Continue to the next pages when the first pass has no fresh matches.
-    // Bound the search to two passes: never keep the visitor waiting through
-    // five full backend sweeps just to fill one five-title shelf.
-    while(searched<2&&titles.length<desired){
-      const cursor=state.offset;
-      const settled=await Promise.allSettled(media.map(async type=>{
-        const resp=await fetch("https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog",{
-          method:"POST",headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({mode:"mood",mood:isSurprise?"unexpected":state.mood,
-            media:type,seed:sessionStorage.getItem("afterlogue.first.impressions.seed.v2")||"mood",
-            offset:cursor,pace,
-            excludeIds:[...alreadyShown].filter(k=>k.startsWith(type+":")).map(k=>Number(k.split(":")[1])),
-            genres:facetChoices.genres||[],countries:facetChoices.countries||[],
-            languages:facetChoices.languages||[],decades:facetChoices.decades||[],
-            ratings:facetChoices.ratings||[]})
-        });
-        if(!resp.ok)throw Error("Mood catalog unavailable");
-        return await resp.json();
-      }));
-      if(requestId!==window.afterlogueMoodRequestId)return;
-      const requests=settled.filter(x=>x.status==="fulfilled").map(x=>x.value);
-      if(!requests.length)throw Error("Mood catalog requests failed");
-      searched++;state.offset=cursor+1;
-      notes=notes.concat(requests.map(x=>x.note).filter(Boolean));
-      // Alternate Movies and TV without weakening the selected mood.
-      const streams=requests.map(x=>x.items||[]);
-      const maxCount=Math.max(0,...streams.map(items=>items.length));
-      for(let i=0;i<maxCount;i++){
-        for(const stream of streams){
-          const item=stream[i];if(!item)continue;
-          const key="tmdb-"+item.media+"-"+item.id;
-          const historyKey=item.media+":"+item.id;
-          if(!item.poster||unique.has(key)||excluded.has(key)||alreadyShown.has(historyKey))continue;
-          unique.add(key);
-          titles.push({...item,key,media:item.media==="tv"?"tv":"movies",
-            reason:item.moodReason||"Selected for the mood you chose."});
-        }
-      }
-      // Stream the first verified choices immediately rather than making the
-      // viewer stare at a blank shelf while a second search pass finishes.
-      if(titles.length && titles.length<desired && searched<2){
-        paintMoodPicks(titles.slice(0,desired));
-        $("explore-results-detail").textContent="Found "+titles.length+
-          " matching "+(titles.length===1?"story":"stories")+". Looking for the rest of your five…";
-        $("explore-again").disabled=true;
-      }
-    }
-    const five=titles.slice(0,desired);
-    // Show genuine matches immediately, even when a narrow combination has
-    // fewer than five. Never leave a totally empty shelf while waiting for
-    // exhaustive TMDB pages; Search further collects from the next batch.
-    if(five.length<desired){
-      rememberPendingMood(scope,titles);
-      if(!five.length){
-        host.replaceChildren();
-        const notice=document.createElement("p");notice.className="explore-question";
-        notice.textContent="No verified match yet. Search further or adjust your choices.";
-        host.append(notice);
-      }else{
-        paintMoodPicks(five);
-        $("explore-results-detail").textContent="Found "+five.length+" strong "+(five.length===1?"match":"matches")+" for your mood. Search further to complete your five.";
-        saveMoodSnapshot(five);
-      }
-      $("explore-again").textContent="Search further ↗";
-      $("explore-again").disabled=false;
+    if(picks.length!==desired){
+      host.replaceChildren();
+      const explanation=document.createElement("p");explanation.className="explore-question";
+      explanation.textContent="There aren't five verified matches for these exact choices yet. Try adjusting your filters or mood.";
+      host.append(explanation);
+      $("explore-results-detail").textContent="";
+      $("explore-again").textContent="Another selection ↗";
+      $("explore-again").disabled=true;
       return;
     }
-    rememberPendingMood(scope,[]);
-    rememberMoodTitles(scope,five);
-    paintMoodPicks(five);
-    saveMoodSnapshot(five);
+    rememberMoodTitles(scope,picks);
+    paintMoodPicks(picks);
+    saveMoodSnapshot(picks);
   }catch(error){
     if(requestId!==window.afterlogueMoodRequestId)return;
-    // Never undermine explicitly selected filters with unrelated old titles.
-    if(window.AfterlogueExploreFilters?.active()||$("explore-format").value!=="all"){
-      const host=$("explore-picks");host.replaceChildren();
-      const note=document.createElement("p");note.className="explore-question";
-      note.textContent="We couldn't load stories matching these filters. Please try again.";
-      host.append(note);$("explore-again").disabled=false;return;
-    }
-    const host=$("explore-picks");host.replaceChildren();
-    const note=document.createElement("p");note.className="explore-question";
-    note.textContent="Mood discovery is temporarily unavailable. Try again shortly.";
-    host.append(note);$("explore-again").disabled=false;
+    console.warn("Afterlogue mood discovery unavailable",error);
+    host.replaceChildren();
+    const message=document.createElement("p");message.className="explore-question";
+    message.textContent="We couldn't finish finding stories. Please try again.";
+    host.append(message);
+    $("explore-results-detail").textContent="";
+    $("explore-again").textContent="Try again ↗";
+    $("explore-again").disabled=false;
   }
 }
 function displayLocalMoodResults(){
