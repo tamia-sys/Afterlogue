@@ -359,6 +359,49 @@ const dynamicEntry = dynamicDetails && catalogMeta?.identify(key) ? {
 async function preserveDynamicTitle(){
  if (dynamicEntry && member) await catalogMeta.save(client,member.id,dynamicEntry);
 }
+const favoriteButton=$("film-favorite");
+let favoriteRow=null,favorited=false;
+function reflectFavorite(){
+ favoriteButton.textContent=favorited?"♥":"♡";
+ favoriteButton.classList.toggle("is-selected",favorited);
+ favoriteButton.setAttribute("aria-pressed",String(favorited));
+ favoriteButton.setAttribute("aria-label",(favorited?"Remove from":"Add to")+" Favorites");
+ favoriteButton.title=favorited?"Remove from Favorites":"Add to Favorites";
+}
+if(member){
+ try{
+  const {data,error}=await client.from("log_entries")
+   .select("title_key,category,private_note,is_favorite,share_note_preference")
+   .eq("user_id",member.id).eq("title_key",key).maybeSingle();
+  if(error)throw error;
+  favoriteRow=data||null;
+  favorited=Boolean(favoriteRow?.is_favorite);
+ }catch(error){console.warn("Favorites status unavailable",error);}
+}
+reflectFavorite();
+favoriteButton.addEventListener("click",async()=>{
+ if(!member){location.assign("signup.html?mode=signin");return;}
+ favoriteButton.disabled=true;info("");
+ try{
+  await preserveDynamicTitle();
+  const next=!favorited;
+  const record={
+   user_id:member.id,title_key:key,category:item.category==="tv"?"tv":"movies",
+   private_note:favoriteRow?.private_note||"",
+   share_note_preference:favoriteRow?.share_note_preference||"inherit",
+   is_favorite:next,updated_at:new Date().toISOString()
+  };
+  const {error}=await client.from("log_entries").upsert(record,{
+   onConflict:"user_id,title_key"
+  });
+  if(error)throw error;
+  favoriteRow=record;favorited=next;reflectFavorite();
+  info(next?"Added to your Favorites.":"Removed from Favorites.");
+ }catch(error){
+  console.warn("Favorites update failed",error);
+  info("Could not update Favorites. Please try again.");
+ }finally{favoriteButton.disabled=false;}
+});
 // A Seen impression saves its TMDB metadata before the watched state, so
 // the story always has a proper name and image in the owner's personal Log.
 if (window.AfterlogueSeen) {
