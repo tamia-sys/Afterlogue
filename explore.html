@@ -1061,6 +1061,44 @@ body.explore-body > header.site-header {
 .explore-mood-filter-proof{margin:5px 0 0}
 .explore-mood-filter-proof summary{cursor:pointer;display:inline-block;color:#d0af81;font:10px Inter,Arial,sans-serif;text-decoration:underline;text-underline-offset:3px}
 .explore-mood-filter-proof p{margin:6px 0 2px;color:#a99b88;font-size:10px;line-height:1.55}
+
+/* Cinematic moodboard first; the complete library follows underneath. */
+body.explore-body.explore-gallery-mode{height:auto!important;min-height:100dvh!important;overflow-y:auto!important;}
+body.explore-body.explore-gallery-mode>.explore-shell{
+  display:block!important;overflow:visible!important;min-height:0!important;
+  height:auto!important;flex:none!important;padding-top:clamp(18px,2.4vw,33px)!important;
+  padding-bottom:60px!important;
+}
+body.explore-body.explore-gallery-mode .explore-gallery-wrap{display:block!important;overflow:visible!important;}
+body.explore-body.explore-gallery-mode .explore-gallery{
+  height:auto!important;max-height:none!important;min-height:0!important;
+  flex:none!important;grid-template-rows:1fr!important;overflow-x:auto!important;
+  overflow-y:hidden!important;
+}
+.explore-gallery .mood-wildcard{background:#090909;border:1px solid rgba(212,180,135,.5);display:flex;align-items:center;justify-content:center;}
+.explore-gallery .mood-wildcard::after{display:none}
+.mood-wildcard-content{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:16px 10px;width:100%;height:100%;}
+.mood-wildcard-symbol{font:32px Georgia,serif;color:#d4b487;line-height:1}
+.mood-wildcard .mood-title{color:#f4eadd;line-height:1.1}
+.mood-wildcard-caption{font:11px/1.45 Inter,Arial,sans-serif;color:#bdad99;max-width:195px}
+.mood-wildcard-action{margin-top:5px;padding:9px 15px!important;border-radius:999px;white-space:nowrap;font-size:11px!important}
+.explore-collection-divider{border-top:1px solid rgba(212,180,135,.5);margin:clamp(38px,6vw,75px) 0 28px;}
+#afterlogue-global-catalog{width:100%;padding-bottom:50px;scroll-margin-top:20px;}
+#afterlogue-global-catalog h2{font:400 clamp(37px,4.7vw,65px)/1.15 Georgia,serif;letter-spacing:-.03em;margin:8px 0 11px;}
+#afterlogue-global-catalog .catalog-intro{margin:0 0 22px;}
+.explore-refine{margin-top:18px;border:1px solid rgba(212,180,135,.26);border-radius:17px;padding:0 17px;background:rgba(24,22,20,.6)}
+.explore-refine>summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;padding:15px 0;color:#d8bf9d;font:12px/1.4 Inter,Arial,sans-serif;}
+.explore-refine>summary::-webkit-details-marker{display:none}
+.explore-refine>summary:focus-visible{outline:2px solid #d4b487;outline-offset:3px}
+.explore-refine-hint{font:11px Inter,Arial,sans-serif;color:#bdad99;margin:0 0 9px}
+.explore-refine .explore-filters{display:flex;flex-wrap:wrap;gap:9px;padding:0 0 15px;margin-top:0;overflow:visible;}
+.explore-refine .explore-filter-menu{min-width:130px}
+.explore-refine #explore-clear{border:1px solid rgba(212,180,135,.45);background:transparent;color:#d4b487;border-radius:99px;cursor:pointer;padding:8px 14px;font:11px Inter,Arial,sans-serif;}
+@media(max-width:699px){
+ .explore-gallery .mood-wildcard{min-height:220px}
+ .mood-wildcard .mood-title{font-size:19px}
+ .explore-refine .explore-filter-menu{flex:1 1 125px}
+}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 <link rel="stylesheet" href="seen-impression.css?v=2">
@@ -1097,27 +1135,7 @@ body.explore-body > header.site-header {
     </div>
     <p class="explore-aside">A different kind of search.<br>Follow the feeling.</p>
   </div>
-  <section class="explore-browse" aria-label="Search and filter stories">
-  <label class="explore-search" for="explore-search">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.1"/><path d="M16.2 16.2 21 21"/></svg>
-    <input id="explore-search" type="search" placeholder="Search a mood, theme, or title..." autocomplete="off" aria-controls="explore-search-results explore-gallery">
-    <span>SEARCH</span>
-  </label>
-  <div class="explore-filters">
-    <label>Genre <select id="explore-genre"><option value="all">All genres</option></select></label>
-    <label>Year <select id="explore-year"><option value="all">Any decade</option></select></label>
-    <label>Country <select id="explore-country"><option value="all">All countries</option></select></label>
-    <label>Format <select id="explore-format"><option value="all">Movies &amp; TV</option><option value="movies">Movies</option><option value="tv">TV Shows</option></select></label>
-    <button type="button" id="explore-clear" hidden>Clear ×</button>
-  </div>
-  <div class="explore-browse-foot"><p id="explore-browse-note" hidden></p><button type="button" class="explore-all-films-open" id="catalog-open">All Films <span aria-hidden="true">↗</span></button></div>
-</section>
-<section id="explore-search-results" class="explore-search-results" hidden aria-live="polite">
-  <div class="explore-group-label"><p>MATCHING STORIES</p><span id="explore-matches-count"></span></div>
-  <div class="explore-picks" id="explore-match-picks"></div>
-  <p id="explore-no-matches" hidden></p>
-</section>
-<div class="explore-group-label explore-rail-head">
+  <div class="explore-group-label explore-rail-head">
     <p>01 — A LITTLE…</p>
     <div class="explore-rail-tools">
       <span id="explore-rail-hint">Scroll for more ↓</span>
@@ -1156,44 +1174,21 @@ body.explore-body > header.site-header {
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.9 2.8 5.67 6.27.91-4.54 4.42 1.07 6.24L12 17.2l-5.6 2.94 1.07-6.24-4.54-4.42 6.27-.91z"/></svg>
       </button>
     </article>
-    <article class="mood-card" data-mood="unexpected">
-      <button type="button" class="mood-open" aria-label="Explore Something unexpected"><span class="mood-image" aria-hidden="true"></span><span class="mood-card-body"><span class="mood-number">006 / DETOUR</span><span class="mood-title">Something unexpected.</span><span class="mood-bottom"><span>Just outside your comfort zone</span></span></span></button>
-      <button type="button" class="mood-pin" data-pin="unexpected" aria-label="Pin Something unexpected" aria-pressed="false" title="Pin collection">
-        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.9 2.8 5.67 6.27.91-4.54 4.42 1.07 6.24L12 17.2l-5.6 2.94 1.07-6.24-4.54-4.42 6.27-.91z"/></svg>
-      </button>
+    <article class="mood-card mood-wildcard" data-mood="unexpected">
+      <div class="mood-wildcard-content">
+        <span class="mood-wildcard-symbol" aria-hidden="true">✧</span>
+        <span class="mood-title">Leave it to chance.</span>
+        <span class="mood-wildcard-caption">A story you weren't looking for.</span>
+        <button type="button" class="explore-button mood-wildcard-action" id="explore-surprise">Surprise me ↗</button>
+      </div>
     </article>
   </div>
   <p id="explore-pin-status" class="explore-pin-status" role="status" aria-live="polite" aria-atomic="true"></p>
-  <div id="explore-mystery" class="explore-mystery"><div><h2>Or, leave it to chance.</h2><p>No questions. One story. No clues until you open it.</p></div><button type="button" class="explore-button" id="explore-surprise">Surprise me ↗</button></div>
-</section>
-<section class="explore-all-films" id="explore-all-films" aria-labelledby="explore-all-films-title" hidden>
-  <button type="button" class="explore-back" id="explore-films-back">← Back to Explore</button>
-  <div class="explore-all-films-heading">
-    <div>
-      <p class="explore-eyebrow">AFTERLOGUE / THE COLLECTION</p>
-      <h2 id="explore-all-films-title">All Films.</h2>
-      <p>Discover films from your collection.</p>
-    </div>
-    <span id="explore-all-films-total" class="explore-films-total"></span>
-  </div>
-  <div class="explore-film-tools">
-    <label class="explore-film-search" for="explore-film-query">
-      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.8"></circle><path d="M16 16 21 21"></path></svg>
-      <input id="explore-film-query" type="search" placeholder="Search films..." autocomplete="off" aria-controls="explore-films-grid">
-    </label>
-    <label class="explore-film-select">Genre <select id="explore-film-genre"><option value="all">All genres</option></select></label>
-    <label class="explore-film-select">Decade <select id="explore-film-decade"><option value="all">Any decade</option></select></label>
-    <label class="explore-film-select">Sort <select id="explore-film-sort"><option value="title">Title A–Z</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
-  </div>
-  <p id="explore-film-count" class="explore-film-count" role="status" aria-live="polite"></p>
-  <div id="explore-films-grid" class="explore-films-grid"></div>
-  <p id="explore-films-empty" class="explore-film-empty" hidden>No films match those filters. Try another search or genre.</p>
-</section>
-<section id="afterlogue-global-catalog" hidden>
-<button type="button" id="catalog-back" class="catalog-back">← Back to Explore</button>
-<p class="explore-eyebrow" style="margin-top:30px">AFTERLOGUE / THE EXPANDED LIBRARY</p>
-<h2 style="font:400 clamp(40px,5vw,65px) Georgia,serif;margin:8px 0">Explore cinema.</h2>
-<p class="catalog-intro">Browse films and television from across the world.</p>
+  <div class="explore-collection-divider" role="separator" aria-hidden="true"></div>
+<section id="afterlogue-global-catalog" aria-labelledby="catalog-title">
+<p class="explore-eyebrow">AFTERLOGUE / THE COLLECTION</p>
+<h2 id="catalog-title">All Films &amp; TV.</h2>
+<p class="catalog-intro">A world of stories, waiting to be discovered.</p>
 <div class="catalog-toolbar">
 <input type="search" id="catalog-search" placeholder="Search a title..." aria-label="Search the expanded catalog">
 <select id="catalog-media" aria-label="Film or television"><option value="movie">Films</option><option value="tv">TV shows</option></select>
@@ -1208,12 +1203,20 @@ body.explore-body > header.site-header {
 <div id="catalog-pagination" class="catalog-page-controls" hidden><button id="catalog-prev" type="button">← Previous</button><button id="catalog-next" type="button">Next →</button></div>
 <p style="font:11px Arial,sans-serif;color:#A99A82">Film and TV information provided by <a style="color:#D4B487" href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>. Afterlogue is not endorsed or certified by TMDB.</p>
 </section>
+</section>
 <section class="explore-experience" id="explore-experience" aria-live="polite" hidden>
   <button type="button" class="explore-back" id="explore-back">← All moods</button>
   <p class="explore-eyebrow" id="explore-stage">AFTERLOGUE / A LITTLE CLOSER</p>
   <h2 id="explore-mood-title"></h2>
   <p class="explore-question" id="explore-question"></p>
   <div class="explore-choices" id="explore-choices"></div>
+  <details class="explore-refine" id="explore-refine">
+    <summary>Refine your mood <span aria-hidden="true">⌄</span></summary>
+    <p class="explore-refine-hint">Optional preferences for your next selection.</p>
+    <div class="explore-filters" aria-label="Refine mood recommendations">
+      <button type="button" id="explore-clear" hidden>Clear filters ×</button>
+    </div>
+  </details>
   <div class="explore-step-actions"><p id="explore-step-count">01 / 02</p><button type="button" class="explore-button primary" id="explore-next" disabled>Continue →</button></div>
 </section>
 <section class="explore-results" id="explore-results" aria-live="polite" hidden>
@@ -1239,7 +1242,7 @@ body.explore-body > header.site-header {
 <script src="seen-impression.js?v=5"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="explore-facets.js?v=2"></script>
+<script src="explore-facets.js?v=3"></script>
 <script>
 (() => {
 "use strict";
@@ -1249,7 +1252,6 @@ const $ = id => document.getElementById(id);
 const gallery = $("explore-gallery-wrap");
 const experience = $("explore-experience");
 const results = $("explore-results");
-const allFilms = $("explore-all-films");
 const state = { mood:null, stage:0, format:null, pace:null, offset:0, randomPick:false };
 const isGuest = new URLSearchParams(location.search).get("guest") === "1";
 const impressionRatings = new Set(["Loved","Liked","Okay","Not for me"]);
@@ -1312,79 +1314,12 @@ function view(section) {
   gallery.hidden = section !== "gallery";
   experience.hidden = section !== "experience";
   results.hidden = section !== "results";
-  allFilms.hidden = section !== "films";
   window.scrollTo({top:0,behavior:"auto"});
   document.body.classList.toggle("explore-gallery-mode",section==="gallery");
 }
-/* Full film collection, separate from the five-at-a-time mood discovery.
-   Use the entire Afterlogue catalog so films don't vanish because they lack mood tags. */
-const filmCatalog=window.AfterlogueFeaturedCatalog||{};
-const filmBasics=window.AfterlogueFilmBasics||{};
-const filmEditorial=window.AfterlogueFilmDetails||{};
-const filmEntries=Object.entries(filmCatalog)
-  .filter(([,item])=>item.category==="movies")
-  .map(([key,item])=>({key,...item,details:{...(filmBasics[key]||{}),...(filmEditorial[key]||{})}}));
-const filmQuery=$("explore-film-query"),filmGenre=$("explore-film-genre"),
-  filmDecade=$("explore-film-decade"),filmSort=$("explore-film-sort");
-const normalizedFilmText=value=>String(value||"").toLowerCase().normalize("NFD")
-  .replace(/[\u0300-\u036f]/g,"");
-const filmGenres=entry=>String(entry.details.genre||"").split("·").map(v=>v.trim()).filter(Boolean);
-const filmGenreValues=[...new Set(filmEntries.flatMap(filmGenres))].sort((a,b)=>a.localeCompare(b));
-const filmDecades=[...new Set(filmEntries.map(entry=>Math.floor(entry.year/10)*10))].sort((a,b)=>b-a);
-filmGenreValues.forEach(genre=>{
- const option=document.createElement("option");option.value=genre;option.textContent=genre;filmGenre.append(option);
-});
-filmDecades.forEach(decade=>{
- const option=document.createElement("option");option.value=String(decade);option.textContent=decade+"s";filmDecade.append(option);
-});
-$("explore-all-films-total").textContent=filmEntries.length+" films";
-function renderAllFilms(){
- const query=normalizedFilmText(filmQuery.value.trim());
- const genre=filmGenre.value,decade=filmDecade.value;
- const matches=filmEntries.filter(entry=>{
-  const searchable=[entry.title,entry.year,entry.details.genre,entry.details.director,
-    entry.details.country,entry.details.synopsis].filter(Boolean).join(" ");
-  return (!query||normalizedFilmText(searchable).includes(query))
-    &&(genre==="all"||filmGenres(entry).includes(genre))
-    &&(decade==="all"||Math.floor(entry.year/10)*10===Number(decade));
- }).sort((a,b)=>filmSort.value==="newest"?(b.year-a.year||a.title.localeCompare(b.title))
-  :filmSort.value==="oldest"?(a.year-b.year||a.title.localeCompare(b.title))
-  :a.title.localeCompare(b.title));
- const grid=$("explore-films-grid");grid.replaceChildren();
- for(const entry of matches){
-  const link=document.createElement("a");
-  link.className="explore-film-entry";
-  link.href="film-details.html?title="+encodeURIComponent(entry.key)+"&from=explore";
-  link.setAttribute("aria-label","View details: "+entry.title+", "+entry.year);
-  const poster=document.createElement("div");poster.className="explore-film-poster";
-  const image=document.createElement("img");image.loading="lazy";image.src=entry.poster;
-  image.alt=entry.title+" poster";
-  image.addEventListener("error",()=>{image.hidden=true;poster.classList.add("poster-missing");poster.textContent=entry.title;});
-  const label=document.createElement("span");label.className="explore-film-entry-title";label.textContent=entry.title;
-  const meta=document.createElement("span");meta.className="explore-film-entry-meta";
-  meta.textContent=entry.year+(entry.details.genre?"  ·  "+entry.details.genre.split("·")[0].trim():"");
-  poster.append(image);
-  const eye=window.AfterlogueSeen.button({key:entry.key,title:entry.title,category:"movies"});
-  const actions=document.createElement("div");actions.className="explore-film-entry-actions";actions.append(eye);
-  link.append(poster,label,meta);
-  const tile=document.createElement("div");tile.className="explore-film-tile";tile.append(link,actions);grid.append(tile);
- }
- $("explore-film-count").textContent=matches.length+" of "+filmEntries.length+" films";
- $("explore-films-empty").hidden=matches.length!==0;
-}
-// The separate curated-only All Films launcher was removed. The unified
-// #catalog-open browser is now the only All Films entry point.
-$("explore-films-back").addEventListener("click",()=>view("gallery"));
-[filmQuery,filmGenre,filmDecade,filmSort].forEach(control=>{
- control.addEventListener(control===filmQuery?"input":"change",renderAllFilms);
-});
-renderAllFilms();
-
 function start(mood) {
   if (!data.moods[mood]) return;
-  const filteredFormat=$("explore-format").value;
-  Object.assign(state,{mood,stage:filteredFormat==="all"?0:1,
-    format:filteredFormat==="all"?null:filteredFormat,pace:null,offset:0,randomPick:false});
+  Object.assign(state,{mood,stage:0,format:null,pace:null,offset:0,randomPick:false});
   renderQuestion();
   view("experience");
 
@@ -1468,57 +1403,6 @@ function ratedTitles() {
   return out;
 }
 const slug = title => title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-function selectedCandidates() {
-  const mood = state.mood;
-  const catalog = data.titles;
-  const pool = data.pools[mood];
-  const rated = ratedTitles();
-  const love = new Set(), avoid=new Set();
-  try {
-    for(let i=0;i<localStorage.length;i++){
-      const key=localStorage.key(i);
-      if(!key?.startsWith("afterlogue-")) continue;
-      const rating=localStorage.getItem(key);
-      if(rating==="Loved"||rating==="Liked") love.add(key.slice("afterlogue-".length));
-      if(rating==="Not for me") avoid.add(key.slice("afterlogue-".length));
-    }
-  } catch(e){}
-  const wanted = browseState.format!=="all" ? [browseState.format] : (state.format==="either"?["movies","tv"]:[state.format]);
-  const indexed = [];
-  wanted.forEach(media=>(pool?.[media]||[]).forEach((name,rank)=>{
-    const item=catalog.find(x=>x.title===name&&x.media===media);
-    if(item&&matchesFilters(item)&&!rated.has(slug(item.title))){
-      const shared=item.matches.filter(x=>love.has(x)).length;
-      const disliked=item.matches.filter(x=>avoid.has(x)).length;
-      const pace=data.paces[state.pace]?.includes(item.title)? 3:0;
-      indexed.push({...item,score:(30-rank)+pace+shared*2-disliked*4});
-    }
-  }));
-  indexed.sort((a,b)=>b.score-a.score);
-  return indexed;
-}
-function drawPick(item){
-  const card=document.createElement("article");card.className="explore-pick";
-  const art=document.createElement("button");art.type="button";art.className="explore-art";art.setAttribute("aria-expanded","false");art.setAttribute("aria-label","Why this story: "+item.title);
-  const img=document.createElement("img");img.src=item.poster;img.alt=item.title+" poster";img.loading="lazy";
-  img.addEventListener("error",()=>{img.style.display="none";art.style.background="linear-gradient(145deg,#41483f,#3a292e)";art.setAttribute("aria-label",item.title+" — poster unavailable");});
-  const explain=document.createElement("span");explain.className="explore-pick-info";
-  const kicker=document.createElement("b");kicker.textContent="WHY THIS STORY";
-  const reason=document.createElement("span");reason.textContent=item.reason;
-  explain.append(kicker,reason);art.append(img,explain);
-  art.addEventListener("click",()=>art.setAttribute("aria-expanded",String(art.getAttribute("aria-expanded")!=="true")));
-  const h=document.createElement("h3");h.textContent=item.title;
-  const year=document.createElement("p");year.className="explore-year";year.textContent=item.year+" / "+(item.media==="tv"?"TV":"FILM");
-  const more=document.createElement("a");
-  more.href="film-details.html?title="+encodeURIComponent(slug(item.title))+"&from=explore";
-  more.textContent="View details";
-  more.setAttribute("aria-label","View details for "+item.title);
-  more.style.cssText="display:inline-block;margin-top:10px;color:#d4b487;font:11px Arial,sans-serif;text-decoration:none;border-bottom:1px solid rgba(212,180,135,.45);padding-bottom:3px";
-  const canonicalKey=Object.keys(window.AfterlogueFeaturedCatalog||{}).find(k=>window.AfterlogueFeaturedCatalog[k].title===item.title)||slug(item.title);
-  const eye=window.AfterlogueSeen.button({key:canonicalKey,title:item.title,category:item.media});
-  const controls=document.createElement("div");controls.className="explore-pick-actions";controls.append(eye,more);
-  card.append(art,h,year,controls);return card;
-}
 // A distinct mood + pace + filter combination gets its own discovery history.
 // Changing answers starts a fresh search rather than inheriting exhaustion.
 const moodHistoryKey="afterlogue.explore.seen-mood-titles.v3";
@@ -1532,7 +1416,7 @@ const shownByScope=(()=>{
 function moodScopeKey(){
  const facet=window.AfterlogueExploreFilters?.get()||{};
  return JSON.stringify([
-  state.mood,$("explore-format").value==="all"?state.format:$("explore-format").value,
+  state.mood,state.format||"either",
   state.pace||"medium",...["countries","languages","genres","decades","ratings"].map(k=>(facet[k]||[]).slice().sort().join(","))
  ]);
 }
@@ -1620,8 +1504,7 @@ async function displayResults(){
     await memberRatingsReady;
     if(requestId!==window.afterlogueMoodRequestId)return;
     const isSurprise=Boolean(state.randomPick),desired=isSurprise?1:5;
-    const chosenFormat=$("explore-format").value;
-    const format=chosenFormat==="all"?state.format:chosenFormat;
+    const format=state.format||"either";
     const media=format==="tv"?["tv"]:format==="movies"?["movie"]:["movie","tv"];
     const facet=window.AfterlogueExploreFilters?.get()||{};
     const scope=moodScopeKey();
@@ -1692,94 +1575,6 @@ async function displayResults(){
     $("explore-again").disabled=false;
   }
 }
-function displayLocalMoodResults(){
-  results.classList.toggle("is-surprise",state.randomPick);
-  const selected=selectedCandidates();
-  const host=$("explore-picks");host.replaceChildren();
-  if(state.randomPick) {
-    const available=data.titles.filter(x=>!ratedTitles().has(slug(x.title)));
-    if(available.length) {
-      const pick=available[Math.floor(Math.random()*available.length)];
-      host.append(drawPick(pick));
-    }
-    $("explore-results-title").textContent="A story you didn't ask for.";
-    $("explore-results-detail").textContent="A little chance, a little curiosity. Select the poster to see why it might be worth your time.";
-    $("explore-results-label").textContent="AFTERLOGUE / SURPRISE ME";
-    $("explore-adjust").hidden=true;
-    $("explore-again").textContent="Another surprise ↗";
-    $("explore-again").disabled=false;
-  } else {
-    const five=selected.slice(state.offset,state.offset+5);
-    if(five.length===0) {
-      const note=document.createElement("p");note.className="explore-question";
-      note.textContent=selected.length?"You've reached the end of this selection. Try a different mood or change your choices.":"No unrated matches left in this mood. Try a different mood or format.";
-      host.appendChild(note);
-    } else five.forEach(item=>host.append(drawPick(item)));
-    $("explore-results-title").textContent="A little something for you.";
-    $("explore-results-detail").textContent=data.moods[state.mood].intro+" "+five.length+" "+(five.length===1?"pick":"picks")+" from our current collection.";
-    $("explore-results-label").textContent="AFTERLOGUE / "+data.moods[state.mood].short.toUpperCase();
-    $("explore-adjust").hidden=false;
-    $("explore-again").textContent="Another selection ↗";
-    $("explore-again").disabled=selected.length<=5;
-  }
-  view("results");
-}
-
-/* Explore browsing tools. All queries are matched against a curated, local
-   30-title starter catalog. This does not claim unlimited global search. */
-const searchField=$("explore-search");
-const browseState={format:"all"};
-const foldText=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
-const chosenFilters=()=>window.AfterlogueExploreFilters?.get()||{genres:[],countries:[],languages:[],decades:[],ratings:[]};
-function matchesFilters(item){
- const f=chosenFilters();
- const genres=(item.genres||[]).map(foldText),countries=(item.countries||[]).map(foldText);
- return (browseState.format==="all"||item.media===browseState.format)
-  &&(!f.genres.length||f.genres.some(x=>genres.includes(foldText(x))))
-  &&(!f.countries.length||f.countries.some(x=>countries.includes(foldText(x))))
-  &&(!f.decades.length||f.decades.includes(String(Math.floor(item.year/10)*10)))
-  &&(!f.languages.length||f.languages.includes(item.original_language));
-}
-function matchesText(item,query){
-  if(!query)return true;
-  const values=[item.title,item.year,Math.floor(item.year/10)*10+"s",item.reason,
-    item.media==="tv"?"tv shows":"movies",...(item.genres||[]),...(item.countries||[]),...(item.topics||[])];
-  return values.some(v=>foldText(v).includes(query));
-}
-function matchesMood(mood,query){
-  const info=data.moods[mood],words=[info.label,info.short,info.intro,...(data.collectionTopics?.[mood]||[])];
-  return words.some(v=>foldText(v).includes(query));
-}
-function updateBrowse(){
- const typed=foldText(searchField.value.trim());
- // One character must never collapse the mood gallery or announce no results.
- const query=typed.length>=2?typed:"";
- browseState.format=$("explore-format").value;
- const enabled=Boolean(typed)||(window.AfterlogueExploreFilters?.active()||false)||browseState.format!=="all";
- $("explore-clear").hidden=!enabled;
- document.body.classList.toggle("explore-search-active",Boolean(query));
- const panel=$("explore-search-results");panel.hidden=!query;
- if(query){
-  // The unified catalog search module renders all results.
-  // Avoid clearing its in-flight results from a second input listener.
-  $("explore-no-matches").hidden=true;
- }
- $("explore-browse-note").textContent="";
- for(const card of document.querySelectorAll(".mood-card")){
-  card.hidden=Boolean(query)&&!matchesMood(card.dataset.mood,query);
- }
- window.AfterlogueExploreFilters?.refresh();
- requestAnimationFrame(refreshExploreRail);
-}
-searchField.addEventListener("input",updateBrowse);
-$("explore-format").addEventListener("change",updateBrowse);
-window.AfterlogueExploreFilters?.subscribe(updateBrowse);
-$("explore-clear").addEventListener("click",()=>{
- searchField.value="";$("explore-format").value="all";
- window.AfterlogueExploreFilters?.reset();updateBrowse();
-});
-
-
 function isVerticalExploreRail(){
   return window.matchMedia("(min-width: 700px)").matches;
 }
@@ -1819,7 +1614,7 @@ refreshExploreRail();
 /* Save "Something for..." collections separately from film watchlists.
    Guests have browser-only pins. Member pins sync privately across devices. */
 const pinGallery=$("explore-gallery");
-const pinCards=[...pinGallery.querySelectorAll(".mood-card")];
+const pinCards=[...pinGallery.querySelectorAll(".mood-card:not(.mood-wildcard)")];
 const pinCardMap=new Map(pinCards.map((card,index)=>[card.dataset.mood,{card,index}]));
 const pinStatus=$("explore-pin-status");
 const guestPinKey="afterlogue.explore.pins.guest.v1";
@@ -1847,7 +1642,7 @@ function renderPinnedCollections() {
     const ib=position.has(b.dataset.mood)?position.get(b.dataset.mood):1000+pinCardMap.get(b.dataset.mood).index;
     return ia-ib;
   });
-  pinGallery.append(...sorted);
+  pinGallery.append(...sorted,pinGallery.querySelector(".mood-wildcard"));
   pinCards.forEach(card=>{
     const button=card.querySelector(".mood-pin");
     const selected=position.has(card.dataset.mood);
@@ -1947,7 +1742,7 @@ $("explore-next").addEventListener("click",()=>{
   if(state.stage===0){state.stage=1;renderQuestion();}
   else displayResults();
 });
-$("explore-adjust").addEventListener("click",()=>{const format=$("explore-format").value;state.stage=format==="all"?0:1;if(format!=="all")state.format=format;state.offset=0;renderQuestion();view("experience");});
+$("explore-adjust").addEventListener("click",()=>{state.stage=0;state.offset=0;renderQuestion();view("experience");});
 $("explore-surprise").addEventListener("click",()=>{Object.assign(state,{randomPick:true,mood:"unexpected",format:"either",pace:"medium",offset:0});displayResults();});
 $("explore-again").addEventListener("click",()=>{
   displayResults();
@@ -1956,7 +1751,7 @@ restoreMoodSnapshot();
 })();
 </script>
 <script src="catalog-browser.js?v=6"></script>
-<script src="explore-global-search.js?v=3"></script>
+
 
 </body>
 </html>
