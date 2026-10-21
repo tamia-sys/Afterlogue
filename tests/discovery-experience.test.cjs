@@ -23,7 +23,10 @@ test('Home poster opens details, with independent actions and no why overlay',()
  const css=read('discover-home.css');
  assert.match(code,/poster\.href=detailsHref/);
  assert.match(code,/posterStack\.append\(poster,actions\)/);
- assert.match(code,/detailLink\.textContent="Details ↗"/);
+ assert.doesNotMatch(code,/detailLink\.textContent="Details ↗"/);
+ assert.doesNotMatch(code,/card\.append\(posterStack,title,year\)/);
+ assert.match(code,/card\.append\(posterStack\)/);
+ assert.match(code,/actions\.append\(bookmarkButton\)/);
  assert.doesNotMatch(code,/className\s*=\s*"discovery-reason"/);
  assert.match(css,/\.discovery-card:hover \.discovery-card-actions/);
  assert.match(css,/@media\(hover:none\),\(pointer:coarse\)/);
@@ -34,6 +37,10 @@ test('Film details clearly acknowledges Watchlist, shares public card and embeds
  assert.match(html,/id="film-share-modal"/);
  assert.match(html,/id="film-share-open"/);
  assert.match(script,/This story will no longer appear in Home recommendations/);
+ assert.match(script,/watchBtn\.closest\('\.film-watchlist-control'\)\.before\(eye\)/);
+ const css=read('film-details.css');
+ assert.match(css,/\.film-hero-actions \.film-watchlist-feedback\{/);
+ assert.match(css,/position:static;display:block/);
  assert.match(script,/navigator\.share/);
  assert.match(script,/navigator\.clipboard\.writeText/);
  assert.match(script,/autoplay=1&mute=1/);
@@ -44,6 +51,11 @@ test('Mood results have independent Watchlist save with existing title metadata'
  assert.match(html,/\.from\("watchlist"\)\.insert/);
  assert.match(html,/AfterlogueCatalogMetadata\.save/);
  assert.match(html,/actions\.append\(save,note\)/);
+ assert.match(html,/el\.append\(link,actions,title,year,why\)/);
+ assert.doesNotMatch(html,/detail\.textContent="View details";detail\.className="explore-global-detail";actions\.append\(detail\)/);
+ assert.match(html,/for\(let attempt=0;attempt<2&&picks\.length<desired;attempt\+\+\)/);
+ assert.match(html,/if\(hasPrevious\)\{/);
+ assert.doesNotMatch(html,/Try adjusting your filters or mood\./);
 });
 test('Account menus close on click outside and Escape',()=>{
  const nav=read('site-navigation.js');

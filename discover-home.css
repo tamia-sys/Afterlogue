@@ -533,3 +533,25 @@ body.discovery-home-page {
  .discovery-home-page .discovery-card,
  .discovery-home-page .discovery-card-actions{transition:none;transform:none!important}
 }
+
+/* Poster-only discovery shelf: no repeated titles or redundant Details link.
+   The hover panel belongs to the poster, not to text under the image. */
+.discovery-home-page .discovery-card-actions{
+  justify-content:center;gap:12px;
+  padding:7px 10px;min-height:43px
+}
+.discovery-home-page .discovery-card-actions .discovery-bookmark{
+  padding:7px 10px;min-height:33px;border:1px solid rgba(212,180,135,.24);
+  border-radius:99px;color:#e7d5bc
+}
+.discovery-home-page .discovery-card-actions .afterlogue-seen-eye{
+  align-self:center;flex:0 0 34px;width:34px;height:34px;
+  border-color:rgba(212,180,135,.24)
+}
+.discovery-home-page .discovery-card-actions .discovery-bookmark[disabled]{opacity:.5;cursor:wait}
+@media(hover:none),(pointer:coarse){
+  .discovery-home-page .discovery-card-actions{
+    justify-content:center;gap:12px;margin:0;
+    border-top:1px solid rgba(212,180,135,.2)
+  }
+}

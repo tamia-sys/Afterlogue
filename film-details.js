@@ -484,7 +484,9 @@ if (window.AfterlogueSeen) {
  eye.classList.add('film-seen-action');
  eye.title='Mark as seen or leave an impression';
  eye.appendChild(document.createTextNode(' Seen it'));
- watchBtn.before(eye);
+ // Seen belongs next to Watchlist, not nested inside the Watchlist
+ // feedback wrapper. Nesting pushed the action buttons onto two lines.
+ watchBtn.closest('.film-watchlist-control').before(eye);
 }
 let saved=false,watchId=null;
 function displaySaved(){
@@ -507,12 +509,12 @@ watchBtn.addEventListener('click',async()=>{
   if(saved){
    const result=await client.from('watchlist').delete().eq('user_id',member.id).eq('title_key',key);
    if(result.error)throw result.error;
-   saved=false;watchId=null;info('Removed from your Watchlist.');watchNotice('Removed from your Watchlist.');
+    saved=false;watchId=null;watchNotice('Removed from your Watchlist.');
   }else{
    await preserveDynamicTitle();
    const result=await client.from('watchlist').insert({user_id:member.id,title_key:key,category:item.category==='tv'?'tv':'movies'}).select('id').single();
    if(result.error)throw result.error;
-   saved=true;watchId=result.data.id;info('Saved to your private Watchlist.');
+   saved=true;watchId=result.data.id;
    watchNotice(origin==='discover'
     ?'Saved to your Watchlist. This story will no longer appear in Home recommendations.'
     :'Saved to your Watchlist.');
@@ -520,7 +522,7 @@ watchBtn.addEventListener('click',async()=>{
   displaySaved();
  }catch(error){
   console.error('Watchlist update failed',error);
-  if(error.code==='23505'){saved=true;displaySaved();info('Already on your Watchlist.');watchNotice('Already in your Watchlist.');}
+  if(error.code==='23505'){saved=true;displaySaved();watchNotice('Already in your Watchlist.');}
   else info('Could not update Watchlist. Please try again.');
  }finally{watchBtn.disabled=false;}
 });
