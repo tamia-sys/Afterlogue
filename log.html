@@ -351,8 +351,8 @@
 <!-- AFTERLOGUE — SUPABASE CONNECTION -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
-<script src="onboarding-sync.js?v=4"></script>
-<script src="onboarding-catalog-search.js?v=5"></script>
+<script src="onboarding-sync.js?v=5"></script>
+<script src="onboarding-catalog-search.js?v=6"></script>
 <script src="site-navigation.js?v=2"></script>
   <script>
   // AFTERLOGUE — CHECK SIGNED-IN USER
@@ -468,6 +468,14 @@ backButton.addEventListener("click", event => {
   // Restore the saved rating when the page loads.
   const savedRating = sessionStorage.getItem(filmKey);
   showSavedRating(savedRating);
+  document.addEventListener("afterlogue:saved-ratings",()=>{
+    // A temporary edit in the current tab takes precedence over Supabase
+    // until Continue saves it. Otherwise show the member's stored rating.
+    const rating=sessionStorage.getItem(filmKey)
+      ||window.afterlogueSavedRatings?.[filmKey.slice("afterlogue-".length)]
+      ||null;
+    showSavedRating(rating);
+  });
 
   // Save an impression when a button is selected.
   buttons.forEach(button => {
@@ -492,6 +500,25 @@ backButton.addEventListener("click", event => {
 });
 
 });
+/* Display existing Supabase impressions when a signed-in member revisits
+   First Impressions. Never copy account ratings into session/local storage. */
+(async()=>{
+ if(new URLSearchParams(location.search).get("guest")==="1")return;
+ try{
+  const client=window.afterlogueSupabase;
+  const {data:auth,error:authError}=await client.auth.getUser();
+  if(authError||!auth?.user)return;
+  const {data:rows,error}=await client.from("impressions")
+    .select("title_key,rating").eq("user_id",auth.user.id);
+  if(error)throw error;
+  const allowed=new Set(["Loved","Liked","Okay","Not for me"]);
+  window.afterlogueSavedRatings=Object.fromEntries((rows||[])
+    .filter(item=>allowed.has(item.rating)).map(item=>[item.title_key,item.rating]));
+  document.dispatchEvent(new CustomEvent("afterlogue:saved-ratings"));
+ }catch(error){
+  console.warn("Afterlogue: Could not restore member First Impressions",error);
+ }
+})();
 </script>
 
 <script>
