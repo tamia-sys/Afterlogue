@@ -136,16 +136,28 @@ test('Explore returns one complete mood selection with no repeated Search furthe
  assert.doesNotMatch(html,/Search further ↗/);
  assert.match(backend,/while\(queue\.length&&verified\.length<10\)/);
 });
-test('All Films defaults to 60 stories and uses 70 when filters are active',()=>{
- const client=read('catalog-browser.js'),backend=read('supabase/functions/afterlogue-catalog/index.ts');
+test('All Films collects up to 70 actual filtered matches using cursor pagination',()=>{
+ const client=read('catalog-browser.js');
+ const backend=read('supabase/functions/afterlogue-catalog/index.ts');
  assert.match(client,/hasFilters\?70:60/);
- assert.match(client,/pageSize,genre,country/);
- assert.match(backend,/Number\(input\.pageSize\)===70\?70:/);
- assert.match(backend,/const firstIndex=\(page-1\)\*requestedSize/);
- assert.match(backend,/const firstTmdbPage=Math\.floor\(firstIndex\/20\)\+1/);
- assert.match(backend,/const pageCandidates=collected\.slice\(startOffset,startOffset\+requestedSize\)/);
- assert.match(backend,/totalPages:Math\.min\(100,Math\.max\(1,/);
- assert.doesNotMatch(client,/explore-all-films-open"\)\?\.click/);
+ assert.match(client,/const pageSize=hasFilters\?70:60/);
+ assert.match(client,/cursor:filtered\?/);
+ assert.match(backend,/if\(Number\(input\.pageSize\)===70\)/);
+ assert.match(backend,/if\(mode==="discover"&&country\)params\.set\("with_origin_country",country\)/);
+ assert.match(backend,/const limit=70,found:/);
+ assert.match(backend,/nextCursor=current\+":" \+index/);
+ assert.match(backend,/totalPages:null,totalResults:null/);
+ assert.match(client,/Page "\+page\+\(filtered\?"":/);
+ assert.doesNotMatch(client,/filtered.*Page .* of "+pages/);
+});
+test('Filtered page 2 uses the next genuine matching-title cursor, not an unfiltered offset',()=>{
+ const client=read('catalog-browser.js'),backend=read('supabase/functions/afterlogue-catalog/index.ts');
+ assert.match(client,/pageCursors\.set\(page\+1,cursor\)/);
+ assert.match(client,/hasNext=Boolean\(cursor\)/);
+ assert.match(client,/pageCursors\.get\(page\)/);
+ assert.match(backend,/const rawCursor=typeof input\.cursor/);
+ assert.match(backend,/const indexed=/);
+ assert.match(backend,/const proof=verified\[j\]/);
 });
 test('All Films Next and Previous scroll to the top and load a new page',()=>{
  const browser=read('catalog-browser.js');
