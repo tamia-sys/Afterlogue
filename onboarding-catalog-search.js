@@ -116,6 +116,21 @@ const controls=document.createElement('div');controls.className='impressions-loc
 controls.innerHTML='<label>Production country<select id="first-country"></select></label><label>Original language<select id="first-language"></select></label><button type="button" id="first-refresh">Different selection ↻</button>';
 const countrySelect=controls.querySelector('#first-country'),languageSelect=controls.querySelector('#first-language');
 countrySelect.append(...options(countries));languageSelect.append(...options(languages));
+// Keep the filter selection through the signup-to-Home transition without
+// using a shared cross-account localStorage preference.
+const countryKey="afterlogue.onboarding.country";
+const languageKey="afterlogue.onboarding.language";
+const validCountry=new Set(countries.map(([code])=>code));
+const validLanguage=new Set(languages.map(([code])=>code));
+let previousCountry=sessionStorage.getItem(countryKey);
+let previousLanguage=sessionStorage.getItem(languageKey);
+if(previousCountry!==null&&validCountry.has(previousCountry))countrySelect.value=previousCountry;
+if(previousLanguage!==null&&validLanguage.has(previousLanguage))languageSelect.value=previousLanguage;
+function saveFilters(){
+ sessionStorage.setItem(countryKey,countrySelect.value);
+ sessionStorage.setItem(languageKey,languageSelect.value);
+ sessionStorage.setItem("afterlogue.onboarding.filters.touched","1");
+}
 document.querySelector('#films')?.before(controls);
 const statusLine=document.createElement('p');statusLine.className='impressions-selection-status';statusLine.setAttribute('role','status');
 controls.after(statusLine);
@@ -141,7 +156,13 @@ async function populate(media,sectionId,requestId){
   if(heading)heading.textContent=items.length+' TITLES · SELECTED FOR THIS VISIT';
  }catch(error){
   if(requestId!==sequence)return;
-  statusLine.textContent='Unable to load titles right now. Please try again.';
+  // Never display the unfiltered static fallback as though it satisfied
+  // explicit country or language choices.
+  if(countrySelect.value||languageSelect.value){
+    grid.replaceChildren();
+    if(heading)heading.textContent='NO VERIFIED MATCHES YET';
+  }
+  statusLine.textContent='Unable to load titles for these filters right now. Please try again.';
   console.warn('First Impressions unavailable',error);
  }
 }
@@ -150,9 +171,28 @@ function refresh(){
  statusLine.textContent='Finding familiar films and shows…';
  Promise.allSettled([populate('movie','#films',id),populate('tv','#television',id)]);
 }
-countrySelect.addEventListener('change',()=>{offset=0;refresh();});
-languageSelect.addEventListener('change',()=>{offset=0;refresh();});
+countrySelect.addEventListener('change',()=>{saveFilters();offset=0;refresh();});
+languageSelect.addEventListener('change',()=>{saveFilters();offset=0;refresh();});
 controls.querySelector('#first-refresh').addEventListener('click',()=>{offset++;refresh();});
 refresh();
+// Returning members see their saved profile filters before making changes.
+if(!sessionStorage.getItem("afterlogue.onboarding.filters.touched")&&window.afterlogueSupabase){
+ window.afterlogueSupabase.auth.getUser().then(async ({data,error})=>{
+  if(error||!data?.user)return;
+  const result=await window.afterlogueSupabase.from("profiles")
+    .select("discovery_country,discovery_language")
+    .eq("user_id",data.user.id).maybeSingle();
+  if(result.error||!result.data)return;
+  const country=result.data.discovery_country||"";
+  const language=result.data.discovery_language||"";
+  if(!validCountry.has(country)||!validLanguage.has(language))return;
+  if(sessionStorage.getItem("afterlogue.onboarding.filters.touched"))return;
+  countrySelect.value=country;
+  languageSelect.value=language;
+  sessionStorage.setItem(countryKey,country);
+  sessionStorage.setItem(languageKey,language);
+  offset=0;refresh();
+ }).catch(error=>console.warn("Unable to restore First Impressions filters",error));
+}
 
 })();
