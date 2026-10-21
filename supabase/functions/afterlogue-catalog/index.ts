@@ -1397,14 +1397,16 @@ Deno.serve(async (req:Request) => {
         if(ids.length)jobs.push(tmdb("/discover/"+media,genreParams,token));
         const replies=await Promise.allSettled(jobs);
         const pool:Record<string,unknown>[]=[];
-        const genreIds=new Set<number>();
+        const genreIds=new Set<number>(),directIds=new Set<number>();
         for(let i=0;i<replies.length;i++){
           const reply=replies[i];
           if(reply.status!=="fulfilled")continue;
           const items:Record<string,unknown>[]=reply.value.results||[];
           if(i===2)items.forEach(item=>genreIds.add(Number(item.id)));
+          else items.forEach(item=>directIds.add(Number(item.id)));
           pool.push(...items);
         }
+        for(const id of directIds)genreIds.delete(id);
         return {term,results:pool,genreIds};
       }));
       for(const outcome of found){
