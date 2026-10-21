@@ -571,6 +571,19 @@ Deno.serve(async (req:Request) => {
       // Keyword coverage is incomplete, so also find subjects through title and synopsis evidence.
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
       const total=Math.min(8,Math.max(4,countries.length*languages.length,decades.length*2));
+      // Start reviewed autumn-title discovery at the SAME TIME as the broader
+      // mood search; otherwise two sequential rounds of TMDB traffic cause a
+      // long loading screen. These are candidates, NOT unverified outputs.
+      const fallSeedJob=mood==="fall"&&media==="movie"
+        ?Promise.allSettled(Object.keys(FALL_ATMOSPHERE).map(async title=>{
+           const result=await tmdb("/search/movie",
+             new URLSearchParams({query:title,language:"en-US",include_adult:"false",page:"1"}),token);
+           const normalize=(value:string)=>value.toLowerCase().normalize("NFKD")
+             .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+           return (result.results||[]).find((v:Record<string,unknown>)=>
+             normalize(String(v.title||""))===normalize(title))||null;
+         }))
+        :null;
       const jobs=await Promise.allSettled(Array.from({length:total},async (_,i)=>{
         const country=countries.length?countries[(i+offset)%countries.length]:null;
         const language=languages.length?languages[(Math.floor(i/Math.max(1,countries.length))+offset)%languages.length]:null;
@@ -627,24 +640,15 @@ Deno.serve(async (req:Request) => {
         });
       }));
       const groups=jobs.filter((x):x is PromiseFulfilledResult<Record<string,unknown>[]>=>x.status==="fulfilled").map(x=>x.value);
-      if(!groups.length)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
+      if(!groups.length&&!fallSeedJob)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
       const seen=new Set<number>(),selected:Record<string,unknown>[]=[];
-      if(mood==="fall"&&media==="movie"){
-        // An exact-title lookup establishes the TMDB identity; the subsequent
-        // detail check still verifies release, origin, language, genre, etc.
-        const normalized=(value:string)=>value.toLowerCase().normalize("NFKD")
-          .replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]/g,"");
-        const exemplars=await Promise.allSettled(Object.keys(FALL_ATMOSPHERE).map(async title=>{
-          const results=await tmdb("/search/movie",
-            new URLSearchParams({query:title,language:"en-US",include_adult:"false",page:"1"}),token);
-          return (results.results||[]).find((v:Record<string,unknown>)=>
-            normalized(String(v.title||""))===normalized(title))||null;
-        }));
-        for(const r of exemplars){
-          if(r.status!=="fulfilled"||!r.value?.id)continue;
-          const id=Number(r.value.id);
+      if(fallSeedJob){
+        const exemplars=await fallSeedJob;
+        for(const result of exemplars){
+          if(result.status!=="fulfilled"||!result.value?.id)continue;
+          const id=Number(result.value.id);
           if(excluded.has(id)||seen.has(id))continue;
-          seen.add(id);selected.push(r.value);
+          seen.add(id);selected.push(result.value);
         }
       }
       // Editor-reviewed occasion picks still must satisfy the production,
