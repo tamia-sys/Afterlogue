@@ -244,17 +244,19 @@ function moodExperience(
     "Autumn is part of its documented atmosphere.","autumn setting");
   add(cue(/\b(boarding school|college|campus|university|professor|poetry|literature|bookshop|bookstore|school year|school term)\b/i),6,
     "Its academic or literary setting gives it a back-to-school, autumn feel.","literary or campus");
-  add(cue(/\b(woodland|forest|woods|countryside|small town|mist|fog|rainy|coastal town|new england)\b/i),5,
-    "Its woodland, town or misty setting lends it an autumnal atmosphere.","woodland or town");
-  add(tagged(/\b(small town|boarding school|college|bookshop|literature|forest|woodland)\b/i),5,
-    "Its catalog themes fit the reflective or wooded side of autumn.","woodland or town");
+  // A generic 'small town' or 'woodland' tag is not proof of fall
+  // atmosphere—otherwise unrelated films such as Kinky Boots qualify.
+  add(cue(/\b(woodland|forest|woods|countryside|misty|foggy|rainy|coastal new england)\b/i),2,
+    "Its outdoor setting may fit a reflective autumn watch.","woodland");
+  add(tagged(/\b(autumn leaves|fall foliage|new england autumn|school year|boarding school)\b/i),5,
+    "Its documented setting connects to the atmospheric side of autumn.","seasonal atmosphere");
   add(cue(/\b(halloween|pumpkin|spooky|ghost|haunted|witch|gothic)\b/i),3,
     "Its eerie seasonal elements suit an autumn evening.","eerie");
   add(tagged(/\b(halloween|haunted house|ghost|witch)\b/i),2,
     "Its Halloween theme offers the spookier side of fall.","eerie");
   add(has(18,10749,16,10751,35),1,"","genres");
   if(has(27)&&!editorialReason)score-=4; // Keep horror as ONE lane, not the default mood.
-  if(!signals.some(x=>x.points>=5))score-=5;
+  if(!signals.some(x=>x.points>=5))score=-100;
  }else if(mood==="unexpected"){
   add(cue(/\b(surreal|dream.like|alternate reality|parallel world|time travel|bizarre|absurd|experimental|unusual|strange phenomenon|reality shifts|body swap)\b/i),7,
    "An unusual premise challenges expectations rather than repeating familiar stories.","unconventional");
@@ -582,7 +584,10 @@ Deno.serve(async (req:Request) => {
       const ids=mood==="fall"?[]:await moodKeywordIds(mood,token);
       // Keyword coverage is incomplete, so also find subjects through title and synopsis evidence.
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
-      const total=Math.min(8,Math.max(4,countries.length*languages.length,decades.length*2));
+      // Seeded seasonal stories make fall fast; other moods explore several
+      // parallel pages but never spin through repeated frontend re-queries.
+      const total=mood==="fall"&&!countries.length&&!languages.length&&!genres.length&&!decades.length&&!ratings.length
+        ?2:Math.min(6,Math.max(4,countries.length*languages.length,decades.length*2));
       // Start reviewed autumn-title discovery at the SAME TIME as the broader
       // mood search; otherwise two sequential rounds of TMDB traffic cause a
       // long loading screen. These are candidates, NOT unverified outputs.
@@ -685,7 +690,7 @@ Deno.serve(async (req:Request) => {
       // Recheck source details before displaying a result. This ensures that
       // "US", "Family", "2010s", and "English" all truly hold simultaneously.
       // Limit the candidate count and workers so we never flood TMDB.
-      const queue=selected.slice(0,32);
+      const queue=selected.slice(0,24);
       const verified:Array<ReturnType<typeof listItem>&{
         moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string
       }>= [];
@@ -744,7 +749,7 @@ Deno.serve(async (req:Request) => {
         });
       }
       async function worker(){
-        while(queue.length&&verified.length<14){
+        while(queue.length&&verified.length<10){
           const item=queue.shift();
           if(!item)return;
           try{await verifyOne(item);}catch(error){
@@ -813,7 +818,7 @@ Deno.serve(async (req:Request) => {
       }
       return response({
         mood,matching:"experience-evidence-v1",pace,
-        items:verified.slice(0,14),
+        items:verified.slice(0,10),
         note:verified.length?"These stories have a verified thematic reason and match your filters."
           :"No fresh matches found in this part of the catalog. Try searching further or broaden your choices.",
         filters:{genres,countries,languages,decades,ratings},excludedCount:excluded.size
