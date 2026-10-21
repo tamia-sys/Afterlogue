@@ -243,3 +243,42 @@ test('All Films does not invent a capped total or block Next without its provide
  assert.match(backend,/totalPages:null,totalResults:null/);
  assert.match(backend,/hasMore:page<100&&lanesReady\.some/);
 });
+
+
+test('Discover opening dozen mixes Curzon distribution with A24, NEON, Focus, LAIKA, Blumhouse and Skellington',()=>{
+ const src=read('supabase/functions/afterlogue-catalog/index.ts');
+ const start=src.indexOf('const EDITORIAL_FILMS:EditorialAnchor[]=[');
+ const end=src.indexOf('];',start);
+ assert.ok(start>0&&end>start);
+ const films=src.slice(start,end).match(/\{title:"([^"]+)",year:(\d+),label:"([^"]+)",relation:"([^"]+)"\}/g)||[];
+ assert.ok(films.length>=22,'A broad label-backed list should extend past page 1');
+ const first=films.slice(0,12).join(' ');
+ assert.ok((first.match(/label:"Curzon Film"/g)||[]).length>=3,'Curzon should have multiple opening slots');
+ for(const label of ['A24','NEON','Focus Features','LAIKA','Blumhouse','Skellington Productions']){
+   assert.ok(first.includes('label:"'+label+'"'),'Opening lineup lacks '+label);
+ }
+ assert.ok(src.includes('label:"Triumph Films / Sony"'),'Include legacy Triumph distributed releases');
+ assert.ok(src.includes('relation:"distributed"'),'Distribution is distinct from production');
+ assert.match(src,/eligible\(item,media,30\)/);
+ assert.match(src,/yearOf\(media==="movie"\?item\.release_date:item\.first_air_date\)===anchor\.year/);
+});
+test('Discover supports A24 television and international/BBC/European television without inventing studio credits',()=>{
+ const src=read('supabase/functions/afterlogue-catalog/index.ts');
+ assert.match(src,/const EDITORIAL_TELEVISION:EditorialAnchor\[\]=\[/);
+ for(const title of ['Beef','Fleabag','Pachinko','My Brilliant Friend','Ramy','Normal People','The Bureau','I May Destroy You']){
+   assert.ok(src.includes('title:"'+title+'"'),title+' missing from editorial television');
+ }
+ assert.match(src,/label:"A24 Television"/);
+ assert.match(src,/media==="movie"\?EDITORIAL_FILMS:EDITORIAL_TELEVISION/);
+});
+test('Studio film anchors load concurrently with worldwide and decade discovery lanes',()=>{
+ const src=read('supabase/functions/afterlogue-catalog/index.ts');
+ const a=src.indexOf('const anchorJob=Promise.allSettled');
+ const b=src.indexOf('const searched=await Promise.allSettled');
+ const c=src.indexOf('const anchorMatches=await anchorJob');
+ assert.ok(a>0&&b>a&&c>b,'Editorial seeds should be prefetched while the wider catalog loads');
+ assert.match(src,/editorial\.forEach\(append\)/);
+ assert.match(src,/for\(const lane of lanesReady\)append\(lane\.entries\[i\]\)/);
+ assert.match(src,/const mixed:Record<string,unknown>\[\]=\[\],used=new Set<number>\(\)/);
+ assert.match(src,/mixed\.length<60/);
+});
