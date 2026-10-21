@@ -71,7 +71,7 @@ const GENRE_MOODS:Record<string,{movie:number[][],tv:number[][],caption:string}>
  yearning:{movie:[[10749,18],[18],[10749]],tv:[[18],[10765,18]],caption:"Romance, distance, and difficult connections."},
  winding:{movie:[[18],[99],[10751,35]],tv:[[18],[35]],caption:"Reflective and softer-paced stories."},
  friday:{movie:[[35],[28,53],[9648,53]],tv:[[35],[10759,9648]],caption:"Lively, suspenseful or playful stories."},
- fall:{movie:[[9648,18],[14,18],[18]],tv:[[9648,18],[18]],caption:"Mystery and atmosphere for changing seasons."},
+ fall:{movie:[[18,10749],[18,35],[16,10751],[18,9648],[10749]],tv:[[18],[35,18],[10765,18]],caption:"Woodlands, campus life, city romance, warmth and autumn melancholy — not just Halloween."},
  holidays:{movie:[[10751,35],[10749,35],[14]],tv:[[35,10751],[10751]],caption:"Warmth, family and seasonal atmosphere."},
  unexpected:{movie:[[878,9648],[14,18],[16],[99]],tv:[[10765,9648],[16],[18]],caption:"An optional detour beyond familiar genres."}
 };
@@ -83,7 +83,7 @@ const MOOD_TOPICS:Record<string,{labels:string[];reason:string}>={
  yearning:{labels:["unrequited love","long distance relationship","first love","forbidden love","lost love","unfulfilled love"],reason:"A story about longing and connection"},
  winding:{labels:["slice of life","self discovery","small town","healing","friendship","everyday life","feel-good"],reason:"A reflective story for winding down"},
  friday:{labels:["party","night out","road trip","heist","nightclub","music festival","concert","dance party"],reason:"An energetic Friday-night story"},
- fall:{labels:["halloween","autumn","harvest","haunted house","ghost","witch","small town mystery"],reason:"A story with autumnal or eerie atmosphere"},
+ fall:{labels:["autumn","fall season","falling leaves","boarding school","college campus","small town","bookshop","forest","harvest","halloween"],reason:"A story with a warm, literary, reflective, woodland or eerie autumn atmosphere"},
  unexpected:{labels:["surrealism","alternate reality","time travel","parallel universe","absurdism","experimental film","dream world"],reason:"A surprising or unconventional story"}
 };
 const keywordCache=new Map<string,{id:number,expires:number}>();
@@ -140,7 +140,7 @@ function narrativeMoodEvidence(mood:string,details:Record<string,unknown>,tag:st
   yearning:/\bunrequited\b|\bforbidden love\b|\bsecret(ly)? in love\b|\blong.distance\b|\bheartbreak\b|\bsecond chance\b|\blost love\b|\bfalls? in love\b|\bfalling in love\b|\brelationship\b|\breunite\b|\bromance\b|\bromantic\b|\blongs? for\b|\byearns? for\b|\baffair\b/i,
   winding:/\bquiet\b|\breflect\b|\bslice of life\b|\bday.to.day\b|\beveryday\b|\bsmall town\b|\bfriendship\b|\bhealing\b|\bself.discovery\b|\bfinds? (him|her|them)self\b|\bheartwarming\b|\bslow life\b|\bfamily bonds\b/i,
   friday:/\bparty\b|\bnight out\b|\bheist\b|\badventure\b|\bchase\b|\broad trip\b|\bconcert\b|\bnightclub\b|\bdance\b|\bcelebrat\b|\bthrilling\b|\bwild night\b/i,
-  fall:/\bhalloween\b|\bautumn\b|\bfall season\b|\bharvest\b|\bghosts?\b|\bhaunted\b|\bwitch(es)?\b|\bpumpkin\b|\bsmall town mystery\b|\bcreepy\b|\bspooky\b/i,
+  fall:/\b(autumn|fall season|falling leaves|harvest|halloween|campus|boarding school|university|small town|bookshop|bookstore|forest|woodland|fog|misty|gothic|poetry|haunted|spooky)\b/i,
   unexpected:/\bsurreal\b|\btime travel\b|\balternate reality\b|\bparallel universe\b|\bweird\b|\bstrange\b|\bbizarre\b|\babsurd\b|\botherworldly\b|\bdream world\b/i
  };
  const p=patterns[mood];const match=p?.exec(synopsis);
@@ -230,14 +230,26 @@ function moodExperience(
   if(pace==="slow"&&/the devil wears prada 2/i.test(title))score-=8;
   if(!tender&&!tagged(/\b(slice of life|healing|everyday life|feel.good)\b/i))score-=3;
  }else if(mood==="fall"){
-  add(cue(/\b(autumn|fall season|harvest|halloween|pumpkin|falling leaves)\b/i),7,
-   "The story explicitly evokes autumn or Halloween.","autumn");
-  add(tagged(/\b(autumn|halloween|harvest|haunted house|witch|small town mystery)\b/i),5,
-   "Its seasonal or mysterious subject fits autumn viewing.","season");
-  add(cue(/\b(haunt|ghost|witch|spooky|creep|eerie|gothic|fog|mystery)\b/i),4,
-   "An eerie or mysterious atmosphere fits a fall night.","eerie");
-  add(has(9648,27,14),2,"","genre");
-  if(!signals.some(x=>x.points>=4))score-=4;
+  // Fall is a VIEWING ATMOSPHERE, not a synonym for Halloween or horror.
+  // Campus, woodland, literary, seasonal-city and reflective stories belong.
+  add(Boolean(editorialReason),11,editorialReason||"","autumn atmosphere");
+  add(cue(/\b(autumn|fall season|falling leaves|harvest|leaf.peeping|changing leaves|october)\b/i),8,
+    "Its documented setting evokes autumn and the change of seasons.","autumn setting");
+  add(tagged(/\b(autumn|fall season|falling leaves|harvest)\b/i),7,
+    "Autumn is part of its documented atmosphere.","autumn setting");
+  add(cue(/\b(boarding school|college|campus|university|professor|poetry|literature|bookshop|bookstore|school year|school term)\b/i),6,
+    "Its academic or literary setting gives it a back-to-school, autumn feel.","literary or campus");
+  add(cue(/\b(woodland|forest|woods|countryside|small town|mist|fog|rainy|coastal town|new england)\b/i),5,
+    "Its woodland, town or misty setting lends it an autumnal atmosphere.","woodland or town");
+  add(tagged(/\b(small town|boarding school|college|bookshop|literature|forest|woodland)\b/i),5,
+    "Its catalog themes fit the reflective or wooded side of autumn.","woodland or town");
+  add(cue(/\b(halloween|pumpkin|spooky|ghost|haunted|witch|gothic)\b/i),3,
+    "Its eerie seasonal elements suit an autumn evening.","eerie");
+  add(tagged(/\b(halloween|haunted house|ghost|witch)\b/i),2,
+    "Its Halloween theme offers the spookier side of fall.","eerie");
+  add(has(18,10749,16,10751,35),1,"","genres");
+  if(has(27)&&!editorialReason)score-=4; // Keep horror as ONE lane, not the default mood.
+  if(!signals.some(x=>x.points>=5))score-=5;
  }else if(mood==="unexpected"){
   add(cue(/\b(surreal|dream.like|alternate reality|parallel world|time travel|bizarre|absurd|experimental|unusual|strange phenomenon|reality shifts|body swap)\b/i),7,
    "An unusual premise challenges expectations rather than repeating familiar stories.","unconventional");
@@ -281,6 +293,21 @@ const HOLIDAY_GROUPS:string[][]=[
  ["valentine's day","easter","leap year","leap day"],
  ["halloween","st. patrick's day","mid-autumn festival"]
 ];
+/* Human-reviewed atmospheric fall references, not universal genre facts.
+   All candidates still pass the SAME TMDB release/metadata and user filters.
+   Broader mood discovery continues beyond these titles. */
+const FALL_ATMOSPHERE:Record<string,string>={
+  "Twilight":"Its Pacific Northwest forest setting brings the misty, moody side of fall.",
+  "Dead Poets Society":"Its boarding-school setting and literary themes evoke the academic side of autumn.",
+  "You've Got Mail":"A bookshop romance with a cozy, city-in-fall sensibility.",
+  "Manchester by the Sea":"Its coastal New England setting and reflective tone suit a somber autumn watch.",
+  "Fantastic Mr. Fox":"Its woodland world and earthy storybook character create an autumnal feel.",
+  "The Holdovers":"Its school setting and quiet, nostalgic tone suit the reflective side of the season.",
+  "Little Women":"A literary family story with warmth and the passing of seasons.",
+  "When Harry Met Sally...":"New York romance and its seasonal city atmosphere make this a fall favorite.",
+  "Practical Magic":"A small-town, atmospheric fantasy for the softer side of spooky season.",
+  "Good Will Hunting":"Its Boston academic and reflective setting fits an introspective fall watch."
+};
 const SEASONAL_FEATURES:Record<number,{event:string;reason:string}>={
   25195:{event:"Leap Day",reason:"The story centers on an Irish Leap Day proposal tradition."},
   1019420:{event:"Irish seasonal viewing",reason:"An Irish-set romance suited to St. Patrick’s season; it is not a St. Patrick’s Day plot."},
@@ -538,10 +565,12 @@ Deno.serve(async (req:Request) => {
           +(has(35,16,10402)?4:0)-(has(18)&&!has(35)?2:0);
         return (has(35,18,10751)?3:0)+(has(14,878,9648)?1:0);
       };
-      const ids=await moodKeywordIds(mood,token);
+      // Fall searches prioritize atmospheric genres and reviewed setting
+      // references; a Halloween-heavy keyword index would mislabel the mood.
+      const ids=mood==="fall"?[]:await moodKeywordIds(mood,token);
       // Keyword coverage is incomplete, so also find subjects through title and synopsis evidence.
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
-      const total=Math.min(10,Math.max(6,countries.length*languages.length,decades.length*2));
+      const total=Math.min(8,Math.max(4,countries.length*languages.length,decades.length*2));
       const jobs=await Promise.allSettled(Array.from({length:total},async (_,i)=>{
         const country=countries.length?countries[(i+offset)%countries.length]:null;
         const language=languages.length?languages[(Math.floor(i/Math.max(1,countries.length))+offset)%languages.length]:null;
@@ -600,6 +629,24 @@ Deno.serve(async (req:Request) => {
       const groups=jobs.filter((x):x is PromiseFulfilledResult<Record<string,unknown>[]>=>x.status==="fulfilled").map(x=>x.value);
       if(!groups.length)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
       const seen=new Set<number>(),selected:Record<string,unknown>[]=[];
+      if(mood==="fall"&&media==="movie"){
+        // An exact-title lookup establishes the TMDB identity; the subsequent
+        // detail check still verifies release, origin, language, genre, etc.
+        const normalized=(value:string)=>value.toLowerCase().normalize("NFKD")
+          .replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+        const exemplars=await Promise.allSettled(Object.keys(FALL_ATMOSPHERE).map(async title=>{
+          const results=await tmdb("/search/movie",
+            new URLSearchParams({query:title,language:"en-US",include_adult:"false",page:"1"}),token);
+          return (results.results||[]).find((v:Record<string,unknown>)=>
+            normalized(String(v.title||""))===normalized(title))||null;
+        }));
+        for(const r of exemplars){
+          if(r.status!=="fulfilled"||!r.value?.id)continue;
+          const id=Number(r.value.id);
+          if(excluded.has(id)||seen.has(id))continue;
+          seen.add(id);selected.push(r.value);
+        }
+      }
       // Editor-reviewed occasion picks still must satisfy the production,
       // country, language, genre and decade checks before being returned.
       if(mood==="holidays"&&media==="movie"){
@@ -622,7 +669,7 @@ Deno.serve(async (req:Request) => {
       // Recheck source details before displaying a result. This ensures that
       // "US", "Family", "2010s", and "English" all truly hold simultaneously.
       // Limit the candidate count and workers so we never flood TMDB.
-      const queue=selected.slice(0,56);
+      const queue=selected.slice(0,32);
       const verified:Array<ReturnType<typeof listItem>&{
         moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string
       }>= [];
@@ -660,8 +707,9 @@ Deno.serve(async (req:Request) => {
           .filter((id:number)=>idToTopic.has(id));
         const label=tagged.length?idToTopic.get(tagged[0])||"":""; 
         const editorial=mood==="holidays"&&media==="movie"?SEASONAL_FEATURES[Number(v.id)]:null;
+        const fallReason=mood==="fall"&&media==="movie"?FALL_ATMOSPHERE[String(details.title||"")]:null;
         const tags=Array.isArray(detailKeywords)?detailKeywords.map((v:Record<string,unknown>)=>String(v.name||"")):[];
-        const experience=moodExperience(mood,details,tags,pace,editorial?.reason||null);
+        const experience=moodExperience(mood,details,tags,pace,fallReason||editorial?.reason||null);
         // Reject superficial keyword matches when the experience conflicts:
         // The Ice Storm is not a playful Friday night just because of a party.
         if(experience.score<5)return;
@@ -680,7 +728,7 @@ Deno.serve(async (req:Request) => {
         });
       }
       async function worker(){
-        while(queue.length&&verified.length<22){
+        while(queue.length&&verified.length<14){
           const item=queue.shift();
           if(!item)return;
           try{await verifyOne(item);}catch(error){
@@ -688,7 +736,7 @@ Deno.serve(async (req:Request) => {
           }
         }
       }
-      await Promise.all([worker(),worker(),worker(),worker(),worker()]);
+      await Promise.all([worker(),worker(),worker(),worker(),worker(),worker(),worker(),worker()]);
       // Verification jobs are concurrent, so put titles back into the
       // original discovery relevance/popularity order.
       const indexById=new Map(selected.map((x,i)=>[Number(x.id),i]));
@@ -749,7 +797,7 @@ Deno.serve(async (req:Request) => {
       }
       return response({
         mood,matching:"experience-evidence-v1",pace,
-        items:verified.slice(0,24),
+        items:verified.slice(0,14),
         note:verified.length?"These stories have a verified thematic reason and match your filters."
           :"No fresh matches found in this part of the catalog. Try searching further or broaden your choices.",
         filters:{genres,countries,languages,decades,ratings},excludedCount:excluded.size
