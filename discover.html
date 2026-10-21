@@ -103,7 +103,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=3"></script>
+<script src="recommendation-engine.js?v=4"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -419,6 +419,7 @@ tv: [
 // awarding a flat bonus for three manually attached matches.
 let discoveryFavorites=[];
 let discoveryExpandedEntries=[];
+let discoverySourceEntries=[];
 const discoveryFeaturedKeys=new Set(Object.keys(window.AfterlogueFeaturedCatalog||{}));
 let discoveryWatchlist=[];
 let discoverySeen=[];
@@ -432,7 +433,7 @@ const discoveryEntries=window.AfterlogueRecommendationEngine?.normalizeEntries(
 function getDiscoveryRecommendations(category, page = 0) {
   if (!window.AfterlogueRecommendationEngine) return discoveryLibrary[category].slice(page*5,page*5+5);
   const selected=window.AfterlogueRecommendationEngine.rank({
-    entries:[...discoveryEntries,...discoveryExpandedEntries],category,impressions:savedImpressions,
+    entries:[...discoveryEntries,...discoverySourceEntries,...discoveryExpandedEntries],category,impressions:savedImpressions,
     favorites:discoveryFavorites,watchlist:discoveryWatchlist,seen:discoverySeen
   });
   // When a viewer has rated stories, give genuine expanded matches room
@@ -657,14 +658,19 @@ const discoveryPages = {
   tv: 0
 };
 
-// Display the first collection.
-displayDiscoveryRecommendations("movies");
+// Wait for saved account impressions and the wider catalog before displaying
+// picks. Showing curated cards first wrongly suggests they are final results.
+let discoveryReady=false;
+const pending=document.createElement("p");
+pending.className="discovery-empty";
+pending.textContent="Finding stories shaped by your impressions…";
+document.getElementById("discovery-results").replaceChildren(pending);
 
 // Switch between Movies and TV Shows.
 document.querySelectorAll(".discovery-category").forEach(button => {
   button.addEventListener("click", () => {
     const category = button.dataset.category;
-    displayDiscoveryRecommendations(category, discoveryPages[category]);
+    if(discoveryReady)displayDiscoveryRecommendations(category, discoveryPages[category]);
   });
 });
 
@@ -709,7 +715,7 @@ async function populateExpandedRecommendations(userId){
  const sources=Object.entries(savedImpressions).map(([k,rating])=>({
    key:k.replace(/^afterlogue-/,""),rating
  })).filter(x=>["Loved","Liked"].includes(x.rating));
- if(!sources.length){discoveryExpandedEntries=[];return;}
+ if(!sources.length){discoveryExpandedEntries=[];discoverySourceEntries=[];return;}
  let dynamic=[];
  if(userId){
   const response=await client.from("user_catalog_titles")
@@ -726,6 +732,19 @@ async function populateExpandedRecommendations(userId){
    }
   }catch(_){}
  }
+ // Rated TMDB titles must also exist in the scorer's source collection.
+ // Otherwise it discards their impressions, and the curated 54 always win.
+ const ratedKeys=new Set(Object.keys(savedImpressions)
+   .filter(k=>["Loved","Liked","Okay","Not for me"].includes(savedImpressions[k]))
+   .map(k=>k.replace(/^afterlogue-/,"")));
+ discoverySourceEntries=dynamic
+   .filter(x=>ratedKeys.has(x.title_key)&&!discoveryFeaturedKeys.has(x.title_key))
+   .map((x,index)=>({
+     key:x.title_key,title:x.title,category:x.category==="tv"?"tv":"movies",
+     position:200+index,year:x.year||null,poster:x.poster||null,
+     directMatches:[],reason:null,synopsis:null,
+     facets:{themes:[],tones:[],genres:[],pace:null}
+   }));
  const named=new Map([
   ...Object.entries(window.AfterlogueFeaturedCatalog||{}),
   ...dynamic.map(x=>[x.title_key,x])
@@ -782,6 +801,7 @@ async function loadAccountImpressions() {
       document.getElementById("impression-count").textContent =
         "Five recommendations shaped by your first impressions.";
       await populateExpandedRecommendations(null);
+      discoveryReady=true;
       displayDiscoveryRecommendations(selectedCategory,0);
       return;
     }
@@ -840,9 +860,8 @@ async function loadAccountImpressions() {
       document.querySelector(".discovery-category.active")
         ?.dataset.category || "movies";
 
-    displayDiscoveryRecommendations(activeCategory);
-
     await populateExpandedRecommendations(userData.user.id);
+    discoveryReady=true;
     displayDiscoveryRecommendations(activeCategory,0);
 
     console.log("Afterlogue: Account impressions loaded.");
@@ -855,7 +874,7 @@ async function loadAccountImpressions() {
   }
 }
 
-document.addEventListener("afterlogue:impression-updated",event=>{const {key,rating}=event.detail;discoverySeen.push(key);if(rating)savedImpressions["afterlogue-"+key]=rating;discoveryPages.movies=0;discoveryPages.tv=0;displayDiscoveryRecommendations(selectedCategory,0);});
+document.addEventListener("afterlogue:impression-updated",event=>{const {key,rating}=event.detail;discoverySeen.push(key);if(rating)savedImpressions["afterlogue-"+key]=rating;discoveryPages.movies=0;discoveryPages.tv=0;if(discoveryReady)displayDiscoveryRecommendations(selectedCategory,0);});
 loadAccountImpressions();
 
 </script>
