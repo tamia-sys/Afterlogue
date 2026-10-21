@@ -48,6 +48,21 @@ window.saveFirstImpressions = async function (client, options = {}) {
     });
   }
 
+  const knownTV=new Set([
+    "malcolm-in-the-middle","abbott-elementary","gilmore-girls","insecure",
+    "bridgerton","gossip-girl","stranger-things","chernobyl","demon-slayer",
+    "avatar-the-last-airbender","love-island-usa","criminal-minds",
+    "mindhunter","fullmetal-alchemist-brotherhood","station-eleven",
+    "severance","the-leftovers","the-bear","fleabag","succession","atlanta",
+    "dark","the-good-place","sh-gun","breaking-bad","beef","yellowjackets"
+  ]);
+  const watched=impressions.map(row=>{
+    const stored=ratingStore.getItem("afterlogue.onboarding.category."+row.title_key);
+    const category=stored==="tv"||stored==="movies"?stored
+      :row.title_key.startsWith("tmdb-tv-")||knownTV.has(row.title_key)?"tv":"movies";
+    return {user_id:user.id,title_key:row.title_key,category};
+  });
+
   // Save impressions before completing onboarding.
   if (impressions.length > 0) {
     const { error: saveError } = await client
@@ -57,6 +72,9 @@ window.saveFirstImpressions = async function (client, options = {}) {
       });
 
     if (saveError) throw saveError;
+    const {error:seenError}=await client.from("seen_entries")
+      .upsert(watched,{onConflict:"user_id,title_key"});
+    if(seenError)throw seenError;
   }
 
  // Sync extra TMDB titles along with ratings, preserving poster and year.
@@ -110,7 +128,8 @@ window.saveFirstImpressions = async function (client, options = {}) {
  for(let i=sessionStorage.length-1;i>=0;i--){
   const key=sessionStorage.key(i);
   if(!key)continue;
-  if(key.startsWith("afterlogue.onboarding.tmdb.")||
+  if(key.startsWith("afterlogue.onboarding.category.")||
+      key.startsWith("afterlogue.onboarding.tmdb.")||
      (key.startsWith("afterlogue-")&&validRatings.includes(sessionStorage.getItem(key)))){
     sessionStorage.removeItem(key);
   }
@@ -121,7 +140,8 @@ window.saveFirstImpressions = async function (client, options = {}) {
   for(let i=localStorage.length-1;i>=0;i--){
    const key=localStorage.key(i);
    if(!key)continue;
-   if(key.startsWith("afterlogue.onboarding.tmdb.")||
+   if(key.startsWith("afterlogue.onboarding.category.")||
+      key.startsWith("afterlogue.onboarding.tmdb.")||
       (key.startsWith("afterlogue-")&&validRatings.includes(localStorage.getItem(key)))){
      localStorage.removeItem(key);
    }
