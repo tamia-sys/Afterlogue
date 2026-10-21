@@ -109,24 +109,37 @@ test('Server verifies BOTH filters on production details, not merely search summ
   assert.match(home,/if\(!entry\.tmdb\|\|!entry\.personalized/);
 });
 
-test('Explore uses one combined featured and wider-catalog search rail',()=>{
+test('Explore searches one unified results shelf and never collapses on one character',()=>{
  const html=read('explore.html'),search=read('explore-global-search.js');
- assert.match(html,/explore-global-search\.js\?v=2/);
+ assert.match(html,/explore-global-search\.js\?v=3/);
  assert.match(search,/explore-match-picks/);
  assert.match(search,/byTitle=new Map/);
+ assert.match(search,/render\(\[\],\[\],query,true\)/);
  assert.match(search,/Searching films and television/);
  assert.match(search,/Promise\.all\(jobs\.map/);
- assert.doesNotMatch(search,/ACROSS CINEMA & TELEVISION/);
  assert.match(search,/No matching titles found/);
- const local=html.split('function updateBrowse(){')[1].split('searchField.addEventListener',1)[0];
- assert.match(local,/explore-no-matches"\)\.hidden=true/);
+ assert.doesNotMatch(search,/Country search currently applies to curated/);
+ assert.match(html,/typed\.length>=2\?typed:""/);
+ assert.match(html,/explore-browse-note" hidden/);
+ assert.doesNotMatch(html,/Look beyond our featured collection/);
 });
-test('Explore mood loads use bounded passes, show strong partial matches and survive one format failure',()=>{
- const html=read('explore.html');
- assert.match(html,/while\(searched<2&&titles\.length<desired\)/);
- assert.match(html,/const settled=await Promise\.allSettled\(media\.map/);
- assert.match(html,/paintMoodPicks\(five\)/);
- assert.match(html,/Search further to complete your five/);
+test('Explore returns one complete mood selection with no repeated Search further loops',()=>{
+ const html=read('explore.html'),backend=read('supabase/functions/afterlogue-catalog/index.ts');
+ assert.match(html,/Promise\.allSettled\(media\.map/);
+ assert.match(html,/if\(picks\.length!==desired\)/);
+ assert.match(html,/rememberMoodTitles\(scope,picks\)/);
+ assert.match(html,/paintMoodPicks\(picks\)/);
+ assert.match(html,/Finding stories for your mood/);
+ assert.doesNotMatch(html,/Search further ↗/);
+ assert.match(backend,/while\(queue\.length&&verified\.length<10\)/);
+});
+test('All Films has 60-story batch pages and does not fall back to a tiny featured rail',()=>{
+ const client=read('catalog-browser.js'),backend=read('supabase/functions/afterlogue-catalog/index.ts');
+ assert.match(client,/pageSize:60/);
+ assert.match(client,/configured=true/);
+ assert.doesNotMatch(client,/explore-all-films-open"\)\?\.click/);
+ assert.match(backend,/const pagesToFetch=batched\?4:1/);
+ assert.match(backend,/verified\.slice\(0,batched\?60:20\)/);
 });
 test('Film Details keeps the editorial heading as a question',()=>{
  const details=read('film-details.html');
