@@ -460,3 +460,18 @@ test('A weak recommendation result uses honestly labeled archive discoveries rat
  assert.match(code,/diversifyDiscoverResults\(\[\.\.\.expanded,\.\.\.extras\],category\)/);
  assert.match(code,/priorCards&&container\.dataset\.category===category/);
 });
+
+test('Email confirmation requires a deliberate click before consuming the single-use token',()=>{
+ const html=read('confirm.html');
+ assert.match(html,/id="confirm-submit"/);
+ assert.match(html,/token_hash/);
+ assert.match(html,/verifyOtp\(/);
+ assert.match(html,/type:"email"/);
+ assert.match(html,/history\.replaceState/);
+ assert.match(html,/content="no-referrer"/);
+ const script=html.match(/<script>([\s\S]*?)<\/script>/);
+ assert.ok(script,'Confirmation flow must be implemented in the standalone page');
+ assert.ok(script[1].indexOf('button.addEventListener("click"')>=0);
+ assert.ok(script[1].indexOf('verifyOtp(')>script[1].indexOf('button.addEventListener("click"'),
+   'Verification may never run automatically when an email scanner fetches the page');
+});
