@@ -1306,6 +1306,9 @@ setupExploreAccountMenu();
 document.body.classList.add("explore-gallery-mode");
 
 function view(section) {
+  // A user changing their mind cancels stale results from an earlier mood.
+  if(section!=="results"&&window.afterlogueMoodRequestId)
+    window.afterlogueMoodRequestId++;
   gallery.hidden = section !== "gallery";
   experience.hidden = section !== "experience";
   results.hidden = section !== "results";
@@ -1439,14 +1442,30 @@ function renderQuestion() {
     ]);
   }
 }
+// Members' rated titles live in Supabase, not an old browser cache.
+const memberRatedKeys=new Set();
+const memberRatingsReady=isGuest?Promise.resolve():(async()=>{
+ try{
+  const client=window.afterlogueSupabase;
+  if(!client)return;
+  const {data:auth,error:authError}=await client.auth.getUser();
+  if(authError||!auth?.user)return;
+  const {data:rows,error}=await client.from("impressions")
+    .select("title_key").eq("user_id",auth.user.id);
+  if(error)throw error;
+  (rows||[]).forEach(item=>{if(item.title_key)memberRatedKeys.add(item.title_key);});
+ }catch(error){console.warn("Explore member ratings unavailable",error);}
+})();
 function ratedTitles() {
+  if(!isGuest)return new Set(memberRatedKeys);
   const out = new Set();
   try {
     for(let i=0;i<localStorage.length;i++){
       const key=localStorage.key(i);
-      if(key?.startsWith("afterlogue-") && impressionRatings.has(localStorage.getItem(key))) out.add(key.slice("afterlogue-".length));
+      if(key?.startsWith("afterlogue-") && impressionRatings.has(localStorage.getItem(key)))
+        out.add(key.slice("afterlogue-".length));
     }
-  } catch(e) { /* Browsing still works with storage disabled. */ }
+  } catch(e) { /* Guests can still browse when storage is disabled. */ }
   return out;
 }
 const slug = title => title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
@@ -1615,6 +1634,10 @@ async function displayResults(){
     const selectedFormat=$("explore-format").value;
     const useFormat=selectedFormat==="all"?state.format:selectedFormat;
     const media=useFormat==="tv"?["tv"]:useFormat==="movies"?["movie"]:["movie","tv"];
+    // Wait for the signed-in account's real rated-title list before
+    // excluding already watched/rated TMDB results.
+    await memberRatingsReady;
+    if(requestId!==window.afterlogueMoodRequestId)return;
     const facetChoices=window.AfterlogueExploreFilters?.get()||{};
     const scope=moodScopeKey();
     const alreadyShown=new Set(previousMoodTitles(scope));
