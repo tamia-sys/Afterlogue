@@ -88,7 +88,12 @@ const MOOD_TOPICS:Record<string,{labels:string[];reason:string}>={
 };
 const keywordCache=new Map<string,{id:number,expires:number}>();
 async function moodKeywordIds(mood:string,token:string):Promise<number[]>{
- const labels=MOOD_TOPICS[mood]?.labels||[];
+ // Cap cold-start keyword lookups; distant topics remain discoverable
+ // through the untagged narrative/genre search streams.
+ const allLabels=MOOD_TOPICS[mood]?.labels||[];
+ const labels=mood==="holidays"
+   ?[...new Set([allLabels[0],allLabels[3],allLabels[5],allLabels[6],allLabels[7],allLabels[8],allLabels[10],allLabels[13],allLabels[17],allLabels[20]].filter(Boolean))]
+   :allLabels.slice(0,7);
  const results=await Promise.allSettled(labels.map(async label=>{
   const cached=keywordCache.get(label);
   if(cached&&cached.expires>Date.now())return cached.id;
@@ -342,8 +347,12 @@ function listItem(entry: Record<string,unknown>,media:Media){
     language:entry.original_language||null,
   };
 }
+// Cache only public TMDB title data, never member preferences or tokens.
+const publicTmdbCache=new Map<string,{expires:number,data:unknown}>();
 async function tmdb(path:string,params:URLSearchParams,token:string){
   const url=TMDB+path+"?"+params.toString();
+  const cached=publicTmdbCache.get(url);
+  if(cached&&cached.expires>Date.now())return cached.data as any;
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),8000);
   try {
@@ -352,7 +361,10 @@ async function tmdb(path:string,params:URLSearchParams,token:string){
       signal:controller.signal
     });
     if(!r.ok)throw Error("TMDB responded "+r.status);
-    return await r.json();
+    const data=await r.json();
+    if(publicTmdbCache.size>=300)publicTmdbCache.delete(publicTmdbCache.keys().next().value!);
+    publicTmdbCache.set(url,{expires:Date.now()+4*60*1000,data});
+    return data;
   } finally { clearTimeout(timer); }
 }
 Deno.serve(async (req:Request) => {
