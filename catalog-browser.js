@@ -6,13 +6,26 @@ const $=id=>document.getElementById(id);
 const panel=$("afterlogue-global-catalog");
 if(!panel)return;
 const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
-let media="movie",page=1,pages=1,term="",genre="",country="",language="",decade="",sort="popular",timer=null,serial=0,configured=false;
+let media="movie",page=1,pages=1,term="",genre="",country="",language="",decade="",sort="discover",timer=null,serial=0,configured=false;
 let hasNext=false;
 let pageCursors=new Map([[1,null]]);
 const hasActiveFilters=()=>Boolean(term.trim().length>=2||genre||country||language||decade);
+function syncSortWithFilters(){
+ const filtered=hasActiveFilters();
+ const option=sortBox.querySelector('option[value="discover"]');
+ if(option)option.disabled=filtered;
+ // Discover is an intentionally balanced global mix, not a filter
+ // ranking. When filtering, use an explicitly labeled Popular sort
+ // rather than silently reverting to popularity under "Discover".
+ if(filtered&&sort==="discover"){
+   sort="popular";
+   sortBox.value=sort;
+ }
+}
 function resetPaging(){page=1;hasNext=false;pageCursors=new Map([[1,null]]);}
 const input=$("catalog-search"),genreBox=$("catalog-genre"),countryBox=$("catalog-country"),languageBox=$("catalog-language"),decadeBox=$("catalog-decade"),sortBox=$("catalog-sort");
-const stateKey="afterlogue.explore.all-films.v1";
+// v2 intentionally migrates old default Popular sessions to the new Discover feed.
+const stateKey="afterlogue.explore.all-films.v2";
 const params=new URLSearchParams(location.search);
 function readState(){
  try{
@@ -25,7 +38,7 @@ function readState(){
   country=typeof record.country==="string"?record.country:"";
   language=typeof record.language==="string"?record.language:"";
   decade=typeof record.decade==="string"?record.decade:"";
-  sort=["popular","newest","oldest"].includes(record.sort)?record.sort:"popular";
+  sort=["discover","popular","newest","oldest"].includes(record.sort)?record.sort:"discover";
   if(Array.isArray(record.cursors)){
     pageCursors=new Map([[1,null],...record.cursors
       .filter(item=>Array.isArray(item)&&Number.isInteger(item[0])&&item[0]>=2&&item[0]<=100
@@ -66,9 +79,10 @@ async function load(){
  const isSearch=term.trim().length>=2;
  const filtered=hasActiveFilters();
  if(filtered&&page>1&&!pageCursors.has(page))page=1;
+ syncSortWithFilters();
  rememberState();
  $("catalog-prev").disabled=true;$("catalog-next").disabled=true;
- $("catalog-message").textContent="Finding stories…";
+ $("catalog-message").textContent=sort==="discover"?"Discovering cinema…":"Finding stories…";
  try{
   // Filtering exposes 70 titles per page; standard browsing uses 60.
   // The server uses exact offsets so no titles are silently skipped.
@@ -79,9 +93,11 @@ async function load(){
     genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
   if(id!==serial)return;
   if(!filtered){
+    // Each discovery stream has a different number of available titles.
+    // Honor actual Next availability instead of inventing an "of 100".
     pages=Math.max(1,Number(result.totalPages)||1);
-    if(page>pages){page=pages;return load();}
-    hasNext=page<pages;
+    hasNext=typeof result.hasMore==="boolean"
+      ?result.hasMore:page<pages;
   }else{
     // Cursor pagination describes genuine qualifying titles, so unlike the
     // old UI it cannot claim there are 100 full pages without evidence.
@@ -92,8 +108,7 @@ async function load(){
   }
   render(result.items||[]);
   const totalShown=(result.items||[]).length;
-  $("catalog-message").textContent=totalShown+" "+(totalShown===1?"story":"stories")+
-    " · Page "+page+(filtered?"":" of "+pages);
+  $("catalog-message").textContent=totalShown+" "+(totalShown===1?"story":"stories")+" · Page "+page;
   $("catalog-prev").disabled=page<=1;$("catalog-next").disabled=!hasNext;
   $("catalog-pagination").hidden=page<=1&&!hasNext;
  }catch(error){
@@ -141,7 +156,7 @@ function turnPage(direction){
  const target=page+direction;
  if(target<1||(direction>0&&!hasNext))return;
  if(hasActiveFilters()&&target>1&&!pageCursors.has(target))return;
- if(!hasActiveFilters()&&target>pages)return;
+ if(!hasActiveFilters()&&direction>0&&!hasNext)return;
  page=target;
  // Move back to the TOP OF THE CATALOG, not the bottom pagination controls.
  panel.scrollIntoView({block:"start",behavior:"instant"});
