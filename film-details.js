@@ -303,7 +303,7 @@ let trailerTimer=null;
 trailerPlayer.addEventListener("load",()=>{
  if(trailerModal.hidden)return;
  if(trailerTimer){clearTimeout(trailerTimer);trailerTimer=null;}
- trailerStatus.textContent="If your browser blocks playback, tap Watch on YouTube below.";
+ trailerStatus.textContent="If playback is muted, unmute inside the player. If blocked, use Watch on YouTube below.";
 });
 function playTrailer(id){
  if(trailerModal.hidden)return;
@@ -317,7 +317,9 @@ function playTrailer(id){
    trailerStatus.textContent='The embedded player is taking too long. Open the trailer on YouTube instead.';
   }
  },6500);
- trailerPlayer.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&rel=0&playsinline=1';
+ // Muted autoplay is most consistently permitted after a single click across
+ // Safari, Firefox and Chrome. Sound can be enabled in the YouTube player.
+ trailerPlayer.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&mute=1&rel=0&playsinline=1';
 }
 trailerLink.href='#film-trailer-modal';
 trailerLink.removeAttribute('target');
@@ -353,6 +355,61 @@ document.addEventListener('keydown',event=>{
   else if(!event.shiftKey&&n===1){event.preventDefault();controls[0].focus();}
  }
 });
+
+/* Share a public story link; never include private impressions or member data. */
+const moreMenu=$('film-more-menu'),shareModal=$('film-share-modal');
+const shareUrl=(()=>{
+ const page=new URL('film-details.html',location.href);
+ if(dynamicDetails){page.searchParams.set('tmdb',String(externalId));page.searchParams.set('type',externalType);}
+ else page.searchParams.set('title',key);
+ return page.href;
+})();
+$('film-share-title').textContent=item.title;
+$('film-share-meta').textContent=[item.year,isTV?'TV series':'Film'].filter(Boolean).join(' · ');
+$('film-share-poster').src=item.poster||'';
+$('film-share-poster').alt=item.title+' poster';
+$('film-share-url').value=shareUrl;
+let sharePreviousFocus=null;
+function closeShare(){
+ if(shareModal.hidden)return;
+ shareModal.hidden=true;
+ document.body.classList.remove('film-share-open');
+ sharePreviousFocus?.focus?.();
+}
+$('film-share-open').addEventListener('click',()=>{
+ moreMenu.open=false;
+ sharePreviousFocus=moreMenu.querySelector('summary');
+ shareModal.hidden=false;
+ document.body.classList.add('film-share-open');
+ $('film-share-status').textContent='';
+ $('film-share-close').focus();
+});
+$('film-share-close').addEventListener('click',closeShare);
+shareModal.addEventListener('click',event=>{if(event.target===shareModal)closeShare();});
+document.addEventListener('pointerdown',event=>{
+ if(moreMenu.open&&!moreMenu.contains(event.target))moreMenu.open=false;
+});
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&!shareModal.hidden){event.preventDefault();closeShare();}
+ else if(event.key==='Escape'&&moreMenu.open){moreMenu.open=false;moreMenu.querySelector('summary')?.focus();}
+});
+$('film-share-copy').addEventListener('click',async()=>{
+ try{
+  await navigator.clipboard.writeText(shareUrl);
+  $('film-share-status').textContent='Link copied. Share a little cinema.';
+ }catch(_){
+  $('film-share-url').focus();$('film-share-url').select();
+  $('film-share-status').textContent='Select and copy the link above to share.';
+ }
+});
+$('film-share-native').addEventListener('click',async()=>{
+ if(navigator.share){
+  try{await navigator.share({title:item.title+' — Afterlogue',text:'A story worth sharing: '+item.title,url:shareUrl});}
+  catch(error){if(error.name!=='AbortError')$('film-share-status').textContent='Sharing unavailable here. Try Copy link.';}
+ }else{
+  $('film-share-copy').click();
+ }
+});
 const jw=rich.watch||'https://www.justwatch.com/us/search?q='+encodeURIComponent(item.title);
 $('film-justwatch').href=jw;
 $('film-justwatch').textContent=rich.watch&&rich.watch.includes('justwatch.com')?'Check viewing options':rich.watch?'View provider information':'Search viewing options';
@@ -366,6 +423,8 @@ if($('account-signout')){
 }
 if($('account-signin'))$('account-signin').hidden=!!member;
 const watchBtn=$('film-watchlist');
+const watchFeedback=$('film-watchlist-feedback');
+const watchNotice=text=>{watchFeedback.textContent=text;};
 const catalogMeta = window.AfterlogueCatalogMetadata;
 const dynamicEntry = dynamicDetails && catalogMeta?.identify(key) ? {
  key, title:item.title,year:item.year,poster:item.poster,category:item.category
@@ -443,22 +502,25 @@ if(member){
 displaySaved();
 watchBtn.addEventListener('click',async()=>{
  if(!member){location.assign('signup.html?mode=signin');return;}
- watchBtn.disabled=true;info('');
+ watchBtn.disabled=true;info('');watchNotice('');
  try{
   if(saved){
    const result=await client.from('watchlist').delete().eq('user_id',member.id).eq('title_key',key);
    if(result.error)throw result.error;
-   saved=false;watchId=null;info('Removed from your Watchlist.');
+   saved=false;watchId=null;info('Removed from your Watchlist.');watchNotice('Removed from your Watchlist.');
   }else{
    await preserveDynamicTitle();
    const result=await client.from('watchlist').insert({user_id:member.id,title_key:key,category:item.category==='tv'?'tv':'movies'}).select('id').single();
    if(result.error)throw result.error;
    saved=true;watchId=result.data.id;info('Saved to your private Watchlist.');
+   watchNotice(origin==='discover'
+    ?'Saved to your Watchlist. This story will no longer appear in Home recommendations.'
+    :'Saved to your Watchlist.');
   }
   displaySaved();
  }catch(error){
   console.error('Watchlist update failed',error);
-  if(error.code==='23505'){saved=true;displaySaved();info('Already on your Watchlist.');}
+  if(error.code==='23505'){saved=true;displaySaved();info('Already on your Watchlist.');watchNotice('Already in your Watchlist.');}
   else info('Could not update Watchlist. Please try again.');
  }finally{watchBtn.disabled=false;}
 });

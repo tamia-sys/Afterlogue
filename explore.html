@@ -1170,6 +1170,20 @@ body.explore-body.explore-gallery-mode .explore-gallery-wrap{display:block!impor
 #afterlogue-global-catalog .catalog-save[aria-pressed="true"]{background:rgba(212,180,135,.16);color:#e4c8a2}
 #afterlogue-global-catalog .catalog-save:disabled{opacity:.6;cursor:wait}
 @media(max-width:650px){#afterlogue-global-catalog .catalog-save{font-size:10px;padding:7px 9px}}
+
+/* Save a mood pick without interrupting the rest of the five-story shelf. */
+.explore-pick-actions .explore-mood-save{
+ border:1px solid rgba(212,180,135,.5);border-radius:999px;background:transparent;
+ color:#d4b487;padding:8px 12px;cursor:pointer;font:11px Inter,Arial,sans-serif;white-space:nowrap
+}
+.explore-pick-actions .explore-mood-save:hover,.explore-pick-actions .explore-mood-save:focus-visible{
+ background:#d4b487;color:#161412
+}
+.explore-pick-actions .explore-mood-save[aria-pressed="true"]{
+ border-color:#d4b487;background:rgba(212,180,135,.12)
+}
+.explore-mood-save-note{flex:1 0 100%;color:#d4b487;font:10px/1.45 Arial,sans-serif}
+.explore-mood-save-note:empty{display:none}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 <link rel="stylesheet" href="seen-impression.css?v=2">
@@ -1576,6 +1590,54 @@ function paintMoodPicks(five){
       const actions=document.createElement("div");actions.className="explore-pick-actions";
       actions.append(window.AfterlogueSeen.button({key:item.key,title:item.title,year:item.year,poster:item.poster,category:item.media}));
       const detail=document.createElement("a");detail.href=link.href;detail.textContent="View details";detail.className="explore-global-detail";actions.append(detail);
+      // Save a mood recommendation without leaving the other four.
+      const save=document.createElement("button");
+      save.type="button";save.className="explore-mood-save";
+      save.textContent="＋ Save";save.setAttribute("aria-label","Save "+item.title+" to Watchlist");
+      const note=document.createElement("span");note.className="explore-mood-save-note";
+      note.setAttribute("role","status");note.setAttribute("aria-live","polite");
+      actions.append(save,note);
+      const catalogKey="tmdb-"+(item.media==="tv"?"tv":"movie")+"-"+item.id;
+      const markSaved=()=>{
+       save.textContent="✓ Saved";save.setAttribute("aria-pressed","true");
+       save.setAttribute("aria-label",item.title+" is in your Watchlist");
+      };
+      save.addEventListener("click",async()=>{
+       if(save.disabled||save.getAttribute("aria-pressed")==="true")return;
+       save.disabled=true;note.textContent="";
+       try{
+        const client=window.afterlogueSupabase;
+        const {data:auth,error:authError}=await client.auth.getUser();
+        if(authError)throw authError;
+        if(!auth.user){location.assign("signup.html?mode=signin");return;}
+        const category=item.media==="tv"?"tv":"movies";
+        if(window.AfterlogueCatalogMetadata?.save){
+         await window.AfterlogueCatalogMetadata.save(client,auth.user.id,{
+          key:catalogKey,title:item.title,year:item.year,poster:item.poster,category
+         });
+        }
+        const {error}=await client.from("watchlist").insert({
+         user_id:auth.user.id,title_key:catalogKey,category
+        });
+        if(error&&error.code!=="23505")throw error;
+        markSaved();note.textContent="Added to your Watchlist.";
+       }catch(error){
+        console.warn("Mood Watchlist save unavailable",error);
+        note.textContent="Could not save. Try again.";
+       }finally{save.disabled=false;}
+      });
+      // Restore saved state without changing the five recommendations.
+      (async()=>{
+       if(isGuest)return;
+       try{
+        const client=window.afterlogueSupabase;
+        const {data:auth,error:authError}=await client.auth.getUser();
+        if(authError||!auth?.user)return;
+        const {data,error}=await client.from("watchlist").select("title_key")
+          .eq("user_id",auth.user.id).eq("title_key",catalogKey).maybeSingle();
+        if(!error&&data)markSaved();
+       }catch(_){}
+      })();
       el.append(link,title,year,why,actions);host.append(el);
     }
   $("explore-results-title").textContent=state.randomPick?"A story you didn't ask for.":"A little something for you.";

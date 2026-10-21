@@ -5,7 +5,7 @@
 <title>Film details — Afterlogue</title>
 <link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="mobile-header.css?v=3">
-<link rel="stylesheet" href="film-details.css?v=10">
+<link rel="stylesheet" href="film-details.css?v=11">
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
 <link rel="dns-prefetch" href="//www.youtube.com">
@@ -36,9 +36,9 @@
 <p class="film-lead film-synopsis-lead" id="film-lead"></p>
 <div class="film-hero-actions">
 <a id="film-trailer" class="film-action" href="#" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">▷</span> Watch trailer</a>
-<button type="button" id="film-watchlist" class="film-action">＋ Add to Watchlist</button>
+<span class="film-watchlist-control"><button type="button" id="film-watchlist" class="film-action">＋ Add to Watchlist</button><span class="film-watchlist-feedback" id="film-watchlist-feedback" role="status" aria-live="polite"></span></span>
 <button type="button" id="film-favorite" class="film-action icon" title="Add to Favorites" aria-label="Add to Favorites" aria-pressed="false">♡</button>
-<a class="film-action icon" id="film-to-log" href="my-log.html" title="Open your personal Log" aria-label="Open your Log"><span aria-hidden="true">•••</span></a>
+<details class="film-more-menu" id="film-more-menu"><summary class="film-action icon" aria-label="More story options" title="More story options">•••</summary><div class="film-more-options"><a id="film-to-log" href="my-log.html">Go to my Log</a><button type="button" id="film-share-open">Share card ↗</button></div></details>
 </div>
 <p class="film-feedback" id="film-feedback" role="status" aria-live="polite"></p>
 </div>
@@ -96,6 +96,16 @@
 </section>
 </div>
 </main>
+<div id="film-share-modal" class="film-share-modal" role="dialog" aria-modal="true" aria-label="Share this story" hidden>
+  <section class="film-share-dialog">
+    <div class="film-share-heading"><span>PASS THE STORY ALONG</span><button type="button" id="film-share-close" aria-label="Close share card">×</button></div>
+    <div class="film-share-preview"><img id="film-share-poster" alt=""><div><p>AFTERLOGUE / A STORY TO SHARE</p><h2 id="film-share-title"></h2><small id="film-share-meta"></small><span>afterlogue.</span></div></div>
+    <p class="film-share-description">A story worth sharing.</p>
+    <div class="film-share-buttons"><button type="button" id="film-share-native">Share story ↗</button><button type="button" id="film-share-copy">Copy link</button></div>
+    <input type="text" id="film-share-url" readonly aria-label="Shareable story link">
+    <p id="film-share-status" role="status" aria-live="polite"></p>
+  </section>
+</div>
 <div id="film-trailer-modal" class="film-trailer-modal" role="dialog" aria-modal="true" aria-label="Watch trailer" hidden>
 <div class="film-trailer-dialog">
 <div class="film-trailer-heading"><span id="film-trailer-heading">Trailer.</span><button type="button" id="film-trailer-close" aria-label="Close trailer">×</button></div>
@@ -122,5 +132,5 @@
 <script src="film-official-trailers.js?v=1"></script>
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
-<script src="film-details.js?v=19"></script>
+<script src="film-details.js?v=20"></script>
 </body></html>
