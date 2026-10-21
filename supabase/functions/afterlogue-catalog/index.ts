@@ -1368,7 +1368,8 @@ Deno.serve(async (req:Request) => {
           countries:string[];originalLanguage:string;filterVerified:boolean}|null>=>x.status==="fulfilled"&&x.value!==null)
           .map(x=>x.value).slice(0,60),filters:{country:country||null,originalLanguage:originalLanguage||null}});
       }
-      const all=new Map<number,{item:ReturnType<typeof listItem>,votes:number,matched:string[]}>();
+      const all=new Map<number,{item:ReturnType<typeof listItem>,votes:number,matched:string[],
+        matchMethod:string,matchedGenres:string[]}>();
       const normalizeTitle=(x:string)=>x.normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
         .toLowerCase().replace(/[^a-z0-9]/g,"");
       // A recommendation must trace to an actual positively rated title.
@@ -1379,20 +1380,36 @@ Deno.serve(async (req:Request) => {
           new URLSearchParams({query:term,language:"en-US",page:"1",include_adult:"false"}),token);
         const source=(searchData.results||[]).find((v:Record<string,unknown>)=>
           normalizeTitle(String(media==="tv"?v.name:v.title||""))===normalizeTitle(term));
-        if(!source?.id)return {term,results:[] as Record<string,unknown>[]};
+        if(!source?.id)return {term,results:[] as Record<string,unknown>[],genreIds:new Set<number>()};
         const endpoint="/"+media+"/"+source.id;
+        const ids=Array.isArray(source.genre_ids)?source.genre_ids.slice(0,3).map(Number):[];
+        const genreParams=new URLSearchParams({
+          language:"en-US",include_adult:"false",page:"1",
+          sort_by:"vote_average.desc","vote_count.gte":media==="movie"?"125":"80",
+          "vote_average.gte":"6.3",with_genres:ids.join("|")
+        });
+        genreParams.set(media==="movie"?"primary_release_date.lte":"first_air_date.lte",
+          new Date().toISOString().slice(0,10));
         const jobs=[
           tmdb(endpoint+"/recommendations",new URLSearchParams({language:"en-US",page:"1"}),token),
           tmdb(endpoint+"/similar",new URLSearchParams({language:"en-US",page:"1"}),token)
         ];
+        if(ids.length)jobs.push(tmdb("/discover/"+media,genreParams,token));
         const replies=await Promise.allSettled(jobs);
         const pool:Record<string,unknown>[]=[];
-        for(const reply of replies)if(reply.status==="fulfilled")pool.push(...(reply.value.results||[]));
-        return {term,results:pool};
+        const genreIds=new Set<number>();
+        for(let i=0;i<replies.length;i++){
+          const reply=replies[i];
+          if(reply.status!=="fulfilled")continue;
+          const items:Record<string,unknown>[]=reply.value.results||[];
+          if(i===2)items.forEach(item=>genreIds.add(Number(item.id)));
+          pool.push(...items);
+        }
+        return {term,results:pool,genreIds};
       }));
       for(const outcome of found){
         if(outcome.status!=="fulfilled")continue;
-        const {term,results}=outcome.value;
+        const {term,results,genreIds}=outcome.value;
         const seenForSource=new Set<number>();
         for(const v of results){
           const id=Number(v.id);
@@ -1403,17 +1420,26 @@ Deno.serve(async (req:Request) => {
           if(country&&media==="tv"&&!(Array.isArray(v.origin_country)&&v.origin_country.includes(country)))continue;
           const title=listItem(v,media);
           const prev=all.get(id);
-          if(prev){prev.votes+=1;prev.matched.push(term);}
-          else all.set(id,{item:title,votes:1,matched:[term]});
+          const isGenreOnly=genreIds.has(id);
+          const relatedGenres=isGenreOnly?(title.genres||[]):[];
+          if(prev){
+            prev.votes+=1;prev.matched.push(term);
+            if(!isGenreOnly)prev.matchMethod="tmdb_related";
+          }else all.set(id,{item:title,votes:1,matched:[term],
+            matchMethod:isGenreOnly?"shared_genre":"tmdb_related",
+            matchedGenres:relatedGenres});
+
         }
       }
       const candidates=[...all.values()].sort((a,b)=>b.votes-a.votes);
       if(!scoped)return response({items:candidates.slice(0,70)
-        .map(v=>({...v.item,matched:v.matched,matchCount:v.votes})),
+        .map(v=>({...v.item,matched:v.matched,matchCount:v.votes,
+          matchMethod:v.matchMethod,matchedGenres:v.matchedGenres})),
         filters:{country:null,originalLanguage:null}});
       // Search summaries cannot confirm a film's production country. Check
       // actual TMDB details, and never silently relax either selected filter.
-      const selected: Array<{item:ReturnType<typeof listItem>;votes:number;matched:string[];verifiedCountries:string[];originalLanguage:string}> = [];
+      const selected: Array<{item:ReturnType<typeof listItem>;votes:number;matched:string[];
+        matchMethod:string;matchedGenres:string[];verifiedCountries:string[];originalLanguage:string}> = [];
       const queue=candidates.slice(0,110);
       let next=0;
       async function verify(){
@@ -1437,7 +1463,8 @@ Deno.serve(async (req:Request) => {
       selected.sort((a,b)=>b.votes-a.votes||a.item.title.localeCompare(b.item.title));
       return response({
         items:selected.slice(0,70).map(v=>({...v.item,matched:v.matched,
-          matchCount:v.votes,countries:v.verifiedCountries,
+          matchCount:v.votes,matchMethod:v.matchMethod,matchedGenres:v.matchedGenres,
+          countries:v.verifiedCountries,
           originalLanguage:v.originalLanguage,filterVerified:true})),
         filters:{country:country||null,originalLanguage:originalLanguage||null}
       });
