@@ -420,7 +420,10 @@ const EDITORIAL_COLLECTIONS:Record<string,CollectionTitle[]>={
   {title:"The Social Network",year:2010},{title:"Aftersun",year:2022},
   {title:"Everything Everywhere All at Once",year:2022},{title:"The Zone of Interest",year:2023},
   {title:"Get Out",year:2017},{title:"Sound of Metal",year:2019},
-  {title:"Lady Bird",year:2017},{title:"The Favourite",year:2018}
+  {title:"Lady Bird",year:2017},{title:"The Favourite",year:2018},
+  {title:"The Florida Project",year:2017},{title:"Manchester by the Sea",year:2016},
+  {title:"The Lobster",year:2015},{title:"The Holdovers",year:2023},
+  {title:"The Master",year:2012},{title:"Frances Ha",year:2012}
  ],
  "around-the-world":[
   {title:"In the Mood for Love",year:2000},{title:"Drive My Car",year:2021},
@@ -428,7 +431,10 @@ const EDITORIAL_COLLECTIONS:Record<string,CollectionTitle[]>={
   {title:"Roma",year:2018},{title:"Shoplifters",year:2018},
   {title:"The Lunchbox",year:2013},{title:"Cold War",year:2018},
   {title:"Timbuktu",year:2014},{title:"The Handmaiden",year:2016},
-  {title:"A Separation",year:2011},{title:"The Secret in Their Eyes",year:2009}
+  {title:"A Separation",year:2011},{title:"The Secret in Their Eyes",year:2009},
+  {title:"Pan's Labyrinth",year:2006},{title:"The Great Beauty",year:2013},
+  {title:"The Motorcycle Diaries",year:2004},{title:"The Hunt",year:2012},
+  {title:"The Wailing",year:2016},{title:"Amores Perros",year:2000}
  ],
  "love-in-all-forms":[
   {title:"Past Lives",year:2023},{title:"Before Sunrise",year:1995},
@@ -436,7 +442,10 @@ const EDITORIAL_COLLECTIONS:Record<string,CollectionTitle[]>={
   {title:"Carol",year:2015},{title:"Love & Basketball",year:2000},
   {title:"The Farewell",year:2019},{title:"Little Women",year:2019},
   {title:"About Time",year:2013},{title:"If Beale Street Could Talk",year:2018},
-  {title:"The Intouchables",year:2011},{title:"Her",year:2013}
+  {title:"The Intouchables",year:2011},{title:"Her",year:2013},
+  {title:"Eternal Sunshine of the Spotless Mind",year:2004},{title:"Blue Valentine",year:2010},
+  {title:"The Big Sick",year:2017},{title:"Call Me by Your Name",year:2017},
+  {title:"Brooklyn",year:2015},{title:"Before Sunset",year:2004}
  ],
  "animation-discoveries":[
   {title:"Coraline",year:2009},{title:"Fantastic Mr. Fox",year:2009},
@@ -444,7 +453,10 @@ const EDITORIAL_COLLECTIONS:Record<string,CollectionTitle[]>={
   {title:"Memoir of a Snail",year:2024},{title:"Persepolis",year:2007},
   {title:"The Triplets of Belleville",year:2003},{title:"Mary and Max",year:2009},
   {title:"The Tale of the Princess Kaguya",year:2013},{title:"The Red Turtle",year:2016},
-  {title:"The Breadwinner",year:2017},{title:"Anomalisa",year:2015}
+  {title:"The Breadwinner",year:2017},{title:"Anomalisa",year:2015},
+  {title:"Waltz with Bashir",year:2008},{title:"My Life as a Zucchini",year:2016},
+  {title:"The Illusionist",year:2010},{title:"The Secret of Kells",year:2009},
+  {title:"Song of the Sea",year:2014},{title:"Ernest & Celestine",year:2012}
  ]
 };
 // Cache only public TMDB title data, never member preferences or tokens.
@@ -525,7 +537,9 @@ Deno.serve(async (req:Request) => {
       }));
       const found=searches.filter((x):x is PromiseFulfilledResult<Record<string,unknown>|null>=>x.status==="fulfilled")
         .map(x=>x.value).filter((x):x is Record<string,unknown>=>Boolean(x));
-      return response({collection:key,items:found.map(item=>listItem(item,"movie")),
+      // A small reserve makes it possible to offer 16 verified stories even
+      // when an editorial title is not eligible or TMDB search is incomplete.
+      return response({collection:key,items:found.slice(0,16).map(item=>listItem(item,"movie")),
         totalPages:1,hasMore:false});
     }
     if(mode==="discover"||mode==="search"){
