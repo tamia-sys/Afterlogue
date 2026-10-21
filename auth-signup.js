@@ -61,9 +61,9 @@ async function memberDestination(user,offerImport=false){
   const ratings=new Set(["Loved","Liked","Okay","Not for me"]);
   let savedCount=0;
   try{
-   for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    if(k?.startsWith("afterlogue-")&&ratings.has(localStorage.getItem(k)))savedCount++;
+   for(let i=0;i<sessionStorage.length;i++){
+    const k=sessionStorage.key(i);
+    if(k?.startsWith("afterlogue-")&&ratings.has(sessionStorage.getItem(k)))savedCount++;
    }
   }catch(_){}
   if(savedCount&&window.confirm("Save "+savedCount+" impressions from this browser to your Afterlogue account?")){
