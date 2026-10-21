@@ -103,7 +103,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=5"></script>
+<script src="recommendation-engine.js?v=6"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -439,7 +439,13 @@ function getDiscoveryRecommendations(category, page = 0) {
   // No one gets curated filler just to make a row contain five titles.
   const hasPositive=Object.values(savedImpressions).some(v=>v==="Loved"||v==="Liked")
     ||discoveryFavorites.length>0;
-  if(!hasPositive)return [];
+  // Without positive impressions, show an explicitly labeled starting
+  // selection, never pretend an unpersonalized list is taste-matched.
+  if(!hasPositive){
+    if(discoveryCatalogState[category]==="loading")return [];
+    return discoveryExpandedEntries.filter(x=>x.category===category&&x.starter)
+      .slice(page*5,page*5+5).map(x=>({...x,why:x.reason,personalized:false,catalogKey:x.key}));
+  }
   const selected=window.AfterlogueRecommendationEngine.rank({
     entries:[...discoveryEntries,...discoverySourceEntries,...discoveryExpandedEntries],
     category,impressions:savedImpressions,
@@ -469,9 +475,26 @@ function getDiscoveryRecommendations(category, page = 0) {
     chosen.add(key);
     return true;
   });
-  return expanded.slice(page*5,page*5+5).map(item=>({
-    ...item,reason:item.why,catalogKey:item.key,tmdb:item.tmdb
-  }));
+  // Actual TMDB recommendations are stronger evidence than a genre bridge;
+  // use bridged suggestions only to fill missing seats in the five.
+  expanded.sort((a,b)=>Number(a.matchMethod==="shared_genre")-
+    Number(b.matchMethod==="shared_genre")||b.score-a.score);
+  return expanded.slice(page*5,page*5+5).map(item=>{
+    let why=item.why;
+    if(item.matchMethod==="shared_genre"){
+      const strongest=item.matched[0];
+      const source=strongest?.source?.title;
+      const word=strongest?.signal?.rating==="Loved"?"loved":
+        strongest?.signal?.rating==="Liked"?"liked":"saved";
+      const genre=Array.isArray(item.matchedGenres)&&item.matchedGenres.length
+        ?item.matchedGenres[0].toLowerCase():null;
+      why=source
+        ?"Because you "+word+" "+source+", this "+(category==="tv"?"series":"film")+
+          " shares "+(genre||"a genre")+" you may enjoy."
+        :"A genre-led discovery inspired by your impressions.";
+    }
+    return {...item,why,reason:why,catalogKey:item.key,tmdb:item.tmdb};
+  });
 }
 function displayDiscoveryRecommendations(category, page = 0) {
   const container = document.getElementById("discovery-results");
@@ -492,8 +515,8 @@ function displayDiscoveryRecommendations(category, page = 0) {
       : discoveryPreferences.country||discoveryPreferences.originalLanguage
       ? "No verified stories match both your taste and the country/language you selected yet. You can adjust these filters in First Impressions."
       : hasPositive
-      ? "No new films or shows from the wider catalog meet your current taste signals yet. Add a few more Loved or Liked impressions to help us find stronger matches."
-      : "Add a few Loved or Liked impressions to discover stories genuinely connected to your taste.";
+      ? "We couldn't find five reliable matches this time. Try another Loved or Liked impression in First Impressions."
+      : "Your opening selection is unavailable right now. Try refreshing the page.";
 
     container.appendChild(message);
     return;
@@ -746,10 +769,12 @@ async function populateExpandedRecommendations(userId){
  const sources=Object.entries(savedImpressions).map(([k,rating])=>({
    key:k.replace(/^afterlogue-/,""),rating
  })).filter(x=>["Loved","Liked"].includes(x.rating));
- if(!sources.length){
-  discoveryExpandedEntries=[];discoverySourceEntries=[];
-  discoveryCatalogState.movies="empty";discoveryCatalogState.tv="empty";
-  return;
+ const sourceKeys=new Set(sources.map(x=>x.key));
+ // A favorite is also a positive taste signal, even if it has not been
+ // assigned a Loved/Liked label yet.
+ for(const favorite of discoveryFavorites){
+   const key=favorite.title_key;
+   if(key&&!sourceKeys.has(key)){sources.push({key,rating:"Liked"});sourceKeys.add(key);}
  }
  let dynamic=[];
  if(userId){
@@ -757,18 +782,18 @@ async function populateExpandedRecommendations(userId){
     .select("title_key,title,year,poster,category").eq("user_id",userId);
   if(!response.error)dynamic=response.data||[];
  }else{
-  // Guest onboarding selections are stored only in this browser.
   try{
    for(let i=0;i<localStorage.length;i++){
     const key=localStorage.key(i);
     if(!key?.startsWith("afterlogue.onboarding.tmdb."))continue;
     const entry=JSON.parse(localStorage.getItem(key)||"null");
-    if(entry?.key&&entry?.title)dynamic.push({title_key:entry.key,title:entry.title,category:entry.category});
+    if(entry?.key&&entry?.title)dynamic.push({
+      title_key:entry.key,title:entry.title,year:entry.year,
+      poster:entry.poster,category:entry.category
+    });
    }
   }catch(_){}
  }
- // Rated TMDB titles must also exist in the scorer's source collection.
- // Otherwise it discards their impressions, and the curated 54 always win.
  const ratedKeys=new Set(Object.keys(savedImpressions)
    .filter(k=>["Loved","Liked","Okay","Not for me"].includes(savedImpressions[k]))
    .map(k=>k.replace(/^afterlogue-/,"")));
@@ -787,55 +812,88 @@ async function populateExpandedRecommendations(userId){
  const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
  const excluded=new Set([...sources.map(x=>x.key),...discoverySeen,
    ...discoveryWatchlist.map(x=>x.title_key)]);
- discoveryExpandedEntries=[];
- const requests=["movies","tv"].map(async category=>{
-  const ranked=sources.filter(x=>named.get(x.key)?.category===category)
-    .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved"));
-  const titles=[...new Set(ranked.map(x=>named.get(x.key).title))].slice(0,4);
-  let entries=[],state="ready";
-  if(!titles.length)state="empty";
-  else{
+ const grouped={
+  movies:sources.filter(x=>named.get(x.key)?.category==="movies")
+   .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved")),
+  tv:sources.filter(x=>named.get(x.key)?.category==="tv")
+   .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved"))
+ };
+ const pickNames=category=>[...new Set(grouped[category].map(x=>named.get(x.key).title))].slice(0,4);
+ const request=async body=>{
    const controller=new AbortController();
    const deadline=setTimeout(()=>controller.abort(),26000);
    try{
-    const media=category==="tv"?"tv":"movie";
-    const response=await fetch(endpoint,{method:"POST",signal:controller.signal,
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        mode:"recommend",media,titles,
-        country:discoveryPreferences.country||"",
-        originalLanguage:discoveryPreferences.originalLanguage||""
-      })});
-    if(!response.ok)throw Error("Catalog request returned "+response.status);
-    const data=await response.json();
-    entries=(data.items||[]).filter(x=>x.poster&&x.synopsis&&x.matched?.length).map((x,index)=>{
-      const key="tmdb-"+x.media+"-"+x.id;
-      return {key,title:x.title,year:x.year,poster:x.poster,category,
-        position:400+index,tmdb:{id:x.id,media:x.media},
-        filterVerified:x.filterVerified===true,
-        countries:Array.isArray(x.countries)?x.countries:[],
-        originalLanguage:x.originalLanguage||null,
-        reason:"Related to "+x.matched.join(", ")+".",
-        synopsis:x.synopsis,
-        directMatches:x.matched.map(name=>name.toLowerCase().normalize("NFKD")
-          .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")),
-        facets:{themes:[],tones:[],pace:null,genres:(x.genres||[]).map(g=>g.toLowerCase())}
-      };
-    }).filter(x=>!excluded.has(x.key));
-   }catch(error){
-     state="error";
-     console.warn("Afterlogue: Wider recommendation request failed for "+category,error);
+     const response=await fetch(endpoint,{
+       method:"POST",signal:controller.signal,
+       headers:{"Content-Type":"application/json"},body:JSON.stringify(body)
+     });
+     if(!response.ok)throw Error("Catalog request returned "+response.status);
+     return await response.json();
    }finally{clearTimeout(deadline);}
-  }
-  // Each shelf becomes available independently. A slow TV request must not
-  // hold back completed movie recommendations (or vice versa).
-  discoveryExpandedEntries=discoveryExpandedEntries.filter(x=>x.category!==category).concat(entries);
-  discoveryCatalogState[category]=state;
-  discoveryPages[category]=0;
-  if(discoveryReady&&selectedCategory===category)displayDiscoveryRecommendations(category,0);
+ };
+ discoveryExpandedEntries=[];
+ const requests=["movies","tv"].map(async category=>{
+   const media=category==="tv"?"tv":"movie";
+   const otherCategory=category==="tv"?"movies":"tv";
+   const own=pickNames(category),other=pickNames(otherCategory);
+   const filters={
+     country:discoveryPreferences.country||"",
+     originalLanguage:discoveryPreferences.originalLanguage||""
+   };
+   const plans=[];
+   if(own.length)plans.push({kind:"direct",body:{mode:"recommend",media,titles:own,...filters}});
+   if(other.length)plans.push({kind:"bridge",body:{mode:"recommend",media,
+     sourceMedia:otherCategory==="tv"?"tv":"movie",titles:other,...filters}});
+   if(!plans.length)plans.push({kind:"starter",body:{mode:"discover",media,page:1,
+     pageSize:60,sort:"discover",...filters}});
+   let entries=[],state="ready";
+   const responses=await Promise.allSettled(plans.map(async plan=>({
+     kind:plan.kind,data:await request(plan.body)
+   })));
+   const completed=responses.filter(x=>x.status==="fulfilled").map(x=>x.value);
+   if(!completed.length){state="error";console.warn("Afterlogue: Both recommendation sources failed for "+category);}
+   const candidates=new Map();
+   for(const {kind,data} of completed){
+     for(const item of (data.items||[])){
+       if(!item.poster||!item.synopsis||(kind!=="starter"&&!item.matched?.length))continue;
+       const key="tmdb-"+item.media+"-"+item.id;
+       if(excluded.has(key)||candidates.has(key))continue;
+       if(kind==="starter"){
+         // This is only an opening sample, not a personalization claim.
+         candidates.set(key,{key,title:item.title,year:item.year,poster:item.poster,
+           category,position:400+candidates.size,tmdb:{id:item.id,media:item.media},
+           starter:true,reason:"An opening selection from Afterlogue's cinema archive.",
+           synopsis:item.synopsis,facets:{themes:[],tones:[],genres:[],pace:null},
+           directMatches:[]});
+         continue;
+       }
+       const linked=item.matched.map(name=>name.toLowerCase().normalize("NFKD")
+         .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
+       candidates.set(key,{key,title:item.title,year:item.year,poster:item.poster,
+         category,position:(kind==="bridge"?600:400)+candidates.size,
+         tmdb:{id:item.id,media:item.media},
+         filterVerified:item.filterVerified===true,
+         countries:Array.isArray(item.countries)?item.countries:[],
+         originalLanguage:item.originalLanguage||null,
+         matchMethod:item.matchMethod||"tmdb_related",
+         matchedGenres:Array.isArray(item.matchedGenres)?item.matchedGenres:[],
+         reason:"Connected to "+item.matched.join(", ")+".",
+         synopsis:item.synopsis,
+         directMatches:linked,
+         facets:{themes:[],tones:[],pace:null,genres:(item.genres||[]).map(g=>g.toLowerCase())}
+       });
+     }
+   }
+   entries=[...candidates.values()];
+   if(!entries.length&&state!=="error")state="empty";
+   // A result can become available as soon as its own medium finishes:
+   // don't hold TV hostage while movie queries are still in flight.
+   discoveryExpandedEntries=discoveryExpandedEntries.filter(x=>x.category!==category).concat(entries);
+   discoveryCatalogState[category]=state;
+   discoveryPages[category]=0;
+   if(discoveryReady&&selectedCategory===category)displayDiscoveryRecommendations(category,0);
  });
  await Promise.allSettled(requests);
-
 }
 
 async function loadAccountImpressions() {
@@ -860,7 +918,9 @@ async function loadAccountImpressions() {
         "Selected for you.";
 
       document.getElementById("impression-count").textContent =
-        "Five recommendations shaped by your first impressions.";
+        Object.values(savedImpressions).some(r=>r==="Loved"||r==="Liked")
+          ?"Five recommendations shaped by your first impressions."
+          :"An opening selection. Rate a few titles to make it yours.";
       discoveryReady=true;
       displayDiscoveryRecommendations(selectedCategory,0);
       await populateExpandedRecommendations(null);
