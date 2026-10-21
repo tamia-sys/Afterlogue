@@ -16,7 +16,7 @@ const prompt=document.querySelector(".signup-login");
 const googleButton=document.getElementById("google-signin");
 const appleButton=document.getElementById("apple-signin");
 const resendButton=document.getElementById("signup-resend");
-const callbackUrl=new URL("signup.html?mode=signin",location.href).href;
+const callbackUrl=new URL("signup.html",location.href).href;
 let mode=new URLSearchParams(window.location.search).get("mode")==="signin"?"signin":"signup";
 let navigating=false;
 
