@@ -658,12 +658,15 @@ Deno.serve(async (req:Request) => {
         verified=entries.filter((x):x is PromiseFulfilledResult<Record<string,unknown>|null>=>x.status==="fulfilled")
           .map(x=>x.value).filter((v):v is Record<string,unknown>=>Boolean(v));
       }
+      const availableItems=Math.min(500*20,Number(body.total_results)||0);
+      const hasMore=page<100&&firstIndex+requestedSize<availableItems;
       return response({
         page,
-        totalPages:Math.min(100,Math.max(1,Math.ceil((Number(body.total_results)||0)/requestedSize))),
-        // TMDB's total_results is prefilter when we verify productions
-        // ourselves, so do not present it as an exact filtered count.
+        // A provider total can include films subsequently rejected by
+        // content filters. Don't present it as the number of usable pages.
+        totalPages:null,
         totalResults:country||mode==="search"&&(requestedGenre||hasDecade||originalLanguage)?null:Number(body.total_results)||0,
+        hasMore,
         items:verified.slice(0,requestedSize).map((v:Record<string,unknown>)=>listItem(v,media))
       });
     }
