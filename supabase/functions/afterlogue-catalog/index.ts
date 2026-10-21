@@ -448,6 +448,87 @@ Deno.serve(async (req:Request) => {
         params.set(media==="movie"?"primary_release_date.lte":"first_air_date.lte",params.get(media==="movie"?"primary_release_date.lte":"first_air_date.lte")||new Date().toISOString().slice(0,10));
       }
 
+      // "Discover" is the editorial entry into All Films & TV, not another
+      // sort of the popularity chart. Draw from independent TMDB streams
+      // covering old and recent cinema, international voices, animation,
+      // documentaries and under-seen work. All films must still satisfy the
+      // same real release, rating, poster and synopsis requirements.
+      // Search and filtered browsing keep their normal precise ordering.
+      if(mode==="discover"&&String(input.sort)==="discover"&&
+         Number(input.pageSize)===60&&!country&&!originalLanguage&&
+         !requestedGenre&&!hasDecade){
+        const today=new Date().toISOString().slice(0,10);
+        const year=new Date().getUTCFullYear();
+        type Lane={id:string;earliest?:number;latest?:number;language?:string;
+          genre?:number;votesMin?:number;votesMax?:number;order?:"popularity.desc"|"vote_average.desc"};
+        const european=["fr","es","it","de","pt"];
+        const asian=["ja","ko","hi","zh","ar"];
+        const years:Lane[]=media==="movie"?[
+          {id:"archive",earliest:1950,latest:1979,votesMin:65,order:"vote_average.desc"},
+          {id:"eighties-and-nineties",earliest:1980,latest:1999,votesMin:80,order:"vote_average.desc"},
+          {id:"noughties",earliest:2000,latest:2009,votesMin:70,order:"vote_average.desc"},
+          {id:"twenty-tens",earliest:2010,latest:2019,votesMin:85,order:"vote_average.desc"},
+          {id:"recent",earliest:2020,latest:year,votesMin:80,order:"vote_average.desc"}
+        ]:[
+          {id:"tv-archive",earliest:1970,latest:1999,votesMin:45,order:"vote_average.desc"},
+          {id:"tv-noughties",earliest:2000,latest:2009,votesMin:55,order:"vote_average.desc"},
+          {id:"tv-twenty-tens",earliest:2010,latest:2015,votesMin:60,order:"vote_average.desc"},
+          {id:"tv-late-tens",earliest:2016,latest:2019,votesMin:65,order:"vote_average.desc"},
+          {id:"tv-recent",earliest:2020,latest:year,votesMin:65,order:"vote_average.desc"}
+        ];
+        const lanes:Lane[]=[
+          ...years,
+          {id:"europe",language:european[(page-1)%european.length],
+           votesMin:50,order:"vote_average.desc"},
+          {id:"asia-world",language:asian[(page-1)%asian.length],
+           votesMin:50,order:"vote_average.desc"},
+          {id:"documentaries",genre:99,votesMin:45,order:"vote_average.desc"},
+          {id:"animation",genre:16,votesMin:60,order:"vote_average.desc"},
+          {id:"underseen",votesMin:55,votesMax:1800,
+           order:"vote_average.desc"}
+        ];
+        const release=media==="movie"?"primary_release_date":"first_air_date";
+        const searched=await Promise.allSettled(lanes.map(async lane=>{
+          const p=new URLSearchParams({
+            language:"en-US",include_adult:"false",page:String(page),
+            sort_by:lane.order||"vote_average.desc",
+            "vote_count.gte":String(lane.votesMin||60),
+            "vote_average.gte":"6.2"
+          });
+          p.set(release+".lte",today);
+          if(lane.earliest)p.set(release+".gte",lane.earliest+"-01-01");
+          if(lane.latest)p.set(release+".lte",Math.min(lane.latest,year)+"-12-31");
+          if(lane.language)p.set("with_original_language",lane.language);
+          if(lane.genre)p.set("with_genres",String(lane.genre));
+          if(lane.votesMax)p.set("vote_count.lte",String(lane.votesMax));
+          const body=await tmdb("/discover/"+media,p,token);
+          const entries=(body.results||[]).filter(
+            (v:Record<string,unknown>)=>eligible(v,media,45));
+          return {id:lane.id,entries,more:page<Math.min(500,Number(body.total_pages)||0)};
+        }));
+        const lanesReady=searched.filter((r):r is PromiseFulfilledResult<{
+          id:string;entries:Record<string,unknown>[];more:boolean
+        }>=>r.status==="fulfilled").map(x=>x.value);
+        if(lanesReady.length<5)throw Error("Diverse library temporarily unavailable");
+        // Interleave the lanes instead of grouping by country, decade or
+        // genre. Different streams may include the same TMDB ID, so dedupe.
+        const mixed:Record<string,unknown>[]=[],used=new Set<number>();
+        for(let i=0;i<20&&mixed.length<60;i++){
+          for(const lane of lanesReady){
+            const item=lane.entries[i],id=Number(item?.id);
+            if(!item||used.has(id))continue;
+            used.add(id);mixed.push(item);
+            if(mixed.length===60)break;
+          }
+        }
+        return response({
+          page,items:mixed.map(v=>listItem(v,media)),selection:"discover",
+          // Provider totals describe each independent stream, not a
+          // combined archive. Never invent an "of N" page count.
+          totalPages:null,totalResults:null,
+          hasMore:page<100&&lanesReady.some(lane=>lane.more)
+        });
+      }
       // On filtered pages, the viewer's 70 slots count *matching films*,
       // not 70 unfiltered candidates from TMDB. A stateless cursor tracks
       // the exact source position and prevents duplicates or skipped titles.
