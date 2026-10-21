@@ -351,6 +351,13 @@
 <!-- AFTERLOGUE — SUPABASE CONNECTION -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
+<script>
+  // Guests may need their unsaved choices after verifying an email in a new
+  // tab. Only GUEST drafts persist until import; account edits are tab-only.
+  window.afterlogueImpressionDraftStore=
+    new URLSearchParams(location.search).get("guest")==="1"
+      ?window.localStorage:window.sessionStorage;
+</script>
 <script src="onboarding-sync.js?v=5"></script>
 <script src="onboarding-catalog-search.js?v=6"></script>
 <script src="site-navigation.js?v=2"></script>
@@ -445,7 +452,7 @@ poster.appendChild(backButton);
 backButton.addEventListener("click", event => {
   event.stopPropagation();
 
-  sessionStorage.removeItem(filmKey);
+  (window.afterlogueImpressionDraftStore||sessionStorage).removeItem(filmKey);
   showSavedRating(null);
 
   poster.classList.add("is-open");
@@ -466,12 +473,12 @@ backButton.addEventListener("click", event => {
   }
 
   // Restore the saved rating when the page loads.
-  const savedRating = sessionStorage.getItem(filmKey);
+  const savedRating = (window.afterlogueImpressionDraftStore||sessionStorage).getItem(filmKey);
   showSavedRating(savedRating);
   document.addEventListener("afterlogue:saved-ratings",()=>{
     // A temporary edit in the current tab takes precedence over Supabase
     // until Continue saves it. Otherwise show the member's stored rating.
-    const rating=sessionStorage.getItem(filmKey)
+    const rating=(window.afterlogueImpressionDraftStore||sessionStorage).getItem(filmKey)
       ||window.afterlogueSavedRatings?.[filmKey.slice("afterlogue-".length)]
       ||null;
     showSavedRating(rating);
@@ -484,7 +491,9 @@ backButton.addEventListener("click", event => {
 
       const rating = button.dataset.rating;
 
-      sessionStorage.setItem(filmKey, rating);
+      (window.afterlogueImpressionDraftStore||sessionStorage).setItem(filmKey, rating);
+      if(new URLSearchParams(location.search).get("guest")==="1")
+        localStorage.setItem("afterlogue.guest.impressions.pending.v1","1");
       showSavedRating(rating);
 
       poster.classList.remove("is-open");
