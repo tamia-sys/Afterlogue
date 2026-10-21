@@ -862,7 +862,7 @@ Deno.serve(async (req:Request) => {
       }
       // TMDB's release date alone is not enough: verify the production status
       // and production/network metadata on the actual title record.
-      const shortlist=balanced.slice(0,16);
+      const shortlist=balanced.slice(0,28);
       const checked=await Promise.allSettled(shortlist.map(async v=>{
         const details=await tmdb("/"+media+"/"+Number(v.id),new URLSearchParams({language:"en-US"}),token);
         const aired=String(media==="movie"?details.release_date:details.first_air_date||"");
@@ -883,7 +883,7 @@ Deno.serve(async (req:Request) => {
       const verified=checked.filter((p):p is PromiseFulfilledResult<Record<string,unknown>>=>
         p.status==="fulfilled"&&p.value!==null).map(p=>p.value);
       return response({
-        items:verified.slice(0,12).map(v=>listItem(v,media)),
+        items:verified.slice(0,18).map(v=>listItem(v,media)),
         country:country||null,originalLanguage:originalLanguage||null,
         selection:"popular_officially_released",
         note:verified.length?"Popular, released titles matching your choices.":"No verified popular titles match these filters. Try another country or language."
@@ -1282,6 +1282,92 @@ Deno.serve(async (req:Request) => {
         .filter((v:unknown)=>typeof v==="string"&&v.trim().length>=2&&v.length<=110)
         .map((v:string)=>v.trim()))]:[];
       if(!terms.length)return response({items:[],filters:{country,originalLanguage}});
+      const sourceMedia:Media=input.sourceMedia==="movie"?"movie":input.sourceMedia==="tv"?"tv":media;
+      // A small cross-format bridge prevents an empty TV shelf when someone
+      // has rated movies but not series (or vice versa). These are GENRE
+      // connections, not fabricated TMDB film-to-series recommendations.
+      if(sourceMedia!==media){
+        const genreBridge:Record<string,number[]>=media==="tv"?{
+          "28":[10759],"12":[10759],"878":[10765],"14":[10765],
+          "27":[10765,9648],"53":[9648,18],"10749":[18],
+          "36":[18,10768],"10752":[10768],"10402":[18],
+          "18":[18],"35":[35],"80":[80],"16":[16],"99":[99],
+          "10751":[10751],"9648":[9648],"37":[37]
+        }:{
+          "10759":[28,12],"10765":[878,14,9648],"10768":[36,10752],
+          "10762":[10751,16],"10764":[99],"18":[18],"35":[35],
+          "80":[80],"16":[16],"99":[99],"10751":[10751],
+          "9648":[9648],"37":[37]
+        };
+        const normalized=(x:string)=>x.normalize("NFKD")
+          .replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+        const seeds=await Promise.allSettled(terms.map(async title=>{
+          const data=await tmdb("/search/"+sourceMedia,
+            new URLSearchParams({query:title,language:"en-US",page:"1",include_adult:"false"}),token);
+          const match=(data.results||[]).find((x:Record<string,unknown>)=>
+            normalized(String(sourceMedia==="movie"?x.title:x.name||""))===normalized(title));
+          if(!match)return {title,results:[] as Record<string,unknown>[],targets:[] as number[]};
+          const targets=[...new Set((Array.isArray(match.genre_ids)?match.genre_ids:[])
+            .flatMap((id:number)=>genreBridge[String(id)]||[]))].slice(0,5);
+          if(!targets.length)return {title,results:[] as Record<string,unknown>[],targets};
+          const requests=[1,2].map(async page=>{
+            const query=new URLSearchParams({
+              language:"en-US",include_adult:"false",page:String(page),
+              sort_by:page===1?"popularity.desc":"vote_average.desc",
+              "vote_count.gte":String(media==="tv"?70:100),
+              "vote_average.gte":"6.1",with_genres:targets.join("|")
+            });
+            query.set(media==="movie"?"primary_release_date.lte":"first_air_date.lte",
+              new Date().toISOString().slice(0,10));
+            const response=await tmdb("/discover/"+media,query,token);
+            return response.results||[];
+          });
+          const replies=await Promise.allSettled(requests);
+          return {title,targets,results:replies.flatMap(x=>x.status==="fulfilled"?x.value:[])};
+        }));
+        const pool=new Map<number,{item:ReturnType<typeof listItem>;matched:string[];genreNames:string[];count:number;popularity:number}>();
+        for(const seed of seeds){
+          if(seed.status!=="fulfilled")continue;
+          const {title,targets,results}=seed.value;
+          const taken=new Set<number>();
+          for(const v of results){
+            const id=Number(v.id),ids:Array<number>=Array.isArray(v.genre_ids)?v.genre_ids:[];
+            if(taken.has(id)||!targets.some(target=>ids.includes(target))||!eligible(v,media,scoped?5:media==="tv"?25:40))continue;
+            if(originalLanguage&&v.original_language!==originalLanguage)continue;
+            if(country&&media==="tv"&&!(v.origin_country||[]).includes(country))continue;
+            taken.add(id);
+            const related=targets.filter(target=>ids.includes(target)).map(target=>
+              codes[target]||"a related genre");
+            const prior=pool.get(id);
+            if(prior){prior.count++;prior.matched.push(title);}
+            else pool.set(id,{item:listItem(v,media),matched:[title],genreNames:related,
+              count:1,popularity:Number(v.popularity)||0});
+          }
+        }
+        const candidates=[...pool.values()].sort((a,b)=>b.count-a.count||b.popularity-a.popularity).slice(0,90);
+        if(!scoped)return response({items:candidates.slice(0,60).map(v=>({
+          ...v.item,matched:v.matched,matchedGenres:v.genreNames,matchMethod:"shared_genre",matchCount:v.count
+        })),filters:{country:null,originalLanguage:null}});
+        // Honor user-selected production country and original language across
+        // the format bridge too; search summaries are not country proof.
+        const validated=await Promise.allSettled(candidates.map(async v=>{
+          const details=await tmdb("/"+media+"/"+v.item.id,
+            new URLSearchParams({language:"en-US"}),token);
+          const nations=media==="movie"
+            ?(details.production_countries||[]).map((c:Record<string,unknown>)=>String(c.iso_3166_1||""))
+            :exactCodes(details.origin_country);
+          const language=String(details.original_language||"");
+          if(country&&!nations.includes(country))return null;
+          if(originalLanguage&&language!==originalLanguage)return null;
+          return {...v.item,matched:v.matched,matchedGenres:v.genreNames,
+            matchMethod:"shared_genre",matchCount:v.count,countries:nations,
+            originalLanguage:language,filterVerified:true};
+        }));
+        return response({items:validated.filter((x):x is PromiseFulfilledResult<ReturnType<typeof listItem> & {
+          matched:string[];matchedGenres:string[];matchMethod:string;matchCount:number;
+          countries:string[];originalLanguage:string;filterVerified:boolean}|null>=>x.status==="fulfilled"&&x.value!==null)
+          .map(x=>x.value).slice(0,60),filters:{country:country||null,originalLanguage:originalLanguage||null}});
+      }
       const all=new Map<number,{item:ReturnType<typeof listItem>,votes:number,matched:string[]}>();
       const normalizeTitle=(x:string)=>x.normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
         .toLowerCase().replace(/[^a-z0-9]/g,"");
