@@ -128,17 +128,16 @@ if (isGuestMode) {
 }
 
 
+  // Guest preferences are temporary. Member preferences come exclusively
+  // from the authenticated Supabase account, never from a previous browser user.
   const savedImpressions = {};
-
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-
-    if (key && key.startsWith("afterlogue-")) {
-      savedImpressions[key] = localStorage.getItem(key);
+  if(isGuestMode) {
+    for(let i=0;i<sessionStorage.length;i++){
+      const key=sessionStorage.key(i);
+      const rating=key?.startsWith("afterlogue-")?sessionStorage.getItem(key):null;
+      if(["Loved","Liked","Okay","Not for me"].includes(rating))savedImpressions[key]=rating;
     }
   }
-
-  console.log("Afterlogue impressions:", savedImpressions);
   const impressionCount = Object.values(savedImpressions)
   .filter(rating => ["Loved", "Liked", "Okay", "Not for me"].includes(rating))
   .length;
@@ -445,38 +444,32 @@ function getDiscoveryRecommendations(category, page = 0) {
     category,impressions:savedImpressions,
     favorites:discoveryFavorites,watchlist:discoveryWatchlist,seen:discoverySeen
   });
+  // The original curated titles are taste references, not suggestions.
+  // Only real new discoveries from TMDB can fill a Home recommendation shelf.
+  if(discoveryCatalogState[category]==="loading")return [];
   const scoped=Boolean(discoveryPreferences.country||discoveryPreferences.originalLanguage);
-  const meaningful=(entry)=>{
-    if(!entry.personalized||entry.score<=0||!entry.matched?.length)return false;
-    if(entry.tmdb){
-      // These are recommendations linked to at least one genuinely liked
-      // source title; if scoped, the backend verified BOTH selected filters.
-      if(!entry.directMatches?.length)return false;
-      if(scoped){
-        if(!entry.filterVerified)return false;
-        if(discoveryPreferences.country&&!entry.countries?.includes(discoveryPreferences.country))return false;
-        if(discoveryPreferences.originalLanguage!==null&&entry.originalLanguage!==discoveryPreferences.originalLanguage)return false;
-      }
-      return true;
+  const normalizeTitle=title=>String(title||"").toLowerCase().normalize("NFKD")
+    .replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  const editorialTitles=new Set(discoveryEntries.map(entry=>normalizeTitle(entry.title)));
+  const chosen=new Set();
+  const expanded=selected.filter(entry=>{
+    if(!entry.tmdb||!entry.personalized||entry.score<=0||!entry.matched?.length)return false;
+    const key=normalizeTitle(entry.title);
+    if(editorialTitles.has(key)||chosen.has(key))return false;
+    const directlyLinked=entry.matched.some(match=>match.signal.weight>=1.5
+      &&(entry.directMatches||[]).some(value=>
+        value===normalizeTitle(match.source.title)||value===match.source.key));
+    if(!directlyLinked)return false;
+    if(scoped){
+      if(!entry.filterVerified)return false;
+      if(discoveryPreferences.country&&!entry.countries?.includes(discoveryPreferences.country))return false;
+      if(discoveryPreferences.originalLanguage&&entry.originalLanguage!==discoveryPreferences.originalLanguage)return false;
     }
-    // Legacy curated entries can still earn a place, but only when the
-    // member's positive feedback supports a substantial thematic/tonal
-    // connection. There is no reserved editorial quota.
-    if(scoped)return false; // Original curated entries lack verified origin metadata.
-    return entry.matched.some(match=>{
-      if(match.signal.weight<1.5)return false;
-      const similarity=match.similarity;
-      const themes=similarity.sharedThemes||[];
-      const tones=similarity.sharedTones||[];
-      const specific=themes.filter(v=>!["identity","family","control","belonging","survival","love","friendship","loss"].includes(v));
-      return (specific.length>=1&&tones.length>=1)
-        ||(themes.length>=2&&tones.length>=1)
-        ||(specific.length>=2);
-    });
-  };
-  const unique=[...new Map(selected.filter(meaningful).map(item=>[item.key,item])).values()];
-  return unique.slice(page*5,page*5+5).map(item=>({
-    ...item,reason:item.why,catalogKey:item.key,tmdb:item.tmdb||null
+    chosen.add(key);
+    return true;
+  });
+  return expanded.slice(page*5,page*5+5).map(item=>({
+    ...item,reason:item.why,catalogKey:item.key,tmdb:item.tmdb
   }));
 }
 function displayDiscoveryRecommendations(category, page = 0) {
@@ -498,7 +491,7 @@ function displayDiscoveryRecommendations(category, page = 0) {
       : discoveryPreferences.country||discoveryPreferences.originalLanguage
       ? "No verified stories match both your taste and the country/language you selected yet. You can adjust these filters in First Impressions."
       : hasPositive
-      ? "We haven't found a strong match for this selection yet. Try rating a few more stories in First Impressions."
+      ? "No new films or shows from the wider catalog meet your current taste signals yet. Add a few more Loved or Liked impressions to help us find stronger matches."
       : "Add a few Loved or Liked impressions to discover stories genuinely connected to your taste.";
 
     container.appendChild(message);
@@ -765,10 +758,10 @@ async function populateExpandedRecommendations(userId){
  }else{
   // Guest onboarding selections are stored only in this browser.
   try{
-   for(let i=0;i<localStorage.length;i++){
-    const key=localStorage.key(i);
+   for(let i=0;i<sessionStorage.length;i++){
+    const key=sessionStorage.key(i);
     if(!key?.startsWith("afterlogue.onboarding.tmdb."))continue;
-    const entry=JSON.parse(localStorage.getItem(key)||"null");
+    const entry=JSON.parse(sessionStorage.getItem(key)||"null");
     if(entry?.key&&entry?.title)dynamic.push({title_key:entry.key,title:entry.title,category:entry.category});
    }
   }catch(_){}
