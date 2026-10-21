@@ -1671,6 +1671,14 @@ async function displayResults(){
             reason:item.moodReason||"Selected for the mood you chose."});
         }
       }
+      // Stream the first verified choices immediately rather than making the
+      // viewer stare at a blank shelf while a second search pass finishes.
+      if(titles.length && titles.length<desired && searched<2){
+        paintMoodPicks(titles.slice(0,desired));
+        $("explore-results-detail").textContent="Found "+titles.length+
+          " matching "+(titles.length===1?"story":"stories")+". Looking for the rest of your five…";
+        $("explore-again").disabled=true;
+      }
     }
     const five=titles.slice(0,desired);
     // Show genuine matches immediately, even when a narrow combination has
