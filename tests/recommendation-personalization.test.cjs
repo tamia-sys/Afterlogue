@@ -112,20 +112,40 @@ test('Server verifies BOTH filters on production details, not merely search summ
   assert.match(home,/if\(!entry\.tmdb\|\|!entry\.personalized/);
 });
 
-test('Explore searches one unified results shelf and never collapses on one character',()=>{
- const html=read('explore.html'),search=read('explore-global-search.js');
- assert.match(html,/explore-global-search\.js\?v=3/);
- assert.match(search,/explore-match-picks/);
- assert.match(search,/byTitle=new Map/);
- assert.match(search,/render\(\[\],\[\],query,true\)/);
- assert.match(search,/Searching films and television/);
- assert.match(search,/Promise\.all\(jobs\.map/);
- assert.match(search,/No matching titles found/);
- assert.doesNotMatch(search,/Country search currently applies to curated/);
- assert.match(html,/typed\.length>=2\?typed:""/);
- assert.match(html,/explore-browse-note" hidden/);
- assert.doesNotMatch(html,/Look beyond our featured collection/);
+test('Explore presents existing moodboard first and full searchable library underneath',()=>{
+ const html=read('explore.html'),catalog=read('catalog-browser.js');
+ assert.match(html,/id="explore-gallery"/);
+ assert.match(html,/id="afterlogue-global-catalog"/);
+ assert.ok(html.indexOf('id="explore-gallery"')<html.indexOf('id="afterlogue-global-catalog"'));
+ assert.match(html,/id="catalog-search"/);
+ assert.doesNotMatch(html,/id="explore-search"/);
+ assert.doesNotMatch(html,/explore-global-search\.js/);
+ assert.doesNotMatch(html,/id="explore-all-films"/);
+ assert.match(html,/catalog-browser\.js\?v=7/);
+ assert.match(catalog,/IntersectionObserver/);
+ assert.doesNotMatch(catalog,/\$\("catalog-open"\)/);
 });
+test('Surprise Me is a black wildcard card at the end of the existing rail',()=>{
+ const html=read('explore.html');
+ assert.match(html,/class="mood-card mood-wildcard"/);
+ assert.match(html,/Leave it to chance\./);
+ assert.match(html,/id="explore-surprise"/);
+ assert.doesNotMatch(html,/id="explore-mystery"/);
+ assert.match(html,/\.mood-card:not\(\.mood-wildcard\)/);
+ assert.match(html,/pinGallery\.append\(\.\.\.sorted,pinGallery\.querySelector\("\.mood-wildcard"\)\)/);
+});
+test('Mood refinement offers only Country, Age rating, Decade and Genre',()=>{
+ const html=read('explore.html'),script=read('explore-facets.js');
+ assert.match(html,/id="explore-refine"/);
+ assert.match(html,/Refine your mood/);
+ assert.match(script,/const order=\["countries","ratings","decades","genres"\]/);
+ assert.doesNotMatch(script,/languages:\[/);
+ assert.doesNotMatch(html,/id="explore-format"/);
+ assert.doesNotMatch(html,/id="explore-search"/);
+ assert.match(html,/state\.stage===0/);
+ assert.match(html,/const format=state\.format\|\|"either"/);
+});
+
 test('Explore returns one complete mood selection with no repeated Search further loops',()=>{
  const html=read('explore.html'),backend=read('supabase/functions/afterlogue-catalog/index.ts');
  assert.match(html,/Promise\.allSettled\(media\.map/);
@@ -162,19 +182,21 @@ test('Filtered page 2 uses the next genuine matching-title cursor, not an unfilt
 test('All Films Next and Previous scroll to the top and load a new page',()=>{
  const browser=read('catalog-browser.js');
  assert.match(browser,/function turnPage\(direction\)/);
- assert.match(browser,/window\.scrollTo\(\{top:0,behavior:"instant"\}\)/);
- assert.match(browser,/panel\.scrollTop=0/);
+ assert.match(browser,/panel\.scrollIntoView\(\{block:"start",behavior:"instant"\}\)/);
+ assert.doesNotMatch(browser,/window\.scrollTo\(\{top:0,behavior:"instant"\}\)/);
  assert.match(browser,/page=target/);
  assert.match(browser,/load\(\)/);
  assert.match(browser,/catalog-next"\)\.addEventListener\("click",\(\)=>turnPage\(1\)\)/);
 });
-test('Explore never attaches events to a removed curated-only catalog button',()=>{
+test('Explore mood clicks work without removed or redundant search controls',()=>{
  const html=read('explore.html');
  assert.doesNotMatch(html,/\$\("explore-all-films-open"\)\.addEventListener/);
+ assert.doesNotMatch(html,/searchField\.addEventListener/);
  assert.match(html,/document\.querySelectorAll\("\.mood-open"\)/);
- assert.match(html,/searchField\.addEventListener\("input",updateBrowse\)/);
- assert.match(html,/explore-global-search\.js\?v=3/);
+ assert.match(html,/\$\("explore-surprise"\)\.addEventListener/);
+ assert.match(html,/const facet=isSurprise\?/);
 });
+
 test('Film Details keeps the editorial heading as a question',()=>{
  const details=read('film-details.html');
  assert.match(details,/Another story, perhaps\?/);
