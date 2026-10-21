@@ -420,6 +420,7 @@ tv: [
 let discoveryFavorites=[];
 let discoveryExpandedEntries=[];
 let discoverySourceEntries=[];
+const discoveryCatalogState={movies:"loading",tv:"loading"};
 // Explicit onboarding preferences are HARD eligibility filters, not score
 // bonuses. Country means production origin, language means original language.
 const discoveryPreferences={country:null,originalLanguage:null};
@@ -487,10 +488,18 @@ function displayDiscoveryRecommendations(category, page = 0) {
   if (selected.length === 0) {
     const message = document.createElement("p");
     message.className = "discovery-empty";
-    message.textContent =
-      discoveryPreferences.country || discoveryPreferences.originalLanguage
-        ? "No verified stories match both your taste and the country/language you selected yet. You can change these filters in First Impressions."
-        : "Add a few Loved or Liked impressions to discover stories genuinely connected to your taste.";
+    const state=discoveryCatalogState[category];
+    const hasPositive=Object.values(savedImpressions).some(r=>r==="Loved"||r==="Liked")
+      ||discoveryFavorites.length>0;
+    message.textContent=state==="loading"&&hasPositive
+      ? "Looking through the wider film library for stories connected to your taste…"
+      : state==="error"&&hasPositive
+      ? "The wider film library couldn't finish loading. Please refresh to try again."
+      : discoveryPreferences.country||discoveryPreferences.originalLanguage
+      ? "No verified stories match both your taste and the country/language you selected yet. You can adjust these filters in First Impressions."
+      : hasPositive
+      ? "We haven't found a strong match for this selection yet. Try rating a few more stories in First Impressions."
+      : "Add a few Loved or Liked impressions to discover stories genuinely connected to your taste.";
 
     container.appendChild(message);
     return;
@@ -738,11 +747,16 @@ discoverAgainButton.addEventListener("click", () => {
 
 
 async function populateExpandedRecommendations(userId){
+ discoveryCatalogState.movies="loading";discoveryCatalogState.tv="loading";
  const client=window.afterlogueSupabase;
  const sources=Object.entries(savedImpressions).map(([k,rating])=>({
    key:k.replace(/^afterlogue-/,""),rating
  })).filter(x=>["Loved","Liked"].includes(x.rating));
- if(!sources.length){discoveryExpandedEntries=[];discoverySourceEntries=[];return;}
+ if(!sources.length){
+  discoveryExpandedEntries=[];discoverySourceEntries=[];
+  discoveryCatalogState.movies="empty";discoveryCatalogState.tv="empty";
+  return;
+ }
  let dynamic=[];
  if(userId){
   const response=await client.from("user_catalog_titles")
@@ -779,39 +793,55 @@ async function populateExpandedRecommendations(userId){
  const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
  const excluded=new Set([...sources.map(x=>x.key),...discoverySeen,
    ...discoveryWatchlist.map(x=>x.title_key)]);
- const requests=await Promise.all(["movies","tv"].map(async category=>{
+ discoveryExpandedEntries=[];
+ const requests=["movies","tv"].map(async category=>{
   const ranked=sources.filter(x=>named.get(x.key)?.category===category)
-   .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved"));
+    .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved"));
   const titles=[...new Set(ranked.map(x=>named.get(x.key).title))].slice(0,4);
-  if(!titles.length)return [];
-  try{
-   const media=category==="tv"?"tv":"movie";
-   const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      mode:"recommend",media,titles,
-      country:discoveryPreferences.country||"",
-      originalLanguage:discoveryPreferences.originalLanguage||""
-    })});
-   if(!response.ok)return [];
-   const data=await response.json();
-   return (data.items||[]).filter(x=>x.poster&&x.synopsis&&x.matched?.length).map((x,index)=>{
-    const key="tmdb-"+x.media+"-"+x.id;
-    return {key,title:x.title,year:x.year,poster:x.poster,category,
-     position:400+index,tmdb:{id:x.id,media:x.media},
-     filterVerified:x.filterVerified===true,
-     countries:Array.isArray(x.countries)?x.countries:[],
-     originalLanguage:x.originalLanguage||null,
-     reason:"Related to "+x.matched.join(", ")+".",
-     synopsis:x.synopsis,
-     directMatches:x.matched.map(name=>name.toLowerCase().normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")),
-     facets:{themes:[],tones:[],pace:null,genres:(x.genres||[]).map(g=>g.toLowerCase())}
-    };
-   }).filter(x=>!excluded.has(x.key));
-  }catch(error){console.warn("Expanded recommendations unavailable",error);return [];}
- }));
- discoveryExpandedEntries=requests.flat();
- discoveryPages.movies=0;discoveryPages.tv=0;
+  let entries=[],state="ready";
+  if(!titles.length)state="empty";
+  else{
+   const controller=new AbortController();
+   const deadline=setTimeout(()=>controller.abort(),26000);
+   try{
+    const media=category==="tv"?"tv":"movie";
+    const response=await fetch(endpoint,{method:"POST",signal:controller.signal,
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        mode:"recommend",media,titles,
+        country:discoveryPreferences.country||"",
+        originalLanguage:discoveryPreferences.originalLanguage||""
+      })});
+    if(!response.ok)throw Error("Catalog request returned "+response.status);
+    const data=await response.json();
+    entries=(data.items||[]).filter(x=>x.poster&&x.synopsis&&x.matched?.length).map((x,index)=>{
+      const key="tmdb-"+x.media+"-"+x.id;
+      return {key,title:x.title,year:x.year,poster:x.poster,category,
+        position:400+index,tmdb:{id:x.id,media:x.media},
+        filterVerified:x.filterVerified===true,
+        countries:Array.isArray(x.countries)?x.countries:[],
+        originalLanguage:x.originalLanguage||null,
+        reason:"Related to "+x.matched.join(", ")+".",
+        synopsis:x.synopsis,
+        directMatches:x.matched.map(name=>name.toLowerCase().normalize("NFKD")
+          .replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")),
+        facets:{themes:[],tones:[],pace:null,genres:(x.genres||[]).map(g=>g.toLowerCase())}
+      };
+    }).filter(x=>!excluded.has(x.key));
+   }catch(error){
+     state="error";
+     console.warn("Afterlogue: Wider recommendation request failed for "+category,error);
+   }finally{clearTimeout(deadline);}
+  }
+  // Each shelf becomes available independently. A slow TV request must not
+  // hold back completed movie recommendations (or vice versa).
+  discoveryExpandedEntries=discoveryExpandedEntries.filter(x=>x.category!==category).concat(entries);
+  discoveryCatalogState[category]=state;
+  discoveryPages[category]=0;
+  if(discoveryReady&&selectedCategory===category)displayDiscoveryRecommendations(category,0);
+ });
+ await Promise.allSettled(requests);
+
 }
 
 async function loadAccountImpressions() {
@@ -837,8 +867,9 @@ async function loadAccountImpressions() {
 
       document.getElementById("impression-count").textContent =
         "Five recommendations shaped by your first impressions.";
-      await populateExpandedRecommendations(null);
       discoveryReady=true;
+      displayDiscoveryRecommendations(selectedCategory,0);
+      await populateExpandedRecommendations(null);
       displayDiscoveryRecommendations(selectedCategory,0);
       return;
     }
@@ -903,8 +934,10 @@ async function loadAccountImpressions() {
       document.querySelector(".discovery-category.active")
         ?.dataset.category || "movies";
 
-    await populateExpandedRecommendations(userData.user.id);
+    // Do not keep the entire Home shelf blank while catalog requests run.
     discoveryReady=true;
+    displayDiscoveryRecommendations(activeCategory,0);
+    await populateExpandedRecommendations(userData.user.id);
     displayDiscoveryRecommendations(activeCategory,0);
 
     console.log("Afterlogue: Account impressions loaded.");
@@ -914,6 +947,9 @@ async function loadAccountImpressions() {
 
     document.getElementById("impression-count").textContent =
       "We couldn't load your saved impressions. Please refresh the page.";
+    // Never leave the initial loading placeholder stuck indefinitely.
+    document.getElementById("discovery-results").textContent=
+      "Home couldn't load your recommendations. Refresh the page to try again.";
   }
 }
 
