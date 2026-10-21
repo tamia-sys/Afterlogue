@@ -154,3 +154,33 @@ body.film-trailer-open{overflow:hidden}
 .film-other-grid .film-other-link small{display:block;margin-top:5px;color:#a99a86;font:11px/1.4 Arial,sans-serif}
 .film-other-grid>.film-watch-notice{grid-column:1/-1}
 @media(max-width:790px){.film-synopsis-lead{font-size:14px;line-height:1.64}}
+
+/* A small Watchlist acknowledgment anchored directly under the save button. */
+.film-watchlist-control{position:relative;display:inline-flex;flex-direction:column;align-items:flex-start}
+.film-watchlist-feedback{position:absolute;z-index:3;top:calc(100% + 8px);left:0;width:max-content;max-width:min(320px,80vw);font:11px/1.5 Arial,sans-serif;color:#d5bd98;background:#171819;border-radius:6px}
+.film-watchlist-feedback:empty{display:none}
+.film-more-menu{position:relative;z-index:5}
+.film-more-menu>summary{list-style:none;user-select:none}
+.film-more-menu>summary::-webkit-details-marker{display:none}
+.film-more-menu>summary::marker{content:""}
+.film-more-options{position:absolute;z-index:100;right:0;top:calc(100% + 8px);width:185px;padding:8px;background:#22201e;border:1px solid rgba(212,180,135,.52);border-radius:11px;box-shadow:0 17px 40px rgba(0,0,0,.5)}
+.film-more-options a,.film-more-options button{display:block;width:100%;padding:12px 10px;text-align:left;border:0;background:transparent;color:#eee0c9;font:12px Arial,sans-serif;text-decoration:none;cursor:pointer;border-radius:5px}
+.film-more-options a:hover,.film-more-options button:hover,.film-more-options :focus-visible{background:rgba(212,180,135,.16);color:#fff}
+.film-share-modal[hidden]{display:none!important}
+.film-share-modal{position:fixed;inset:0;z-index:100120;display:grid;place-items:center;padding:18px;background:rgba(5,6,7,.92)}
+.film-share-dialog{width:min(100%,510px);max-height:95vh;overflow-y:auto;background:#171819;border:1px solid rgba(212,180,135,.45);padding:clamp(18px,4vw,32px);box-shadow:0 25px 60px #000}
+.film-share-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:19px;color:#d4b487;font:10px Arial,sans-serif;letter-spacing:.17em}
+.film-share-heading button{color:#f4eadd;border:0;background:transparent;font:29px Arial,sans-serif;cursor:pointer}
+.film-share-preview{display:grid;grid-template-columns:36% 1fr;gap:18px;align-items:center;background:#101113;border:1px solid rgba(212,180,135,.25);padding:17px}
+.film-share-preview img{width:100%;aspect-ratio:2/3;object-fit:cover}
+.film-share-preview p{font:9px/1.6 Arial,sans-serif;color:#bfa58b;letter-spacing:.1em}
+.film-share-preview h2{font:400 clamp(23px,4vw,38px)/1.15 Georgia,serif;color:#f4eadd;overflow-wrap:anywhere;margin:16px 0 12px}
+.film-share-preview small{font:12px Arial,sans-serif;color:#bba88d}
+.film-share-preview span{display:block;font:22px Georgia,serif;color:#d4b487;margin-top:30px}
+.film-share-description{font:14px Georgia,serif;color:#cbbba6;margin:20px 0}
+.film-share-buttons{display:flex;gap:9px;flex-wrap:wrap}
+.film-share-buttons button{border:1px solid #c5a679;background:transparent;color:#f4eadd;border-radius:99px;padding:11px 18px;cursor:pointer;font:12px Arial,sans-serif}
+.film-share-buttons button:hover{background:#d4b487;color:#111}
+#film-share-url{display:block;width:100%;min-width:0;margin-top:13px;padding:10px 12px;background:#0e0f10;color:#c2b6a7;border:1px solid #594b3c;font:11px Arial,sans-serif}
+#film-share-status{font:12px Arial,sans-serif;color:#d4b487;min-height:16px}
+body.film-share-open{overflow:hidden}
