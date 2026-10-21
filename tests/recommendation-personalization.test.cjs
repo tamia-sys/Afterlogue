@@ -313,7 +313,7 @@ test('Curated collections resolve verifiable TMDB titles and do not pretend genr
  assert.match(server,/if\(mode==="collection"\)/);
  assert.match(server,/normalized\(item.title\)===normalized\(title.title\)/);
  assert.match(server,/yearOf\(item.release_date\)===title.year/);
- assert.match(server,/collection:key,items:found.map/);
+ assert.match(server,/collection:key,items:found\.slice\(0,16\)\.map/);
  assert.match(server,/hasMore:false/);
 });
 test('Archive browsing and filters still use original source-based 60/70-title paging',()=>{
@@ -346,7 +346,7 @@ test('All four featured collections offer distinct films with no cross-collectio
      seen.set(key,id);
    }
  }
- assert.equal(seen.size,48,'Four collections should introduce 48 distinct titles');
+ assert.equal(seen.size,72,'Four collections should have 18 distinct eligible candidates, displaying up to 16 each');
 });
 
 test('First Impressions now displays up to 18 films and 18 TV series with filters and a search',()=>{
