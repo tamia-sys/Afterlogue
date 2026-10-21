@@ -121,7 +121,7 @@ test('Explore presents existing moodboard first and full searchable library unde
  assert.doesNotMatch(html,/id="explore-search"/);
  assert.doesNotMatch(html,/explore-global-search\.js/);
  assert.doesNotMatch(html,/id="explore-all-films"/);
- assert.match(html,/catalog-browser\.js\?v=8/);
+ assert.match(html,/catalog-browser\.js\?v=9/);
  assert.match(catalog,/IntersectionObserver/);
  assert.doesNotMatch(catalog,/\$\("catalog-open"\)/);
 });
@@ -236,7 +236,7 @@ test('Discover draws from balanced decades, international cinema and under-seen 
 test('All Films does not invent a capped total or block Next without its provider signal',()=>{
  const html=read('explore.html'),browser=read('catalog-browser.js');
  const backend=read('supabase/functions/afterlogue-catalog/index.ts');
- assert.match(html,/catalog-browser\.js\?v=8/);
+ assert.match(html,/catalog-browser\.js\?v=9/);
  assert.match(browser,/hasNext=typeof result\.hasMore==="boolean"/);
  assert.match(browser,/" · Page "\+page;/);
  assert.doesNotMatch(browser,/" of "\+pages/);
@@ -281,4 +281,47 @@ test('Studio film anchors load concurrently with worldwide and decade discovery 
  assert.match(src,/for\(const lane of lanesReady\)append\(lane\.entries\[i\]\)/);
  assert.match(src,/const mixed:Record<string,unknown>\[\]=\[\],used=new Set<number>\(\)/);
  assert.match(src,/mixed\.length<60/);
+});
+
+test('One editorial Featured Collections gallery precedes one continuous poster wall',()=>{
+ const html=read('explore.html');
+ const mood=html.indexOf('id="explore-gallery"'),featured=html.indexOf('class="afterlogue-featured"');
+ const archive=html.indexOf('id="catalog-grid"');
+ assert.ok(mood>0&&featured>mood&&archive>featured);
+ assert.equal((html.match(/class="afterlogue-featured-rail"/g)||[]).length,1);
+ assert.equal((html.match(/id="catalog-grid"/g)||[]).length,1);
+ assert.doesNotMatch(html,/RECENTLY ADDED|ICONIC WATCHES/);
+ assert.match(html,/grid-template-columns:repeat\(8,minmax\(0,1fr\)\)/);
+ assert.match(html,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+});
+test('Curated collection cards open actual titles within the same poster wall',()=>{
+ const html=read('explore.html'),client=read('catalog-browser.js');
+ for(const id of ['modern-classics','around-the-world','love-in-all-forms','animation-discoveries']){
+  assert.match(html,new RegExp('data-collection="'+id+'"'));
+  assert.match(client,new RegExp('"'+id+'":"'));
+ }
+ assert.match(client,/request\(\{mode:"collection",collection:activeCollection\}\)/);
+ assert.match(client,/render\(result.items\|\|\[\]\)/);
+ assert.match(client,/activeCollection=null/);
+ assert.match(client,/clearCollectionButton\?\.addEventListener\("click"/);
+ assert.match(html,/id="catalog-collection-clear"/);
+});
+test('Curated collections resolve verifiable TMDB titles and do not pretend genre tags are editorial selection',()=>{
+ const server=read('supabase/functions/afterlogue-catalog/index.ts');
+ for(const id of ['modern-classics','around-the-world','love-in-all-forms','animation-discoveries'])
+  assert.ok(server.includes('"'+id+'":['),id+' missing');
+ assert.match(server,/if\(mode==="collection"\)/);
+ assert.match(server,/normalized\(item.title\)===normalized\(title.title\)/);
+ assert.match(server,/yearOf\(item.release_date\)===title.year/);
+ assert.match(server,/collection:key,items:found.map/);
+ assert.match(server,/hasMore:false/);
+});
+test('Archive browsing and filters still use original source-based 60/70-title paging',()=>{
+ const client=read('catalog-browser.js');
+ assert.match(client,/const pageSize=hasFilters\?70:60/);
+ assert.match(client,/cursor:filtered\?\(pageCursors.get\(page\)\|\|null\):null/);
+ assert.match(client,/panel.scrollIntoView\(\{block:"start",behavior:"instant"\}\)/);
+ assert.match(client,/const stateKey="afterlogue.explore.all-films.v2"/);
+ assert.match(client,/collection:activeCollection,cursors:/);
+ assert.match(client,/if\(activeCollection\)return;/);
 });
