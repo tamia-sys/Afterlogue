@@ -59,15 +59,17 @@ async function memberDestination(user,offerImport=false){
  if(error)throw error;
  if(!profile?.onboarding_completed&&offerImport&&typeof window.saveFirstImpressions==="function"){
   const ratings=new Set(["Loved","Liked","Okay","Not for me"]);
+  const importGuest=localStorage.getItem("afterlogue.guest.impressions.pending.v1")==="1";
+  const drafts=importGuest?localStorage:sessionStorage;
   let savedCount=0;
   try{
-   for(let i=0;i<sessionStorage.length;i++){
-    const k=sessionStorage.key(i);
-    if(k?.startsWith("afterlogue-")&&ratings.has(sessionStorage.getItem(k)))savedCount++;
+   for(let i=0;i<drafts.length;i++){
+    const k=drafts.key(i);
+    if(k?.startsWith("afterlogue-")&&ratings.has(drafts.getItem(k)))savedCount++;
    }
   }catch(_){}
   if(savedCount&&window.confirm("Save "+savedCount+" impressions from this browser to your Afterlogue account?")){
-   await window.saveFirstImpressions(client);
+   await window.saveFirstImpressions(client,{importGuest});
   }
  }
  // An imported First Impressions collection can complete onboarding,
@@ -138,7 +140,9 @@ async function resumeSession(){
   if(error)throw error;
   if(!data?.session?.user)return;
   inform("You're signed in. Opening Afterlogue…");
-  await memberDestination(data.session.user,false);
+  // Confirmation can return in a new tab; preserve guest choices if present.
+  await memberDestination(data.session.user,
+    localStorage.getItem("afterlogue.guest.impressions.pending.v1")==="1");
  }catch(error){
   console.warn("Afterlogue: Unable to resume authentication.",String(error?.code||"session unavailable"));
   setMode("signin");
