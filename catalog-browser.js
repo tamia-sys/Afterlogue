@@ -61,9 +61,17 @@ async function load(){
  const isSearch=term.trim().length>=2;
  $("catalog-message").textContent="Finding stories…";
  try{
-  const result=await request({mode:isSearch?"search":"discover",query:term.trim(),media,page,pageSize:60,genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
+  // Filtering exposes 70 titles per page; standard browsing uses 60.
+  // The server uses exact offsets so no titles are silently skipped.
+  const hasFilters=Boolean(isSearch||genre||country||language||decade);
+  const pageSize=hasFilters?70:60;
+  const result=await request({mode:isSearch?"search":"discover",query:term.trim(),media,page,pageSize,genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
   if(id!==serial)return;
-  pages=result.totalPages||1;render(result.items||[]);
+  pages=Math.max(1,Number(result.totalPages)||1);
+  // If filters changed on another tab or the catalog shrank, don't leave the
+  // Next control trapped on a nonexistent page.
+  if(page>pages){page=pages;return load();}
+  render(result.items||[]);
   const totalShown=(result.items||[]).length;
   $("catalog-message").textContent=totalShown+" "+(totalShown===1?"story":"stories")+" · Page "+page+" of "+pages;
   $("catalog-prev").disabled=page<=1;$("catalog-next").disabled=page>=pages;
@@ -109,8 +117,17 @@ input.addEventListener("input",()=>{
   timer=setTimeout(load,260);
 });
 [genreBox,countryBox,languageBox,decadeBox,sortBox].forEach(el=>el.addEventListener("change",()=>{genre=genreBox.value;country=countryBox.value;language=languageBox.value;decade=decadeBox.value;sort=sortBox.value;page=1;load();}));
-$("catalog-prev").addEventListener("click",()=>{if(page>1){page--;load();}});
-$("catalog-next").addEventListener("click",()=>{if(page<pages){page++;load();}});
+function turnPage(direction){
+ const target=page+direction;
+ if(target<1||target>pages)return;
+ page=target;
+ // Move back to the TOP OF THE CATALOG, not the bottom pagination controls.
+ window.scrollTo({top:0,behavior:"instant"});
+ panel.scrollTop=0;
+ load();
+}
+$("catalog-prev").addEventListener("click",()=>turnPage(-1));
+$("catalog-next").addEventListener("click",()=>turnPage(1));
 readState();
 if(location.hash==="#all-films")openLibrary();
 })();
