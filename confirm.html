@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Confirm your email — Afterlogue</title>
+  <link rel="stylesheet" href="style.css?v=10">
+  <style>
+    :root{color-scheme:dark}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:#101113;color:#f2e8d9;font-family:Arial,Helvetica,sans-serif}
+    .confirm-header{padding:27px clamp(20px,5vw,72px)}
+    .confirm-logo{font:400 32px/1 Georgia,serif;letter-spacing:-.055em;color:#e6cfaa;text-decoration:none}
+    .confirm-main{min-height:calc(100vh - 94px);display:grid;place-items:center;padding:40px 20px 90px}
+    .confirm-panel{width:min(100%,510px);text-align:center;padding:46px clamp(20px,5vw,52px);border:1px solid rgba(212,180,135,.3);background:radial-gradient(ellipse at 50% -40%,rgba(185,143,93,.12),transparent 70%),#171819}
+    .confirm-eyebrow{color:#bfa58b;font-size:10px;letter-spacing:.22em;margin:0 0 22px}
+    h1{font:400 clamp(36px,6vw,52px)/1.12 Georgia,serif;letter-spacing:-.035em;margin:0 0 18px}
+    .confirm-copy{color:#c3b6a7;font-size:15px;line-height:1.7;margin:0 auto 28px;max-width:380px}
+    .confirm-action{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;width:min(100%,300px);padding:12px 20px;border:1px solid #d4b487;border-radius:28px;background:#d4b487;color:#191816;font-size:13px;font-weight:600;cursor:pointer}
+    .confirm-action:hover,.confirm-action:focus-visible{background:#f0dcc0}
+    .confirm-action:disabled{opacity:.7;cursor:wait}
+    .confirm-status{min-height:38px;margin:17px auto;color:#e8c9a5;font-size:13px;line-height:1.5}
+    .confirm-return{display:inline-block;font-size:12px;color:#d4b487;text-decoration:none;padding:8px}
+    .confirm-return:hover{text-decoration:underline}
+    [hidden]{display:none!important}
+  </style>
+</head>
+<body>
+  <header class="confirm-header"><a class="confirm-logo" href="index.html">afterlogue.</a></header>
+  <main class="confirm-main">
+    <section class="confirm-panel" aria-labelledby="confirm-heading">
+      <p class="confirm-eyebrow">AFTERLOGUE / YOUR ACCOUNT</p>
+      <h1 id="confirm-heading">One last thing.</h1>
+      <p class="confirm-copy">Confirm your email address to save your impressions and discover stories selected for you.</p>
+      <button type="button" id="confirm-submit" class="confirm-action">Confirm my email <span aria-hidden="true">→</span></button>
+      <p id="confirm-status" class="confirm-status" aria-live="polite" role="status"></p>
+      <a class="confirm-return" href="signup.html?mode=signin">Already confirmed? Sign in</a>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    (() => {
+      "use strict";
+      const button=document.getElementById("confirm-submit");
+      const status=document.getElementById("confirm-status");
+      const query=new URLSearchParams(location.search);
+      const token=query.get("token_hash")||"";
+      const type=query.get("type");
+      // Keep the single-use token out of the visible URL/history as soon as
+      // it has been read. Never auto-verify just because the page loaded:
+      // email link-scanning software often fetches links in the background.
+      if(token)history.replaceState(null,"",location.pathname);
+      const valid=type==="email"&&/^[a-f0-9]{32,256}$/i.test(token);
+      if(!valid){
+        button.disabled=true;
+        status.textContent="This confirmation link is missing or invalid. Return to sign in, or request a fresh confirmation email.";
+        return;
+      }
+      button.addEventListener("click",async()=>{
+        button.disabled=true;
+        button.textContent="Confirming…";
+        status.textContent="Checking your confirmation securely…";
+        try{
+          const {data,error}=await window.afterlogueSupabase.auth.verifyOtp({
+            token_hash:token,type:"email"
+          });
+          if(error)throw error;
+          if(!data.session)throw Error("The confirmation succeeded but a session was not returned.");
+          status.textContent="Email confirmed. Opening Afterlogue…";
+          location.replace("signup.html?mode=signin");
+        }catch(error){
+          console.warn("Afterlogue confirmation failed",error?.code||"verification_failed");
+          status.textContent="We couldn't confirm this link. It may have expired or already been used. If you have already confirmed, try signing in; otherwise request a new confirmation email.";
+          button.disabled=false;
+          button.textContent="Try confirmation again";
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
