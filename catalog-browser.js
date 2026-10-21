@@ -8,6 +8,13 @@ if(!panel)return;
 const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
 let media="movie",page=1,pages=1,term="",genre="",country="",language="",decade="",sort="discover",timer=null,serial=0,configured=false;
 let hasNext=false;
+let activeCollection=null;
+const collectionNames={
+ "modern-classics":"Modern Classics",
+ "around-the-world":"Stories Around the World",
+ "love-in-all-forms":"Love in All Its Forms",
+ "animation-discoveries":"Animation Worth Discovering"
+};
 let pageCursors=new Map([[1,null]]);
 const hasActiveFilters=()=>Boolean(term.trim().length>=2||genre||country||language||decade);
 function syncSortWithFilters(){
@@ -24,6 +31,22 @@ function syncSortWithFilters(){
 }
 function resetPaging(){page=1;hasNext=false;pageCursors=new Map([[1,null]]);}
 const input=$("catalog-search"),genreBox=$("catalog-genre"),countryBox=$("catalog-country"),languageBox=$("catalog-language"),decadeBox=$("catalog-decade"),sortBox=$("catalog-sort");
+const featuredCards=[...panel.querySelectorAll(".afterlogue-feature-card")];
+const archiveHeading=$("catalog-archive-title"),clearCollectionButton=$("catalog-collection-clear");
+function reflectCollection(){
+ if(archiveHeading)archiveHeading.textContent=activeCollection
+    ?collectionNames[activeCollection]:"The archive.";
+ if(clearCollectionButton)clearCollectionButton.hidden=!activeCollection;
+ featuredCards.forEach(card=>{
+   const chosen=card.dataset.collection===activeCollection;
+   card.setAttribute("aria-pressed",String(chosen));
+ });
+}
+function leaveCollection(){
+ if(!activeCollection)return;
+ activeCollection=null;
+ reflectCollection();
+}
 // v2 intentionally migrates old default Popular sessions to the new Discover feed.
 const stateKey="afterlogue.explore.all-films.v2";
 const params=new URLSearchParams(location.search);
@@ -39,6 +62,8 @@ function readState(){
   language=typeof record.language==="string"?record.language:"";
   decade=typeof record.decade==="string"?record.decade:"";
   sort=["discover","popular","newest","oldest"].includes(record.sort)?record.sort:"discover";
+  activeCollection=Object.prototype.hasOwnProperty.call(collectionNames,record.collection)
+    ?record.collection:null;
   if(Array.isArray(record.cursors)){
     pageCursors=new Map([[1,null],...record.cursors
       .filter(item=>Array.isArray(item)&&Number.isInteger(item[0])&&item[0]>=2&&item[0]<=100
@@ -46,10 +71,11 @@ function readState(){
   }
   $("catalog-media").value=media;input.value=term;
   genreBox.value=genre;countryBox.value=country;languageBox.value=language;decadeBox.value=decade;sortBox.value=sort;
+  reflectCollection();
  }catch(_){}
 }
 function rememberState(){
- try{sessionStorage.setItem(stateKey,JSON.stringify({media,page,term,genre,country,language,decade,sort,cursors:[...pageCursors]}));}catch(_){}
+ try{sessionStorage.setItem(stateKey,JSON.stringify({media,page,term,genre,country,language,decade,sort,collection:activeCollection,cursors:[...pageCursors]}));}catch(_){}
 }
 async function request(body){
  const res=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
@@ -82,8 +108,18 @@ async function load(){
  syncSortWithFilters();
  rememberState();
  $("catalog-prev").disabled=true;$("catalog-next").disabled=true;
- $("catalog-message").textContent=sort==="discover"?"Discovering cinema…":"Finding stories…";
+ $("catalog-message").textContent=activeCollection?"Opening the collection…":sort==="discover"?"Discovering cinema…":"Finding stories…";
  try{
+  // Curated cards share the SAME poster wall; there is no separate page.
+  if(activeCollection){
+    const result=await request({mode:"collection",collection:activeCollection});
+    if(id!==serial)return;
+    render(result.items||[]);
+    const count=(result.items||[]).length;
+    $("catalog-message").textContent=count+" "+(count===1?"film":"films")+" · Curated by Afterlogue";
+    $("catalog-pagination").hidden=true;
+    return;
+  }
   // Filtering exposes 70 titles per page; standard browsing uses 60.
   // The server uses exact offsets so no titles are silently skipped.
   const hasFilters=Boolean(isSearch||genre||country||language||decade);
@@ -134,11 +170,12 @@ if("IntersectionObserver" in window){
  },{rootMargin:"600px 0px"});
  observer.observe(panel);
 }else ensureLibraryLoaded();
-$("catalog-media").addEventListener("change",e=>{media=e.target.value;resetPaging();load();});
+$("catalog-media").addEventListener("change",e=>{leaveCollection();media=e.target.value;resetPaging();load();});
 input.addEventListener("input",()=>{
   clearTimeout(timer);
   // Save the search immediately. A viewer can open a title before the
   // debounced request completes and should still return to their query.
+  leaveCollection();
   term=input.value;
   resetPaging();
   rememberState();
@@ -151,8 +188,9 @@ input.addEventListener("input",()=>{
   $("catalog-pagination").hidden=true;
   timer=setTimeout(load,260);
 });
-[genreBox,countryBox,languageBox,decadeBox,sortBox].forEach(el=>el.addEventListener("change",()=>{genre=genreBox.value;country=countryBox.value;language=languageBox.value;decade=decadeBox.value;sort=sortBox.value;resetPaging();load();}));
+[genreBox,countryBox,languageBox,decadeBox,sortBox].forEach(el=>el.addEventListener("change",()=>{leaveCollection();genre=genreBox.value;country=countryBox.value;language=languageBox.value;decade=decadeBox.value;sort=sortBox.value;resetPaging();load();}));
 function turnPage(direction){
+ if(activeCollection)return;
  const target=page+direction;
  if(target<1||(direction>0&&!hasNext))return;
  if(hasActiveFilters()&&target>1&&!pageCursors.has(target))return;
@@ -164,6 +202,29 @@ function turnPage(direction){
 }
 $("catalog-prev").addEventListener("click",()=>turnPage(-1));
 $("catalog-next").addEventListener("click",()=>turnPage(1));
+featuredCards.forEach(card=>card.addEventListener("click",()=>{
+ const key=card.dataset.collection;
+ if(!Object.prototype.hasOwnProperty.call(collectionNames,key))return;
+ activeCollection=key;
+ media="movie";$("catalog-media").value="movie";
+ term="";input.value="";
+ genre="";genreBox.value="";
+ country="";countryBox.value="";
+ language="";languageBox.value="";
+ decade="";decadeBox.value="";
+ sort="discover";sortBox.value="discover";
+ resetPaging();
+ reflectCollection();
+ firstLoadStarted=true;
+ load();
+ archiveHeading?.scrollIntoView({block:"start",behavior:"smooth"});
+}));
+clearCollectionButton?.addEventListener("click",()=>{
+ leaveCollection();
+ resetPaging();
+ load();
+ archiveHeading?.scrollIntoView({block:"start",behavior:"smooth"});
+});
 readState();
 if(location.hash==="#all-films"){
   requestAnimationFrame(()=>{
