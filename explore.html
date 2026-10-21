@@ -1110,12 +1110,12 @@ body.explore-body > header.site-header {
     <label>Format <select id="explore-format"><option value="all">Movies &amp; TV</option><option value="movies">Movies</option><option value="tv">TV Shows</option></select></label>
     <button type="button" id="explore-clear" hidden>Clear ×</button>
   </div>
-  <div class="explore-browse-foot"><p id="explore-browse-note">Search by mood, or browse the full collection.</p><button type="button" class="explore-all-films-open" id="catalog-open">All Films <span aria-hidden="true">↗</span></button><button type="button" id="explore-all-films-open" hidden aria-controls="explore-all-films">Featured films</button></div>
+  <div class="explore-browse-foot"><p id="explore-browse-note" hidden></p><button type="button" class="explore-all-films-open" id="catalog-open">All Films <span aria-hidden="true">↗</span></button></div>
 </section>
 <section id="explore-search-results" class="explore-search-results" hidden aria-live="polite">
   <div class="explore-group-label"><p>MATCHING STORIES</p><span id="explore-matches-count"></span></div>
   <div class="explore-picks" id="explore-match-picks"></div>
-  <p id="explore-no-matches" hidden>No featured matches. Searching the wider catalog…</p>
+  <p id="explore-no-matches" hidden></p>
 </section>
 <div class="explore-group-label explore-rail-head">
     <p>01 — A LITTLE…</p>
@@ -1172,7 +1172,7 @@ body.explore-body > header.site-header {
     <div>
       <p class="explore-eyebrow">AFTERLOGUE / THE COLLECTION</p>
       <h2 id="explore-all-films-title">All Films.</h2>
-      <p>Featured films to explore while our expanded library is being prepared.</p>
+      <p>Discover films from your collection.</p>
     </div>
     <span id="explore-all-films-total" class="explore-films-total"></span>
   </div>
@@ -1193,7 +1193,7 @@ body.explore-body > header.site-header {
 <button type="button" id="catalog-back" class="catalog-back">← Back to Explore</button>
 <p class="explore-eyebrow" style="margin-top:30px">AFTERLOGUE / THE EXPANDED LIBRARY</p>
 <h2 style="font:400 clamp(40px,5vw,65px) Georgia,serif;margin:8px 0">Explore cinema.</h2>
-<p class="catalog-intro">Look beyond our featured collection. Browse films and television from across the world.</p>
+<p class="catalog-intro">Browse films and television from across the world.</p>
 <div class="catalog-toolbar">
 <input type="search" id="catalog-search" placeholder="Search a title..." aria-label="Search the expanded catalog">
 <select id="catalog-media" aria-label="Film or television"><option value="movie">Films</option><option value="tv">TV shows</option></select>
@@ -1801,33 +1801,20 @@ function matchesMood(mood,query){
   return words.some(v=>foldText(v).includes(query));
 }
 function updateBrowse(){
- const query=foldText(searchField.value.trim());
+ const typed=foldText(searchField.value.trim());
+ // One character must never collapse the mood gallery or announce no results.
+ const query=typed.length>=2?typed:"";
  browseState.format=$("explore-format").value;
- const enabled=Boolean(query)||(window.AfterlogueExploreFilters?.active()||false)||browseState.format!=="all";
+ const enabled=Boolean(typed)||(window.AfterlogueExploreFilters?.active()||false)||browseState.format!=="all";
  $("explore-clear").hidden=!enabled;
  document.body.classList.toggle("explore-search-active",Boolean(query));
  const panel=$("explore-search-results");panel.hidden=!query;
- const host=$("explore-match-picks");host.replaceChildren();
  if(query){
-  const filtered=data.titles.filter(matchesFilters);
-  const direct=filtered.filter(item=>matchesText(item,query));
-  const moods=Object.keys(data.moods).filter(mood=>matchesMood(mood,query));
-  const titles=moods.length
-   ?filtered.filter(item=>direct.includes(item)||moods.some(m=>(data.pools[m][item.media]||[]).includes(item.title)))
-   :direct;
-  // The shared full-catalog search module owns the ONE unified result
-  // rail and reports "no matches" only after the TMDB requests resolve.
-  // Never flash "no featured matches" while the visitor is still typing.
+  // The unified catalog search module renders all results.
+  // Avoid clearing its in-flight results from a second input listener.
   $("explore-no-matches").hidden=true;
-  $("explore-matches-count").textContent="";
-  if(query.length<2){
-    titles.slice(0,10).forEach(item=>host.append(drawPick(item)));
-    $("explore-matches-count").textContent=titles.length+" featured stories";
-  }
  }
- $("explore-browse-note").textContent=enabled
-  ?"Your choices shape the stories in each mood. Select a mood to discover."
-  :"Choose a mood, then discover films and shows shaped by your interests.";
+ $("explore-browse-note").textContent="";
  for(const card of document.querySelectorAll(".mood-card")){
   card.hidden=Boolean(query)&&!matchesMood(card.dataset.mood,query);
  }
