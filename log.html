@@ -51,6 +51,27 @@
 .afterlogue-onboarding .log-film-grid .impressions-more-card>p{font:11px Arial,sans-serif;color:#bda98f;margin:0 0 10px}
 .afterlogue-onboarding .log-film-grid .impressions-more-card img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block}
 @media(max-width:600px){.impressions-location-filters label{flex:1 1 45%}.impressions-location-filters button{width:100%}}
+
+/* Interactive First Impressions live-catalog cards.
+   Ratings belong on the artwork, not beneath the poster. */
+.afterlogue-onboarding .impressions-more-poster{position:relative;display:block;width:100%;cursor:pointer;aspect-ratio:2/3;overflow:hidden;border-radius:5px;background:#231f1b;outline:none}
+.afterlogue-onboarding .impressions-more-poster img{display:block;width:100%;height:100%;object-fit:cover;transition:filter .18s ease}
+.afterlogue-onboarding .impressions-more-poster:focus-visible{outline:2px solid #e5c49a;outline-offset:3px}
+.afterlogue-onboarding .impressions-more-rating-overlay{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;padding:10px;background:rgba(13,12,11,.89);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
+.afterlogue-onboarding .impressions-more-rating-overlay p{margin:0 0 5px;font:600 9px/1.2 Arial,sans-serif;letter-spacing:.12em;color:#f4eadd;text-align:center}
+.afterlogue-onboarding .impressions-more-rating-overlay button{width:100%;max-width:155px;min-height:28px;padding:6px 3px;border:1px solid #a99880;border-radius:999px;background:rgba(244,234,221,.06);font:11px/1.2 Arial,sans-serif;color:#f4eadd;cursor:pointer}
+.afterlogue-onboarding .impressions-more-rating-overlay button:hover,.afterlogue-onboarding .impressions-more-rating-overlay button:focus-visible{background:#ead9be;color:#171411}
+.afterlogue-onboarding .impressions-more-rating-overlay button[aria-pressed=true]{border-color:#d4b487}
+@media(hover:hover){.afterlogue-onboarding .impressions-more-poster:not(.is-rated):hover .impressions-more-rating-overlay{opacity:1;visibility:visible;pointer-events:auto}}
+.afterlogue-onboarding .impressions-more-poster.is-open .impressions-more-rating-overlay,.afterlogue-onboarding .impressions-more-poster:focus-within:not(.is-rated) .impressions-more-rating-overlay{opacity:1;visibility:visible;pointer-events:auto}
+.afterlogue-onboarding .impressions-more-poster.is-rated img{filter:brightness(.52)}
+.afterlogue-onboarding .impressions-more-check{position:absolute;z-index:2;top:50%;left:50%;transform:translate(-50%,-70%);width:48px;height:48px;pointer-events:none}
+.afterlogue-onboarding .impressions-more-check svg{display:block;width:100%;height:100%}
+.afterlogue-onboarding .impressions-more-choice{position:absolute;z-index:2;top:calc(50% + 24px);left:50%;transform:translateX(-50%);color:#fff;font:600 12px/1.4 Arial,sans-serif;white-space:nowrap;pointer-events:none}
+.afterlogue-onboarding .impressions-more-poster.is-open .impressions-more-check,.afterlogue-onboarding .impressions-more-poster.is-open .impressions-more-choice{visibility:hidden}
+@media(hover:hover){.afterlogue-onboarding .impressions-more-poster.is-rated:hover:after{content:"Click to change";position:absolute;top:8px;right:8px;color:#f4eadd;background:rgba(0,0,0,.7);font:10px Arial,sans-serif;padding:5px 7px;border-radius:50px}}
+@media(max-width:600px){.afterlogue-onboarding .impressions-more-rating-overlay{gap:4px;padding:7px}.afterlogue-onboarding .impressions-more-rating-overlay button{font-size:10px;min-height:26px;padding:5px 3px}.afterlogue-onboarding .impressions-more-check{width:40px;height:40px}}
+.afterlogue-onboarding .impressions-save-status{text-align:center;color:#d4b487;font:12px/1.5 Arial,sans-serif;min-height:1.5em;margin:12px auto}
 </style>
 </head>
 
@@ -330,6 +351,7 @@
 <!-- AFTERLOGUE — SUPABASE CONNECTION -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
+<script src="onboarding-sync.js?v=3"></script>
 <script src="site-navigation.js?v=2"></script>
   <script>
   // AFTERLOGUE — CHECK SIGNED-IN USER
@@ -479,6 +501,44 @@ backButton.addEventListener("click", event => {
     document.querySelector(".log-continue-button").href =
       "discover.html?guest=1";
   }
+</script>
+
+<script>
+/* Save First Impressions to the signed-in account BEFORE entering Discover.
+   Guest choices remain local; errors keep the user on this screen to retry. */
+(() => {
+  const next = document.querySelector(".log-continue-button");
+  if (!next) return;
+  const status = document.createElement("p");
+  status.className = "impressions-save-status";
+  status.setAttribute("role", "status");
+  status.setAttribute("aria-live", "polite");
+  next.closest(".log-continue-section").append(status);
+  const originalLabel = next.innerHTML;
+  let busy = false;
+  next.addEventListener("click", async event => {
+    if (new URLSearchParams(location.search).get("guest") === "1") return;
+    event.preventDefault();
+    if (busy) return;
+    busy = true;
+    next.setAttribute("aria-disabled", "true");
+    next.textContent = "Saving impressions…";
+    status.textContent = "";
+    try {
+      if (typeof window.saveFirstImpressions !== "function") {
+        throw Error("Saving is not available. Please reload and try again.");
+      }
+      await window.saveFirstImpressions(window.afterlogueSupabase);
+      location.assign("discover.html");
+    } catch (error) {
+      console.warn("Afterlogue: First Impressions could not be saved.", error);
+      status.textContent = "Your choices are still here, but could not be saved to your account. Please try Continue again.";
+      next.innerHTML = originalLabel;
+      next.removeAttribute("aria-disabled");
+      busy = false;
+    }
+  });
+})();
 </script>
 
 </body>
