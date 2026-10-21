@@ -121,7 +121,7 @@ test('Explore presents existing moodboard first and full searchable library unde
  assert.doesNotMatch(html,/id="explore-search"/);
  assert.doesNotMatch(html,/explore-global-search\.js/);
  assert.doesNotMatch(html,/id="explore-all-films"/);
- assert.match(html,/catalog-browser\.js\?v=9/);
+ assert.match(html,/catalog-browser\.js\?v=10/);
  assert.match(catalog,/IntersectionObserver/);
  assert.doesNotMatch(catalog,/\$\("catalog-open"\)/);
 });
@@ -236,7 +236,7 @@ test('Discover draws from balanced decades, international cinema and under-seen 
 test('All Films does not invent a capped total or block Next without its provider signal',()=>{
  const html=read('explore.html'),browser=read('catalog-browser.js');
  const backend=read('supabase/functions/afterlogue-catalog/index.ts');
- assert.match(html,/catalog-browser\.js\?v=9/);
+ assert.match(html,/catalog-browser\.js\?v=10/);
  assert.match(browser,/hasNext=typeof result\.hasMore==="boolean"/);
  assert.match(browser,/" · Page "\+page;/);
  assert.doesNotMatch(browser,/" of "\+pages/);
@@ -392,4 +392,71 @@ test('Cross-medium linked TV can rank from positively rated movie without reusin
  assert.equal(selected[0].key,'tmdb-tv-208');
  assert.equal(selected[0].personalized,true);
  assert.match(selected[0].why,/Because you loved My Favourite Film/);
+});
+
+test('First Impressions instructions are readable and ratings are saved as watched',()=>{
+ const html=read('log.html'),sync=read('onboarding-sync.js');
+ assert.match(html,/font-size:16px;line-height:1\.55/);
+ assert.match(html,/Tap a poster you’ve seen/);
+ assert.match(html,/onboarding\.category/);
+ assert.match(html,/onboarding-sync\.js\?v=7/);
+ assert.match(sync,/\.from\("seen_entries"\)/);
+ assert.match(sync,/\.upsert\(watched,\{onConflict:"user_id,title_key"\}\)/);
+ assert.match(sync,/const watched=impressions\.map/);
+ assert.match(sync,/onboarding\.category\./);
+});
+test('OAuth buttons actually initiate sign-in and support verified callback routing',()=>{
+ const html=read('signup.html'),code=read('auth-signup.js');
+ assert.match(html,/id="google-signin"/);
+ assert.match(html,/id="apple-signin"/);
+ assert.match(html,/id="signup-resend"/);
+ assert.match(code,/signInWithOAuth/);
+ assert.match(code,/provider,options:\{redirectTo:callbackUrl\}/);
+ assert.match(code,/auth\.resend/);
+ assert.match(code,/profile check unavailable|Profile check unavailable/);
+ assert.match(code,/\/auth\/v1\/settings/);
+});
+test('Discover does not cycle back to the first five or let sequels and holiday titles dominate',()=>{
+ const code=read('discover.html');
+ assert.match(code,/discoverySeriesPrefixes/);
+ assert.match(code,/the hunger games/);
+ assert.match(code,/franchises\.has\(franchise\)/);
+ assert.match(code,/isSeasonalDiscovery/);
+ assert.match(code,/holidayCount>=1/);
+ assert.doesNotMatch(code,/if \(getDiscoveryRecommendations\(category, nextPage\)\.length === 0\) \{\s*nextPage = 0;/);
+});
+test('Recommendations survive a film-details visit and keep guest routing and account isolation',()=>{
+ const home=read('discover.html'),details=read('film-details.js');
+ assert.match(home,/discoveryCacheKey="afterlogue\.discover\.shelf\.v1"/);
+ assert.match(home,/sessionStorage\.setItem\(discoveryCacheKey/);
+ assert.match(home,/snapshot\.owner!==owner/);
+ assert.match(home,/snapshot\.fingerprint!==discoveryFingerprint\(\)/);
+ assert.match(home,/if\(restoreDiscovery\("guest"\)\)/);
+ assert.match(home,/if\(restoreDiscovery\(userData\.user\.id\)\)/);
+ assert.match(home,/&guest=1/);
+ assert.match(details,/origin==="discover"&&params\.get\("guest"\)==="1"/);
+});
+test('All Films lets members save immediately, without needing to open details',()=>{
+ const code=read('catalog-browser.js'),html=read('explore.html');
+ assert.match(code,/className="catalog-save"/);
+ assert.match(code,/\.from\("watchlist"\)\.insert/);
+ assert.match(code,/AfterlogueCatalogMetadata/);
+ assert.match(code,/catalogWatchlist\.add\(watchKey\)/);
+ assert.match(html,/catalog-browser\.js\?v=10/);
+});
+test('Film Details heart writes to the existing private Favorites table and artwork stays stable',()=>{
+ const html=read('film-details.html'),code=read('film-details.js');
+ assert.match(html,/id="film-favorite"/);
+ assert.match(code,/favoriteButton\.addEventListener\("click"/);
+ assert.match(code,/\.from\("log_entries"\)\.upsert/);
+ assert.match(code,/Never replace artwork asynchronously after the first paint/);
+ assert.doesNotMatch(code,/preview\.onload=\(\)=>\{hero\.src=url/);
+ assert.match(html,/rel="preconnect" href="https:\/\/www\.youtube-nocookie\.com"/);
+ assert.match(code,/trailerTimer=setTimeout/);
+});
+test('A weak recommendation result uses honestly labeled archive discoveries rather than erasing the shelf',()=>{
+ const code=read('discover.html');
+ assert.match(code,/An archive discovery to explore while Afterlogue learns more about your taste/);
+ assert.match(code,/diversifyDiscoverResults\(\[\.\.\.expanded,\.\.\.extras\],category\)/);
+ assert.match(code,/priorCards&&container\.dataset\.category===category/);
 });
