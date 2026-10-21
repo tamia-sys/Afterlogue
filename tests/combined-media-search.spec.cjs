@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 
 // No real accounts, emails, or external film API credentials in these tests.
-const fakeSupabase = String.raw\`
+const fakeSupabase = String.raw`
 window.supabase={createClient:()=>({
   auth:{
     getSession:async()=>({data:{session:null},error:null}),
@@ -17,7 +17,7 @@ window.supabase={createClient:()=>({
     })
   })
 })};
-\`;
+`;
 
 async function mockCatalog(page){
  await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
