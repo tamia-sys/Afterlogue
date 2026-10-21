@@ -447,8 +447,23 @@ Deno.serve(async (req:Request) => {
         params.set("vote_count.gte","10");
         params.set(media==="movie"?"primary_release_date.lte":"first_air_date.lte",params.get(media==="movie"?"primary_release_date.lte":"first_air_date.lte")||new Date().toISOString().slice(0,10));
       }
-      const body=await tmdb(endpoint,params,token);
-      const filtered=(body.results||[]).filter((v:Record<string,unknown>)=>{
+      // All Films displays up to 60 distinct titles per page. TMDB's public
+      // API returns 20 per page, so batch four consecutive TMDB pages and
+      // apply the same filters/verification to the combined records.
+      // Lightweight two-character autocomplete remains one API page.
+      const batched=Number(input.pageSize)===60;
+      const pagesToFetch=batched?4:1;
+      const remote=await Promise.allSettled(Array.from({length:pagesToFetch},(_,offset)=>{
+        const p=new URLSearchParams(params);
+        p.set("page",String(batched?(page-1)*pagesToFetch+offset+1:page));
+        return tmdb(endpoint,p,token);
+      }));
+      const succeeded=remote.filter((r):r is PromiseFulfilledResult<any>=>r.status==="fulfilled");
+      if(!succeeded.length)throw Error("Film catalog request failed");
+      const body=succeeded[0].value;
+      const collected=succeeded.flatMap(r=>r.value.results||[]);
+      const distinct=[...new Map(collected.map((v:Record<string,unknown>)=>[Number(v.id),v])).values()];
+      const filtered=distinct.filter((v:Record<string,unknown>)=>{
         if(v.adult||!v.poster_path||!v.overview)return false;
         if(originalLanguage&&v.original_language!==originalLanguage)return false;
         if(requestedGenre&&!(Array.isArray(v.genre_ids)&&v.genre_ids.includes(requestedGenre)))return false;
@@ -471,12 +486,12 @@ Deno.serve(async (req:Request) => {
           .map(x=>x.value).filter((v):v is Record<string,unknown>=>Boolean(v));
       }
       return response({
-        page:Number(body.page)||1,
-        totalPages:Math.min(Number(body.total_pages)||1,100),
+        page,
+        totalPages:Math.min(Math.ceil((Number(body.total_pages)||1)/pagesToFetch),batched?100:100),
         // TMDB's total_results is prefilter when we verify productions
         // ourselves, so do not present it as an exact filtered count.
         totalResults:country||mode==="search"&&(requestedGenre||hasDecade||originalLanguage)?null:Number(body.total_results)||0,
-        items:verified.map((v:Record<string,unknown>)=>listItem(v,media))
+        items:verified.slice(0,batched?60:20).map((v:Record<string,unknown>)=>listItem(v,media))
       });
     }
     if(mode==="onboarding"){
