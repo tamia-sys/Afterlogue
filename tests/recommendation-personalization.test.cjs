@@ -348,3 +348,48 @@ test('All four featured collections offer distinct films with no cross-collectio
  }
  assert.equal(seen.size,48,'Four collections should introduce 48 distinct titles');
 });
+
+test('First Impressions now displays up to 18 films and 18 TV series with filters and a search',()=>{
+ const client=read('onboarding-catalog-search.js');
+ const server=read('supabase/functions/afterlogue-catalog/index.ts');
+ const html=read('log.html');
+ assert.match(client,/items=\(payload.items\|\|\[\]\)\.filter\(item=>item.poster\)\.slice\(0,18\)/);
+ assert.match(server,/const shortlist=balanced\.slice\(0,28\)/);
+ assert.match(server,/items:verified\.slice\(0,18\)/);
+ assert.match(html,/onboarding-catalog-search\.js\?v=8/);
+ assert.match(client,/first-refresh/);
+ assert.match(client,/impressions-search/);
+});
+test('Positive movie signals can seed TV and positive TV signals can seed films',()=>{
+ const server=read('supabase/functions/afterlogue-catalog/index.ts');
+ const home=read('discover.html');
+ assert.match(server,/sourceMedia:Media=input.sourceMedia/);
+ assert.match(server,/if\(sourceMedia!==media\)/);
+ assert.match(server,/genreBridge:Record<string,number\[\]>/);
+ assert.match(server,/matchMethod:"shared_genre"/);
+ assert.match(server,/if\(country&&!nations\.includes\(country\)\)return null/);
+ assert.match(server,/if\(originalLanguage&&language!==originalLanguage\)return null/);
+ assert.match(home,/sourceMedia:otherCategory==="tv"\?"tv":"movie"/);
+ assert.match(home,/plans\.push\(\{kind:"direct"/);
+ assert.match(home,/plans\.push\(\{kind:"bridge"/);
+ assert.match(home,/matchMethod==="shared_genre"/);
+ assert.doesNotMatch(home,/No new films or shows from the wider catalog meet your current taste signals yet/);
+});
+test('No-signal guest shelves offer a labeled opening selection rather than false personal reasons',()=>{
+ const home=read('discover.html');
+ assert.match(home,/if\(!hasPositive\)\{/);
+ assert.match(home,/x\.starter/);
+ assert.match(home,/mode:"discover",media,page:1/);
+ assert.match(home,/An opening selection from Afterlogue's cinema archive/);
+ assert.match(home,/An opening selection\. Rate a few titles to make it yours/);
+});
+test('Cross-medium linked TV can rank from positively rated movie without reusing that movie',()=>{
+ const input=[
+  {key:'source-movie',title:'My Favourite Film',category:'movies',position:10,facets:facets(),directMatches:[]},
+  {key:'tmdb-tv-208',title:'A Related Series',category:'tv',position:600,facets:facets(),directMatches:['my-favourite-film']}
+ ];
+ const selected=engine.rank({entries:input,category:'tv',impressions:{'afterlogue-source-movie':'Loved'}});
+ assert.equal(selected[0].key,'tmdb-tv-208');
+ assert.equal(selected[0].personalized,true);
+ assert.match(selected[0].why,/Because you loved My Favourite Film/);
+});
