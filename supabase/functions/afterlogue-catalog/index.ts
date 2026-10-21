@@ -493,6 +493,13 @@ Deno.serve(async (req:Request) => {
             &&Array.isArray(details.production_companies)&&details.production_companies.length>0
           :["Returning Series","Ended","Canceled","Cancelled","In Production"].includes(String(details.status))
             &&Array.isArray(details.networks)&&details.networks.length>0;
+        // Discovery filters must be verified on the title record, not
+        // trusted from a TMDB search summary.
+        const produced=media==="movie"
+          ?(details.production_countries||[]).map((p:Record<string,unknown>)=>String(p.iso_3166_1||""))
+          :exactCodes(details.origin_country);
+        if(country&&!produced.includes(country))return null;
+        if(originalLanguage&&String(details.original_language||"")!==originalLanguage)return null;
         return official&&/^\d{4}-\d{2}-\d{2}$/.test(aired)&&aired<=today?v:null;
       }));
       const verified=checked.filter((p):p is PromiseFulfilledResult<Record<string,unknown>>=>
