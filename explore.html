@@ -1161,6 +1161,15 @@ body.explore-body.explore-gallery-mode .explore-gallery-wrap{display:block!impor
  .afterlogue-archive-header h3{font-size:27px}
 }
 @media(prefers-reduced-motion:reduce){.afterlogue-feature-card img,#afterlogue-global-catalog .catalog-tile-poster img{transition:none!important}}
+
+/* Film library: quick-save stays secondary to the artwork and Details link. */
+#afterlogue-global-catalog .catalog-tile-actions{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:3px;min-height:34px}
+#afterlogue-global-catalog .catalog-tile-wrap>.catalog-tile-actions>.afterlogue-seen-eye{align-self:center;margin:0}
+#afterlogue-global-catalog .catalog-save{border:1px solid rgba(212,180,135,.4);border-radius:99px;background:transparent;color:#d4b487;cursor:pointer;padding:6px 10px;font:10px/1.15 Inter,Arial,sans-serif;white-space:nowrap}
+#afterlogue-global-catalog .catalog-save:hover,#afterlogue-global-catalog .catalog-save:focus-visible{background:#d4b487;color:#151311}
+#afterlogue-global-catalog .catalog-save[aria-pressed="true"]{background:rgba(212,180,135,.16);color:#e4c8a2}
+#afterlogue-global-catalog .catalog-save:disabled{opacity:.6;cursor:wait}
+@media(max-width:650px){#afterlogue-global-catalog .catalog-save{font-size:10px;padding:7px 9px}}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 <link rel="stylesheet" href="seen-impression.css?v=2">
@@ -1842,7 +1851,7 @@ $("explore-again").addEventListener("click",()=>{
 restoreMoodSnapshot();
 })();
 </script>
-<script src="catalog-browser.js?v=9"></script>
+<script src="catalog-browser.js?v=10"></script>
 
 
 </body>
