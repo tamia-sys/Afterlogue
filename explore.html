@@ -1773,9 +1773,15 @@ function updateBrowse(){
   const titles=moods.length
    ?filtered.filter(item=>direct.includes(item)||moods.some(m=>(data.pools[m][item.media]||[]).includes(item.title)))
    :direct;
-  titles.slice(0,10).forEach(item=>host.append(drawPick(item)));
-  $("explore-matches-count").textContent=titles.length+" featured stories";
-  $("explore-no-matches").hidden=titles.length!==0;
+  // The shared full-catalog search module owns the ONE unified result
+  // rail and reports "no matches" only after the TMDB requests resolve.
+  // Never flash "no featured matches" while the visitor is still typing.
+  $("explore-no-matches").hidden=true;
+  $("explore-matches-count").textContent="";
+  if(query.length<2){
+    titles.slice(0,10).forEach(item=>host.append(drawPick(item)));
+    $("explore-matches-count").textContent=titles.length+" featured stories";
+  }
  }
  $("explore-browse-note").textContent=enabled
   ?"Your choices shape the stories in each mood. Select a mood to discover."
@@ -1971,7 +1977,7 @@ restoreMoodSnapshot();
 })();
 </script>
 <script src="catalog-browser.js?v=3"></script>
-<script src="explore-global-search.js?v=1"></script>
+<script src="explore-global-search.js?v=2"></script>
 
 </body>
 </html>
