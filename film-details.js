@@ -60,6 +60,7 @@ const origin=params.get('from')||(referrer==='my-log.html'?'log':referrer==='exp
 const returns={log:['my-log.html','← Back to Log'],explore:['explore.html','← Back to Explore'],mood:['explore.html#mood-results','← Back to your five stories'],'all-films':['explore.html#all-films','← Back to All Films'],profile:['account-settings.html','← Back to your profile'],discover:['discover.html','← Back to Discover']};
 let [href,title]=returns[origin]||returns.discover;
 if(origin==='profile'&&document.referrer&&referrer==='member-profile.html'){href=document.referrer;}
+if(origin==="discover"&&params.get("guest")==="1")href="discover.html?guest=1";
 $('film-back').href=href;$('film-back').textContent=title;
 $('film-title').textContent=item.title;
 $('film-eyebrow').textContent='AFTERLOGUE / '+(isTV?'A SERIES IN FOCUS':'A FILM IN FOCUS');
@@ -82,16 +83,8 @@ hero.addEventListener('error',setPosterFallback);
 hero.alt=item.title+' — a cinematic image from the story';
 hero.src=rich.still||item.poster;
 if(!rich.still)hero.classList.add('is-poster');
-// For every title, replace lettered poster art with a verified, text-free backdrop.
-// If the public artwork service cannot supply one, keep the existing fallback.
-if(window.AfterlogueFilmArtwork){
- window.AfterlogueFilmArtwork.resolve(item.title,item.year,isTV).then(url=>{
-  if(!url || !document.body.contains(hero))return;
-  const preview=new Image();
-  preview.onload=()=>{hero.src=url;hero.classList.remove('is-poster');hero.style.display='block';};
-  preview.src=url;
- }).catch(error=>console.warn('Artwork unavailable',error));
-}
+// Never replace artwork asynchronously after the first paint. A visible
+// poster-to-still transition looked like the title was changing.
 label('Director',rich.director);
 label('Creator',rich.creator);
 label('Country',rich.country);
@@ -309,7 +302,7 @@ function playTrailer(id){
  if(trailerModal.hidden)return;
  trailerExternal.href='https://www.youtube.com/watch?v='+encodeURIComponent(id);
  trailerExternal.textContent='Watch on YouTube ↗';
- trailerStatus.textContent='If playback is blocked, open the video on YouTube.';
+ trailerStatus.textContent='Opening trailer… If YouTube blocks playback, use “Watch on YouTube” below.';
  trailerPlayer.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&rel=0&playsinline=1';
 }
 trailerLink.href='#film-trailer-modal';
