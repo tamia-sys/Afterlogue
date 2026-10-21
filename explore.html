@@ -1583,6 +1583,7 @@ function paintMoodPicks(five){
   results.classList.toggle("is-surprise",Boolean(state.randomPick));
     const host=$("explore-picks");
   host.replaceChildren();
+  host.dataset.scope=moodScopeKey();
   for(const item of five){
       const el=document.createElement("article");el.className="explore-pick";
       const link=document.createElement("a");link.className="explore-art";
@@ -1676,7 +1677,7 @@ function paintMoodPicks(five){
 async function displayResults(){
   const requestId=window.afterlogueMoodRequestId=(window.afterlogueMoodRequestId||0)+1;
   const host=$("explore-picks");
-  const hasPrevious=host.querySelectorAll(".explore-pick").length>0;
+  const hasPrevious=host.dataset.scope===moodScopeKey()&&host.querySelectorAll(".explore-pick").length>0;
   results.classList.toggle("is-surprise",Boolean(state.randomPick));
   if(!hasPrevious){
     host.replaceChildren();
