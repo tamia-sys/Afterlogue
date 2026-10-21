@@ -6,7 +6,7 @@ const fakeSupabase = `
 window.__afterlogueFakeAuth={
   session: new URLSearchParams(location.search).has('verified_test')
     ? {user:{id:'qa-id'}} : null,
-  profileCompleted:false,
+  profileCompleted:new URLSearchParams(location.search).has('completed_test'),
   signupError:null,
   signupSession:null,
   signInError:null,
@@ -14,7 +14,12 @@ window.__afterlogueFakeAuth={
 window.supabase={
   createClient:()=>({
     auth:{
-      getSession:async()=>({data:{session:window.__afterlogueFakeAuth.session},error:null}),
+      getSession:async()=>{
+        if(new URLSearchParams(location.search).has('held_test')){
+          await new Promise(resolve=>{window.__afterlogueReleaseSession=resolve;});
+        }
+        return {data:{session:window.__afterlogueFakeAuth.session},error:null};
+      },
       getUser:async()=>({data:{user:window.__afterlogueFakeAuth.session?.user||null},error:null}),
       signUp:async()=>window.__afterlogueFakeAuth.signupError
         ? {data:null,error:window.__afterlogueFakeAuth.signupError}
@@ -40,7 +45,7 @@ async function start(page,query=''){
   await page.goto('signup.html'+query);
   // A verified returning session redirects automatically; the form may
   // disappear before Playwright could ever expect it to be visible.
-  if(!query.includes('verified_test')) {
+  if(!query.includes('verified_test')&&!query.includes('held_test')) {
     await expect(page.locator('.signup-submit')).toBeVisible();
   }
 }
@@ -92,4 +97,45 @@ test('Completed member signing in goes to Discover instead of repeating onboardi
   await fill(page);
   await page.locator('.signup-submit').click();
   await expect(page).toHaveURL(/\/discover\.html$/,{timeout:20000});
+});
+
+test('Google OAuth implicit callback never flashes the sign-in form while loading',async({page})=>{
+  await start(page,'?verified_test=1&held_test=1#access_token=mock-token&refresh_token=mock-refresh&token_type=bearer');
+  await expect(page.locator('html')).toHaveClass(/auth-confirmed-handoff/);
+  await expect(page.locator('.auth-handoff-status')).toBeVisible();
+  await expect(page.locator('.signup-page')).toBeHidden();
+  await page.waitForFunction(()=>typeof window.__afterlogueReleaseSession==='function');
+  await page.evaluate(()=>window.__afterlogueReleaseSession());
+  await expect(page).toHaveURL(/\/log\.html$/,{timeout:20000});
+});
+test('Google OAuth PKCE callback never flashes signup for a returning member',async({page})=>{
+  await start(page,'?verified_test=1&completed_test=1&held_test=1&code=mock-auth-code');
+  await expect(page.locator('.auth-handoff-status')).toBeVisible();
+  await expect(page.locator('.signup-page')).toBeHidden();
+  await page.waitForFunction(()=>typeof window.__afterlogueReleaseSession==='function');
+  await page.evaluate(()=>window.__afterlogueReleaseSession());
+  await expect(page).toHaveURL(/\/discover\.html$/,{timeout:20000});
+});
+test('Confirmed email handoff also stays hidden during session restoration',async({page})=>{
+  await start(page,'?verified_test=1&held_test=1&confirmed=1');
+  await expect(page.locator('.auth-handoff-status')).toBeVisible();
+  await expect(page.locator('.signup-page')).toBeHidden();
+  await page.waitForFunction(()=>typeof window.__afterlogueReleaseSession==='function');
+  await page.evaluate(()=>window.__afterlogueReleaseSession());
+  await expect(page).toHaveURL(/\/log\.html$/,{timeout:20000});
+});
+test('Unusable OAuth callback reveals the sign-in form with a helpful error',async({page})=>{
+  await start(page,'?held_test=1&code=expired-code');
+  await expect(page.locator('.auth-handoff-status')).toBeVisible();
+  await expect(page.locator('.signup-page')).toBeHidden();
+  await page.waitForFunction(()=>typeof window.__afterlogueReleaseSession==='function');
+  await page.evaluate(()=>window.__afterlogueReleaseSession());
+  await expect(page.locator('.signup-submit')).toBeVisible();
+  await expect(page.locator('#signup-message')).toContainText("couldn't find your confirmed session");
+});
+test('OAuth error callbacks show the sign-in page without a stuck loading state',async({page})=>{
+  await start(page,'?error=access_denied&error_description=Cancelled');
+  await expect(page.locator('html')).not.toHaveClass(/auth-confirmed-handoff/);
+  await expect(page.locator('.signup-submit')).toBeVisible();
+  await expect(page.locator('#signup-message')).toContainText('confirmation link was rejected');
 });

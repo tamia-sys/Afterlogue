@@ -8,9 +8,15 @@
   <title>Create Account — Afterlogue</title>
 
   <script>
-    // A verified guest briefly passes through this page to import saved
-    // impressions. Hide the sign-in form before the browser first paints.
-    if(new URLSearchParams(location.search).get("confirmed")==="1"){
+    // Authentication callbacks must never paint the sign-in form while
+    // Supabase restores the session. This also covers verified guest imports.
+    const query=new URLSearchParams(location.search);
+    const fragment=new URLSearchParams(location.hash.slice(1));
+    const isCallback=query.get("confirmed")==="1"||query.has("code")||
+      fragment.has("access_token")||fragment.has("refresh_token");
+    const hasAuthError=query.has("error")||query.has("error_code")||
+      fragment.has("error")||fragment.has("error_code");
+    if(isCallback&&!hasAuthError){
       document.documentElement.classList.add("auth-confirmed-handoff");
     }
   </script>
