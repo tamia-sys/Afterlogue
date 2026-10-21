@@ -81,20 +81,26 @@ window.saveFirstImpressions = async function (client) {
   if(metadataError)throw metadataError;
  }
 
- // Mark onboarding complete after impressions are saved.
-
-if (!profile?.onboarding_completed) {
-  const { error: completionError } = await client
-    .from("profiles")
-    .upsert({
-      user_id: user.id,
-      onboarding_completed: true,
-      onboarding_completed_at: new Date().toISOString()
-    }, {
-      onConflict: "user_id"
-    });
-  if (completionError) throw completionError;
-}
-
-return profile?.onboarding_completed ? "impressions-refreshed" : "onboarding-completed";
+ // Preserve the First Impressions country/language choices in the
+ // member's private profile. Missing tab preferences must NOT clear existing
+ // preferences when this helper runs from an unrelated import flow.
+ const validCountry=/^[A-Z]{2}$/;
+ const validLanguage=/^[a-z]{2,3}$/;
+ const profileUpdate={user_id:user.id};
+ const countryKey="afterlogue.onboarding.country";
+ const languageKey="afterlogue.onboarding.language";
+ const country=sessionStorage.getItem(countryKey);
+ const language=sessionStorage.getItem(languageKey);
+ if(country!==null)profileUpdate.discovery_country=validCountry.test(country)?country:null;
+ if(language!==null)profileUpdate.discovery_language=validLanguage.test(language)?language:null;
+ if(!profile?.onboarding_completed){
+  profileUpdate.onboarding_completed=true;
+  profileUpdate.onboarding_completed_at=new Date().toISOString();
+ }
+ if(Object.keys(profileUpdate).length>1){
+  const {error:completionError}=await client.from("profiles")
+   .upsert(profileUpdate,{onConflict:"user_id"});
+  if(completionError)throw completionError;
+ }
+ return profile?.onboarding_completed?"impressions-refreshed":"onboarding-completed";
 };
