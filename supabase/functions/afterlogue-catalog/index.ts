@@ -409,6 +409,44 @@ function listItem(entry: Record<string,unknown>,media:Media){
     language:entry.original_language||null,
   };
 }
+/* Small, human-curated thematic collections. The titles are resolved using
+ * exact TMDB title + first release year, not guessed IDs or genre keywords.
+ * The archive below remains the complete catalog when a collection is closed. */
+type CollectionTitle={title:string;year:number};
+const EDITORIAL_COLLECTIONS:Record<string,CollectionTitle[]>={
+ "modern-classics":[
+  {title:"Parasite",year:2019},{title:"Moonlight",year:2016},
+  {title:"The Grand Budapest Hotel",year:2014},{title:"Whiplash",year:2014},
+  {title:"The Social Network",year:2010},{title:"Aftersun",year:2022},
+  {title:"The Worst Person in the World",year:2021},{title:"Perfect Days",year:2023},
+  {title:"The Florida Project",year:2017},{title:"Lady Bird",year:2017},
+  {title:"Portrait of a Lady on Fire",year:2019},{title:"The Farewell",year:2019}
+ ],
+ "around-the-world":[
+  {title:"In the Mood for Love",year:2000},{title:"Drive My Car",year:2021},
+  {title:"City of God",year:2002},{title:"The Lives of Others",year:2006},
+  {title:"Roma",year:2018},{title:"Shoplifters",year:2018},
+  {title:"The Lunchbox",year:2013},{title:"The Worst Person in the World",year:2021},
+  {title:"Cold War",year:2018},{title:"Timbuktu",year:2014},
+  {title:"The Handmaiden",year:2016},{title:"Parasite",year:2019}
+ ],
+ "love-in-all-forms":[
+  {title:"Past Lives",year:2023},{title:"Before Sunrise",year:1995},
+  {title:"Portrait of a Lady on Fire",year:2019},{title:"The Worst Person in the World",year:2021},
+  {title:"Moonlight",year:2016},{title:"In the Mood for Love",year:2000},
+  {title:"About Time",year:2013},{title:"Carol",year:2015},
+  {title:"Call Me by Your Name",year:2017},{title:"The Lunchbox",year:2013},
+  {title:"Her",year:2013},{title:"Weekend",year:2011}
+ ],
+ "animation-discoveries":[
+  {title:"Coraline",year:2009},{title:"Fantastic Mr. Fox",year:2009},
+  {title:"Spirited Away",year:2001},{title:"Kubo and the Two Strings",year:2016},
+  {title:"Memoir of a Snail",year:2024},{title:"Persepolis",year:2007},
+  {title:"The Triplets of Belleville",year:2003},{title:"Mary and Max",year:2009},
+  {title:"The Tale of the Princess Kaguya",year:2013},{title:"The Red Turtle",year:2016},
+  {title:"The Breadwinner",year:2017},{title:"Anomalisa",year:2015}
+ ]
+};
 // Cache only public TMDB title data, never member preferences or tokens.
 const publicTmdbCache=new Map<string,{expires:number,data:unknown}>();
 async function tmdb(path:string,params:URLSearchParams,token:string){
@@ -468,6 +506,28 @@ Deno.serve(async (req:Request) => {
   const page=number(input.page,1,100,1);
   const params=new URLSearchParams({language:"en-US",page:String(page)});
   try{
+    if(mode==="collection"){
+      const key=typeof input.collection==="string"?input.collection:"";
+      const titles=Object.prototype.hasOwnProperty.call(EDITORIAL_COLLECTIONS,key)
+        ?EDITORIAL_COLLECTIONS[key]:null;
+      if(!titles)return response({error:"Unknown collection"},400);
+      const normalized=(title:unknown)=>String(title||"").normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+      const searches=await Promise.allSettled(titles.map(async title=>{
+        const query=new URLSearchParams({
+          query:title.title,language:"en-US",page:"1",include_adult:"false"
+        });
+        const data=await tmdb("/search/movie",query,token);
+        return (data.results||[]).find((item:Record<string,unknown>)=>
+          normalized(item.title)===normalized(title.title)
+          &&yearOf(item.release_date)===title.year
+          &&eligible(item,"movie",0))||null;
+      }));
+      const found=searches.filter((x):x is PromiseFulfilledResult<Record<string,unknown>|null>=>x.status==="fulfilled")
+        .map(x=>x.value).filter((x):x is Record<string,unknown>=>Boolean(x));
+      return response({collection:key,items:found.map(item=>listItem(item,"movie")),
+        totalPages:1,hasMore:false});
+    }
     if(mode==="discover"||mode==="search"){
       params.set("include_adult","false");
       const query=String(input.query||"").trim().slice(0,100);
