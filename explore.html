@@ -1372,9 +1372,8 @@ function renderAllFilms(){
  $("explore-film-count").textContent=matches.length+" of "+filmEntries.length+" films";
  $("explore-films-empty").hidden=matches.length!==0;
 }
-$("explore-all-films-open").addEventListener("click",()=>{
- renderAllFilms();view("films");filmQuery.focus({preventScroll:true});
-});
+// The separate curated-only All Films launcher was removed. The unified
+// #catalog-open browser is now the only All Films entry point.
 $("explore-films-back").addEventListener("click",()=>view("gallery"));
 [filmQuery,filmGenre,filmDecade,filmSort].forEach(control=>{
  control.addEventListener(control===filmQuery?"input":"change",renderAllFilms);
