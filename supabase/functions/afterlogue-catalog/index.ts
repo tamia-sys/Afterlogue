@@ -418,25 +418,25 @@ const EDITORIAL_COLLECTIONS:Record<string,CollectionTitle[]>={
   {title:"Parasite",year:2019},{title:"Moonlight",year:2016},
   {title:"The Grand Budapest Hotel",year:2014},{title:"Whiplash",year:2014},
   {title:"The Social Network",year:2010},{title:"Aftersun",year:2022},
-  {title:"The Worst Person in the World",year:2021},{title:"Perfect Days",year:2023},
-  {title:"The Florida Project",year:2017},{title:"Lady Bird",year:2017},
-  {title:"Portrait of a Lady on Fire",year:2019},{title:"The Farewell",year:2019}
+  {title:"Everything Everywhere All at Once",year:2022},{title:"The Zone of Interest",year:2023},
+  {title:"Get Out",year:2017},{title:"Sound of Metal",year:2019},
+  {title:"Lady Bird",year:2017},{title:"The Favourite",year:2018}
  ],
  "around-the-world":[
   {title:"In the Mood for Love",year:2000},{title:"Drive My Car",year:2021},
   {title:"City of God",year:2002},{title:"The Lives of Others",year:2006},
   {title:"Roma",year:2018},{title:"Shoplifters",year:2018},
-  {title:"The Lunchbox",year:2013},{title:"The Worst Person in the World",year:2021},
-  {title:"Cold War",year:2018},{title:"Timbuktu",year:2014},
-  {title:"The Handmaiden",year:2016},{title:"Parasite",year:2019}
+  {title:"The Lunchbox",year:2013},{title:"Cold War",year:2018},
+  {title:"Timbuktu",year:2014},{title:"The Handmaiden",year:2016},
+  {title:"A Separation",year:2011},{title:"The Secret in Their Eyes",year:2009}
  ],
  "love-in-all-forms":[
   {title:"Past Lives",year:2023},{title:"Before Sunrise",year:1995},
   {title:"Portrait of a Lady on Fire",year:2019},{title:"The Worst Person in the World",year:2021},
-  {title:"Moonlight",year:2016},{title:"In the Mood for Love",year:2000},
-  {title:"About Time",year:2013},{title:"Carol",year:2015},
-  {title:"Call Me by Your Name",year:2017},{title:"The Lunchbox",year:2013},
-  {title:"Her",year:2013},{title:"Weekend",year:2011}
+  {title:"Carol",year:2015},{title:"Love & Basketball",year:2000},
+  {title:"The Farewell",year:2019},{title:"Little Women",year:2019},
+  {title:"About Time",year:2013},{title:"If Beale Street Could Talk",year:2018},
+  {title:"The Intouchables",year:2011},{title:"Her",year:2013}
  ],
  "animation-discoveries":[
   {title:"Coraline",year:2009},{title:"Fantastic Mr. Fox",year:2009},
