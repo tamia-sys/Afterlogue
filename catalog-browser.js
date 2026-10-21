@@ -7,6 +7,10 @@ const panel=$("afterlogue-global-catalog");
 if(!panel)return;
 const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
 let media="movie",page=1,pages=1,term="",genre="",country="",language="",decade="",sort="popular",timer=null,serial=0,configured=false;
+let hasNext=false;
+let pageCursors=new Map([[1,null]]);
+const hasActiveFilters=()=>Boolean(term.trim().length>=2||genre||country||language||decade);
+function resetPaging(){page=1;hasNext=false;pageCursors=new Map([[1,null]]);}
 const input=$("catalog-search"),genreBox=$("catalog-genre"),countryBox=$("catalog-country"),languageBox=$("catalog-language"),decadeBox=$("catalog-decade"),sortBox=$("catalog-sort");
 const stateKey="afterlogue.explore.all-films.v1";
 const params=new URLSearchParams(location.search);
@@ -59,23 +63,37 @@ async function load(){
  rememberState();
  const id=++serial;
  const isSearch=term.trim().length>=2;
+ const filtered=hasActiveFilters();
+ if(filtered&&page>1&&!pageCursors.has(page))page=1;
+ $("catalog-prev").disabled=true;$("catalog-next").disabled=true;
  $("catalog-message").textContent="Finding stories…";
  try{
   // Filtering exposes 70 titles per page; standard browsing uses 60.
   // The server uses exact offsets so no titles are silently skipped.
   const hasFilters=Boolean(isSearch||genre||country||language||decade);
   const pageSize=hasFilters?70:60;
-  const result=await request({mode:isSearch?"search":"discover",query:term.trim(),media,page,pageSize,genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
+  const result=await request({mode:isSearch?"search":"discover",query:term.trim(),media,page,pageSize,
+    cursor:filtered?(pageCursors.get(page)||null):null,
+    genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
   if(id!==serial)return;
-  pages=Math.max(1,Number(result.totalPages)||1);
-  // If filters changed on another tab or the catalog shrank, don't leave the
-  // Next control trapped on a nonexistent page.
-  if(page>pages){page=pages;return load();}
+  if(!filtered){
+    pages=Math.max(1,Number(result.totalPages)||1);
+    if(page>pages){page=pages;return load();}
+    hasNext=page<pages;
+  }else{
+    // Cursor pagination describes genuine qualifying titles, so unlike the
+    // old UI it cannot claim there are 100 full pages without evidence.
+    const cursor=typeof result.nextCursor==="string"?result.nextCursor:null;
+    hasNext=Boolean(cursor);
+    if(cursor)pageCursors.set(page+1,cursor);
+    else pageCursors.delete(page+1);
+  }
   render(result.items||[]);
   const totalShown=(result.items||[]).length;
-  $("catalog-message").textContent=totalShown+" "+(totalShown===1?"story":"stories")+" · Page "+page+" of "+pages;
-  $("catalog-prev").disabled=page<=1;$("catalog-next").disabled=page>=pages;
-  $("catalog-pagination").hidden=pages<=1;
+  $("catalog-message").textContent=totalShown+" "+(totalShown===1?"story":"stories")+
+    " · Page "+page+(filtered?"":" of "+pages);
+  $("catalog-prev").disabled=page<=1;$("catalog-next").disabled=!hasNext;
+  $("catalog-pagination").hidden=page<=1&&!hasNext;
  }catch(error){
   if(id!==serial)return;
   clear();
@@ -99,13 +117,13 @@ $("catalog-back").addEventListener("click",()=>{
  panel.hidden=true;$("explore-gallery-wrap").hidden=false;document.body.classList.add("explore-gallery-mode");
  history.replaceState(null,"",location.pathname+location.search);
 });
-$("catalog-media").addEventListener("change",e=>{media=e.target.value;page=1;load();});
+$("catalog-media").addEventListener("change",e=>{media=e.target.value;resetPaging();load();});
 input.addEventListener("input",()=>{
   clearTimeout(timer);
   // Save the search immediately. A viewer can open a title before the
   // debounced request completes and should still return to their query.
   term=input.value;
-  page=1;
+  resetPaging();
   rememberState();
   serial++;
   if(term.trim().length===1){
@@ -116,10 +134,12 @@ input.addEventListener("input",()=>{
   $("catalog-pagination").hidden=true;
   timer=setTimeout(load,260);
 });
-[genreBox,countryBox,languageBox,decadeBox,sortBox].forEach(el=>el.addEventListener("change",()=>{genre=genreBox.value;country=countryBox.value;language=languageBox.value;decade=decadeBox.value;sort=sortBox.value;page=1;load();}));
+[genreBox,countryBox,languageBox,decadeBox,sortBox].forEach(el=>el.addEventListener("change",()=>{genre=genreBox.value;country=countryBox.value;language=languageBox.value;decade=decadeBox.value;sort=sortBox.value;resetPaging();load();}));
 function turnPage(direction){
  const target=page+direction;
- if(target<1||target>pages)return;
+ if(target<1||(direction>0&&!hasNext))return;
+ if(hasActiveFilters()&&target>1&&!pageCursors.has(target))return;
+ if(!hasActiveFilters()&&target>pages)return;
  page=target;
  // Move back to the TOP OF THE CATALOG, not the bottom pagination controls.
  window.scrollTo({top:0,behavior:"instant"});
