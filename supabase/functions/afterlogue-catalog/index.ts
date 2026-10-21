@@ -68,7 +68,7 @@ function eligible(v:Record<string,unknown>,media:Media,minVotes=35){
  * Sources: film.curzon.com/film-library/, a24films.com/films,
  * neonrated.com/films/all, focusfeatures.com/films,
  * blumhouse.com/catalogue, shop.laika.com/collections/all,
- * m oma.org Tim Burton exhibition (Skellington), sonypictures.com/steamboy.
+ * moma.org Tim Burton exhibition (Skellington), sonypictures.com/steamboy.
  * Search matches are resolved to real, released TMDB films at request time.
  * We do not infer a distribution credit from TMDB production_companies.
  */
@@ -120,7 +120,7 @@ const EDITORIAL_TELEVISION:EditorialAnchor[]=[
  {title:"Dark",year:2017,label:"Wiedemann & Berg",relation:"filmography"},
  {title:"The Returned",year:2012,label:"CANAL+",relation:"filmography"},
  {title:"Detectorists",year:2014,label:"BBC",relation:"filmography"},
- {title:"The Sympathizer",year:2024,label:"A24 Television",relation:"filmography"}
+ {title:"Such Brave Girls",year:2023,label:"A24 Television",relation:"filmography"}
 ];
 const hashSeed=(str:string)=>{
  let h=2166136261;
@@ -547,6 +547,24 @@ Deno.serve(async (req:Request) => {
           {id:"underseen",votesMin:55,votesMax:1800,
            order:"vote_average.desc"}
         ];
+        const allAnchors=media==="movie"?EDITORIAL_FILMS:EDITORIAL_TELEVISION;
+        const reviewed=page===1?allAnchors.slice(0,16)
+                     :page===2?allAnchors.slice(16,24):[];
+        const normalized=(title:unknown)=>String(title||"").normalize("NFKD")
+          .replace(/[\u0300-\u036f]/g,"").toLowerCase()
+          .replace(/[^a-z0-9]+/g," ").trim();
+        // Studio-anchored titles and wide-catalog lanes load CONCURRENTLY.
+        // Keep the first two rows engaging without doubling loading time.
+        const anchorJob=Promise.allSettled(reviewed.map(async anchor=>{
+          const query=new URLSearchParams({
+            query:anchor.title,language:"en-US",page:"1",include_adult:"false"
+          });
+          const found=await tmdb("/search/"+media,query,token);
+          return (found.results||[]).find((item:Record<string,unknown>)=>
+            normalized(media==="movie"?item.title:item.name)===normalized(anchor.title)
+            &&yearOf(media==="movie"?item.release_date:item.first_air_date)===anchor.year
+            &&eligible(item,media,30))||null;
+        }));
         const release=media==="movie"?"primary_release_date":"first_air_date";
         const searched=await Promise.allSettled(lanes.map(async lane=>{
           const p=new URLSearchParams({
@@ -574,23 +592,7 @@ Deno.serve(async (req:Request) => {
         // blockbusters. We verify release and the exact title/year at TMDB.
         // Curzon is intentionally well represented as a UK distributor.
         // The other 45+ slots still explore the broader film/TV landscape.
-        const allAnchors=media==="movie"?EDITORIAL_FILMS:EDITORIAL_TELEVISION;
-        const reviewed=page===1?allAnchors.slice(0,16)
-                     :page===2?allAnchors.slice(16,24):[];
-        const normalized=(title:unknown)=>String(title||"").normalize("NFKD")
-          .replace(/[\u0300-\u036f]/g,"").toLowerCase()
-          .replace(/[^a-z0-9]+/g," ").trim();
-        const anchorMatches=await Promise.allSettled(reviewed.map(async anchor=>{
-          const query=new URLSearchParams({
-            query:anchor.title,language:"en-US",page:"1",include_adult:"false"
-          });
-          const found=await tmdb("/search/"+media,query,token);
-          const movie=(found.results||[]).find((item:Record<string,unknown>)=>
-            normalized(media==="movie"?item.title:item.name)===normalized(anchor.title)
-            &&yearOf(media==="movie"?item.release_date:item.first_air_date)===anchor.year
-            &&eligible(item,media,30));
-          return movie||null;
-        }));
+        const anchorMatches=await anchorJob;
         const editorial=anchorMatches
           .filter((x):x is PromiseFulfilledResult<Record<string,unknown>|null>=>x.status==="fulfilled")
           .map(x=>x.value).filter((x):x is Record<string,unknown>=>Boolean(x));
