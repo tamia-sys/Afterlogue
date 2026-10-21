@@ -121,7 +121,7 @@ test('Explore presents existing moodboard first and full searchable library unde
  assert.doesNotMatch(html,/id="explore-search"/);
  assert.doesNotMatch(html,/explore-global-search\.js/);
  assert.doesNotMatch(html,/id="explore-all-films"/);
- assert.match(html,/catalog-browser\.js\?v=10/);
+ assert.match(html,/catalog-browser\.js\?v=11/);
  assert.match(catalog,/IntersectionObserver/);
  assert.doesNotMatch(catalog,/\$\("catalog-open"\)/);
 });
@@ -159,9 +159,9 @@ test('Explore returns one complete mood selection with no repeated Search furthe
 test('All Films collects up to 70 actual filtered matches using cursor pagination',()=>{
  const client=read('catalog-browser.js');
  const backend=read('supabase/functions/afterlogue-catalog/index.ts');
- assert.match(client,/hasFilters\?70:60/);
- assert.match(client,/const pageSize=hasFilters\?70:60/);
- assert.match(client,/cursor:filtered\?/);
+ assert.match(client,/const cursorPaging=filtered&&!simpleMixedSearch\(\)/);
+ assert.match(client,/const pageSize=simpleMixedSearch\(\)\?20:filtered\?70:60/);
+ assert.match(client,/const types=media==="all"\?\["movie","tv"\]:\[media\]/);
  assert.match(backend,/if\(Number\(input\.pageSize\)===70\)/);
  assert.match(backend,/if\(mode==="discover"&&country\)params\.set\("with_origin_country",country\)/);
  assert.match(backend,/const limit=70,found:/);
@@ -172,8 +172,8 @@ test('All Films collects up to 70 actual filtered matches using cursor paginatio
 });
 test('Filtered page 2 uses the next genuine matching-title cursor, not an unfiltered offset',()=>{
  const client=read('catalog-browser.js'),backend=read('supabase/functions/afterlogue-catalog/index.ts');
- assert.match(client,/pageCursors\.set\(page\+1,cursor\)/);
- assert.match(client,/hasNext=Boolean\(cursor\)/);
+ assert.match(client,/pageCursors\.set\(page\+1,nextCursor\)/);
+ assert.match(client,/hasNext=Boolean\(nextCursor\)/);
  assert.match(client,/pageCursors\.get\(page\)/);
  assert.match(backend,/const rawCursor=typeof input\.cursor/);
  assert.match(backend,/const indexed=/);
@@ -236,8 +236,8 @@ test('Discover draws from balanced decades, international cinema and under-seen 
 test('All Films does not invent a capped total or block Next without its provider signal',()=>{
  const html=read('explore.html'),browser=read('catalog-browser.js');
  const backend=read('supabase/functions/afterlogue-catalog/index.ts');
- assert.match(html,/catalog-browser\.js\?v=10/);
- assert.match(browser,/hasNext=typeof result\.hasMore==="boolean"/);
+ assert.match(html,/catalog-browser\.js\?v=11/);
+ assert.match(browser,/hasNext=results\.some\(response=>response\.hasMore===true\)/);
  assert.match(browser,/" · Page "\+page;/);
  assert.doesNotMatch(browser,/" of "\+pages/);
  assert.match(backend,/totalPages:null,totalResults:null/);
@@ -318,8 +318,8 @@ test('Curated collections resolve verifiable TMDB titles and do not pretend genr
 });
 test('Archive browsing and filters still use original source-based 60/70-title paging',()=>{
  const client=read('catalog-browser.js');
- assert.match(client,/const pageSize=hasFilters\?70:60/);
- assert.match(client,/cursor:filtered\?\(pageCursors.get\(page\)\|\|null\):null/);
+ assert.match(client,/const pageSize=simpleMixedSearch\(\)\?20:filtered\?70:60/);
+ assert.match(client,/const cursor=cursorPaging/);
  assert.match(client,/panel.scrollIntoView\(\{block:"start",behavior:"instant"\}\)/);
  assert.match(client,/const stateKey="afterlogue.explore.all-films.v2"/);
  assert.match(client,/collection:activeCollection,cursors:/);
@@ -356,7 +356,7 @@ test('First Impressions now displays up to 18 films and 18 TV series with filter
  assert.match(client,/items=\(payload.items\|\|\[\]\)\.filter\(item=>item.poster\)\.slice\(0,18\)/);
  assert.match(server,/const shortlist=balanced\.slice\(0,28\)/);
  assert.match(server,/items:verified\.slice\(0,18\)/);
- assert.match(html,/onboarding-catalog-search\.js\?v=8/);
+ assert.match(html,/onboarding-catalog-search\.js\?v=9/);
  assert.match(client,/first-refresh/);
  assert.match(client,/impressions-search/);
 });
@@ -442,7 +442,7 @@ test('All Films lets members save immediately, without needing to open details',
  assert.match(code,/\.from\("watchlist"\)\.insert/);
  assert.match(code,/AfterlogueCatalogMetadata/);
  assert.match(code,/catalogWatchlist\.add\(watchKey\)/);
- assert.match(html,/catalog-browser\.js\?v=10/);
+ assert.match(html,/catalog-browser\.js\?v=11/);
 });
 test('Film Details heart writes to the existing private Favorites table and artwork stays stable',()=>{
  const html=read('film-details.html'),code=read('film-details.js');
