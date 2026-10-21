@@ -449,7 +449,7 @@ function getDiscoveryRecommendations(category, page = 0) {
   if(discoveryCatalogState[category]==="loading")return [];
   const scoped=Boolean(discoveryPreferences.country||discoveryPreferences.originalLanguage);
   const normalizeTitle=title=>String(title||"").toLowerCase().normalize("NFKD")
-    .replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+    .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
   const editorialTitles=new Set(discoveryEntries.map(entry=>normalizeTitle(entry.title)));
   const chosen=new Set();
   const expanded=selected.filter(entry=>{
@@ -817,7 +817,7 @@ async function populateExpandedRecommendations(userId){
         reason:"Related to "+x.matched.join(", ")+".",
         synopsis:x.synopsis,
         directMatches:x.matched.map(name=>name.toLowerCase().normalize("NFKD")
-          .replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")),
+          .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")),
         facets:{themes:[],tones:[],pace:null,genres:(x.genres||[]).map(g=>g.toLowerCase())}
       };
     }).filter(x=>!excluded.has(x.key));
@@ -902,7 +902,21 @@ async function loadAccountImpressions() {
 
     if (error) throw error;
 
-    // Replace browser-based impressions with this account's data.
+    // Obsolete local rating copies from earlier builds must never follow
+    // a different user into their authenticated experience. Preserve the
+    // Supabase auth token and all unrelated application storage.
+    try{
+      const ratings=new Set(["Loved","Liked","Okay","Not for me"]);
+      for(let i=localStorage.length-1;i>=0;i--){
+        const key=localStorage.key(i);
+        if(key && (key.startsWith("afterlogue.onboarding.tmdb.")||
+          (key.startsWith("afterlogue-")&&ratings.has(localStorage.getItem(key))))){
+          localStorage.removeItem(key);
+        }
+      }
+    }catch(error){console.warn("Afterlogue: legacy rating cleanup unavailable",error);}
+
+    // Replace temporary display state with this account's data.
     Object.keys(savedImpressions).forEach(key => {
       delete savedImpressions[key];
     });
