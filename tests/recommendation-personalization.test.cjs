@@ -79,7 +79,9 @@ test('Authenticated impressions come only from Supabase, not browser-local ratin
   assert.match(sync,/localStorage\.removeItem/);
   const onboarding=read('log.html');
   assert.match(onboarding,/afterlogueSavedRatings/);
-  assert.doesNotMatch(onboarding,/localStorage\./);
+  assert.match(onboarding,/afterlogueImpressionDraftStore/);
+  assert.match(onboarding,/window\.localStorage:window\.sessionStorage/);
+  assert.match(read('auth-signup.js'),/importGuest=localStorage\.getItem/);
 });
 
 test('Explicit production country and original language are saved with member onboarding', () => {
