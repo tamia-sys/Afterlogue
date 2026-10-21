@@ -70,9 +70,12 @@ test('Home shows only verified wider-catalog picks, not manually curated filler'
 test('Authenticated impressions come only from Supabase, not browser-local rating copies', () => {
   const home=read('discover.html');
   const beforeLoad=home.split('const savedImpressions = {}')[1].split('const impressionCount')[0];
+  // The guest experience intentionally uses temporary browser storage;
+  // signed-in users must fetch their own impressions from Supabase.
   assert.match(beforeLoad,/if\(isGuestMode\)/);
-  assert.doesNotMatch(beforeLoad,/localStorage/);
+  assert.match(beforeLoad,/for\(let i=0;i<localStorage\.length;i\+\+\)/);
   assert.match(home,/\.from\("impressions"\)/);
+  assert.match(home,/\.eq\("user_id", userData\.user\.id\)/);
   assert.match(home,/legacy rating cleanup unavailable/);
   const sync=read('onboarding-sync.js');
   assert.match(sync,/sessionStorage\.setItem|sessionStorage\.removeItem/);
