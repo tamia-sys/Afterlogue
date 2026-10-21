@@ -132,9 +132,10 @@ if (isGuestMode) {
   // from the authenticated Supabase account, never from a previous browser user.
   const savedImpressions = {};
   if(isGuestMode) {
-    for(let i=0;i<sessionStorage.length;i++){
-      const key=sessionStorage.key(i);
-      const rating=key?.startsWith("afterlogue-")?sessionStorage.getItem(key):null;
+    // Only guests can use browser-persistent ratings pending an account import.
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      const rating=key?.startsWith("afterlogue-")?localStorage.getItem(key):null;
       if(["Loved","Liked","Okay","Not for me"].includes(rating))savedImpressions[key]=rating;
     }
   }
@@ -758,10 +759,10 @@ async function populateExpandedRecommendations(userId){
  }else{
   // Guest onboarding selections are stored only in this browser.
   try{
-   for(let i=0;i<sessionStorage.length;i++){
-    const key=sessionStorage.key(i);
+   for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
     if(!key?.startsWith("afterlogue.onboarding.tmdb."))continue;
-    const entry=JSON.parse(sessionStorage.getItem(key)||"null");
+    const entry=JSON.parse(localStorage.getItem(key)||"null");
     if(entry?.key&&entry?.title)dynamic.push({title_key:entry.key,title:entry.title,category:entry.category});
    }
   }catch(_){}
