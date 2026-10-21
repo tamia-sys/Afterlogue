@@ -85,9 +85,18 @@ function makeCard(item){
  const year=document.createElement('p');
  year.textContent=item.year?String(item.year):'';
  card.append(poster,name,year);
- showRating(sessionStorage.getItem('afterlogue-'+key));
+ // For signed-in members, account ratings are read directly from Supabase
+ // without copying them into browser storage. Unsaved edits in this tab win.
+ card.applyStoredRating=()=>showRating(
+   sessionStorage.getItem('afterlogue-'+key)||window.afterlogueSavedRatings?.[key]||null
+ );
+ card.applyStoredRating();
  return card;
 }
+document.addEventListener('afterlogue:saved-ratings',()=>{
+ document.querySelectorAll('.impressions-more-card[data-tmdb-key]')
+   .forEach(card=>card.applyStoredRating?.());
+});
 async function search(){
  const id=++serial,query=input.value.trim(),media=format.value;
  if(query.length<2){result.replaceChildren();status.textContent='';return;}
