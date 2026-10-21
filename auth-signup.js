@@ -134,6 +134,9 @@ form.addEventListener("submit",async event=>{
  }
 });
 
+function revealSignInIfHandoff(){
+ document.documentElement.classList.remove("auth-confirmed-handoff");
+}
 async function resumeSession(){
  // Supabase resolves a verification callback and saves the session when
  // getSession() runs. Never treat an unverified signup as authenticated.
@@ -141,6 +144,7 @@ async function resumeSession(){
   const callback=new URLSearchParams(window.location.hash.slice(1));
   const query=new URLSearchParams(location.search);
   if(callback.has("error")||callback.has("error_code")||query.has("error")||query.has("error_code")){
+   revealSignInIfHandoff();
    const desc=callback.get("error_description")||query.get("error_description")||"";
    inform("The confirmation link was rejected"+(desc?": "+desc:"")+". You can request a new link below; use only the newest email.","error");
    if(resendButton)resendButton.hidden=false;
@@ -148,12 +152,20 @@ async function resumeSession(){
   }
   const {data,error}=await client.auth.getSession();
   if(error)throw error;
-  if(!data?.session?.user)return;
+  if(!data?.session?.user){
+   if(document.documentElement.classList.contains("auth-confirmed-handoff")){
+    revealSignInIfHandoff();
+    setMode("signin");
+    inform("We couldn't find your confirmed session. Please sign in to continue.","error");
+   }
+   return;
+  }
   inform("You're signed in. Opening Afterlogue…");
   // Confirmation can return in a new tab; preserve guest choices if present.
   await memberDestination(data.session.user,
     localStorage.getItem("afterlogue.guest.impressions.pending.v1")==="1");
  }catch(error){
+  revealSignInIfHandoff();
   console.warn("Afterlogue: Unable to resume authentication.",String(error?.code||"session unavailable"));
   setMode("signin");
   inform("We couldn't finish opening your account automatically. Please sign in to continue.","error");
