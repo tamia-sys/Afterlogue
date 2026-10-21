@@ -38,9 +38,6 @@ function readState(){
 function rememberState(){
  try{sessionStorage.setItem(stateKey,JSON.stringify({media,page,term,genre,country,language,decade,sort,cursors:[...pageCursors]}));}catch(_){}
 }
-async function readiness(){
- try{const r=await fetch(endpoint+"?status=1");const data=await r.json();return Boolean(r.ok&&data.ready);}catch(_){return false;}
-}
 async function request(body){
  const res=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
  const json=await res.json();
@@ -107,21 +104,21 @@ async function load(){
   if(!configured)$("catalog-message").textContent="The film library is temporarily unavailable. Please try again.";
  }
 }
-async function openLibrary(){
-  // Show the same combined catalog for everybody. No separate "featured"
-  // fallback or extra readiness network trip before posters can load.
-  configured=true;
-  panel.hidden=false;document.body.classList.remove("explore-gallery-mode");
-  if(location.hash!=="#all-films")history.replaceState(null,"",location.pathname+location.search+"#all-films");
-  $("explore-gallery-wrap").hidden=true;$("explore-experience").hidden=true;
-  $("explore-results").hidden=true;$("explore-all-films").hidden=true;
-  window.scrollTo({top:0,behavior:"instant"});load();
+// The full library belongs below the moods. Fetch only when near its section.
+let firstLoadStarted=false;
+function ensureLibraryLoaded(){
+ if(firstLoadStarted)return;
+ firstLoadStarted=true;
+ load();
 }
-$("catalog-open").addEventListener("click",openLibrary);
-$("catalog-back").addEventListener("click",()=>{
- panel.hidden=true;$("explore-gallery-wrap").hidden=false;document.body.classList.add("explore-gallery-mode");
- history.replaceState(null,"",location.pathname+location.search);
-});
+if("IntersectionObserver" in window){
+ const observer=new IntersectionObserver(entries=>{
+  if(entries.some(entry=>entry.isIntersecting)){
+   ensureLibraryLoaded();observer.disconnect();
+  }
+ },{rootMargin:"600px 0px"});
+ observer.observe(panel);
+}else ensureLibraryLoaded();
 $("catalog-media").addEventListener("change",e=>{media=e.target.value;resetPaging();load();});
 input.addEventListener("input",()=>{
   clearTimeout(timer);
@@ -147,12 +144,16 @@ function turnPage(direction){
  if(!hasActiveFilters()&&target>pages)return;
  page=target;
  // Move back to the TOP OF THE CATALOG, not the bottom pagination controls.
- window.scrollTo({top:0,behavior:"instant"});
- panel.scrollTop=0;
+ panel.scrollIntoView({block:"start",behavior:"instant"});
  load();
 }
 $("catalog-prev").addEventListener("click",()=>turnPage(-1));
 $("catalog-next").addEventListener("click",()=>turnPage(1));
 readState();
-if(location.hash==="#all-films")openLibrary();
+if(location.hash==="#all-films"){
+  requestAnimationFrame(()=>{
+    panel.scrollIntoView({block:"start",behavior:"instant"});
+    ensureLibraryLoaded();
+  });
+}
 })();
