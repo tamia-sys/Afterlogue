@@ -1117,6 +1117,50 @@ body.explore-body.explore-gallery-mode .explore-gallery-wrap{display:block!impor
    line-height:1.4!important;
  }
 }
+
+/* Criterion-inspired collection-led archive: one featured rail, one poster wall. */
+.afterlogue-featured{margin:36px 0 34px}
+.afterlogue-featured-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:13px}
+.afterlogue-featured-header p{font:600 11px/1.4 Inter,Arial,sans-serif;letter-spacing:.13em;color:#d4b487;margin:0}
+.afterlogue-featured-header span{font:11px/1.5 Inter,Arial,sans-serif;color:#9f9486}
+.afterlogue-featured-rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.afterlogue-feature-card{position:relative;display:block;overflow:hidden;min-width:0;aspect-ratio:1.65/1;border-radius:10px;border:1px solid rgba(212,180,135,.34);background:#161412;cursor:pointer;color:#f5ebdf;text-align:left;padding:0;isolation:isolate}
+.afterlogue-feature-card img{width:100%;height:100%;object-fit:cover;object-position:center 38%;display:block;filter:brightness(.69) saturate(.82);transition:transform .35s ease,filter .3s ease}
+.afterlogue-feature-card::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(12,11,10,.88),rgba(12,11,10,.33) 75%),linear-gradient(0deg,rgba(12,11,10,.48),transparent 68%);pointer-events:none}
+.afterlogue-feature-copy{position:absolute;inset:auto 14px 14px;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.afterlogue-feature-overline{font:600 8px/1.3 Inter,Arial,sans-serif;letter-spacing:.14em;color:#d4b487}
+.afterlogue-feature-copy strong{font:400 clamp(18px,1.8vw,27px)/1.07 Georgia,serif;letter-spacing:-.015em;color:#f4eadd}
+.afterlogue-feature-copy small{font:10px/1.4 Inter,Arial,sans-serif;color:#d4c7b7}
+.afterlogue-feature-card:hover img,.afterlogue-feature-card:focus-visible img{transform:scale(1.06);filter:brightness(.8) saturate(.95)}
+.afterlogue-feature-card:hover,.afterlogue-feature-card[aria-pressed="true"]{border-color:#dab786}
+.afterlogue-feature-card:focus-visible{outline:2px solid #e4c69a;outline-offset:3px}
+.afterlogue-feature-card[aria-pressed="true"]::before{content:"✓";position:absolute;right:11px;top:10px;z-index:2;border:1px solid rgba(222,193,150,.8);border-radius:50%;width:22px;height:22px;display:grid;place-items:center;background:rgba(12,11,10,.78);color:#e4c69a;font:14px Arial,sans-serif}
+.afterlogue-archive-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 12px;padding-top:18px;border-top:1px solid rgba(212,180,135,.23)}
+.afterlogue-archive-header h3{font:400 clamp(26px,2.8vw,38px)/1.2 Georgia,serif;color:#f4eadd;letter-spacing:-.025em;margin:0}
+#catalog-collection-clear{background:transparent;border:1px solid rgba(212,180,135,.42);border-radius:99px;padding:9px 16px;color:#d4b487;font:11px Inter,Arial,sans-serif;cursor:pointer}
+#catalog-collection-clear:hover,#catalog-collection-clear:focus-visible{background:#d4b487;color:#151311}
+#catalog-collection-clear[hidden]{display:none!important}
+#afterlogue-global-catalog .catalog-grid{grid-template-columns:repeat(8,minmax(0,1fr));gap:25px clamp(9px,1.05vw,16px);align-items:start}
+#afterlogue-global-catalog .catalog-tile-poster{border-radius:5px;border:1px solid rgba(212,180,135,.13)}
+#afterlogue-global-catalog .catalog-tile-title{font:13px/1.3 Georgia,serif}
+#afterlogue-global-catalog .catalog-tile-year{font:10px/1.25 Inter,Arial,sans-serif}
+#afterlogue-global-catalog .catalog-tile-poster img{transition:transform .3s ease,filter .3s ease}
+#afterlogue-global-catalog .catalog-tile:hover .catalog-tile-poster img,#afterlogue-global-catalog .catalog-tile:focus-visible .catalog-tile-poster img{transform:scale(1.045);filter:brightness(.87)}
+@media(max-width:1200px){#afterlogue-global-catalog .catalog-grid{grid-template-columns:repeat(7,minmax(0,1fr))}}
+@media(max-width:990px){
+ .afterlogue-featured-rail{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 10px;scrollbar-width:thin;scrollbar-color:#6a5946 transparent}
+ .afterlogue-feature-card{flex:0 0 min(42%,300px);scroll-snap-align:start}
+ #afterlogue-global-catalog .catalog-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
+@media(max-width:650px){
+ .afterlogue-featured{margin:26px 0 24px}
+ .afterlogue-featured-header span{display:none}
+ .afterlogue-feature-card{flex:0 0 78%;max-width:285px;aspect-ratio:1.7/1}
+ #afterlogue-global-catalog .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px}
+ #afterlogue-global-catalog .catalog-tile-title{font-size:13px}
+ .afterlogue-archive-header h3{font-size:27px}
+}
+@media(prefers-reduced-motion:reduce){.afterlogue-feature-card img,#afterlogue-global-catalog .catalog-tile-poster img{transition:none!important}}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 <link rel="stylesheet" href="seen-impression.css?v=2">
@@ -1216,8 +1260,38 @@ body.explore-body.explore-gallery-mode .explore-gallery-wrap{display:block!impor
 <select id="catalog-decade" aria-label="Decade"><option value="">Any decade</option><option value="2020">2020s</option><option value="2010">2010s</option><option value="2000">2000s</option><option value="1990">1990s</option><option value="1980">1980s</option><option value="1970">1970s</option><option value="1960">1960s</option><option value="1950">1950s</option></select>
 <select id="catalog-sort" aria-label="Sort by"><option value="discover" selected>Discover</option><option value="popular">Popular</option><option value="newest">Newest</option><option value="oldest">Oldest</option></select>
 </div>
-<p id="catalog-message" class="catalog-intro" role="status" aria-live="polite"></p>
-<div id="catalog-grid" class="catalog-grid"></div>
+<section class="afterlogue-featured" aria-labelledby="afterlogue-featured-title">
+  <div class="afterlogue-featured-header">
+    <p id="afterlogue-featured-title">FEATURED COLLECTIONS</p>
+    <span>Curated by afterlogue.</span>
+  </div>
+  <div class="afterlogue-featured-rail" role="group" aria-label="Curated film collections">
+    <button type="button" class="afterlogue-feature-card" data-collection="modern-classics" aria-pressed="false">
+      <img src="images/posters/Whiplash.webp" alt="" loading="lazy">
+      <span class="afterlogue-feature-copy"><span class="afterlogue-feature-overline">CINEMA THAT STAYS</span><strong>Modern<br>Classics</strong><small>Stories that became landmarks.</small></span>
+    </button>
+    <button type="button" class="afterlogue-feature-card" data-collection="around-the-world" aria-pressed="false">
+      <img src="images/posters/Perfect%20Days.webp" alt="" loading="lazy">
+      <span class="afterlogue-feature-copy"><span class="afterlogue-feature-overline">BEYOND BORDERS</span><strong>Stories Around<br>the World</strong><small>International cinema.</small></span>
+    </button>
+    <button type="button" class="afterlogue-feature-card" data-collection="love-in-all-forms" aria-pressed="false">
+      <img src="images/posters/PastLives.webp" alt="" loading="lazy">
+      <span class="afterlogue-feature-copy"><span class="afterlogue-feature-overline">MATTERS OF THE HEART</span><strong>Love in All<br>Its Forms</strong><small>Romance, friendship, and more.</small></span>
+    </button>
+    <button type="button" class="afterlogue-feature-card" data-collection="animation-discoveries" aria-pressed="false">
+      <img src="images/posters/SpiderVerse.webp" alt="" loading="lazy">
+      <span class="afterlogue-feature-copy"><span class="afterlogue-feature-overline">DRAWN TO LIFE</span><strong>Animation Worth<br>Discovering</strong><small>Beyond the familiar.</small></span>
+    </button>
+  </div>
+</section>
+<section class="afterlogue-archive" aria-labelledby="catalog-archive-title">
+  <div class="afterlogue-archive-header">
+    <h3 id="catalog-archive-title">The archive.</h3>
+    <button type="button" id="catalog-collection-clear" hidden>← All Films &amp; TV</button>
+  </div>
+  <p id="catalog-message" class="catalog-intro" role="status" aria-live="polite"></p>
+  <div id="catalog-grid" class="catalog-grid"></div>
+</section>
 <div id="catalog-pagination" class="catalog-page-controls" hidden><button id="catalog-prev" type="button">← Previous</button><button id="catalog-next" type="button">Next →</button></div>
 <p style="font:11px Arial,sans-serif;color:#A99A82">Film and TV information provided by <a style="color:#D4B487" href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>. Afterlogue is not endorsed or certified by TMDB.</p>
 </section>
@@ -1768,7 +1842,7 @@ $("explore-again").addEventListener("click",()=>{
 restoreMoodSnapshot();
 })();
 </script>
-<script src="catalog-browser.js?v=8"></script>
+<script src="catalog-browser.js?v=9"></script>
 
 
 </body>
