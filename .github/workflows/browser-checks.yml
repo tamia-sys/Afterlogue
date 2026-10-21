@@ -16,6 +16,11 @@ on:
       - 'film-details.js'
       - 'signup.html'
       - 'auth-signup.js'
+      - 'log.html'
+      - 'discover.html'
+      - 'onboarding-sync.js'
+      - 'onboarding-catalog-search.js'
+      - 'recommendation-engine.js'
       - 'supabase/functions/afterlogue-catalog/index.ts'
 
 permissions:
