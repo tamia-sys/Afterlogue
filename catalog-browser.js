@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const panel=$("afterlogue-global-catalog");
 if(!panel)return;
 const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
-let media="movie",page=1,pages=1,term="",genre="",country="",language="",decade="",sort="discover",timer=null,serial=0,configured=false;
+let media="all",page=1,pages=1,term="",genre="",country="",language="",decade="",sort="discover",timer=null,serial=0,configured=false;
 let hasNext=false;
 let activeCollection=null;
 const collectionNames={
@@ -17,6 +17,9 @@ const collectionNames={
 };
 let pageCursors=new Map([[1,null]]);
 const hasActiveFilters=()=>Boolean(term.trim().length>=2||genre||country||language||decade);
+// A title-only mixed search can use ordinary 20-result TMDB pages; other
+// filtered browsing retains the catalog's precise source cursors.
+const simpleMixedSearch=()=>media==="all"&&term.trim().length>=2&&!genre&&!country&&!language&&!decade;
 function syncSortWithFilters(){
  const filtered=hasActiveFilters();
  const option=sortBox.querySelector('option[value="discover"]');
@@ -54,7 +57,7 @@ function readState(){
  try{
   const record=JSON.parse(sessionStorage.getItem(stateKey)||"null");
   if(!record||typeof record!=="object")return;
-  media=record.media==="tv"?"tv":"movie";
+  media=["all","movie","tv"].includes(record.media)?record.media:"all";
   page=Number.isInteger(record.page)?Math.max(1,Math.min(100,record.page)):1;
   term=typeof record.term==="string"?record.term.slice(0,100):"";
   genre=typeof record.genre==="string"?record.genre:"";
@@ -65,9 +68,15 @@ function readState(){
   activeCollection=Object.prototype.hasOwnProperty.call(collectionNames,record.collection)
     ?record.collection:null;
   if(Array.isArray(record.cursors)){
-    pageCursors=new Map([[1,null],...record.cursors
-      .filter(item=>Array.isArray(item)&&Number.isInteger(item[0])&&item[0]>=2&&item[0]<=100
-        &&typeof item[1]==="string"&&/^[1-9][0-9]{0,2}:(?:[0-9]|1[0-9])$/.test(item[1]))]);
+    const validCursor=value=>typeof value==="string"&&/^[1-9][0-9]{0,2}:(?:[0-9]|1[0-9])$/.test(value);
+    pageCursors=new Map([[1,null],...record.cursors.filter(item=>{
+      if(!Array.isArray(item)||!Number.isInteger(item[0])||item[0]<2||item[0]>100)return false;
+      const entry=item[1];
+      return validCursor(entry)||Boolean(entry&&typeof entry==="object"&&!Array.isArray(entry)
+        &&(validCursor(entry.movie)||validCursor(entry.tv))
+        &&(entry.movie==null||validCursor(entry.movie))
+        &&(entry.tv==null||validCursor(entry.tv)));
+    })]);
   }
   $("catalog-media").value=media;input.value=term;
   genreBox.value=genre;countryBox.value=country;languageBox.value=language;decadeBox.value=decade;sortBox.value=sort;
@@ -117,7 +126,7 @@ function render(list){
   const frame=document.createElement("div");frame.className="catalog-tile-poster";
   const img=document.createElement("img");img.loading="lazy";img.src=title.poster||"";img.alt=title.title+" poster";
   const name=document.createElement("span");name.className="catalog-tile-title";name.textContent=title.title;
-  const sub=document.createElement("span");sub.className="catalog-tile-year";sub.textContent=title.year||"";
+  const sub=document.createElement("span");sub.className="catalog-tile-year";sub.textContent=(title.media==="tv"?"TV show":"Film")+(title.year?" · "+title.year:"");
   frame.append(img);a.append(frame,name,sub);
   const tile=document.createElement("div");tile.className="catalog-tile-wrap";
   const eye=window.AfterlogueSeen?.button({key:"tmdb-"+title.media+"-"+title.id,title:title.title,year:title.year,poster:title.poster,category:title.media==="tv"?"tv":"movies"});
@@ -163,7 +172,8 @@ async function load(){
  const id=++serial;
  const isSearch=term.trim().length>=2;
  const filtered=hasActiveFilters();
- if(filtered&&page>1&&!pageCursors.has(page))page=1;
+ const cursorPaging=filtered&&!simpleMixedSearch();
+ if(cursorPaging&&page>1&&!pageCursors.has(page))page=1;
  syncSortWithFilters();
  rememberState();
  $("catalog-prev").disabled=true;$("catalog-next").disabled=true;
@@ -174,37 +184,54 @@ async function load(){
     const result=await request({mode:"collection",collection:activeCollection});
     if(id!==serial)return;
     render(result.items||[]);
-  catalogAccount();
+    catalogAccount();
     const count=(result.items||[]).length;
     $("catalog-message").textContent=count+" "+(count===1?"film":"films")+" · Curated by Afterlogue";
     $("catalog-pagination").hidden=true;
     return;
   }
-  // Filtering exposes 70 titles per page; standard browsing uses 60.
-  // The server uses exact offsets so no titles are silently skipped.
-  const hasFilters=Boolean(isSearch||genre||country||language||decade);
-  const pageSize=hasFilters?70:60;
-  const result=await request({mode:isSearch?"search":"discover",query:term.trim(),media,page,pageSize,
-    cursor:filtered?(pageCursors.get(page)||null):null,
-    genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
+  const pageSize=simpleMixedSearch()?20:filtered?70:60;
+  const types=media==="all"?["movie","tv"]:[media];
+  const activeCursors=pageCursors.get(page);
+  // For a mixed filtered result, a source that reached its final cursor
+  // should not be fetched again on the next page.
+  const results=await Promise.all(types.map(type=>{
+    if(media==="all"&&cursorPaging&&page>1&&!activeCursors?.[type]){
+      return Promise.resolve({items:[],hasMore:false,nextCursor:null});
+    }
+    const cursor=cursorPaging
+      ?media==="all"?(activeCursors?.[type]||null):(activeCursors||null)
+      :null;
+    return request({mode:isSearch?"search":"discover",query:term.trim(),media:type,page,pageSize,
+      cursor,genre,country,originalLanguage:language,decade:Number(decade)||null,sort});
+  }));
   if(id!==serial)return;
-  if(!filtered){
-    // Each discovery stream has a different number of available titles.
-    // Honor actual Next availability instead of inventing an "of 100".
-    pages=Math.max(1,Number(result.totalPages)||1);
-    hasNext=typeof result.hasMore==="boolean"
-      ?result.hasMore:page<pages;
+  const lists=results.map(response=>response.items||[]);
+  const merged=[];
+  // An alternating result wall lets people find a film or series from one
+  // search without burying the second category below the first.
+  const longest=Math.max(0,...lists.map(list=>list.length));
+  for(let i=0;i<longest;i++)for(const list of lists)if(list[i])merged.push(list[i]);
+  if(cursorPaging){
+    if(media==="all"){
+      const next={};
+      types.forEach((type,index)=>next[type]=typeof results[index].nextCursor==="string"
+        ?results[index].nextCursor:null);
+      hasNext=Boolean(next.movie||next.tv);
+      if(hasNext)pageCursors.set(page+1,next);
+      else pageCursors.delete(page+1);
+    }else{
+      const nextCursor=typeof results[0].nextCursor==="string"?results[0].nextCursor:null;
+      hasNext=Boolean(nextCursor);
+      if(nextCursor)pageCursors.set(page+1,nextCursor);
+      else pageCursors.delete(page+1);
+    }
   }else{
-    // Cursor pagination describes genuine qualifying titles, so unlike the
-    // old UI it cannot claim there are 100 full pages without evidence.
-    const cursor=typeof result.nextCursor==="string"?result.nextCursor:null;
-    hasNext=Boolean(cursor);
-    if(cursor)pageCursors.set(page+1,cursor);
-    else pageCursors.delete(page+1);
+    hasNext=results.some(response=>response.hasMore===true);
   }
-  render(result.items||[]);
+  render(merged);
   catalogAccount();
-  const totalShown=(result.items||[]).length;
+  const totalShown=merged.length;
   $("catalog-message").textContent=totalShown+" "+(totalShown===1?"story":"stories")+" · Page "+page;
   $("catalog-prev").disabled=page<=1;$("catalog-next").disabled=!hasNext;
   $("catalog-pagination").hidden=page<=1&&!hasNext;
@@ -254,7 +281,7 @@ function turnPage(direction){
  if(activeCollection)return;
  const target=page+direction;
  if(target<1||(direction>0&&!hasNext))return;
- if(hasActiveFilters()&&target>1&&!pageCursors.has(target))return;
+ if(hasActiveFilters()&&!simpleMixedSearch()&&target>1&&!pageCursors.has(target))return;
  if(!hasActiveFilters()&&direction>0&&!hasNext)return;
  page=target;
  // Move back to the TOP OF THE CATALOG, not the bottom pagination controls.
