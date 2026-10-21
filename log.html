@@ -445,7 +445,7 @@ poster.appendChild(backButton);
 backButton.addEventListener("click", event => {
   event.stopPropagation();
 
-  localStorage.removeItem(filmKey);
+  sessionStorage.removeItem(filmKey);
   showSavedRating(null);
 
   poster.classList.add("is-open");
@@ -466,7 +466,7 @@ backButton.addEventListener("click", event => {
   }
 
   // Restore the saved rating when the page loads.
-  const savedRating = localStorage.getItem(filmKey);
+  const savedRating = sessionStorage.getItem(filmKey);
   showSavedRating(savedRating);
 
   // Save an impression when a button is selected.
@@ -476,7 +476,7 @@ backButton.addEventListener("click", event => {
 
       const rating = button.dataset.rating;
 
-      localStorage.setItem(filmKey, rating);
+      sessionStorage.setItem(filmKey, rating);
       showSavedRating(rating);
 
       poster.classList.remove("is-open");
