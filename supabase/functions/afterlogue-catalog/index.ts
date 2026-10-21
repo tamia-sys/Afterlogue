@@ -447,23 +447,25 @@ Deno.serve(async (req:Request) => {
         params.set("vote_count.gte","10");
         params.set(media==="movie"?"primary_release_date.lte":"first_air_date.lte",params.get(media==="movie"?"primary_release_date.lte":"first_air_date.lte")||new Date().toISOString().slice(0,10));
       }
-      // All Films displays up to 60 distinct titles per page. TMDB's public
-      // API returns 20 per page, so batch four consecutive TMDB pages and
-      // apply the same filters/verification to the combined records.
-      // Lightweight two-character autocomplete remains one API page.
-      const batched=Number(input.pageSize)===60;
-      const pagesToFetch=batched?4:1;
-      const remote=await Promise.allSettled(Array.from({length:pagesToFetch},(_,offset)=>{
+      // TMDB returns 20 records per page. Translate Afterlogue's 60/70
+      // item pages into overlapping API pages with exact absolute offsets.
+      // This avoids silently skipping 10-30 titles at each page boundary.
+      const requestedSize=Number(input.pageSize)===70?70:
+        Number(input.pageSize)===60?60:20;
+      const firstIndex=(page-1)*requestedSize;
+      const firstTmdbPage=Math.floor(firstIndex/20)+1;
+      const startOffset=firstIndex%20;
+      const pagesToFetch=Math.ceil((startOffset+requestedSize)/20);
+      const remote=await Promise.all(Array.from({length:pagesToFetch},(_,offset)=>{
         const p=new URLSearchParams(params);
-        p.set("page",String(batched?(page-1)*pagesToFetch+offset+1:page));
+        p.set("page",String(firstTmdbPage+offset));
         return tmdb(endpoint,p,token);
       }));
-      const succeeded=remote.filter((r):r is PromiseFulfilledResult<any>=>r.status==="fulfilled");
-      if(!succeeded.length)throw Error("Film catalog request failed");
-      const body=succeeded[0].value;
-      const collected=succeeded.flatMap(r=>r.value.results||[]);
+      const body=remote[0];
+      const collected=remote.flatMap((r:any)=>r.results||[]);
+      const pageCandidates=collected.slice(startOffset,startOffset+requestedSize);
       const distinct=[...new Map<number,Record<string,unknown>>(
-        collected.map((v:Record<string,unknown>):[number,Record<string,unknown>]=>[Number(v.id),v])
+        pageCandidates.map((v:Record<string,unknown>):[number,Record<string,unknown>]=>[Number(v.id),v])
       ).values()];
       const filtered=distinct.filter((v:Record<string,unknown>)=>{
         if(v.adult||!v.poster_path||!v.overview)return false;
@@ -489,11 +491,11 @@ Deno.serve(async (req:Request) => {
       }
       return response({
         page,
-        totalPages:Math.min(Math.ceil((Number(body.total_pages)||1)/pagesToFetch),100),
+        totalPages:Math.min(100,Math.max(1,Math.ceil((Number(body.total_results)||0)/requestedSize))),
         // TMDB's total_results is prefilter when we verify productions
         // ourselves, so do not present it as an exact filtered count.
         totalResults:country||mode==="search"&&(requestedGenre||hasDecade||originalLanguage)?null:Number(body.total_results)||0,
-        items:verified.slice(0,batched?60:20).map((v:Record<string,unknown>)=>listItem(v,media))
+        items:verified.slice(0,requestedSize).map((v:Record<string,unknown>)=>listItem(v,media))
       });
     }
     if(mode==="onboarding"){
