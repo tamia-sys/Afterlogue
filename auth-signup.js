@@ -177,9 +177,8 @@ async function socialSignIn(provider,control){
     if(settings.ok){
       const values=await settings.json();
       if(values.external?.[provider]===false){
-        inform((provider==="google"?"Google":"Apple")+
-          " sign-in still needs provider setup. Email sign-in works in the meantime.","error");
-        return;
+        throw Error((provider==="google"?"Google":"Apple")+
+          " sign-in still needs provider setup. Email sign-in works in the meantime.");
       }
     }
    }
