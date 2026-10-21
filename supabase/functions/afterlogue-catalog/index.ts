@@ -479,17 +479,17 @@ Deno.serve(async (req:Request) => {
         // selections fill before this cap.
         browse: while(sourcePage<=500&&scanned<12){
           const pages=Array.from({length:Math.min(4,12-scanned)},(_,index)=>sourcePage+index);
-          const retrieved=await Promise.allSettled(pages.map(async number=>{
+          // Do not silently discard failed TMDB pages: that would corrupt
+          // pagination and make a partial list look like complete results.
+          const retrieved=await Promise.all(pages.map(async number=>{
             const p=new URLSearchParams(params);
             p.set("page",String(number));
             return tmdb(endpoint,p,token);
           }));
           let available=false;
           for(let batch=0;batch<retrieved.length;batch++){
-            const part=retrieved[batch];
             const current=pages[batch];
-            if(part.status!=="fulfilled")continue;
-            const body=part.value;
+            const body=retrieved[batch];
             const total=Number(body.total_pages)||0;
             if(current>total||!(body.results||[]).length){ended=true;break browse;}
             available=true;
