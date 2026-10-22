@@ -170,7 +170,7 @@ test('Explore returns one complete mood selection with no repeated Search furthe
  assert.match(html,/paintMoodPicks\(picks\)/);
  assert.match(html,/Finding stories for your mood/);
  assert.doesNotMatch(html,/Search further ↗/);
- assert.match(backend,/while\(queue\.length&&verified\.length<12\)/);
+ assert.match(backend,/while\(queue\.length&&verified\.length<16\)/);
  assert.match(backend,/const queue=selected\.slice\(0,90\)/);
 });
 test('All Films collects up to 70 actual filtered matches using cursor pagination',()=>{
@@ -504,7 +504,7 @@ test('Fall TV has reviewed source candidates with normal verification',()=>{
  assert.match(code,/"Over the Garden Wall"/);
  assert.match(code,/"Gilmore Girls"/);
  assert.match(code,/const allFallTitles=mood==="fall"/);
- assert.match(code,/const seasonalTitles=\[\.\.\.rotate\(preferred/);
+ assert.match(code,/const seasonalTitles=\[\.\.\.new Set\(\[\.\.\.regionFirst/);
  assert.match(code,/const FALL_PACE_HINTS:Record/);
  assert.match(code,/const ids=mood==="fall"\?\[\]:await moodKeywordIds\(mood,token\)/);
  assert.match(code,/\?6:Math\.min\(6/);
