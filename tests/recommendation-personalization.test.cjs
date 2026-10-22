@@ -123,6 +123,11 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  const home=read('discover.html');
  assert.match(home,/await Promise\.race\(\[tasteFeaturesPromise/);
  assert.match(home,/const sourceFeatureMap=new Map\(\)/);
+ assert.match(home,/const firstMovieSources=movieSourceKeys\.slice\(0,2\)/);
+ assert.match(home,/firstMovieSources\.push\(restMovies\[at\]\)/);
+ assert.match(home,/if\(category==="movies"&&grouped\.movies\.length>=7\)/);
+ assert.match(home,/kind:"direct-breadth"/);
+ assert.match(home,/sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/category,limit:4,rotation:/);
  assert.match(home,/algorithm:"balanced-home-shelves-v2-broad-candidate-seeds"/);
