@@ -777,6 +777,65 @@ Deno.serve(async (req:Request) => {
   const page=number(input.page,1,100,1);
   const params=new URLSearchParams({language:"en-US",page:String(page)});
   try{
+    // On-demand, privacy-safe features for a member's *own* logged titles.
+    // The client sends only public TMDB identifiers, never ratings, notes,
+    // emails or user IDs. No third-party AI service or model is involved.
+    // Bounded batches and short-lived public metadata cache control fanout.
+    if(mode==="taste-features"){
+      const requested=Array.isArray(input.keys)?input.keys.slice(0,18):[];
+      const keys=[...new Set(requested.filter((key:unknown)=>typeof key==="string"&&
+        /^tmdb-(movie|tv)-[1-9][0-9]{0,9}$/.test(key)))];
+      if(!keys.length)return response({items:[]});
+      const themeKeywords:Record<string,string>={
+        "coming of age":"growing-up","growing up":"growing-up",
+        "first love":"first-love","unrequited love":"love",
+        "forbidden love":"love","longing":"connection",
+        "loneliness":"solitude","solitude":"solitude",
+        "family relationships":"family","family relationship":"family",
+        "father daughter relationship":"family","mother daughter relationship":"family",
+        "friendship":"friendship","female friendship":"friendship",
+        "grief":"loss","bereavement":"loss","loss of loved one":"loss",
+        "memory":"memory","social class":"class","class differences":"class",
+        "identity":"identity","self-discovery":"identity",
+        "workplace":"work","work":"work","ambition":"ambition",
+        "revenge":"revenge","obsession":"obsession",
+        "secrets":"secrets","secrecy":"secrets"
+      };
+      const toneKeywords:Record<string,string>={
+        "dark comedy":"satirical","satire":"satirical",
+        "melancholy":"melancholic","melancholic":"melancholic",
+        "heartwarming":"warm","whimsical":"playful",
+        "psychological thriller":"suspenseful"
+      };
+      const output:Array<Record<string,unknown>>=[];
+      let cursor=0;
+      await Promise.all(Array.from({length:Math.min(5,keys.length)},async()=>{
+        while(cursor<keys.length){
+          const key=keys[cursor++];
+          const found=/^tmdb-(movie|tv)-(\d+)$/.exec(key);
+          if(!found)continue;
+          const contentMedia=found[1] as Media;
+          try {
+            const data=await tmdb("/"+contentMedia+"/"+found[2],
+              new URLSearchParams({language:"en-US",append_to_response:"keywords"}),token);
+            if(data.adult===true||!data.id)continue;
+            const terms=contentMedia==="movie"?data.keywords?.keywords:data.keywords?.results;
+            const names=(Array.isArray(terms)?terms:[]).map((word:Record<string,unknown>)=>
+              String(word.name||"").toLowerCase().trim());
+            const genres=(Array.isArray(data.genres)?data.genres:[])
+              .map((genre:Record<string,unknown>)=>String(genre.name||"").toLowerCase().trim())
+              .filter(Boolean).slice(0,6);
+            const title=String(contentMedia==="tv"?data.name:data.title||"").trim().slice(0,180);
+            if(!title)continue;
+            output.push({key,title,category:contentMedia==="tv"?"tv":"movies",
+              genres,
+              themes:[...new Set(names.map((name:string)=>themeKeywords[name]).filter(Boolean))].slice(0,8),
+              tones:[...new Set(names.map((name:string)=>toneKeywords[name]).filter(Boolean))].slice(0,5)});
+          }catch(_){/* Missing details reduce confidence; never fabricate facets. */}
+        }
+      }));
+      return response({items:output});
+    }
     if(mode==="collection"){
       const key=typeof input.collection==="string"?input.collection:"";
       const titles=Object.prototype.hasOwnProperty.call(EDITORIAL_COLLECTIONS,key)
