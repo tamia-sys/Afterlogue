@@ -104,7 +104,91 @@ const toMap=value=>{
  if(Array.isArray(value))return new Map(value.map(entry=>[entry.title_key||entry.key,entry.rating]));
  return new Map(Object.entries(value||{}));
 };
-function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]}){
+// Deterministic, privacy-preserving taste profile. A single unpopular film
+// cannot ban its genre; multiple independent signals build confidence.
+// Unsupported emotional tags are intentionally omitted rather than guessed.
+function buildTasteProfile({entries=[],impressions={},favorites=[],timestamps={},now=Date.now()}={}){
+ const byKey=new Map(entries.map(item=>[item.key,item]));
+ const aliases=new Map(entries.flatMap(item=>[[item.key,item.key],[slug(item.title),item.key]]));
+ const resolve=value=>aliases.get(slug(String(value||"").replace(/^afterlogue-/,"")))
+   ||String(value||"").replace(/^afterlogue-/,"");
+ const liked=new Map();
+ for(const [name,record] of toMap(impressions)){
+   const key=resolve(name);
+   if(!byKey.has(key))continue;
+   const rating=typeof record==="string"?record:record?.rating;
+   if(!Object.prototype.hasOwnProperty.call(weights,rating))continue;
+   liked.set(key,{rating,favorite:false});
+ }
+ for(const favorite of favorites||[]){
+   const key=resolve(typeof favorite==="string"?favorite:favorite?.title_key);
+   if(!byKey.has(key))continue;
+   const existing=liked.get(key);
+   if(existing)existing.favorite=true;
+   else liked.set(key,{rating:null,favorite:true});
+ }
+ const buckets={themes:new Map(),tones:new Map(),genres:new Map(),pace:new Map()};
+ const significance={"Loved":2.4,"Liked":1.1,"Okay":0,"Not for me":-2.0};
+ let covered=0;
+ for(const [key,signal] of liked){
+   const entry=byKey.get(key);
+   const date=Date.parse(timestamps[key]||timestamps["afterlogue-"+key]||"");
+   const age=Number.isFinite(date)?Math.max(0,(now-date)/86400000):0;
+   // Older tastes remain part of the profile but recent choices weigh more.
+   const recency=Number.isFinite(date)?.7+.3*Math.exp(-age/730):1;
+   let strength=(significance[signal.rating]||0);
+   if(signal.favorite&&strength>=0)strength+=.75;
+   if(!strength)continue;
+   const facets=entry.facets||{};
+   let supported=false;
+   for(const dimension of Object.keys(buckets)){
+     const raw=dimension==="pace"?(facets.pace?[facets.pace]:[]):facets[dimension];
+     const values=[...new Set((Array.isArray(raw)?raw:[]).map(value=>
+       String(value||"").toLowerCase().trim()).filter(Boolean))];
+     if(!values.length)continue;
+     supported=true;
+     const measure=buckets[dimension];
+     const perTitle=strength*recency/Math.sqrt(values.length);
+     for(const tag of values){
+       const old=measure.get(tag)||{tag,sum:0,positive:0,negative:0,support:0};
+       measure.set(tag,{tag,sum:old.sum+perTitle,positive:old.positive+(strength>0?1:0),
+         negative:old.negative+(strength<0?1:0),support:old.support+1});
+     }
+   }
+   if(supported)covered++;
+ }
+ const dimensions={};
+ for(const [dimension,measure] of Object.entries(buckets)){
+   dimensions[dimension]=[...measure.values()].map(item=>({
+     ...item,
+     // Diminishing returns prevent 25 broad dramas from drowning out an
+     // equally meaningful but smaller preference for contemplative films.
+     affinity:Math.max(-3,Math.min(3,item.sum/Math.sqrt(1+item.support)))
+   })).sort((a,b)=>Math.abs(b.affinity)-Math.abs(a.affinity));
+ }
+ return {version:2,logSignals:liked.size,covered,dimensions};
+}
+function tasteMatch(profile,facets={}){
+ const dimensions=profile?.dimensions||{};
+ const scales={themes:1.7,tones:1.5,genres:.8,pace:.3};
+ let strength=0;
+ const evidence=[];
+ for(const [dimension,scale] of Object.entries(scales)){
+   const data=dimension==="pace"?(facets.pace?[facets.pace]:[]):facets[dimension];
+   const labels=[...new Set((Array.isArray(data)?data:[]).map(s=>
+     String(s||"").toLowerCase().trim()).filter(Boolean))];
+   const relevant=dimensions[dimension]||[];
+   for(const tag of labels){
+     const signal=relevant.find(x=>x.tag===tag);
+     if(!signal)continue;
+     const value=signal.affinity*scale/Math.sqrt(labels.length||1);
+     strength+=value;
+     evidence.push({dimension,tag,affinity:signal.affinity,value});
+   }
+ }
+ return {score:Math.max(-7,Math.min(7,strength)),evidence};
+}
+function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[],timestamps={}}){
  const all=Array.isArray(entries)?entries:[];
  const byKey=new Map(all.map(entry=>[entry.key,entry]));
  const aliases=new Map(all.flatMap(entry=>[[entry.key,entry.key],[slug(entry.title),entry.key]]));
@@ -130,9 +214,10 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
  const positives=[...signals.values()].filter(s=>s.weight>=1.5);
  const negatives=[...signals.values()].filter(s=>s.weight<0);
  const candidates=all.filter(entry=>entry.category===category&&!known.has(entry.key)&&!watch.has(entry.key));
+ const profile=buildTasteProfile({entries:all,impressions,favorites,timestamps});
  const scored=candidates.map(entry=>{
   const matched=[];
-  let score=0;
+  const contributions=[];
   for(const signal of signals.values()){
    const source=byKey.get(signal.key);
    if(!source)continue;
@@ -142,12 +227,20 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
    if(strength<=0)continue;
    // Several titles in the same familiar genre do not overwhelm richer theme connections.
    const contribution=signal.weight*Math.min(strength,9);
-   score+=contribution;
+   contributions.push(contribution);
    if(signal.weight>0&&signal.weight>=1.5)matched.push({source,signal,similarity:sim,strength,contribution});
   }
   // Without prior feedback, respect the existing curated ordering.
   const coldStart=signals.size===0?Math.max(0,4-entry.position*.08):0;
-  return {...entry,score:score+coldStart,matched:matched.sort((a,b)=>b.contribution-a.contribution)};
+  // Cap individual-title influence; use the whole Log's dimensions for
+  // coherent long-term taste without popularity/volume takeover.
+  const strong=contributions.filter(x=>x>0).sort((a,b)=>b-a).slice(0,6);
+  const adverse=contributions.filter(x=>x<0).sort((a,b)=>a-b).slice(0,3);
+  const directScore=[...strong,...adverse].reduce((sum,value)=>sum+value,0);
+  const preference=tasteMatch(profile,entry.facets);
+  const score=directScore+preference.score*2;
+  return {...entry,score:score+coldStart,preference,
+    matched:matched.sort((a,b)=>b.contribution-a.contribution)};
  });
  scored.sort((a,b)=>b.score-a.score||a.position-b.position||a.title.localeCompare(b.title));
  const ordered=[];
@@ -216,5 +309,5 @@ function selectSeeds({sources=[],limit=4,rotation=0}={}){
  const rotated=[...remaining.slice(shift),...remaining.slice(0,shift)];
  return [...anchors,...rotated.slice(0,cap-anchors.length)].map(source=>source.title);
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"1.2",normalizeEntries,rank,selectSeeds,facets:tags});
+root.AfterlogueRecommendationEngine=Object.freeze({version:"2.0",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
