@@ -247,8 +247,15 @@ function moodExperience(
  const distressing=cue(/\b(disappear|disappeared|missing daughters?|vanish|violence|trauma|traumatic|terroris|radicaliz|war crimes|torture|abduction|genocide|sexual assault|violent assault|domestic abuse|death row|execution|penitentiary|capital punishment|killing two|convicted of murdering)\b/i);
  const light=cue(/\b(comedy|comedic|funny|hilarious|playful|celebrat|uplifting|joyful|witty|adventure|laughter)\b/i);
  if(mood==="yearning"){
-  add(cue(/\b(unrequited|forbidden|secret love|love across|lovers? separated|separated by|long.distance|apart|years apart|heartbreak|heartbroken|lost love|yearn|longing|impossible love|love against|reunite|cannot be together|struggle to be together|unfulfilled|not meant to be)\b/i),8,
-   "Distance or an obstacle between people gives this story genuine longing.","distance");
+  // Different kinds of longing need different explanations. A generic
+  // supernatural obstacle or any "relationship" mention alone is not enough.
+  add(Boolean(editorialReason),10,editorialReason||"","reviewed relationship");
+  add(cue(/\b(unrequited|forbidden love|secret love|impossible love|love against|unfulfilled love|not meant to be)\b/i),8,
+    "The characters' feelings are complicated by what they cannot openly have.","forbidden feelings");
+  add(cue(/\b(lovers? separated|separated by|long.distance|years apart|reunite|cannot be together|struggle to be together|love across)\b/i),8,
+    "Separation keeps the characters' connection unresolved.","separation");
+  add(cue(/\b(heartbreak|heartbroken|lost love|yearn|longing|cannot forget)\b/i),7,
+    "Unresolved feelings or loss give the relationship emotional weight.","unfinished feelings");
   add(tagged(/\b(unrequited love|forbidden love|lost love|long distance relationship|unfulfilled love)\b/i),7,
    "Its documented theme is love complicated by distance, loss or impossibility.","complicated love");
   add(cue(/\b(lonely|loneliness|isolation|isolated|unspoken|secret feelings|desire|miss(es|ing)? (him|her|them)|grapples? with (love|feelings)|cannot forget)\b/i),5,
@@ -262,6 +269,9 @@ function moodExperience(
   add(has(14,10751)&&!cue(/\b(unrequited|forbidden|separat|heartbreak|lost love|yearn)\b/i),-3,"","light fantasy");
   // A simple date or happy relationship is not proof of yearning.
   if(!signals.some(x=>x.points>=5))score-=4;
+  // "Take your time" changes the preferred emotional pacing, not nation.
+  if(editorialPace&&pace!=="medium")
+   score+=editorialPace===pace?5:editorialPace==="medium"?0:-3;
  }else if(mood==="friday"){
   add(frantic,5,
    "An unpredictable, energetic premise suits an involving Friday-night watch.","high energy");
