@@ -821,6 +821,7 @@ const discoveryCacheKey="afterlogue.discover.shelf.v2";
 // Store only public title display fields under an account-scoped key.
 const discoveryReturnKey=owner=>"afterlogue.discover.return.v1."+owner;
 const discoveryReturnLifetime=4*60*60*1000;
+const discoveryHistoryLifetime=14*24*60*60*1000;
 function compactDiscoveryShelf(items){
  if(!Array.isArray(items)||items.length!==5)return null;
  return items.map(item=>({
@@ -856,7 +857,7 @@ function restoreDiscoveryReturn(owner){
   try{
    const candidate=JSON.parse(store.getItem(discoveryReturnKey(owner))||"null");
    if(candidate?.owner===owner&&Number.isFinite(candidate.savedAt)&&
-     Date.now()>=candidate.savedAt&&Date.now()-candidate.savedAt<discoveryReturnLifetime)
+     Date.now()>=candidate.savedAt&&Date.now()-candidate.savedAt<discoveryHistoryLifetime)
     records.push(candidate);
   }catch(error){console.warn("Home continuation read unavailable",error);}
  }
@@ -870,6 +871,7 @@ function restoreDiscoveryReturn(owner){
    }
  }
  const matching=records.find(record=>
+   Date.now()-record.savedAt<discoveryReturnLifetime&&
    record.fingerprint===discoveryFingerprint()&&
    ["movies","tv"].includes(record.category)&&
    compactDiscoveryShelf(record.shelves?.[record.category]));
@@ -935,7 +937,8 @@ function restoreDiscovery(owner){
   discoveryExpandedEntries=snapshot.entries;
   discoverySourceEntries=Array.isArray(snapshot.sources)?snapshot.sources:[];
   for(const media of ["movies","tv"]){
-   discoveryCurrent[media]=Array.isArray(snapshot.shelves?.[media])?snapshot.shelves[media]:null;
+   // A half-finished older cache must never restore four as the full shelf.
+   discoveryCurrent[media]=compactDiscoveryShelf(snapshot.shelves?.[media]);
    discoveryHistory[media]=new Set([...discoveryHistory[media],
      ...(Array.isArray(snapshot.history?.[media])
        ?snapshot.history[media].filter(k=>typeof k==="string"):[])]);
