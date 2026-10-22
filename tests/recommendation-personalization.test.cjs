@@ -30,6 +30,85 @@ test('A loved dynamic TMDB onboarding title can personalize a wider-catalog film
   assert.doesNotMatch(ranked[0].why,/plot synopsis/i);
 });
 
+test('A member with varied taste sees both animation and live-action across each five-card Home shelf',()=>{
+ const entry=(key,genres,score)=>({key,title:key,category:'movies',score,
+   facets:{genres,themes:[],tones:[],pace:null},personalized:true,
+   matchMethod:'tmdb_related'});
+ const films=[
+   ...Array.from({length:8},(_,i)=>entry('animation-'+i,['animation','drama'],100-i)),
+   entry('indie-drama',['drama'],83),entry('comedy',['comedy'],78),
+   entry('thriller',['thriller'],74),entry('romance',['romance'],69),
+   entry('horror',['horror'],64),entry('documentary',['documentary'],61)
+ ];
+ const profile=[
+   entry('animated-loved',['animation'],0),entry('dramatic-loved',['drama'],0),
+   entry('funny-loved',['comedy'],0),entry('mystery-loved',['thriller'],0),
+   entry('romantic-liked',['romance'],0)
+ ];
+ const impressions=Object.fromEntries(profile.map((item,i)=>[item.key,i===4?'Liked':'Loved']));
+ const balanced=Array.from(engine.balanceShelves({
+   entries:films,profileEntries:profile,impressions,category:'movies'}));
+ assert.equal(balanced.length,films.length,'Variety must never discard candidates');
+ assert.equal(new Set(balanced.map(x=>x.key)).size,films.length);
+ for(let offset=0;offset+5<=balanced.length;offset+=5){
+   const shelf=balanced.slice(offset,offset+5);
+   assert.ok(shelf.filter(item=>item.facets.genres.includes('animation')).length<=2,
+     'A genuinely mixed-interest profile should not receive mostly animation');
+ }
+ assert.equal(balanced[0].key,'animation-0','Best matching film should remain');
+ assert.ok(balanced.slice(0,5).some(x=>x.key==='indie-drama'));
+ assert.ok(balanced.slice(0,5).some(x=>x.key==='comedy'));
+});
+
+test('Strong, well-evidenced animation preference is allowed to dominate five selections',()=>{
+ const entries=Array.from({length:8},(_,i)=>({
+   key:'animated-'+i,title:'Animated '+i,category:'movies',score:100-i,
+   facets:{genres:['animation']},personalized:true
+ })).concat([{key:'drama-live',title:'Drama Live',category:'movies',score:80,
+   facets:{genres:['drama']},personalized:true}]);
+ const logged=Array.from({length:8},(_,i)=>({
+   key:'log-'+i,title:'Log '+i,category:'movies',
+   facets:{genres:i<7?['animation']:['drama']}
+ }));
+ const impressions=Object.fromEntries(logged.map(v=>[v.key,'Loved']));
+ const picks=Array.from(engine.balanceShelves({
+   entries,profileEntries:logged,impressions,category:'movies'}));
+ assert.deepEqual(picks.slice(0,5).map(x=>x.key),entries.slice(0,5).map(x=>x.key));
+});
+
+test('Shelf diversity never invents unrelated titles, overrides evidence or treats unknown genres as proof',()=>{
+ const source=Array.from({length:7},(_,i)=>({
+   key:'a-'+i,title:'A'+i,category:'movies',score:100-i,personalized:true,
+   facets:{genres:['animation']}
+ }));
+ const only=Array.from(engine.balanceShelves({entries:source,category:'movies'}));
+ assert.deepEqual(only.map(x=>x.key),source.map(x=>x.key),
+   'An animation-only qualified catalog must not invent live action');
+ const withWeak=source.concat([
+   {key:'weak-genre',title:'Weak candidate',category:'movies',score:2,personalized:true,
+     facets:{genres:['comedy']}},
+   {key:'unknown',title:'Missing genre',category:'movies',score:90,personalized:true,
+     facets:{genres:[]}},
+   {key:'fallback',title:'Unpersonalized filler',category:'movies',starter:true,
+     facets:{genres:['comedy']}}
+ ]);
+ const balanced=Array.from(engine.balanceShelves({entries:withWeak,category:'movies'}));
+ assert.equal(balanced.slice(0,5).filter(item=>item.key.startsWith('a-')).length,5,
+   'Never promote very weak, unproven or archive picks for decorative genre mixing');
+});
+
+test('Home applies balanced shelf selection after personal filtering and invalidates old cache',()=>{
+ const home=read('discover.html');
+ assert.match(home,/const qualified=diversifyDiscoverResults/);
+ assert.match(home,/const varied=window.AfterlogueRecommendationEngine\.balanceShelves\(/);
+ assert.ok(home.indexOf('const varied=window.AfterlogueRecommendationEngine.balanceShelves(',
+   home.indexOf('const qualified=diversifyDiscoverResults'))>
+   home.indexOf('const expanded=selected.filter(entry=>'));
+ assert.match(home,/algorithm:"balanced-home-shelves-v1"/);
+ assert.match(home,/recommendation-engine\.js\?v=10/);
+ assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
+});
+
 test('Phase 2 profile learns multiple genres and themes from the whole rated Log', () => {
  const build=(key,genre,theme,tone)=>({key,title:key,category:'movies',
    facets:{genres:[genre],themes:[theme],tones:[tone],pace:'slow'},directMatches:[],position:1});

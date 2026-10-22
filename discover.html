@@ -133,7 +133,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=9"></script>
+<script src="recommendation-engine.js?v=10"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -525,8 +525,12 @@ function getDiscoveryRecommendations(category, page = 0, omit = null) {
   // selection, never pretend an unpersonalized list is taste-matched.
   if(!hasPositive){
     if(discoveryCatalogState[category]==="loading")return [];
-    return discoveryExpandedEntries.filter(x=>x.category===category&&x.starter&&eligible(x))
-      .slice(page*5,page*5+5).map(x=>({...x,why:x.reason,personalized:false,catalogKey:x.key}));
+    const opening=discoveryExpandedEntries.filter(x=>x.category===category&&x.starter&&eligible(x));
+    const varied=window.AfterlogueRecommendationEngine.balanceShelves({
+      entries:opening,profileEntries:discoveryEntries,
+      impressions:savedImpressions,category
+    });
+    return varied.slice(page*5,page*5+5).map(x=>({...x,why:x.reason,personalized:false,catalogKey:x.key}));
   }
   const selected=window.AfterlogueRecommendationEngine.rank({
     entries:[...discoveryEntries,...discoverySourceEntries,...discoveryExpandedEntries],
@@ -573,8 +577,16 @@ function getDiscoveryRecommendations(category, page = 0, omit = null) {
     &&(!discoveryPreferences.originalLanguage||item.originalLanguage===discoveryPreferences.originalLanguage)
     &&!rated.has(item.key)&&!watched.has(item.key)&&!viewed.has(item.key)
     &&!expansionKeys.has(item.key));
-  return diversifyDiscoverResults([...expanded,...extras],category)
-   .filter(eligible).slice(page*5,page*5+5).map(item=>{
+  const qualified=diversifyDiscoverResults([...expanded,...extras],category)
+   .filter(eligible);
+  // Every row of five should reflect the member's breadth of taste, not
+  // five copies of their highest-ranked genre. This NEVER adds weak or
+  // unverified recommendations: it rearranges this eligible pool only.
+  const varied=window.AfterlogueRecommendationEngine.balanceShelves({
+    entries:qualified,profileEntries:[...discoveryEntries,...discoverySourceEntries],
+    impressions:savedImpressions,favorites:discoveryFavorites,category
+  });
+  return varied.slice(page*5,page*5+5).map(item=>{
     if(item.starter)return {...item,why:item.reason,personalized:false,catalogKey:item.key};
     let why=item.why;
     if(item.matchMethod==="shared_genre"){
@@ -820,6 +832,7 @@ function discoveryFingerprint(){
   seen:[...discoverySeen].sort(),
   // A growing Log should not be permanently restricted to its first few seeds.
   seedDay:Math.floor(Date.now()/86400000),
+  algorithm:"balanced-home-shelves-v1",
   country:discoveryPreferences.country||"",
   language:discoveryPreferences.originalLanguage||""
  });
@@ -1089,7 +1102,8 @@ async function populateExpandedRecommendations(userId){
          candidates.set(key,{key,title:item.title,year:item.year,poster:item.poster,
            category,position:400+candidates.size,tmdb:{id:item.id,media:item.media},
            starter:true,reason:"An opening selection from Afterlogue's cinema archive.",
-           synopsis:item.synopsis,facets:{themes:[],tones:[],genres:[],pace:null},
+           synopsis:item.synopsis,facets:{themes:[],tones:[],
+             genres:(item.genres||[]).map(g=>g.toLowerCase()),pace:null},
            directMatches:[]});
          continue;
        }
@@ -1132,7 +1146,8 @@ async function populateExpandedRecommendations(userId){
            tmdb:{id:item.id,media:item.media},starter:true,
            reason:"An archive discovery that fits your selected catalog preferences, not a direct match to your rated titles.",
            synopsis:item.synopsis,
-           facets:{themes:[],tones:[],genres:[],pace:null},directMatches:[]};
+           facets:{themes:[],tones:[],
+             genres:(item.genres||[]).map(g=>g.toLowerCase()),pace:null},directMatches:[]};
          candidates.set(key,record);
          if(candidates.size>=40)break;
        }
