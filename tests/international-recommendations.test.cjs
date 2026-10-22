@@ -24,7 +24,12 @@ globalThis.fetch=async(input)=>{
  if(path==='/search/movie'){
   const q=url.searchParams.get('query');
   const idx=sources.indexOf(q);
-  items=idx<0?[]:[make(100+idx,sources[idx])];
+  items=idx<0?[]:[{
+   ...make(100+idx,idx===0?'Parasite':'Extreme Job'),
+   // TMDB may return an English display title for a Hangul search,
+   // even though the original title exactly matches the rated source.
+   original_title:sources[idx]
+  }];
  }else if(/\/movie\/\d+\/(similar|recommendations)$/.test(path)){
   items=Array.from({length:9},(_,i)=>make(300+i,'English-language film '+i,'en','US'));
  }else if(path==='/discover/movie'){
