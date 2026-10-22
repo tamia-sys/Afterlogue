@@ -106,3 +106,58 @@ test('Guest catalog has a save intent helper ready for eventual authenticated sa
   url:'film-details.html?tmdb=12345&type=movie&from=all-films'
  });
 });
+
+test('Pending Watchlist save survives sign-in, writes once, and returns to same film',async({page})=>{
+ await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
+  status:200,contentType:'application/javascript',body:fakeSupabase
+ }));
+ await page.goto('explore.html?guest=1');
+ const result=await page.evaluate(async()=>{
+   const helper=window.AfterloguePendingWatchlist;
+   if(!helper)throw Error('Save handoff unavailable');
+   helper.discard();
+   const remembered=helper.remember({
+    key:'tmdb-tv-1399',category:'tv',title:'Demo TV',
+    year:2023,poster:'https://image.tmdb.org/t/p/w500/t.jpg',
+    url:'film-details.html?tmdb=1399&type=tv&from=all-films'
+   });
+   const saved=[];
+   window.AfterlogueCatalogMetadata={
+    save:async(_client,userId,metadata)=>saved.push({kind:'metadata',userId,metadata})
+   };
+   const client={from:table=>({
+    insert:async data=>{saved.push({kind:table,data});return{error:null};}
+   })};
+   const path=await helper.postLogin(client,{id:'test-member'},true);
+   const remaining=helper.read();
+   return{remembered,path,remaining,saved};
+ });
+ expect(result.remembered).toBe(true);
+ expect(result.path).toContain('film-details.html?tmdb=1399&type=tv&from=all-films');
+ expect(result.path).toContain('watchlist_saved=1');
+ expect(result.remaining).toBe(null);
+ expect(result.saved.map(x=>x.kind)).toEqual(['metadata','watchlist']);
+ expect(result.saved[1].data.title_key).toBe('tmdb-tv-1399');
+ expect(result.saved[1].data.user_id).toBe('test-member');
+});
+
+test('Failed save preserves intent for retry and supplies failure feedback',async({page})=>{
+ await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
+  status:200,contentType:'application/javascript',body:fakeSupabase
+ }));
+ await page.goto('explore.html?guest=1');
+ const result=await page.evaluate(async()=>{
+  const helper=window.AfterloguePendingWatchlist;
+  helper.discard();
+  helper.remember({key:'tmdb-movie-777',category:'movies',title:'Example',
+    poster:'',url:'film-details.html?tmdb=777&type=movie&from=all-films'});
+  window.AfterlogueCatalogMetadata={save:async()=>{}};
+  const client={from:()=>({insert:async()=>({error:{code:'403',message:'service unavailable'}})})};
+  const path=await helper.postLogin(client,{id:'account'},true);
+  const pending=helper.read();
+  helper.discard();
+  return{path,key:pending?.key};
+ });
+ expect(result.path).toContain('watchlist_error=1');
+ expect(result.key).toBe('tmdb-movie-777');
+});
