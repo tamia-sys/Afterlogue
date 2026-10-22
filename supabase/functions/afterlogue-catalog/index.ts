@@ -1307,7 +1307,11 @@ Deno.serve(async (req:Request) => {
         const tags=Array.isArray(detailKeywords)?detailKeywords.map((v:Record<string,unknown>)=>String(v.name||"")):[];
         const editorialPace=mood==="fall"
           ?FALL_PACE_HINTS[media][String(media==="tv"?details.name:details.title)]||null:null;
-        const experience=moodExperience(mood,details,tags,pace,fallReason||editorial?.reason||null,editorialPace);
+        const yearningHint=mood==="yearning"&&media==="tv"
+          ?YEARNING_TV_REFERENCES[String(details.name||"")]||null:null;
+        const experience=moodExperience(mood,details,tags,pace,
+          fallReason||yearningHint?.reason||editorial?.reason||null,
+          editorialPace||yearningHint?.pace||null);
         // Reject superficial keyword matches when the experience conflicts:
         // The Ice Storm is not a playful Friday night just because of a party.
         if(experience.score<5)return;
@@ -1322,6 +1326,7 @@ Deno.serve(async (req:Request) => {
         if(!titleItem.poster)return;
         verified.push({
           ...titleItem,certification,moodReason:reason,
+          originCountry:produced[0]||"",editorialAnchor:Boolean(yearningHint),
           moodFit:experience.score,moodLane:experience.lane,
           energySignal:experience.energy,fitVersion:experience.fitVersion,
           matchedFilters:matching
@@ -1379,6 +1384,14 @@ Deno.serve(async (req:Request) => {
         // five near-identical reasons when comparably good alternatives exist.
         const remaining=[...verified],curated:typeof verified=[];
         const laneCounts=new Map<string,number>();
+        const regionOf=(c:string)=>{
+          if(["US","CA","MX","BR","AR","CO"].includes(c))return "americas";
+          if(["JP","KR","CN","TW","HK","TH","PH","ID","IN","VN","SG","MY"].includes(c))return "asia";
+          if(["GB","IE","FR","DE","ES","IT","SE","NO","DK","PL","NL","TR","RU"].includes(c))return "europe";
+          return "other";
+        };
+        const mixedYearning=mood==="yearning"&&media==="tv"&&
+          !countries.length&&!languages.length&&!genres.length&&!decades.length&&!ratings.length;
         while(remaining.length){
           let best=0,bestScore=-Infinity;
           for(let i=0;i<remaining.length;i++){
@@ -1386,7 +1399,18 @@ Deno.serve(async (req:Request) => {
             const lanePenalty=(laneCounts.get(entry.moodLane)||0)*2.4;
             const seenGenre=curated.filter(selected=>
               selected.genreIds.some(id=>entry.genreIds.includes(id))).length;
-            const adjusted=entry.moodFit-lanePenalty-Math.min(2,seenGenre)*0.4;
+            // Gentle diversity in unfiltered browsing; explicit countries,
+            // languages or genres always take precedence over mix penalties.
+            const originRepeat=curated.filter(x=>x.originCountry&&x.originCountry===entry.originCountry).length;
+            const region=regionOf(entry.originCountry);
+            const regionRepeat=curated.filter(x=>region!=="other"&&regionOf(x.originCountry)===region).length;
+            const animeRepeat=curated.filter(x=>x.genreIds.includes(16)).length;
+            const editorialRepeat=curated.filter(x=>x.editorialAnchor).length;
+            const mixPenalty=mixedYearning&&curated.length<5?
+              originRepeat*3+regionRepeat*2+
+              (entry.genreIds.includes(16)?animeRepeat*2:0)+
+              (entry.editorialAnchor?editorialRepeat*1.1:0):0;
+            const adjusted=entry.moodFit-lanePenalty-Math.min(2,seenGenre)*0.4-mixPenalty;
             if(adjusted>bestScore){bestScore=adjusted;best=i;}
           }
           const [winner]=remaining.splice(best,1);
