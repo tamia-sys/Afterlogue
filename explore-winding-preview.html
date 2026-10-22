@@ -1221,7 +1221,7 @@ html[lang="ko"] .explore-body .afterlogue-feature-copy strong{
 </head>
 <body class="explore-body">
 <div style="background:#28231d;border-bottom:1px solid #6d5c43;color:#f3e7d5;text-align:center;padding:10px 16px;font:12px/1.5 Arial,sans-serif;letter-spacing:.03em">
-  TEST PREVIEW — Winding Down pacing + Explore return changes. The regular Afterlogue Explore page is unchanged.
+  TEST PREVIEW — Updated Winding Down, previous picks and your private Log exclusions.
   <a href="explore.html" style="color:#e9c58f;text-decoration:underline;margin-left:12px">Return to live Explore</a>
 </div>
 <header class="site-header">
@@ -1388,10 +1388,8 @@ html[lang="ko"] .explore-body .afterlogue-feature-copy strong{
 <script src="site-navigation.js?v=6"></script>
 <script src="explore-data.js?v=2"></script>
 <script>
-// Preview-only wording for the refined contemplative/comfort interpretation.
-if(window.afterlogueExploreData?.moods?.winding){
+if(window.afterlogueExploreData?.moods?.winding)
  window.afterlogueExploreData.moods.winding.intro="For settling in, sharing a laugh, or watching life unfold.";
-}
 </script>
 <script src="featured-catalog.js?v=1"></script>
 <script src="catalog-metadata.js?v=1"></script>
@@ -1547,7 +1545,7 @@ const memberRatingsReady=isGuest?Promise.resolve():(async()=>{
   const {data:auth,error:authError}=await client.auth.getUser();
   if(authError||!auth?.user)return;
   exploreOwner=auth.user.id;
-  await Promise.all(["impressions","seen_entries","watchlist","favorites"].map(async table=>{
+  await Promise.all(["impressions","seen_entries","watchlist","log_entries"].map(async table=>{
    try{
     const {data,error}=await client.from(table).select("title_key").eq("user_id",auth.user.id);
     if(error)throw error;
@@ -1846,7 +1844,11 @@ async function searchMoodSelection(scope,startOffset,signal=null){
     if(!item?.poster||!item.id)continue;
     const type=item.media==="tv"?"tv":"movie";
     const key="tmdb-"+type+"-"+item.id,history=type+":"+item.id;
-    if(unique.has(key)||excluded.has(key)||shown.has(history))continue;
+    // Older First Impressions and featured catalog entries sometimes use a
+    // canonical title slug rather than a TMDB key. Do not rediscover those.
+    const titleSlug=slug(item.title);
+    if(unique.has(key)||excluded.has(key)||shown.has(history)
+      ||excluded.has(titleSlug)||excluded.has("afterlogue-"+titleSlug))continue;
     unique.add(key);
     picks.push({...item,key,media:type==="tv"?"tv":"movies",
       reason:item.moodReason||"Selected for your mood."});
@@ -1915,6 +1917,8 @@ async function displayResults(){
    selection.picks=selection.picks.filter(item=>
      !existing.has((item.media==="tv"?"tv":"movie")+":"+item.id)&&
      !disliked.has(item.key)&&
+     !disliked.has(slug(item.title))&&
+     !disliked.has("afterlogue-"+slug(item.title))&&
      !(window.AfterlogueSeen?.seen||new Set()).has(item.key));
    if(selection.picks.length!==desired)selection=null;
   }
