@@ -825,7 +825,8 @@ Deno.serve(async (req:Request) => {
             const genres=(Array.isArray(data.genres)?data.genres:[])
               .map((genre:Record<string,unknown>)=>String(genre.name||"").toLowerCase().trim())
               .filter(Boolean).slice(0,6);
-            const title=String(contentMedia==="tv"?data.name:data.title||"").trim().slice(0,180);
+            const rawTitle=contentMedia==="tv"?data.name:data.title;
+            const title=typeof rawTitle==="string"?rawTitle.trim().slice(0,180):"";
             if(!title)continue;
             output.push({key,title,category:contentMedia==="tv"?"tv":"movies",
               genres,
