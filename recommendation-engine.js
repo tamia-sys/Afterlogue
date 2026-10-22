@@ -194,5 +194,27 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
    return {...entry,why,personalized:Boolean(strongest&&why.startsWith("Because you "))};
  });
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"1.1",normalizeEntries,rank,facets:tags});
+// Keep recent, strongly positive Log titles in the anchor seats, while giving
+// every older positive title a turn as the Log grows. This selects names only:
+// it never fabricates titles, downloads metadata or changes TMDB eligibility.
+function selectSeeds({sources=[],limit=4,rotation=0}={}){
+ const cap=Math.max(0,Math.min(8,Math.floor(Number(limit)||0)));
+ if(!cap)return [];
+ const unique=new Set();
+ const ranked=(Array.isArray(sources)?sources:[]).flatMap((source,index)=>{
+   const title=String(source?.title||"").trim();
+   const id=slug(title);
+   if(!id||unique.has(id))return [];
+   unique.add(id);
+   const strength=source.rating==="Loved"?3:source.rating==="Liked"?2:1;
+   return [{title,strength,index}];
+ }).sort((a,b)=>b.strength-a.strength||a.index-b.index);
+ if(ranked.length<=cap)return ranked.map(source=>source.title);
+ const anchors=ranked.slice(0,Math.min(2,cap));
+ const remaining=ranked.slice(anchors.length);
+ const shift=((Math.floor(Number(rotation)||0)%remaining.length)+remaining.length)%remaining.length;
+ const rotated=[...remaining.slice(shift),...remaining.slice(0,shift)];
+ return [...anchors,...rotated.slice(0,cap-anchors.length)].map(source=>source.title);
+}
+root.AfterlogueRecommendationEngine=Object.freeze({version:"1.2",normalizeEntries,rank,selectSeeds,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
