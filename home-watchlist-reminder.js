@@ -115,11 +115,9 @@ async function showThree(){
  grid.replaceChildren();
  if(!chosen.length){
   status.textContent='Nothing in your Watchlist yet. Save a film or series in Explore and it can appear here.';
-  next.hidden=true;
-  return;
+  next.hidden=true;return;
  }
- // Show titles as soon as the Watchlist DB returns. Missing posters can
- // improve independently; don't block rendering on optional TMDB lookups.
+ // Show saved titles immediately, then fetch missing posters in parallel.
  grid.replaceChildren(...chosen.map(createCard));
  status.textContent=stories.length<3
   ?'Your '+stories.length+' saved '+(stories.length===1?'story':'stories')+', ready when you are.'
@@ -129,8 +127,8 @@ async function showThree(){
   if(story.poster&&story.title!=='Saved film'&&story.title!=='Saved TV series')return;
   await recoverPoster(story);
   if(current!==version||panel.hidden)return;
-  const existing=grid.children[index];
-  if(existing)existing.replaceWith(createCard(story));
+  const card=grid.children[index];
+  if(card)card.replaceWith(createCard(story));
  });
 }
 async function loadWatchlist(){
