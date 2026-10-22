@@ -373,8 +373,39 @@ const FALL_ATMOSPHERE:Record<string,string>={
   "Little Women":"A literary family story with warmth and the passing of seasons.",
   "When Harry Met Sally...":"New York romance and its seasonal city atmosphere make this a fall favorite.",
   "Practical Magic":"A small-town, atmospheric fantasy for the softer side of spooky season.",
-  "Good Will Hunting":"Its Boston academic and reflective setting fits an introspective fall watch."
+  "Good Will Hunting":"Its Boston academic and reflective setting fits an introspective fall watch.",
+  "A Tale of Autumn":"A French countryside story whose autumn setting and quietly complicated relationships suit a reflective seasonal watch.",
+  "Autumn Sonata":"Its intimate Swedish family drama draws on a distinctly autumnal atmosphere and emotional introspection.",
+  "Autumn in New York":"A New York romance built around the city's autumn season.",
+  "October Sky":"A school-year coming-of-age drama grounded in a small Appalachian town and academic ambition.",
+  "Mona Lisa Smile":"Its New England college setting and campus life suit the academic side of autumn.",
+  "Lady Bird":"Its school-year story and reflective coming-of-age mood evoke fall transitions.",
+  "Whisper of the Heart":"Its literary interests and reflective coming-of-age atmosphere suit quieter autumn viewing.",
+  "Little Forest":"Its countryside cooking, harvests and changing seasons suit an unhurried fall mood.",
+  "The Cider House Rules":"Its New England orchards and coming-of-age themes offer a rural autumn atmosphere.",
+  "Knives Out":"An eccentric New England estate and lively whodunit suit a brisk autumn mystery.",
+  "Donnie Darko":"Its suburban school-year setting and unsettling Halloween-season mystery create an eerie autumn atmosphere.",
+  "Coraline":"Its rain-soaked atmosphere and eerie stop-motion mystery suit a darker fall evening.",
+  "Hocus Pocus":"Salem's Halloween setting gives this comedy a direct autumn connection.",
+  "Sleepy Hollow":"A misty Hudson Valley setting and Gothic mystery make an atmospheric fall thriller.",
+  "The Craft":"A high-school witchcraft story for the spooky side of autumn.",
+  "Harry Potter and the Prisoner of Azkaban":"Its school-year setting, autumnal Hogwarts grounds and darker mystery fit an atmospheric fall watch.",
+  "Beetlejuice":"Its haunted New England house and mischievous supernatural comedy suit the spooky side of fall.",
+  "ParaNorman":"Its New England town and ghostly mystery suit an animated spooky-season watch.",
+  "Monster House":"A suburban haunted-house adventure set during Halloween.",
+  "Twilight":"Its misty Pacific Northwest setting and uneasy romance evoke a moody fall atmosphere."
 };
+// Each pace explores a DIFFERENT, internationally inclusive atmospheric strand.
+const FALL_FILM_PACE_SEEDS={
+ slow:["A Tale of Autumn","Autumn Sonata","Little Forest","Whisper of the Heart",
+ "You've Got Mail","Dead Poets Society","Little Women","Mona Lisa Smile",
+ "The Holdovers","Autumn in New York","Manchester by the Sea","Lady Bird",
+ "Fantastic Mr. Fox","October Sky","The Cider House Rules","Good Will Hunting"],
+ energetic:["Knives Out","Donnie Darko","Coraline","Hocus Pocus",
+ "Sleepy Hollow","The Craft","Practical Magic","Harry Potter and the Prisoner of Azkaban",
+ "Beetlejuice","ParaNorman","Monster House","Twilight"]
+};
+
 const SEASONAL_FEATURES:Record<number,{event:string;reason:string}>={
   25195:{event:"Leap Day",reason:"The story centers on an Irish Leap Day proposal tradition."},
   1019420:{event:"Irish seasonal viewing",reason:"An Irish-set romance suited to St. Patrick’s season; it is not a St. Patrick’s Day plot."},
@@ -953,10 +984,48 @@ Deno.serve(async (req:Request) => {
         "Only Murders in the Building":"Its New York apartment setting and playful mystery suit a crisp fall evening.",
         "Chilling Adventures of Sabrina":"Its school-year setting, witches and autumnal gothic atmosphere suit the spooky side of fall.",
         "The Haunting of Hill House":"Its gothic family mystery gives a more frightening option for autumn evenings.",
-        "Twin Peaks":"Its misty woodland town and uncanny mysteries evoke the atmospheric side of fall."
+        "Twin Peaks":"Its misty woodland town and uncanny mysteries evoke the atmospheric side of fall.",
+        "All Creatures Great and Small":"Its countryside veterinary life and changing seasons offer a gentle, pastoral autumn watch.",
+        "Heartstopper":"Its school-year relationships and tender coming-of-age tone suit a gentle fall mood.",
+        "Hilda":"Its misty woodland setting, folktale creatures and cozy animated world suit quiet fall viewing.",
+        "Felicity":"Its college arrival and New York campus life connect to the introspective start of the school year.",
+        "Normal People":"Its Irish school-to-university journey and intimate, reflective tone suit a contemplative fall evening.",
+        "Dawson's Creek":"Its small coastal-town setting and reflective school-year relationships evoke a nostalgic fall atmosphere.",
+        "The Queen's Gambit":"Its period academic intensity, cool interiors and methodical chess story suit an introspective autumn watch.",
+        "The Wonder Years":"Its nostalgic school-year coming-of-age perspective fits the back-to-school side of fall.",
+        "Wednesday":"Its gothic boarding school, supernatural mystery and darkly comic tone suit a brisk fall watch.",
+        "School Spirits":"Its high-school ghost mystery and tense investigation fit the eerie school-year side of fall.",
+        "Lockwood & Co.":"A London ghost-hunting mystery with misty streets and suspense for dark autumn nights.",
+        "The Fall of the House of Usher":"A gothic family mystery with a heightened, unsettling atmosphere for spooky-season viewing.",
+        "Buffy the Vampire Slayer":"Its school-year supernatural battles offer a lively, spooky autumn watch.",
+        "The X-Files":"Its eerie investigations and foggy, atmospheric mysteries suit autumn-night viewing.",
+        "The Vampire Diaries":"Its small-town supernatural secrets and school-year drama suit a tense fall watch.",
+        "Dark":"Its German forest-town mystery, school-year events and brooding atmosphere evoke autumn.",
+        "The Chestnut Man":"Its autumn-set Danish crime mystery creates a tense seasonal watch.",
+        "Black Spot":"Its French forest-town crime mysteries and shadowy atmosphere suit a suspenseful autumn evening.",
+        "Jordskott":"A Swedish woodland mystery steeped in folklore and foreboding atmosphere."
       };
-      const seasonalTitles=mood==="fall"?(media==="tv"
-        ?Object.keys(FALL_TV_ATMOSPHERE):Object.keys(FALL_ATMOSPHERE)):[];
+      const FALL_TV_PACE_SEEDS={
+        slow:["Gilmore Girls","Anne with an E","All Creatures Great and Small",
+          "Heartstopper","Hilda","Felicity","Normal People","Dawson's Creek",
+          "The Queen's Gambit","The Wonder Years","Friday Night Lights"],
+        energetic:["Only Murders in the Building","Twin Peaks","Over the Garden Wall",
+          "Chilling Adventures of Sabrina","The Haunting of Hill House","Wednesday",
+          "School Spirits","Lockwood & Co.","The Fall of the House of Usher",
+          "Buffy the Vampire Slayer","The X-Files","The Vampire Diaries",
+          "Dark","The Chestnut Man","Black Spot","Jordskott"]
+      };
+      const fallPaceSeeds=media==="tv"?FALL_TV_PACE_SEEDS:FALL_FILM_PACE_SEEDS;
+      // Pacing changes what we SEARCH, not merely the order of the same seeds.
+      // Cycle through the wider set on subsequent requests while bounding API calls.
+      const fallPool=pace==="medium"
+        ?fallPaceSeeds.slow.flatMap((title,i)=>[title,fallPaceSeeds.energetic[i%fallPaceSeeds.energetic.length]])
+        :fallPaceSeeds[pace as "slow"|"energetic"];
+      const seasonalTitles=mood==="fall"
+        ?Array.from({length:Math.min(10,fallPool.length)},(_,i)=>
+           fallPool[(offset*5+i)%fallPool.length])
+        :[];
+      const preferredFallTitles=new Set(pace==="medium"?[]:fallPaceSeeds[pace as "slow"|"energetic"]);
       const fallSeedJob=seasonalTitles.length
         ?Promise.allSettled(seasonalTitles.map(async title=>{
            const result=await tmdb("/search/"+media,
@@ -1056,7 +1125,10 @@ Deno.serve(async (req:Request) => {
       // Recheck source details before displaying a result. This ensures that
       // "US", "Family", "2010s", and "English" all truly hold simultaneously.
       // Limit the candidate count and workers so we never flood TMDB.
-      const queue=selected.slice(0,24);
+      // 24 candidates was insufficient for broad moods: sparse TMDB summaries
+      // and strict verification could exhaust the queue after only 3 matches.
+      // Search further, but stop verification early and preserve the real filters.
+      const queue=selected.slice(0,72);
       const verified:Array<ReturnType<typeof listItem>&{
         moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string
       }>= [];
@@ -1111,7 +1183,8 @@ Deno.serve(async (req:Request) => {
         if(ratings.length&&certification)matching.push("US rating: "+certification);
         verified.push({
           ...listItem({...details,genre_ids:detailGenreIds},media),certification,moodReason:reason,
-          moodFit:experience.score,moodLane:experience.lane,
+          moodFit:experience.score+(mood==="fall"&&preferredFallTitles.has(String(media==="tv"?details.name:details.title))?4:0),
+          moodLane:experience.lane,
           energySignal:experience.energy,fitVersion:experience.fitVersion,
           matchedFilters:matching
         });

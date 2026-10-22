@@ -1566,7 +1566,23 @@ function moodScopeKey(){
   state.pace||"medium",...["countries","genres","decades","ratings"].map(k=>(facet[k]||[]).slice().sort().join(","))
  ]);
 }
-function previousMoodTitles(scope){return shownByScope[scope]||[];}
+function previousMoodTitles(scope){
+  // Prevent identical cards returning when someone changes only their pace.
+  // Preserve distinct histories when mood, medium, or explicit filters change.
+  let selected;
+  try{selected=JSON.parse(scope);}catch(_){return shownByScope[scope]||[];}
+  const used=new Set(shownByScope[scope]||[]);
+  for(const [otherScope,items] of Object.entries(shownByScope)){
+    if(otherScope===scope)continue;
+    try{
+      const other=JSON.parse(otherScope);
+      if(other[0]!==selected[0]||other[1]!==selected[1])continue;
+      if(JSON.stringify(other.slice(3))!==JSON.stringify(selected.slice(3)))continue;
+      for(const item of items)used.add(item);
+    }catch(_){}
+  }
+  return [...used].slice(-120);
+}
 function rememberMoodTitles(scope,items){
  shownByScope[scope]=[...new Set([...previousMoodTitles(scope),
   ...items.map(item=>(item.media==="tv"?"tv":"movie")+":"+item.id)])].slice(-120);
