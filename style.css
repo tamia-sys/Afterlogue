@@ -2405,3 +2405,17 @@ body > header.site-header nav > a[aria-current="page"]::after {
 body > header.site-header nav > a[hidden] {
   display: none !important;
 }
+
+/* On iOS Home Screen launches, don't paint a generic signed-out account
+   glyph in the frame before Supabase restores the existing member avatar.
+   The subtle placeholder preserves the header's dimensions. */
+html:not(.afterlogue-auth-ready) details.account-menu>summary {
+  border-radius:50%;
+  background-color:rgba(191,165,139,.14);
+}
+html:not(.afterlogue-auth-ready) details.account-menu>summary svg {
+  visibility:hidden!important;
+}
+html:not(.afterlogue-auth-ready) details.account-menu>summary {
+  pointer-events:none;
+}
