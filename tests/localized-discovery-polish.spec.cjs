@@ -70,8 +70,9 @@ test('First Impressions uses a compact corner tick and one readable completion a
  await first.click();
  await first.locator('[data-rating="Loved"]').click();
  await expect(first).toHaveClass(/is-rated/);
- await expect(first.locator('.rating-check')).toHaveCSS('width','26px');
- await expect(first.locator('.rating-check')).toHaveCSS('border-radius','50%');
+ await expect(first.locator('.impressions-more-check')).toBeVisible();
+ await expect(first.locator('.impressions-more-check')).toHaveCSS('width','26px');
+ await expect(first.locator('.impressions-more-check')).toHaveCSS('border-radius','50%');
  await page.locator('#impressions-step-next').click();
  await expect(page.locator('#impressions-step-next')).toHaveText('See my five picks');
 });
