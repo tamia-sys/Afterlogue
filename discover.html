@@ -606,12 +606,13 @@ function getDiscoveryRecommendations(category, page = 0, omit = null) {
 }
 function displayDiscoveryRecommendations(category, page = 0, chosen = null) {
   const container = document.getElementById("discovery-results");
-  const selected = (chosen||discoveryCurrent[category]||getDiscoveryRecommendations(category,page))
+  const selected = (chosen||discoveryCurrent[category]||getDiscoveryRecommendations(category,0,discoveryHistory[category]))
     .filter(item=>!discoveryDismissed.has(discoveryItemKey(item)));
   if(selected.length&&discoveryCatalogState[category]!=="loading"){
    discoveryCurrent[category]=selected;
    selected.forEach(item=>discoveryHistory[category].add(discoveryItemKey(item)));
   }
+  if(selected.length===5)rememberDiscoveryReturn();
   const priorCards=container.querySelectorAll(".discovery-card").length;
   // A transient provider error should not erase five real cards already
   // shown for this exact media section.
@@ -649,6 +650,8 @@ function displayDiscoveryRecommendations(category, page = 0, chosen = null) {
     :"film-details.html?title="+encodeURIComponent(item.catalogKey||item.title.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""))+"&from=discover")+(isGuestMode?"&guest=1":"");
   const poster=document.createElement("a");
   poster.href=detailsHref;poster.className="discovery-poster";
+  // Commit the exact five before leaving this view (including standalone iOS).
+  poster.addEventListener("click",rememberDiscoveryReturn);
   poster.setAttribute("aria-label","View details for "+item.title);
   const artwork=document.createElement("img");
   artwork.src=item.poster||"";artwork.alt=item.title+" poster";
@@ -823,6 +826,88 @@ const freshDiscovery=category=>getDiscoveryRecommendations(category,0,discoveryH
 // for another account on a shared device.
 let discoveryCacheOwner=null;
 const discoveryCacheKey="afterlogue.discover.shelf.v2";
+// Home's *displayed* shelf is a navigation state, not a catalog response.
+// Keep it separately from the large full-catalog cache: that cache is
+// sometimes incomplete (one medium loads first), and iOS Home Screen web
+// clips can discard sessionStorage between view controllers.
+// Store only public title display fields under an account-scoped key.
+const discoveryReturnKey=owner=>"afterlogue.discover.return.v1."+owner;
+const discoveryReturnLifetime=4*60*60*1000;
+const discoveryHistoryLifetime=14*24*60*60*1000;
+function compactDiscoveryShelf(items){
+ if(!Array.isArray(items)||items.length!==5)return null;
+ return items.map(item=>({
+  key:discoveryItemKey(item),catalogKey:discoveryItemKey(item),
+  title:item.title,year:item.year,poster:item.poster,
+  category:item.category,tmdb:item.tmdb||null,
+  why:item.why||item.reason||"",reason:item.reason||item.why||"",
+  personalized:Boolean(item.personalized),starter:Boolean(item.starter)
+ }));
+}
+function rememberDiscoveryReturn(){
+ if(!discoveryCacheOwner||isGuestMode)return;
+ const shelves={
+  movies:compactDiscoveryShelf(discoveryCurrent.movies),
+  tv:compactDiscoveryShelf(discoveryCurrent.tv)
+ };
+ if(!shelves.movies&&!shelves.tv)return;
+ const record={
+  owner:discoveryCacheOwner,savedAt:Date.now(),
+  fingerprint:discoveryFingerprint(),category:selectedCategory,
+  pages:{...discoveryPages},shelves,
+  history:{movies:[...discoveryHistory.movies].slice(-400),
+    tv:[...discoveryHistory.tv].slice(-400)}
+ };
+ try{sessionStorage.setItem(discoveryReturnKey(discoveryCacheOwner),JSON.stringify(record));}
+ catch(error){console.warn("Home return snapshot unavailable",error);}
+ try{localStorage.setItem(discoveryReturnKey(discoveryCacheOwner),JSON.stringify(record));}
+ catch(error){console.warn("Home continuation unavailable",error);}
+}
+function restoreDiscoveryReturn(owner){
+ const records=[];
+ for(const store of [sessionStorage,localStorage]){
+  try{
+   const candidate=JSON.parse(store.getItem(discoveryReturnKey(owner))||"null");
+   if(candidate?.owner===owner&&Number.isFinite(candidate.savedAt)&&
+     Date.now()>=candidate.savedAt&&Date.now()-candidate.savedAt<discoveryHistoryLifetime)
+    records.push(candidate);
+  }catch(error){console.warn("Home continuation read unavailable",error);}
+ }
+ records.sort((a,b)=>b.savedAt-a.savedAt);
+ // History survives *taste changes*, even when the current five no longer
+ // qualify. Otherwise a Watchlist addition would replay the previous pages.
+ for(const record of records){
+  for(const media of ["movies","tv"])
+   for(const key of record.history?.[media]||[]){
+    if(typeof key==="string"&&key.length<160)discoveryHistory[media].add(key);
+   }
+ }
+ const matching=records.find(record=>
+   Date.now()-record.savedAt<discoveryReturnLifetime&&
+   record.fingerprint===discoveryFingerprint()&&
+   ["movies","tv"].includes(record.category)&&
+   compactDiscoveryShelf(record.shelves?.[record.category]));
+ if(!matching)return false;
+ for(const media of ["movies","tv"]){
+  const shelf=compactDiscoveryShelf(matching.shelves?.[media]);
+  discoveryCurrent[media]=shelf;
+  if(shelf){
+   shelf.forEach(item=>discoveryHistory[media].add(discoveryItemKey(item)));
+   discoveryCatalogState[media]="ready";
+  }
+  discoveryPages[media]=Math.max(0,Math.min(999,Number(matching.pages?.[media])||0));
+ }
+ selectedCategory=matching.category;
+ const eyebrow=document.querySelector(".discovery-section-header p");
+ if(eyebrow)eyebrow.textContent="SELECTED / "+String(discoveryPages[selectedCategory]+1).padStart(3,"0");
+ document.querySelectorAll(".discovery-category").forEach(button=>{
+  const active=button.dataset.category===selectedCategory;
+  button.classList.toggle("active",active);
+  button.setAttribute("aria-pressed",String(active));
+ });
+ return true;
+}
+
 function discoveryFingerprint(){
  return JSON.stringify({
   ratings:Object.entries(savedImpressions).sort((a,b)=>a[0].localeCompare(b[0])),
@@ -838,6 +923,7 @@ function discoveryFingerprint(){
  });
 }
 function rememberDiscovery(){
+ rememberDiscoveryReturn();
  if(!discoveryCacheOwner||!discoveryExpandedEntries.length)return;
  try{
   sessionStorage.setItem(discoveryCacheKey,JSON.stringify({
@@ -852,23 +938,23 @@ function rememberDiscovery(){
 }
 function restoreDiscovery(owner){
  discoveryCacheOwner=owner;
+ if(restoreDiscoveryReturn(owner))return true;
  try{
   const snapshot=JSON.parse(sessionStorage.getItem(discoveryCacheKey)||"null");
   if(!snapshot||snapshot.owner!==owner||
      snapshot.fingerprint!==discoveryFingerprint()||
      Date.now()-snapshot.savedAt>4*60*60*1000||
      !Array.isArray(snapshot.entries)||!snapshot.entries.length)return false;
-  // A previous session might have loaded TV but failed to load films.
-  // That partial snapshot must not permanently suppress movie matching
-  // on the next visit (and vice versa).
-  if(!["movies","tv"].every(media=>snapshot.entries.some(item=>item.category===media)))
-    return false;
+  // A previous visit can have a usable five-card shelf even if the other
+  // medium has not populated. Restore what exists, then fetch missing media.
   discoveryExpandedEntries=snapshot.entries;
   discoverySourceEntries=Array.isArray(snapshot.sources)?snapshot.sources:[];
   for(const media of ["movies","tv"]){
-   discoveryCurrent[media]=Array.isArray(snapshot.shelves?.[media])?snapshot.shelves[media]:null;
-   discoveryHistory[media]=new Set(Array.isArray(snapshot.history?.[media])
-     ?snapshot.history[media].filter(k=>typeof k==="string"):[]);
+   // A half-finished older cache must never restore four as the full shelf.
+   discoveryCurrent[media]=compactDiscoveryShelf(snapshot.shelves?.[media]);
+   discoveryHistory[media]=new Set([...discoveryHistory[media],
+     ...(Array.isArray(snapshot.history?.[media])
+       ?snapshot.history[media].filter(k=>typeof k==="string"):[])]);
   }
   for(const media of ["movies","tv"]){
    discoveryCatalogState[media]="ready";
@@ -1198,7 +1284,7 @@ async function populateExpandedRecommendations(userId){
    }
    discoveryExpandedEntries=discoveryExpandedEntries.filter(x=>x.category!==category).concat(entries);
    discoveryCatalogState[category]=state;
-   discoveryPages[category]=0;
+   if(!discoveryCurrent[category]?.length)discoveryPages[category]=0;
    rememberDiscovery();
    if(discoveryReady&&selectedCategory===category)displayDiscoveryRecommendations(category,0);
  });
@@ -1330,6 +1416,12 @@ async function loadAccountImpressions() {
     discoveryReady=true;
     if(restoreDiscovery(userData.user.id)){
       displayDiscoveryRecommendations(selectedCategory,discoveryPages[selectedCategory]);
+      // Preserve the visible five, but refresh any missing media catalog.
+      // In particular, don't re-show page one just because TV loaded later.
+      if(!["movies","tv"].every(media=>
+        discoveryExpandedEntries.some(item=>item.category===media))){
+        await populateExpandedRecommendations(userData.user.id);
+      }
       return;
     }
     displayDiscoveryRecommendations(activeCategory,0);
