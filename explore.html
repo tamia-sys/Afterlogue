@@ -1641,7 +1641,8 @@ function saveMoodSnapshot(five){
 async function restoreMoodSnapshot(){
  try{
   const snap=JSON.parse(sessionStorage.getItem(moodSnapshotKey)||"null");
-  if(!snap||!data.moods[snap.mood]||!Array.isArray(snap.items)||!snap.items.length
+  if(!snap||!data.moods[snap.mood]||!Array.isArray(snap.items)||
+    snap.items.length!==(snap.randomPick?1:5)
     ||Date.now()-Number(snap.savedAt)>4*60*60*1000)return false;
   await memberRatingsReady;
   await window.AfterlogueSeen?.initialize?.();
@@ -1813,9 +1814,10 @@ async function searchMoodSelection(scope,startOffset,signal=null){
  }).filter(id=>Number.isSafeInteger(id)&&id>0);
  const picks=[],unique=new Set();
  let succeeded=false,attempts=0;
- // At most two genuine catalog offsets, and one selection preloaded at a
- // time. No endless background refreshes or speculative extra requests.
- for(let attempt=0;attempt<2&&picks.length<desired;attempt++){
+ // One selection at a time. When catalog scoring excludes marginal films,
+ // search further genuine offsets rather than showing an incomplete row.
+ // The request remains bounded: at most four unique TMDB catalog offsets.
+ for(let attempt=0;attempt<4&&picks.length<desired;attempt++){
   if(signal?.aborted)break;
   const cursor=startOffset+attempt;
   attempts++;
@@ -1952,23 +1954,20 @@ async function displayResults(){
     $("explore-again").disabled=false;
     return;
    }
-   // Keep genuine partial matches rather than inventing extra stories.
-   if(picks.length){
-    rememberMoodTitles(scope,picks);
-    paintMoodPicks(picks);
-    saveMoodSnapshot(picks);
-    $("explore-results-detail").textContent="Showing "+picks.length+
-      " verified "+(picks.length===1?"story":"stories")+" for this mood. "+
-      message.replace("Your current picks are still here.","Try another selection.");
-    return;
-   }
+   // Never present four cards as a completed five-film recommendation.
+   // Keep the verified candidates private to this attempt rather than
+   // fabricating a filler or teaching the history that it was shown.
+   // This state is recoverable; narrow or exhausted filters may genuinely
+   // prevent five eligible results.
    host.replaceChildren();
    const explanation=document.createElement("p");
    explanation.className="explore-question";
-   explanation.textContent="No verified stories loaded for this mood right now. Try again or explore another mood.";
+   explanation.textContent=picks.length
+     ?"We found "+picks.length+" verified stories, but not a complete five yet. Try another selection or adjust your filters."
+     :"We couldn't verify a complete five for these choices. Try again or adjust your filters.";
    host.append(explanation);
    $("explore-results-detail").textContent="";
-   $("explore-again").textContent="Try again";
+   $("explore-again").textContent="Try another selection";
    $("explore-again").disabled=false;
    return;
   }
