@@ -41,6 +41,8 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
+  <script src="catalog-metadata.js?v=1"></script>
+  <script src="pending-watchlist.js?v=1"></script>
   <script>
     (() => {
       "use strict";
@@ -88,7 +90,16 @@
               .from("profiles").select("onboarding_completed")
               .eq("user_id",data.session.user.id).maybeSingle();
             if(profileError)console.warn("Afterlogue: Profile routing unavailable",profileError.code||profileError.message);
-            else if(profile?.onboarding_completed)destination="discover.html";
+            else if(profile?.onboarding_completed){
+              // Existing members may have followed an email-confirmation link
+              // immediately after attempting to save a film as a guest.
+              // Complete that one explicit Watchlist action and return to
+              // the *same title*, with a success notice. Brand-new accounts
+              // still finish First Impressions on log.html first.
+              const afterSave=await window.AfterloguePendingWatchlist?.postLogin(
+                window.afterlogueSupabase,data.session.user,true);
+              destination=afterSave||"discover.html";
+            }
           }catch(error){
             console.warn("Afterlogue: Unable to check onboarding; opening First Impressions.",error?.code||"profile_check");
           }
