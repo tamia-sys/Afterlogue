@@ -174,7 +174,7 @@ test('Home applies balanced shelf selection after personal filtering and invalid
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
  assert.match(home,/algorithm:"balanced-home-shelves-v2-broad-candidate-seeds"/);
- assert.match(home,/recommendation-engine\.js\?v=10/);
+ assert.match(home,/recommendation-engine\.js\?v=11/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
 
@@ -244,7 +244,7 @@ test('Phase 2 Home obtains dynamic title evidence without sharing member notes o
  const block=backend.split('if(mode==="taste-features"){')[1].split('if(mode==="collection"){')[0];
  assert.match(block,/slice\(0,18\)/,'Bound the public batch size');
  assert.doesNotMatch(block,/private_note|user_id|updated_at|impressions/);
- assert.match(home,/const tasteFeaturesPromise=loadTasteFeatures\(featureKeys\)/);
+ assert.match(home,/const tasteFeaturesPromise=loadTasteFeatures\(featureKeys,items=>/);
  assert.match(home,/tasteFeaturesPromise,candidatePromise/);
  assert.match(home,/const candidatePromise=loadTasteFeatures/);
  assert.match(home,/select\("title_key, rating, updated_at"\)/);
