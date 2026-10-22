@@ -97,7 +97,8 @@ test('Phase 2 Home obtains dynamic title evidence without sharing member notes o
  assert.match(block,/slice\(0,18\)/,'Bound the public batch size');
  assert.doesNotMatch(block,/private_note|user_id|updated_at|impressions/);
  assert.match(home,/const tasteFeaturesPromise=loadTasteFeatures\(featureKeys\)/);
- assert.match(home,/await tasteFeaturesPromise/);
+ assert.match(home,/tasteFeaturesPromise,candidatePromise/);
+ assert.match(home,/const candidatePromise=loadTasteFeatures/);
  assert.match(home,/select\("title_key, rating, updated_at"\)/);
  assert.match(home,/timestamps:impressionDates/);
  assert.match(home,/ratingDates:Object\.entries\(impressionDates\)/);
