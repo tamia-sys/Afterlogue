@@ -167,6 +167,15 @@ function saveFilters(){
 document.querySelector('#films')?.before(controls);
 const statusLine=document.createElement('p');statusLine.className='impressions-selection-status';statusLine.setAttribute('role','status');
 controls.after(statusLine);
+// First Impressions should begin with familiar artwork, not a wall of
+// geographic filters. Keep these genuine controls available on request.
+const filtersDisclosure=document.createElement('details');
+filtersDisclosure.className='impressions-optional-filters';
+const filtersSummary=document.createElement('summary');
+filtersSummary.textContent='Not seeing familiar titles? Refine the selection';
+filtersSummary.setAttribute('aria-label','Open optional film and TV selection filters');
+controls.before(filtersDisclosure);
+filtersDisclosure.append(filtersSummary,controls,statusLine);
 let offset=0,sequence=0;
 async function populate(media,sectionId,requestId){
  const parent=document.querySelector(sectionId);
@@ -204,6 +213,11 @@ async function populate(media,sectionId,requestId){
  }
 }
 function refresh(){
+ const filtersActive=Boolean(countrySelect.value||languageSelect.value);
+ if(filtersActive)filtersDisclosure.open=true;
+ filtersSummary.textContent=filtersActive
+   ?'Filters applied — adjust your selection'
+   :'Not seeing familiar titles? Refine the selection';
  const id=++sequence;
  statusLine.textContent='Finding familiar films and shows…';
  Promise.allSettled([populate('movie','#films',id),populate('tv','#television',id)]);

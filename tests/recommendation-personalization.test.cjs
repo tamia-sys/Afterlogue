@@ -357,7 +357,7 @@ test('First Impressions now displays up to 18 films and 18 TV series with filter
  assert.match(client,/items=\(payload.items\|\|\[\]\)\.filter\(item=>item.poster\)\.slice\(0,18\)/);
  assert.match(server,/const shortlist=balanced\.slice\(0,28\)/);
  assert.match(server,/items:verified\.slice\(0,18\)/);
- assert.match(html,/onboarding-catalog-search\.js\?v=9/);
+ assert.match(html,/onboarding-catalog-search\.js\?v=10/);
  assert.match(client,/first-refresh/);
  assert.match(client,/impressions-search/);
 });
@@ -398,7 +398,11 @@ test('Cross-medium linked TV can rank from positively rated movie without reusin
 test('First Impressions instructions are readable and ratings are saved as watched',()=>{
  const html=read('log.html'),sync=read('onboarding-sync.js');
  assert.match(html,/font-size:16px;line-height:1\.55/);
- assert.match(html,/Tap a poster you’ve seen/);
+ assert.match(html,/Start with films you know\./);
+ assert.match(html,/id="impressions-step-next"/);
+ assert.match(html,/id="impressions-rating-count"/);
+ assert.match(html,/id="television"[^>]*hidden/);
+ assert.match(html,/onboarding-guidance\.js\?v=1/);
  assert.match(html,/onboarding\.category/);
  assert.match(html,/onboarding-sync\.js\?v=7/);
  assert.match(sync,/\.from\("seen_entries"\)/);
