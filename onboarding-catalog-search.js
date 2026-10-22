@@ -167,6 +167,15 @@ function saveFilters(){
 document.querySelector('#films')?.before(controls);
 const statusLine=document.createElement('p');statusLine.className='impressions-selection-status';statusLine.setAttribute('role','status');
 controls.after(statusLine);
+// First Impressions should begin with familiar artwork, not a wall of
+// geographic filters. Keep these genuine controls available on request.
+const filtersDisclosure=document.createElement('details');
+filtersDisclosure.className='impressions-optional-filters';
+const filtersSummary=document.createElement('summary');
+filtersSummary.textContent='Not seeing familiar titles? Refine the selection';
+filtersSummary.setAttribute('aria-label','Open optional film and TV selection filters');
+controls.before(filtersDisclosure);
+filtersDisclosure.append(filtersSummary,controls,statusLine);
 let offset=0,sequence=0;
 async function populate(media,sectionId,requestId){
  const parent=document.querySelector(sectionId);
