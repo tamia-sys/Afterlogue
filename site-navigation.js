@@ -16,16 +16,23 @@
   const accountLink = document.getElementById("explore-account-link");
   const client = window.afterlogueSupabase;
 
-  // One session lookup, shared by link updates and an immediate logo click.
-  // This only reads authentication state — it never calls signOut().
-  const sessionPromise = client?.auth?.getSession
-    ? client.auth.getSession()
-        .then(({ data, error }) => error ? null : (data?.session?.user || null))
-        .catch(error => {
-          console.warn("Afterlogue: Navigation session check unavailable.", error);
-          return null;
-        })
-    : Promise.resolve(null);
+  // Transient authentication errors are NOT proof of sign-out. A local
+  // Supabase session determines display/navigation; private data stays
+  // protected by Supabase RLS. Avoid treating an iOS standalone resume as guest.
+  const auth=window.AfterlogueAuth;
+  const sessionPromise=auth?.resolve
+    ?auth.resolve():Promise.resolve({status:"unavailable",user:null});
+  let activeMemberId=null;
+  const summaries=[...document.querySelectorAll("details.account-menu > summary")];
+  function readyAvatar(){document.documentElement.classList.add("afterlogue-auth-ready");}
+  function resetAvatar(){
+    summaries.forEach(el=>{
+      el.classList.remove("member-avatar");
+      el.style.backgroundImage="";
+      el.style.backgroundSize="";
+      el.style.backgroundPosition="";
+    });
+  }
 
   // Mark the current destination without moving any header elements.
   // Onboarding (log.html) is separate from the member's personal Log.
@@ -75,34 +82,62 @@
     logo.addEventListener("click", event => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
       event.preventDefault();
-      sessionPromise.then(user => {
-        window.location.assign(user ? "discover.html" : "index.html");
+      sessionPromise.then(({status,user}) => {
+        // Never navigate a known member to guest landing after a transient
+        // offline/auth-initialization error.
+        window.location.assign(status==="guest"?"index.html":"discover.html");
       });
     });
   }
 
 
+  function applyAvatar(photo){
+    if(!photo)return false;
+    for(const el of summaries){
+      if(photo.kind==="path"){
+        const imageUrl=client.storage.from("member-avatars").getPublicUrl(photo.value).data.publicUrl;
+        el.style.backgroundImage="url("+imageUrl+")";
+        el.style.backgroundSize="cover";
+        el.style.backgroundPosition="center";
+      }else if(photo.kind==="preset"){
+        const n=Number(photo.value);
+        if(!Number.isInteger(n)||n<1||n>12)continue;
+        el.style.backgroundImage="url(assets/afterlogue-avatars.png)";
+        el.style.backgroundSize="400% 300%";
+        el.style.backgroundPosition=((n-1)%4)*100/3+"% "+Math.floor((n-1)/4)*50+"%";
+      }else return false;
+      el.classList.add("member-avatar");
+    }
+    return true;
+  }
   async function showMemberAvatar(user){
-    const summaries=[...document.querySelectorAll("details.account-menu > summary")];
-    if(!summaries.length||!user||!client)return;
+    if(!summaries.length||!client||!user){readyAvatar();return;}
+    const cacheKey="afterlogue.ui.avatar."+user.id+".v1";
+    let cached=false;
     try{
-      const {data,error}=await client.from("member_profiles").select("avatar_path,avatar_preset").eq("user_id",user.id).maybeSingle();
-      if(error||!data)return;
-      for(const el of summaries){
-        if(data.avatar_path){
-          const imageUrl=client.storage.from("member-avatars").getPublicUrl(data.avatar_path).data.publicUrl;
-          el.style.backgroundImage="url("+imageUrl+")";
-          el.style.backgroundSize="cover";
-          el.style.backgroundPosition="center";
-        }else if(data.avatar_preset){
-          const n=data.avatar_preset;
-          el.style.backgroundImage="url(assets/afterlogue-avatars.png)";
-          el.style.backgroundSize="400% 300%";
-          el.style.backgroundPosition=((n-1)%4)*100/3+"% "+Math.floor((n-1)/4)*50+"%";
-        }else continue;
-        el.classList.add("member-avatar");
+      const saved=JSON.parse(sessionStorage.getItem(cacheKey)||"null");
+      if(saved?.owner===user.id&&saved.photo)cached=applyAvatar(saved.photo);
+    }catch(_){}
+    // On subsequent pages, immediately show the existing member's cached
+    // avatar while fresh profile information is fetched.
+    if(cached)readyAvatar();
+    try{
+      const {data,error}=await client.from("member_profiles")
+        .select("avatar_path,avatar_preset").eq("user_id",user.id).maybeSingle();
+      if(error)throw error;
+      // Don't apply a previous account's delayed fetch after a sign-out.
+      if(activeMemberId!==user.id)return;
+      const photo=data?.avatar_path?{kind:"path",value:data.avatar_path}:
+        data?.avatar_preset?{kind:"preset",value:Number(data.avatar_preset)}:null;
+      if(photo){
+        applyAvatar(photo);
+        try{sessionStorage.setItem(cacheKey,JSON.stringify({owner:user.id,photo}));}catch(_){}
+      }else{
+        resetAvatar();
+        try{sessionStorage.removeItem(cacheKey);}catch(_){}
       }
-    }catch(error){console.warn("Account avatar unavailable",error);}
+    }catch(error){console.warn("Account avatar temporarily unavailable",error);}
+    finally{if(activeMemberId===user.id)readyAvatar();}
   }
   const avatarStyles=document.createElement("style");
   avatarStyles.textContent="details.account-menu>summary.member-avatar{width:34px!important;height:34px!important;min-width:34px!important;border-radius:50%!important;overflow:hidden!important;border:1px solid #ad9772!important;background-repeat:no-repeat!important}details.account-menu>summary.member-avatar svg{display:none!important}";
@@ -165,5 +200,32 @@
     open.forEach(menu=>menu.open=false);
     open[open.length-1].querySelector("summary")?.focus();
   });
-  sessionPromise.then(user => {updateNavigation(user);updateAccountMenu(user);showMemberAvatar(user);});
+  let lastStatus="unavailable";
+  function applyAuth(status,user){
+    if(status==="unavailable"){
+      // Leave the existing navigation intact; an error isn't a sign-out.
+      // Allow interaction even if Supabase is temporarily unreachable.
+      readyAvatar();
+      return;
+    }
+    const nextId=user?.id||null;
+    const accountChanged=nextId!==activeMemberId;
+    if(accountChanged)resetAvatar();
+    activeMemberId=nextId;
+    lastStatus=status;
+    updateNavigation(user);
+    updateAccountMenu(user);
+    if(user){
+      if(accountChanged||!document.documentElement.classList.contains("afterlogue-auth-ready"))
+        showMemberAvatar(user);
+    }else readyAvatar();
+  }
+  sessionPromise.then(({status,user})=>applyAuth(status,user));
+  // Subscriptions are synchronous: never await a database query inside this
+  // callback (Supabase warns of auth callback deadlocks).
+  client?.auth?.onAuthStateChange?.((event,session)=>{
+    if(!["SIGNED_IN","SIGNED_OUT","USER_UPDATED"].includes(event))return;
+    auth?.update?.(session);
+    Promise.resolve().then(()=>applyAuth(session?.user?"member":"guest",session?.user||null));
+  });
 })();
