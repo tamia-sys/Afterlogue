@@ -262,7 +262,9 @@ body {
 }
 
 </style>
-<script src="site-language.js?v=4" defer></script>
+<link rel="stylesheet" href="landing-previews.css?v=1">
+<script src="site-language.js?v=5" defer></script>
+<script src="landing-previews.js?v=1" defer></script>
 </head>
 <body>
 
@@ -276,9 +278,9 @@ body {
 
 <main>
 <section class="intro" aria-labelledby="welcome-title">
-  <h1 id="welcome-title">Welcome to afterlogue.</h1>
-  <p class="welcome-tagline">A film ends. The conversation doesn't.</p>
-  <p class="welcome-description">Tell us what you thought of a few films or shows. We'll find five picks for you.</p>
+  <p class="welcome-eyebrow">PERSONALIZED FILM & TV DISCOVERY</p>
+  <h1 id="welcome-title">A film ends. The conversation doesn't.</h1>
+  <p class="welcome-description">Discover films and shows shaped by your taste.</p>
   <div class="welcome-start">
     <a class="welcome-create" href="log.html?guest=1">Get started →</a>
     <p class="welcome-reassurance">No account needed · About 2 minutes</p>
@@ -309,88 +311,100 @@ body {
 <section class="how" aria-labelledby="how-heading">
   <h2 class="section-label" id="how-heading">HOW IT WORKS</h2>
   <div class="steps">
-    <!-- 01: First Impressions -->
-    <article class="step">
+    <!-- 01 / Interactive first-impressions demonstration. All state is local. -->
+    <article class="step" id="preview-impressions">
       <div class="step-intro">
         <p class="step-kicker">01 — FIRST IMPRESSIONS</p>
-        <h3>Let's get acquainted</h3>
-        <p class="step-lede">Start with the films  and shows you know. Tell us what you thought.</p>
+        <h3>Tell us what you think</h3>
+        <p class="step-lede">Pick a film you know. Choose your impression.</p>
       </div>
-      <div class="step-panel journey-preview">
-        <div class="journey-top"><span class="journey-eyebrow">01 — Films</span></div>
-        <div class="journey-posters">
-          <div class="journey-poster"><img src="https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg" alt="Moonlight poster"></div>
-          
-<div class="journey-poster is-selected">
-  <img src="boyhood.jpg" alt="Boyhood poster">
-
-<span class="journey-check" aria-label="Selected">
-  <svg viewBox="0 0 48 48" aria-hidden="true">
-    <path
-      d="M9 25 L20 35 L40 12"
-      fill="none"
-      stroke="#F4EADD"
-      stroke-width="2.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
-  </svg>
-</span>
-
-</div>
-
-          <div class="journey-poster"><img src="https://www.tinymixtapes.com/sites/default/files/1611/manchester_0.jpg" alt="Manchester by the Sea poster"></div>
+      <div class="step-panel journey-preview" aria-label="Try rating a film — demo only">
+        <div class="journey-top"><span class="journey-eyebrow">Select a poster, then a reaction</span></div>
+        <div class="journey-posters" id="lp-rating-posters">
+          <button type="button" class="journey-poster lp-poster" data-preview-key="moonlight" aria-pressed="false" aria-label="Select Moonlight">
+            <img src="https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg" alt="Moonlight poster">
+            <span class="journey-check" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-key="boyhood" aria-pressed="false" aria-label="Select Boyhood">
+            <img src="boyhood.jpg" alt="Boyhood poster">
+            <span class="journey-check" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-key="manchester" aria-pressed="false" aria-label="Select Manchester by the Sea">
+            <img src="https://www.tinymixtapes.com/sites/default/files/1611/manchester_0.jpg" alt="Manchester by the Sea poster">
+            <span class="journey-check" aria-hidden="true">✓</span>
+          </button>
         </div>
-        <div class="journey-bottom four" aria-label="Example impression choices">
-          <span class="journey-rating chosen"><b>♥</b> Loved</span>
-          <span class="journey-rating"><b>♥</b> Liked</span>
-          <span class="journey-rating"><b>●</b> Okay</span>
-          <span class="journey-rating"><b>×</b> Not for me</span>
+        <div class="journey-bottom four lp-ratings" aria-label="Rate your selected film">
+          <button type="button" class="journey-rating" data-preview-rating="Loved" disabled><b>♥</b> Loved</button>
+          <button type="button" class="journey-rating" data-preview-rating="Liked" disabled><b>♡</b> Liked</button>
+          <button type="button" class="journey-rating" data-preview-rating="Okay" disabled><b>●</b> Okay</button>
+          <button type="button" class="journey-rating" data-preview-rating="Not for me" disabled><b>×</b> Not for me</button>
         </div>
+        <p class="lp-demo-status" id="lp-rating-status" role="status" aria-live="polite">Choose any poster to begin.</p>
       </div>
     </article>
-    <!-- 02: Discovery -->
-    <article class="step">
+    <!-- 02 / Full-detail lookalike, with deliberate non-operational controls. -->
+    <article class="step" id="preview-discovery">
       <div class="step-intro">
         <p class="step-kicker">02 — DISCOVERY</p>
         <h3>Find your next story</h3>
-        <p class="step-lede">Choose Movies or TV. Get five picks at a time.</p>
+        <p class="step-lede">Open a poster to preview its details.</p>
       </div>
-      <div class="step-panel journey-preview">
-        <div class="journey-top"><div class="journey-tabs" aria-label="Recommendation type preview"><span class="journey-tab active">Movies</span><span class="journey-tab">TV Shows</span></div></div>
+      <div class="step-panel journey-preview" aria-label="Explore a sample story detail">
+        <div class="journey-top"><span class="journey-eyebrow">MOVIES / A LITTLE SOMETHING FOR YOU</span></div>
         <div class="journey-posters">
-          <div class="journey-poster"><img src="https://www.nippon.com/en/ncommon/contents/japan-topics/2541413/2541413.jpg" alt="Perfect Days poster"></div>
-         
-<div class="journey-poster">
-  <img src="sentimental-value.jpg" alt="Sentimental Value poster">
-</div>
-
-          <div class="journey-poster"><img src="https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg" alt="The Worst Person in the World poster"></div>
+          <button type="button" class="journey-poster lp-poster" data-preview-detail="perfect-days" aria-label="Preview details for Perfect Days">
+            <img src="https://www.nippon.com/en/ncommon/contents/japan-topics/2541413/2541413.jpg" alt="Perfect Days poster">
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-detail="sentimental-value" aria-label="Preview details for Sentimental Value">
+            <img src="sentimental-value.jpg" alt="Sentimental Value poster">
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-detail="worst-person" aria-label="Preview details for The Worst Person in the World">
+            <img src="https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg" alt="The Worst Person in the World poster">
+          </button>
         </div>
-        <div class="journey-bottom journey-label">SELECTED / 001</div>
+        <div class="journey-bottom journey-label">CLICK ANY POSTER TO EXPLORE ↗</div>
       </div>
     </article>
-    <!-- 03: Log -->
-    <article class="step">
+    <!-- 03 / An accurate miniature of Log cards, not actual member data. -->
+    <article class="step" id="preview-log">
       <div class="step-intro">
         <p class="step-kicker">03 — LOG</p>
         <h3>The more you log, the better it gets</h3>
-        <p class="step-lede">Every title you log helps us make better picks for you.</p>
+        <p class="step-lede">Open a poster to see how your Log feels.</p>
       </div>
-      <div class="step-panel journey-preview">
-        <div class="journey-top"><span class="journey-eyebrow">Recent Log</span></div>
+      <div class="step-panel journey-preview" aria-label="Explore a sample Log entry">
+        <div class="journey-top"><span class="journey-eyebrow">RECENT LOG / SAMPLE ENTRIES</span></div>
         <div class="journey-posters">
-          <div class="journey-poster"><img src="https://m.media-amazon.com/images/M/MV5BZWU5NWQ2MWMtYmI4Ni00Yjk5LTk3ODktMDVlZGViNGUwN2M5XkEyXkFqcGdeQXVyNTAyODkwOQ%40%40._V1_FMjpg_UX1000_.jpg" alt="Three Colors: Blue poster"></div>
-          <div class="journey-poster"><img src="https://media.senscritique.com/media/000019931710/0/normal_people.jpg" alt="Normal People poster"></div>
-          <div class="journey-poster"><img src="https://image.tmdb.org/t/p/original/w5O3VVeG3jIR62IVbNMvFKY0p1Q.jpg" alt="Severance poster"></div>
+          <button type="button" class="journey-poster lp-poster" data-preview-log="blue" aria-label="View sample Log card for Three Colors: Blue">
+            <img src="https://m.media-amazon.com/images/M/MV5BZWU5NWQ2MWMtYmI4Ni00Yjk5LTk3ODktMDVlZGViNGUwN2M5XkEyXkFqcGdeQXVyNTAyODkwOQ%40%40._V1_FMjpg_UX1000_.jpg" alt="Three Colors: Blue poster">
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-log="normal-people" aria-label="View sample Log card for Normal People">
+            <img src="https://media.senscritique.com/media/000019931710/0/normal_people.jpg" alt="Normal People poster">
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-log="severance" aria-label="View sample Log card for Severance">
+            <img src="https://image.tmdb.org/t/p/original/w5O3VVeG3jIR62IVbNMvFKY0p1Q.jpg" alt="Severance poster">
+          </button>
         </div>
-        <div class="journey-bottom three" aria-label="Example reactions"><span class="journey-reaction"><b>♥</b> Loved</span><span class="journey-reaction"><b>●</b> Okay</span><span class="journey-reaction"><b>×</b> Not for me</span></div>
+        <div class="journey-bottom three" aria-label="Sample impressions in corresponding poster order">
+          <span class="journey-reaction"><b>♥</b> Loved</span>
+          <span class="journey-reaction"><b>●</b> Okay</span>
+          <span class="journey-reaction"><b>×</b> Not for me</span>
+        </div>
       </div>
       <p class="log-collections">Watched <span aria-hidden="true">·</span> Watchlist <span aria-hidden="true">·</span> Favorites</p>
     </article>
+
   </div>
 </section>
 </main>
+<div class="lp-modal" id="lp-modal" role="dialog" aria-modal="true" aria-labelledby="lp-modal-title" hidden>
+  <div class="lp-modal-surface">
+    <div class="lp-modal-top"><span>AFTERLOGUE / A CLOSER LOOK</span><button type="button" id="lp-modal-close" aria-label="Close preview">×</button></div>
+    <div id="lp-modal-body"></div>
+    <p class="lp-modal-note">A preview of Afterlogue. These controls are for illustration only.</p>
+  </div>
+</div>
 <footer class="footer">The film ends. The conversation doesn't.</footer>
 <script>
 const titles = [
