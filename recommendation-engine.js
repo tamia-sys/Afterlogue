@@ -337,7 +337,7 @@ function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[
    known++;
    counts.set(lane,(counts.get(lane)||0)+1);
  }
- const dominant=known>=9?[...counts].filter(([,count])=>count/known>=.72)
+ const dominant=known>=7?[...counts].filter(([,count])=>count/Math.max(known,positive.size)>=.78)
    .map(([lane])=>lane):[];
  const remaining=[...eligible],result=[];
  while(remaining.length){
@@ -403,7 +403,7 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
  // the proven recency + rotation behavior rather than guessing by title.
  const known=ranked.filter(source=>storyLane(source));
  const animationShare=known.filter(source=>storyLane(source)==="animation").length/Math.max(1,ranked.length);
- const animationDominates=known.length>=9&&animationShare>=.72;
+ const animationDominates=known.length>=7&&animationShare>=.78;
  const varied=category==="movies"&&known.length>=3&&!animationDominates;
  if(!varied)return [...pickPool,...rotated.slice(0,cap-pickPool.length)].map(x=>x.title);
  const chosen=[],remainingAll=[...pickPool,...rotated];
