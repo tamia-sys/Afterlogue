@@ -283,7 +283,7 @@ function moodExperience(
   // A sparse "slice of life" tag on its own is NOT evidence of restfulness.
   const warmth=cue(/\b(comed(y|ic)|funny|humou?r|witty|light.hearted|playful|uplifting|feel.good|cheerful|hilarious|heartwarming|rom.com|romantic comedy|laugh(s|ter)?|whimsical)\b/i);
   const everyday=cue(/\b(friendship|friends?|neighbou?rhood|community|family bonds|family life|family reunion|romantic relationship|workplace|salon|shop|restaurant|ordinary life|daily lives|day.to.day|everyday|school friends|growing up|coming.of.age|small town)\b/i);
-  const contemplating=tender||cue(/\b(contemplative|introspect|reflective journey|solitude|daily routine|wanders?|life on the road|travel(s|ing)? across|life in the countryside|quiet observation|over the years|passage of time|poetry|artistic life)\b/i);
+  const contemplating=cue(/\b(contemplative|introspect|reflective|meditative|solitude|daily routine|wanders?|life on the road|travel(s|ing)? across|life in the countryside|quiet observation|over the years|passage of time|poetry|artistic life)\b/i)||tagged(/\b(contemplation|meditation|slow cinema|poetry)\b/i);
   const playfulAdventure=cue(/\b(road trip|comedic adventure|misadventure|hijinks|escapades?|unlikely duo|unlikely friendship|comic caper|wacky|zany)\b/i);
   add(Boolean(editorialReason),9,editorialReason||"",editorialLane||"reviewed wind-down");
   add(warmth,6,
