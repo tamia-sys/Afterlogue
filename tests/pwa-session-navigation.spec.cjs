@@ -82,3 +82,28 @@ test('Temporary session check error does not bounce Home into account creation',
  await expect(page.locator('#impression-count')).toContainText("couldn't check your session");
  expect(page.url()).toMatch(/discover\.html$/);
 });
+
+test('Installed Home Screen landing launches an existing member straight into Discover',async({page})=>{
+ await page.addInitScript(()=>{
+  Object.defineProperty(navigator,'standalone',{configurable:true,value:true});
+ });
+ await mockMember(page);
+ await page.goto('index.html');
+ await expect(page).toHaveURL(/discover\.html$/,{timeout:18000});
+ await expect(page.locator('#account-status')).toContainText('Signed in');
+ expect(page.url()).not.toMatch(/signup\.html/);
+});
+
+test('Standalone guest still sees the welcome experience rather than forced login',async({page})=>{
+ await page.addInitScript(()=>{
+  Object.defineProperty(navigator,'standalone',{configurable:true,value:true});
+ });
+ await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
+  status:200,contentType:'application/javascript',
+  body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null})}})};'
+ }));
+ await page.goto('index.html');
+ await expect(page.locator('#welcome-title')).toBeVisible();
+ await expect(page.locator('html')).not.toHaveClass(/afterlogue-entry-check/);
+ expect(page.url()).toMatch(/index\.html$/);
+});
