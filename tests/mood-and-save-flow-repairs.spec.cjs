@@ -66,8 +66,8 @@ test('Get started is outline-only until hovered or focused',async({page})=>{
  const before=await button.evaluate(el=>getComputedStyle(el).backgroundColor);
  expect(before).toMatch(/rgba?(0, 0, 0, 0)/);
  await button.focus();
- const after=await button.evaluate(el=>getComputedStyle(el).backgroundColor);
- expect(after).not.toBe(before);
+ await expect.poll(()=>button.evaluate(el=>getComputedStyle(el).backgroundColor))
+  .not.toBe(before);
 });
 
 test('Mobile First Impressions returns to the top when moving to TV',async({page})=>{
