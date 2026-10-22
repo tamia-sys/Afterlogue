@@ -14,14 +14,21 @@ function idFor(media,title){
  return 10000+(h>>>0)%1000000;
 }
 const fallbackOverview='At the start of the autumn school year, a university student navigates campus life, friendships and secrets as the leaves change.';
+const koreanFilmYears={
+ 'Little Forest':2018,'Art Museum by the Zoo':1998,'Love Wind Love Song':1999,
+ 'Il Mare':2000,'Spring, Summer, Fall, Winter... and Spring':2003,
+ 'Traces of Love':2006,'Late Autumn':2010
+};
 function entry(media,title,id,origin='US'){
+ const korean=media==='movie'&&Object.hasOwn(koreanFilmYears,title);
+ if(korean)origin='KR';
  return {
   id:id||idFor(media,title),name:title,title,
   overview:fallbackOverview,
   poster_path:'/poster.jpg',backdrop_path:'/backdrop.jpg',
-  release_date:'2021-10-01',first_air_date:'2021-10-01',
+  release_date:(korean?koreanFilmYears[title]:2021)+'-10-01',first_air_date:'2021-10-01',
   vote_count:300,vote_average:7.9,genre_ids:[18,9648],adult:false,video:false,
-  original_language:origin==='JP'?'ja':origin==='KR'?'ko':origin==='FR'?'fr':'en',
+  original_language:korean&&title==='Late Autumn'?'en':origin==='JP'?'ja':origin==='KR'?'ko':origin==='FR'?'fr':'en',
   origin_country:[origin]
  };
 }
@@ -74,6 +81,24 @@ async function getPicks(media,pace,excludeIds=[]){
  assert.ok(data.items.every(x=>x.poster&&x.moodReason),'Each result needs poster and mood evidence');
  return data.items;
 }
+test('Korean film filter + original Korean language yields at least five authentic autumn movies',async()=>{
+ await ready;
+ const reply=await handler(new Request('https://example.supabase.co/functions/v1/afterlogue-catalog',{
+  method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+   mode:'mood',mood:'fall',media:'movie',pace:'slow',offset:0,
+   countries:['KR'],languages:['ko'],genres:[],decades:[],ratings:[]
+  })
+ }));
+ assert.equal(reply.status,200);
+ const body=await reply.json();
+ assert.ok(body.items.length>=5,'Korean Fall film mood should not show just one film');
+ assert.ok(body.items.every(v=>v.moodFit>=5&&v.moodReason&&
+   v.matchedFilters.includes('Country: KR')&&v.matchedFilters.includes('Language: ko')));
+ assert.ok(body.items.some(v=>v.title==='Little Forest'));
+ assert.ok(body.items.some(v=>v.title==='Traces of Love'));
+});
+
 test('Fall film and TV requests find five stories from a broad unfiltered pool',async()=>{
  for(const media of ['movie','tv']){
   const slow=await getPicks(media,'slow');
