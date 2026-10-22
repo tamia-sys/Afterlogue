@@ -508,6 +508,9 @@ if(member&&params.get('watchlist_saved')==='1'&&saved){
  cleaned.searchParams.delete('watchlist_saved');
  history.replaceState(null,'',cleaned.pathname+cleaned.search+cleaned.hash);
 }
+if(member&&params.get('watchlist_error')==='1'&&!saved){
+ watchNotice('You are signed in. The automatic save did not finish—tap Add to Watchlist to try again.');
+}
 watchBtn.addEventListener('click',async()=>{
  if(!member){
   const remembered=window.AfterloguePendingWatchlist?.remember({
@@ -529,6 +532,9 @@ watchBtn.addEventListener('click',async()=>{
    const result=await client.from('watchlist').insert({user_id:member.id,title_key:key,category:item.category==='tv'?'tv':'movies'}).select('id').single();
    if(result.error)throw result.error;
    saved=true;watchId=result.data.id;
+   if(window.AfterloguePendingWatchlist?.read()?.key===key){
+    window.AfterloguePendingWatchlist.discard();
+   }
    watchNotice(origin==='discover'
     ?'Saved to your Watchlist. This story will no longer appear in Home recommendations.'
     :'Saved to your Watchlist.');
