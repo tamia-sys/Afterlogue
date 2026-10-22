@@ -99,6 +99,15 @@ test('Explicit production country and original language are saved with member on
   assert.match(discovery,/originalLanguage:discoveryPreferences\.originalLanguage\|\|""/);
 });
 
+test('International titles are never collapsed to blank ASCII-only movie identifiers',()=>{
+ const backend=read('supabase/functions/afterlogue-catalog/index.ts');
+ const home=read('discover.html'),engine=read('recommendation-engine.js');
+ assert.match(backend,/replace\(\/\[\^\\p\{L\}\\p\{N\}\]\/gu,""\)/);
+ assert.match(home,/replace\(\/\[\^\\p\{L\}\\p\{N\}\]\+\/gu,"-"\)/);
+ assert.match(engine,/replace\(\/\[\^\\p\{L\}\\p\{N\}\]\+\/gu,"-"\)/);
+ assert.match(home,/if\(entries\.length<5\)\{/);
+ assert.match(home,/pageSize:60,sort:"discover",\.\.\.filters/);
+});
 test('Server verifies BOTH filters on production details, not merely search summaries', () => {
   const source=read('supabase/functions/afterlogue-catalog/index.ts');
   const recommend=source.split('if(mode==="recommend"){')[1].split('if(mode==="detail"){')[0];
@@ -463,7 +472,7 @@ test('Film Details heart writes to the existing private Favorites table and artw
 });
 test('A weak recommendation result uses honestly labeled archive discoveries rather than erasing the shelf',()=>{
  const code=read('discover.html');
- assert.match(code,/An archive discovery to explore while Afterlogue learns more about your taste/);
+ assert.match(code,/An archive discovery that fits your selected catalog preferences, not a direct match to your rated titles/);
  assert.match(code,/diversifyDiscoverResults\(\[\.\.\.expanded,\.\.\.extras\],category\)/);
  assert.match(code,/priorCards&&container\.dataset\.category===category/);
 });

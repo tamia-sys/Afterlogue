@@ -595,7 +595,9 @@ Deno.serve(async (req:Request) => {
       const requestedDecade=Number(input.decade);
       const hasDecade=Number.isInteger(requestedDecade)&&requestedDecade>=1900&&requestedDecade<=new Date().getUTCFullYear()&&requestedDecade%10===0;
       if(originalLanguage&&mode==="discover")params.set("with_original_language",originalLanguage);
-      if(country&&media==="tv"&&mode==="discover")params.set("with_origin_country",country);
+      // Discover's origin-country filter applies to films as well as TV.
+      // Film production country is STILL verified using movie details below.
+      if(country&&mode==="discover")params.set("with_origin_country",country);
 
       let endpoint="";
       if(mode==="search"){
@@ -1401,12 +1403,14 @@ Deno.serve(async (req:Request) => {
           "9648":[9648],"37":[37]
         };
         const normalized=(x:string)=>x.normalize("NFKD")
-          .replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+          .replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^\p{L}\p{N}]/gu,"");
         const seeds=await Promise.allSettled(terms.map(async title=>{
           const data=await tmdb("/search/"+sourceMedia,
             new URLSearchParams({query:title,language:"en-US",page:"1",include_adult:"false"}),token);
           const match=(data.results||[]).find((x:Record<string,unknown>)=>
-            normalized(String(sourceMedia==="movie"?x.title:x.name||""))===normalized(title));
+            [sourceMedia==="movie"?x.title:x.name,
+              sourceMedia==="movie"?x.original_title:x.original_name]
+              .some(name=>normalized(String(name||""))===normalized(title)));
           if(!match)return {title,results:[] as Record<string,unknown>[],targets:[] as number[]};
           const targets=[...new Set((Array.isArray(match.genre_ids)?match.genre_ids:[])
             .flatMap((id:number)=>genreBridge[String(id)]||[]))].slice(0,5);
@@ -1472,7 +1476,7 @@ Deno.serve(async (req:Request) => {
       const all=new Map<number,{item:ReturnType<typeof listItem>,votes:number,matched:string[],
         matchMethod:string,matchedGenres:string[]}>();
       const normalizeTitle=(x:string)=>x.normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
-        .toLowerCase().replace(/[^a-z0-9]/g,"");
+        .toLowerCase().replace(/[^\p{L}\p{N}]/gu,"");
       // A recommendation must trace to an actual positively rated title.
       // Similar is a backup that expands the source pool, not a generic
       // popular-movie replacement or editorial quota.
@@ -1480,7 +1484,8 @@ Deno.serve(async (req:Request) => {
         const searchData=await tmdb("/search/"+media,
           new URLSearchParams({query:term,language:"en-US",page:"1",include_adult:"false"}),token);
         const source=(searchData.results||[]).find((v:Record<string,unknown>)=>
-          normalizeTitle(String(media==="tv"?v.name:v.title||""))===normalizeTitle(term));
+          [media==="tv"?v.name:v.title,media==="tv"?v.original_name:v.original_title]
+            .some(name=>normalizeTitle(String(name||""))===normalizeTitle(term)));
         if(!source?.id)return {term,results:[] as Record<string,unknown>[],genreIds:new Set<number>()};
         const endpoint="/"+media+"/"+source.id;
         const ids=Array.isArray(source.genre_ids)?source.genre_ids.slice(0,3).map(Number):[];
@@ -1495,7 +1500,27 @@ Deno.serve(async (req:Request) => {
           tmdb(endpoint+"/recommendations",new URLSearchParams({language:"en-US",page:"1"}),token),
           tmdb(endpoint+"/similar",new URLSearchParams({language:"en-US",page:"1"}),token)
         ];
-        if(ids.length)jobs.push(tmdb("/discover/"+media,genreParams,token));
+        if(ids.length){
+          if(scoped){
+            // With a country or original-language preference, asking TMDB
+            // for generic worldwide films and filtering afterwards may
+            // leave ZERO Korean (or other international) matches. Search
+            // the requested catalog at the source instead, anchored to
+            // genres of the positively rated film. Keep these as labeled
+            // shared-genre bridges, not claimed title-to-title matches.
+            const targeted=new URLSearchParams(genreParams);
+            targeted.set("sort_by","popularity.desc");
+            targeted.set("vote_count.gte","12");
+            targeted.delete("vote_average.gte");
+            if(country)targeted.set("with_origin_country",country);
+            if(originalLanguage)targeted.set("with_original_language",originalLanguage);
+            for(const page of [1,2]){
+              const p=new URLSearchParams(targeted);
+              p.set("page",String(page));
+              jobs.push(tmdb("/discover/"+media,p,token));
+            }
+          }else jobs.push(tmdb("/discover/"+media,genreParams,token));
+        }
         const replies=await Promise.allSettled(jobs);
         const pool:Record<string,unknown>[]=[];
         const genreIds=new Set<number>(),directIds=new Set<number>();
@@ -1503,7 +1528,7 @@ Deno.serve(async (req:Request) => {
           const reply=replies[i];
           if(reply.status!=="fulfilled")continue;
           const items:Record<string,unknown>[]=reply.value.results||[];
-          if(i===2)items.forEach(item=>genreIds.add(Number(item.id)));
+          if(i>=2)items.forEach(item=>genreIds.add(Number(item.id)));
           else items.forEach(item=>directIds.add(Number(item.id)));
           pool.push(...items);
         }

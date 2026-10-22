@@ -537,7 +537,7 @@ function getDiscoveryRecommendations(category, page = 0, omit = null) {
   if(discoveryCatalogState[category]==="loading")return [];
   const scoped=Boolean(discoveryPreferences.country||discoveryPreferences.originalLanguage);
   const normalizeTitle=title=>String(title||"").toLowerCase().normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+    .replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"");
   const editorialTitles=new Set(discoveryEntries.map(entry=>normalizeTitle(entry.title)));
   const chosen=new Set();
   const expanded=selected.filter(entry=>{
@@ -567,6 +567,9 @@ function getDiscoveryRecommendations(category, page = 0, omit = null) {
   const viewed=new Set(discoverySeen);
   const expansionKeys=new Set(expanded.map(item=>item.key));
   const extras=discoveryExpandedEntries.filter(item=>item.category===category&&item.starter
+    &&(!scoped||item.filterVerified===true)
+    &&(!discoveryPreferences.country||item.countries?.includes(discoveryPreferences.country))
+    &&(!discoveryPreferences.originalLanguage||item.originalLanguage===discoveryPreferences.originalLanguage)
     &&!rated.has(item.key)&&!watched.has(item.key)&&!viewed.has(item.key)
     &&!expansionKeys.has(item.key));
   return diversifyDiscoverResults([...expanded,...extras],category)
@@ -1032,7 +1035,7 @@ async function populateExpandedRecommendations(userId){
          continue;
        }
        const linked=item.matched.map(name=>name.toLowerCase().normalize("NFKD")
-         .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
+         .replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,""));
        candidates.set(key,{key,title:item.title,year:item.year,poster:item.poster,
          category,position:(kind==="bridge"?600:400)+candidates.size,
          tmdb:{id:item.id,media:item.media},
@@ -1049,12 +1052,13 @@ async function populateExpandedRecommendations(userId){
      }
    }
    entries=[...candidates.values()];
-   if(entries.length<5&&!filters.country&&!filters.originalLanguage){
-     // Fallback titles are clearly marked as archive discoveries, never
-     // falsely claimed as direct taste matches.
+   if(entries.length<5){
+     // If direct matching is thin, offer properly labeled, verified archive
+     // discoveries WITH the selected country/original-language restrictions.
+     // Do not impersonate a taste match merely to fill a shelf.
      try{
        const extra=await request({mode:"discover",media,page:1,
-         pageSize:60,sort:"discover"});
+         pageSize:60,sort:"discover",...filters});
        const alreadyRated=new Set(Object.keys(savedImpressions)
          .map(key=>key.replace(/^afterlogue-/,"")));
        for(const item of extra.items||[]){
@@ -1063,8 +1067,11 @@ async function populateExpandedRecommendations(userId){
             excluded.has(key)||alreadyRated.has(key))continue;
          const record={key,title:item.title,year:item.year,poster:item.poster,
            category,position:800+candidates.size,
+           filterVerified:true,
+           countries:filters.country?[filters.country]:[],
+           originalLanguage:filters.originalLanguage||null,
            tmdb:{id:item.id,media:item.media},starter:true,
-           reason:"An archive discovery to explore while Afterlogue learns more about your taste.",
+           reason:"An archive discovery that fits your selected catalog preferences, not a direct match to your rated titles.",
            synopsis:item.synopsis,
            facets:{themes:[],tones:[],genres:[],pace:null},directMatches:[]};
          candidates.set(key,record);

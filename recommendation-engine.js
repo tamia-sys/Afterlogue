@@ -66,7 +66,7 @@ const tags=Object.freeze(Object.fromEntries(Object.entries(raw).map(([key,parts]
 }])));
 const weights={"Loved":4,"Liked":2.8,"Okay":0.2,"Not for me":-3.7};
 const slug=value=>String(value||"").toLowerCase().normalize("NFKD")
- .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+ .replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"");
 const overlap=(a=[],b=[])=>a.filter(x=>b.includes(x));
 const common=(a,b)=>{
  const sharedThemes=overlap(a.themes,b.themes);
