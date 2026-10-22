@@ -14,7 +14,7 @@ test('Landing tagline retains the exact logo color and two editorial lines',asyn
   return{
    logo:getComputedStyle(logo).color,headline:getComputedStyle(heading).color,
    y:[...spans].map(s=>Math.round(s.getBoundingClientRect().top)),
-   border:getComputedStyle(footer).borderTopWidth
+   border:getComputedStyle(document.querySelector('.how')).borderBottomWidth
   };
  });
  expect(result.headline).toBe(result.logo);
