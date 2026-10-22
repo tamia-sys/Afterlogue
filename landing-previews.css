@@ -353,7 +353,7 @@ html[lang="ko"] .how .step-intro h3{
  .how .step-intro h3{font-size:29px}
  .how .step-lede{font-size:14px}
  .how .lp-ratings .journey-rating{font-size:10px}
- .landing-final-invitation{margin-top:25px;min-height:155px;padding:25px 28px}
+ .landing-final-invitation{margin-top:30px;min-height:0;padding:18px 0 6px}
  .landing-final-invitation h2{font-size:clamp(25px,3.5vw,36px)}
 }
 @media(max-width:620px){
