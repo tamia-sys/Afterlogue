@@ -1466,6 +1466,7 @@ function view(section) {
 }
 function start(mood) {
   if (!data.moods[mood]) return;
+  try{sessionStorage.removeItem(moodSnapshotKey);}catch(_){}
   Object.assign(state,{mood,stage:0,format:null,pace:null,offset:0,randomPick:false});
   renderQuestion();
   view("experience");
@@ -1525,20 +1526,39 @@ function renderQuestion() {
 }
 // Members' rated titles live in Supabase, not an old browser cache.
 const memberRatedKeys=new Set();
+const memberCollectionKeys=new Set();
+let exploreOwner=isGuest?"guest":"signed-out";
+// Wait for the complete private Log before recommending. The old path
+// loaded impressions only, missing saved and unrated watched stories.
 const memberRatingsReady=isGuest?Promise.resolve():(async()=>{
  try{
   const client=window.afterlogueSupabase;
   if(!client)return;
   const {data:auth,error:authError}=await client.auth.getUser();
   if(authError||!auth?.user)return;
-  const {data:rows,error}=await client.from("impressions")
-    .select("title_key").eq("user_id",auth.user.id);
-  if(error)throw error;
-  (rows||[]).forEach(item=>{if(item.title_key)memberRatedKeys.add(item.title_key);});
- }catch(error){console.warn("Explore member ratings unavailable",error);}
+  exploreOwner=auth.user.id;
+  await Promise.all(["impressions","seen_entries","watchlist","favorites"].map(async table=>{
+   try{
+    const {data,error}=await client.from(table).select("title_key").eq("user_id",auth.user.id);
+    if(error)throw error;
+    (data||[]).forEach(item=>{
+     if(!item.title_key)return;
+     memberCollectionKeys.add(item.title_key);
+     if(table==="impressions")memberRatedKeys.add(item.title_key);
+    });
+   }catch(error){console.warn("Explore "+table+" exclusions unavailable",error);}
+  }));
+ }catch(error){console.warn("Explore Log exclusions unavailable",error);}
 })();
+document.addEventListener("afterlogue:impression-updated",event=>{
+ if(event.detail?.key){
+  memberCollectionKeys.add(event.detail.key);
+  memberRatedKeys.add(event.detail.key);
+  cancelMoodPreload();
+ }
+});
 function ratedTitles() {
-  if(!isGuest)return new Set(memberRatedKeys);
+  if(!isGuest)return new Set([...memberRatedKeys,...memberCollectionKeys]);
   const out = new Set();
   try {
     for(let i=0;i<localStorage.length;i++){
@@ -1590,25 +1610,36 @@ function rememberMoodTitles(scope,items){
  try{sessionStorage.setItem(moodHistoryKey,JSON.stringify(shownByScope));}catch(_){}
 }
 
-const moodSnapshotKey="afterlogue.explore.return-to-picks.v1";
+const moodSnapshotKey="afterlogue.explore.return-to-picks.v2";
 function saveMoodSnapshot(five){
  try{sessionStorage.setItem(moodSnapshotKey,JSON.stringify({
   mood:state.mood,pace:state.pace,format:state.format,
   randomPick:state.randomPick,offset:state.offset,
-  items:five.slice(0,5),savedAt:Date.now(),scope:moodScopeKey()
+  items:five.slice(0,5),savedAt:Date.now(),scope:moodScopeKey(),
+  owner:exploreOwner
  }));}catch(_){}
 }
-function restoreMoodSnapshot(){
- if(location.hash!=="#mood-results")return;
+async function restoreMoodSnapshot(){
  try{
   const snap=JSON.parse(sessionStorage.getItem(moodSnapshotKey)||"null");
   if(!snap||!data.moods[snap.mood]||!Array.isArray(snap.items)||!snap.items.length
-    ||Date.now()-Number(snap.savedAt)>4*60*60*1000)return;
+    ||Date.now()-Number(snap.savedAt)>4*60*60*1000)return false;
+  await memberRatingsReady;
+  await window.AfterlogueSeen?.initialize?.();
+  // Never expose the previous member's recommendations after sign-out.
+  if(!snap.owner||snap.owner!==exploreOwner)return false;
+  if(!["movies","tv","either"].includes(snap.format))return false;
+  if(!["slow","medium","energetic"].includes(snap.pace))return false;
+  if(!snap.items.every(item=>Number.isSafeInteger(Number(item.id))&&
+    ["movie","tv","movies"].includes(item.media)&&item.poster&&item.title))return false;
   Object.assign(state,{mood:snap.mood,pace:snap.pace,format:snap.format,
    randomPick:Boolean(snap.randomPick),offset:snap.offset||0});
   paintMoodPicks(snap.items);
-  history.replaceState(null,"",location.pathname+location.search);
+  if(location.hash==="#mood-results")
+    history.replaceState(null,"",location.pathname+location.search);
+  return true;
  }catch(error){console.warn("Could not restore mood selections",error);}
+ return false;
 }
 function paintMoodPicks(five){
   const results=$("explore-results");
@@ -1682,6 +1713,8 @@ function paintMoodPicks(five){
          user_id:auth.user.id,title_key:catalogKey,category
         });
         if(error&&error.code!=="23505")throw error;
+        memberCollectionKeys.add(catalogKey);
+        cancelMoodPreload();
         markSaved();note.textContent="Added to your Watchlist.";
        }catch(error){
         console.warn("Mood Watchlist save unavailable",error);
@@ -1748,6 +1781,12 @@ async function searchMoodSelection(scope,startOffset,signal=null){
  const shown=new Set(previousMoodTitles(scope));
  const rated=ratedTitles();
  const excluded=new Set([...rated,...(window.AfterlogueSeen?.seen||[])]);
+ // Include private member exclusions in the provider request, before
+ // expensive verification. Preserve media IDs independently.
+ const loggedIds=type=>[...excluded].map(key=>{
+   const match=/^tmdb-(movie|tv)-([1-9][0-9]*)$/.exec(key);
+   return match&&match[1]===type?Number(match[2]):null;
+ }).filter(id=>Number.isSafeInteger(id)&&id>0);
  const picks=[],unique=new Set();
  let succeeded=false,attempts=0;
  // At most two genuine catalog offsets, and one selection preloaded at a
@@ -1774,8 +1813,9 @@ async function searchMoodSelection(scope,startOffset,signal=null){
         offset:cursor,pace,
         excludeIds:[...new Set([
           ...[...shown].filter(k=>k.startsWith(type+":")).map(k=>Number(k.split(":")[1])),
-          ...alreadyChosen
-        ])],
+          ...alreadyChosen,
+          ...loggedIds(type)
+        ])].slice(0,120),
         genres:facet.genres||[],countries:facet.countries||[],
         decades:facet.decades||[],ratings:facet.ratings||[]
       })});
@@ -1817,6 +1857,7 @@ function preloadAnotherMoodSelection(){
  preload.promise=(async()=>{
   try{
    await memberRatingsReady;
+   await window.AfterlogueSeen?.initialize?.();
    if(controller.signal.aborted)return null;
    return await searchMoodSelection(scope,offset,controller.signal);
   }catch(error){
@@ -1847,6 +1888,7 @@ async function displayResults(){
  view("results");
  try{
   await memberRatingsReady;
+  await window.AfterlogueSeen?.initialize?.();
   if(requestId!==window.afterlogueMoodRequestId)return;
   const desired=state.randomPick?1:5;
   const cached=nextMoodSelection?.scope===scope&&
@@ -2080,8 +2122,14 @@ initializeCollectionPins();
 
 document.querySelectorAll(".mood-open").forEach(button=>button.addEventListener("click",()=>start(button.closest(".mood-card").dataset.mood)));
 $("explore-back").addEventListener("click",()=>view("gallery"));
-$("explore-results-back").addEventListener("click",()=>view("gallery"));
-$("explore-another").addEventListener("click",()=>view("gallery"));
+$("explore-results-back").addEventListener("click",()=>{
+ try{sessionStorage.removeItem(moodSnapshotKey);}catch(_){}
+ view("gallery");
+});
+$("explore-another").addEventListener("click",()=>{
+ try{sessionStorage.removeItem(moodSnapshotKey);}catch(_){}
+ view("gallery");
+});
 $("explore-next").addEventListener("click",()=>{
   if($("explore-next").disabled) return;
   if(state.stage===0){state.stage=1;renderQuestion();}
@@ -2092,8 +2140,9 @@ $("explore-surprise").addEventListener("click",()=>{Object.assign(state,{randomP
 $("explore-again").addEventListener("click",()=>{
   displayResults();
 });
-restoreMoodSnapshot();
-if(!results.hidden)preloadAnotherMoodSelection();
+restoreMoodSnapshot().then(restored=>{
+ if(restored)preloadAnotherMoodSelection();
+});
 })();
 </script>
 <script src="pending-watchlist.js?v=1"></script>
