@@ -85,7 +85,9 @@
       sessionPromise.then(({status,user}) => {
         // Never navigate a known member to guest landing after a transient
         // offline/auth-initialization error.
-        window.location.assign(status==="guest"?"index.html":"discover.html");
+        // A live session event may have completed since the initial lookup.
+        window.location.assign(activeMemberId||status==="member"?"discover.html":
+          status==="guest"?"index.html":"discover.html");
       });
     });
   }
@@ -200,7 +202,7 @@
     open.forEach(menu=>menu.open=false);
     open[open.length-1].querySelector("summary")?.focus();
   });
-  let lastStatus="unavailable";
+  let authEventObserved=false;
   function applyAuth(status,user){
     if(status==="unavailable"){
       // Leave the existing navigation intact; an error isn't a sign-out.
@@ -212,7 +214,6 @@
     const accountChanged=nextId!==activeMemberId;
     if(accountChanged)resetAvatar();
     activeMemberId=nextId;
-    lastStatus=status;
     updateNavigation(user);
     updateAccountMenu(user);
     if(user){
@@ -220,11 +221,14 @@
         showMemberAvatar(user);
     }else readyAvatar();
   }
-  sessionPromise.then(({status,user})=>applyAuth(status,user));
+  sessionPromise.then(({status,user})=>{
+    if(!authEventObserved)applyAuth(status,user);
+  });
   // Subscriptions are synchronous: never await a database query inside this
   // callback (Supabase warns of auth callback deadlocks).
   client?.auth?.onAuthStateChange?.((event,session)=>{
     if(!["SIGNED_IN","SIGNED_OUT","USER_UPDATED"].includes(event))return;
+    authEventObserved=true;
     auth?.update?.(session);
     Promise.resolve().then(()=>applyAuth(session?.user?"member":"guest",session?.user||null));
   });
