@@ -1566,7 +1566,23 @@ function moodScopeKey(){
   state.pace||"medium",...["countries","genres","decades","ratings"].map(k=>(facet[k]||[]).slice().sort().join(","))
  ]);
 }
-function previousMoodTitles(scope){return shownByScope[scope]||[];}
+function previousMoodTitles(scope){
+ // Adjusting pace is a new request, not permission to recycle the same
+ // few Fall picks. Reuse the seen IDs from other paces for the same mood,
+ // media and filters, while keeping other moods independent.
+ let selected;
+ try{selected=JSON.parse(scope);}catch(_){return shownByScope[scope]||[];}
+ if(!Array.isArray(selected)||selected.length<3)return shownByScope[scope]||[];
+ const history=new Set(shownByScope[scope]||[]);
+ for(const [key,items] of Object.entries(shownByScope)){
+  if(key===scope||!Array.isArray(items))continue;
+  let parts;try{parts=JSON.parse(key);}catch(_){continue;}
+  if(!Array.isArray(parts)||parts.length!==selected.length)continue;
+  if(parts.every((value,i)=>i===2||value===selected[i]))
+   items.forEach(id=>history.add(id));
+ }
+ return [...history].slice(-120);
+}
 function rememberMoodTitles(scope,items){
  shownByScope[scope]=[...new Set([...previousMoodTitles(scope),
   ...items.map(item=>(item.media==="tv"?"tv":"movie")+":"+item.id)])].slice(-120);
