@@ -15,9 +15,15 @@ async function setup(page){
  await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
   status:200,contentType:'application/javascript',body:fakeAuth
  }));
- await page.route('**/functions/v1/afterlogue-catalog',route=>route.fulfill({
-  status:200,contentType:'application/json',body:JSON.stringify({items:[],hasMore:false})
- }));
+ await page.route('**/functions/v1/afterlogue-catalog',route=>{
+  const body=JSON.parse(route.request().postData()||'{}');
+  const item={id:body.media==='tv'?202:101,
+   title:body.media==='tv'?'Test Series':'Test Film',
+   year:2024,media:body.media==='tv'?'tv':'movie',
+   poster:'https://image.tmdb.org/t/p/w500/test.jpg'};
+  return route.fulfill({status:200,contentType:'application/json',
+   body:JSON.stringify({items:body.mode==='onboarding'?[item]:[],hasMore:false})});
+ });
 }
 test('Landing presents the tagline and a single clear first action',async({page})=>{
  await page.goto('index.html');
@@ -52,7 +58,8 @@ test('First Impressions shows one step at a time and clear instructions',async({
 test('Selecting a familiar poster gives immediate progress feedback',async({page})=>{
  await setup(page);
  await page.goto('log.html?guest=1');
- const poster=page.locator('#films .log-poster-placeholder').first();
+ const poster=page.locator('#films .impressions-more-poster').first();
+ await expect(poster).toBeVisible({timeout:15000});
  await poster.click();
  await poster.locator('button[data-rating="Loved"]').click();
  await expect(page.locator('#impressions-rating-count')).toContainText('1 film impression selected');
