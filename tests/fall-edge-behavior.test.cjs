@@ -43,8 +43,8 @@ globalThis.fetch=async(input)=>{
    details.set(media+':'+item.id,item);
    return item;
   });
- }else if(['movie','tv'].includes(url.pathname.split('/')[1])&&Number.isInteger(Number(url.pathname.split('/')[2]))){
-  const mediaType=url.pathname.split('/')[1],id=Number(url.pathname.split('/')[2]);
+ }else if(['movie','tv'].includes(url.pathname.split('/')[2])&&Number.isInteger(Number(url.pathname.split('/')[3]))){
+  const mediaType=url.pathname.split('/')[2],id=Number(url.pathname.split('/')[3]);
   const item=details.get(mediaType+':'+id);
   if(!item)return new Response(JSON.stringify({status_message:'missing'}),{status:404});
   const full={
