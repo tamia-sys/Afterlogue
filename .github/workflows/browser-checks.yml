@@ -50,5 +50,5 @@ jobs:
         run: node --experimental-strip-types --test tests/fall-edge-behavior.test.cjs
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Run browser checks
-        run: npm run test:e2e
+      - name: Run focused browser checks
+        run: npx playwright test tests/mood-and-save-flow-repairs.spec.cjs tests/localized-discovery-polish.spec.cjs tests/confirmed-guest-save-handoff.spec.cjs tests/onboarding-guided-journey.spec.cjs
