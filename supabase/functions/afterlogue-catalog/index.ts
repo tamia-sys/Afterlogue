@@ -432,6 +432,65 @@ const FALL_PACE_HINTS:Record<Media,Record<string,"slow"|"medium"|"energetic">>={
   "Autumn in My Heart":"slow"
  }
 };
+// Human-reviewed mood anchors, not a permanent watchlist or user preference.
+// A windy evening can be playful, everyday, or contemplative (even bittersweet).
+// Search anchors are validated against TMDB title/year and ALL user filters.
+// Ambiguous adaptations (e.g. "Hamlet") are learned as a mood example, not
+// forced to a particular adaptation without a release year.
+type WindingReference={year:number;lane:string;pace:string;reason:string};
+const WINDING_REFERENCES:Record<Media,Record<string,WindingReference>>={
+  movie:{
+    "Beauty Shop":{year:2005,lane:"everyday",pace:"slow",reason:"Its neighborhood salon, close friendships and comic everyday conversations make an inviting comfort watch."},
+    "Just Wright":{year:2010,lane:"comfort",pace:"slow",reason:"An approachable romance grounded in friendship, personal connection and humor."},
+    "Roll Bounce":{year:2005,lane:"playful",pace:"energetic",reason:"Skating, friendship and playful competition offer upbeat nostalgic escapism."},
+    "ATL":{year:2006,lane:"everyday",pace:"slow",reason:"Friendship, neighborhood life and coming of age anchor its nostalgic everyday appeal."},
+    "Drumline":{year:2002,lane:"playful",pace:"energetic",reason:"Music, campus camaraderie and spirited competition make an energetic, enjoyable watch."},
+    "The Princess and the Frog":{year:2009,lane:"playful",pace:"energetic",reason:"Its songs, humor and lively fairy-tale adventure offer animated escapism."},
+    "We're the Millers":{year:2013,lane:"playful",pace:"energetic",reason:"Its road-trip comedy and mismatched traveling companions keep things playful."},
+    "Vacation":{year:2015,lane:"playful",pace:"energetic",reason:"An absurd family road trip makes an easygoing, comedic escape."},
+    "He's Just Not That Into You":{year:2009,lane:"comfort",pace:"slow",reason:"Interconnected romantic misunderstandings make for an approachable ensemble watch."},
+    "About Last Night":{year:2014,lane:"comfort",pace:"slow",reason:"Relationship comedy and conversational warmth keep this an accessible romantic watch."},
+    "Bruce Almighty":{year:2003,lane:"playful",pace:"energetic",reason:"Its playful supernatural premise and broad humor make an upbeat comedy."},
+    "The Switch":{year:2010,lane:"comfort",pace:"slow",reason:"A friendship-led romantic comedy with familiar, lighthearted relationship stakes."},
+    "This Is Where I Leave You":{year:2014,lane:"everyday",pace:"slow",reason:"Family reunion and everyday tensions blend emotional connection with comedy."},
+    "Guess Who":{year:2005,lane:"playful",pace:"energetic",reason:"Its awkward family introduction and comic clashes make a breezy relationship comedy."},
+    "Identity Thief":{year:2013,lane:"playful",pace:"energetic",reason:"An unlikely duo and outrageous road-trip misadventures offer spirited comedic escapism."},
+    "Zombieland":{year:2009,lane:"playful",pace:"energetic",reason:"Self-aware horror-comedy and found-family humor offer playful escapism for viewers comfortable with genre violence."},
+    "Nomadland":{year:2020,lane:"contemplative",pace:"slow",reason:"Its unhurried journeys and attentive observations of everyday lives invite contemplation, despite difficult themes."},
+    "Perfect Days":{year:2023,lane:"contemplative",pace:"slow",reason:"Small routines, music and everyday encounters invite an unhurried, attentive evening."},
+    "Into the Wild":{year:2007,lane:"contemplative",pace:"slow",reason:"Its scenic personal journey invites reflection even though the story becomes emotionally difficult."},
+    "Boyhood":{year:2014,lane:"contemplative",pace:"slow",reason:"Ordinary family moments across the years encourage patient, reflective viewing."},
+    "Avatar":{year:2009,lane:"playful",pace:"energetic",reason:"An immersive fantastical world and accessible adventure offer a more energetic way to unwind."},
+    "Little Forest":{year:2018,lane:"everyday",pace:"slow",reason:"Seasonal cooking and rural routines create a gentle everyday-life experience."},
+    "The Lunchbox":{year:2013,lane:"comfort",pace:"slow",reason:"Food, handwritten exchanges and small human connections make an intimate, approachable watch."},
+    "Paterson":{year:2016,lane:"contemplative",pace:"slow",reason:"Everyday routines and poetry create a warmly observant, unhurried rhythm."},
+    "Amélie":{year:2001,lane:"comfort",pace:"slow",reason:"Its playful imagination and neighborhood connections offer whimsical feel-good storytelling."},
+    "Our Little Sister":{year:2015,lane:"everyday",pace:"slow",reason:"Family relationships and everyday rituals make a warm, observant slice-of-life film."},
+    "Hunt for the Wilderpeople":{year:2016,lane:"playful",pace:"energetic",reason:"An unlikely friendship and offbeat wilderness adventure blend humor and heart."},
+    "School of Rock":{year:2003,lane:"playful",pace:"energetic",reason:"Music, classroom camaraderie and broad humor make an upbeat, rewatchable comedy."}
+  },
+  tv:{
+    "Abbott Elementary":{year:2021,lane:"everyday",pace:"slow",reason:"A workplace school comedy built around funny, caring colleagues and small victories."},
+    "Insecure":{year:2016,lane:"everyday",pace:"slow",reason:"Friendship, career and relationship misadventures offer relatable humor and everyday warmth."},
+    "The Good Place":{year:2016,lane:"comfort",pace:"slow",reason:"A witty, warm-hearted ensemble uses humor and friendship to explore life's bigger questions."},
+    "Midnight Diner":{year:2009,lane:"everyday",pace:"slow",reason:"Late-night meals and customers' everyday stories create a gentle, episodic rhythm."},
+    "Somebody Somewhere":{year:2022,lane:"everyday",pace:"slow",reason:"Friendship and small-town life offer compassionate humor and personal connection."},
+    "Detectorists":{year:2014,lane:"contemplative",pace:"slow",reason:"Its countryside wandering and affectionate character humor invite unhurried viewing."},
+    "Reply 1988":{year:2015,lane:"everyday",pace:"slow",reason:"Neighbors, family and adolescence evoke everyday warmth and nostalgia."},
+    "K-On!":{year:2009,lane:"comfort",pace:"slow",reason:"Light school-club music and friendships offer playful, low-stakes animated comfort."},
+    "Gilmore Girls":{year:2000,lane:"comfort",pace:"slow",reason:"Community, banter and relationships make a familiar small-town comfort watch."},
+    "Bob's Burgers":{year:2011,lane:"comfort",pace:"slow",reason:"Everyday family mishaps and affectionate comedy create approachable animated comfort."},
+    "Schitt's Creek":{year:2015,lane:"comfort",pace:"slow",reason:"Warm relationships grow through oddball small-town comedy."},
+    "Derry Girls":{year:2018,lane:"playful",pace:"energetic",reason:"Energetic school friendships and chaotic comedy deliver an upbeat escape."},
+    "Heartstopper":{year:2022,lane:"comfort",pace:"slow",reason:"Tender young relationships and friendship offer gentle coming-of-age warmth."},
+    "Kim's Convenience":{year:2016,lane:"everyday",pace:"slow",reason:"A family shop and neighborhood relationships provide relatable everyday comedy."},
+    "One Day at a Time":{year:2017,lane:"everyday",pace:"slow",reason:"Warm family relationships and lively sitcom humor make an approachable evening watch."},
+    "Misaeng":{year:2014,lane:"contemplative",pace:"slow",reason:"Office life and quietly persistent personal growth make a reflective character-focused watch."},
+    "Somebody Feed Phil":{year:2018,lane:"comfort",pace:"slow",reason:"Friendly food and travel encounters make an upbeat, easygoing factual watch."},
+    "Felicity":{year:1998,lane:"contemplative",pace:"slow",reason:"Its university friendships and relationship choices invite nostalgic, introspective viewing."}
+  }
+};
+
 const SEASONAL_FEATURES:Record<number,{event:string;reason:string}>={
   25195:{event:"Leap Day",reason:"The story centers on an Irish Leap Day proposal tradition."},
   1019420:{event:"Irish seasonal viewing",reason:"An Irish-set romance suited to St. Patrick’s season; it is not a St. Patrick’s Day plot."},
@@ -1047,6 +1106,40 @@ Deno.serve(async (req:Request) => {
              normalize(String(v[media==="tv"?"name":"title"]||""))===normalize(title))||null;
          }))
         :null;
+      // Reviewed wind-down references seed several DISTINCT viewing styles.
+      // Rotating by offset prevents a fixed shelf, while the wider TMDB search
+      // remains available for discoveries beyond these editorial examples.
+      const windingCatalog=mode==="mood"&&mood==="winding"?WINDING_REFERENCES[media]:{};
+      const windingEntries=Object.entries(windingCatalog);
+      const preferredWinding=windingEntries.filter(([,ref])=>ref.pace===pace);
+      const alternateWinding=windingEntries.filter(([,ref])=>ref.pace!==pace);
+      const windingLanes=pace==="energetic"
+        ?["playful","comfort","everyday","contemplative"]
+        :["contemplative","comfort","everyday","playful"];
+      const windOrder=[...preferredWinding,...alternateWinding];
+      const windingByLane=new Map(windingLanes.map(lane=>[lane,
+        windOrder.filter(([,ref])=>ref.lane===lane)]));
+      const windingTitles:string[]=[];
+      for(let round=0;round<16&&windingTitles.length<12;round++){
+        for(const lane of windingLanes){
+          const entries=windingByLane.get(lane)||[];
+          const row=entries.length?entries[(round+offset*3)%entries.length]:null;
+          if(row&&!windingTitles.includes(row[0]))windingTitles.push(row[0]);
+          if(windingTitles.length===12)break;
+        }
+      }
+      const windingSeedJob=windingTitles.length?Promise.allSettled(
+        windingTitles.map(async title=>{
+          const reference=windingCatalog[title];
+          const data=await tmdb("/search/"+media,
+            new URLSearchParams({query:title,language:"en-US",page:"1",include_adult:"false"}),token);
+          const normalized=(value:string)=>value.normalize("NFKD")
+            .replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+          return (data.results||[]).find((item:Record<string,unknown>)=>
+            normalized(String(media==="tv"?item.name:item.title||""))===normalized(title)
+            &&yearOf(String(media==="tv"?item.first_air_date:item.release_date||""))===reference.year)||null;
+        })
+      ):null;
       const jobs=await Promise.allSettled(Array.from({length:total},async (_,i)=>{
         const country=countries.length?countries[(i+offset)%countries.length]:null;
         const language=languages.length?languages[(Math.floor(i/Math.max(1,countries.length))+offset)%languages.length]:null;
@@ -1103,10 +1196,19 @@ Deno.serve(async (req:Request) => {
         });
       }));
       const groups=jobs.filter((x):x is PromiseFulfilledResult<Record<string,unknown>[]>=>x.status==="fulfilled").map(x=>x.value);
-      if(!groups.length&&!fallSeedJob)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
+      if(!groups.length&&!fallSeedJob&&!windingSeedJob)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
       const seen=new Set<number>(),selected:Record<string,unknown>[]=[];
       if(fallSeedJob){
         const exemplars=await fallSeedJob;
+        for(const result of exemplars){
+          if(result.status!=="fulfilled"||!result.value?.id)continue;
+          const id=Number(result.value.id);
+          if(excluded.has(id)||seen.has(id))continue;
+          seen.add(id);selected.push(result.value);
+        }
+      }
+      if(windingSeedJob){
+        const exemplars=await windingSeedJob;
         for(const result of exemplars){
           if(result.status!=="fulfilled"||!result.value?.id)continue;
           const id=Number(result.value.id);
@@ -1180,9 +1282,17 @@ Deno.serve(async (req:Request) => {
           ?(media==="tv"?FALL_TV_ATMOSPHERE[String(details.name||"")]
             :FALL_ATMOSPHERE[String(details.title||"")])||null:null;
         const tags=Array.isArray(detailKeywords)?detailKeywords.map((v:Record<string,unknown>)=>String(v.name||"")):[];
+        const windingRef=mood==="winding"
+          ?WINDING_REFERENCES[media][String(media==="tv"?details.name:details.title)]||null:null;
         const editorialPace=mood==="fall"
           ?FALL_PACE_HINTS[media][String(media==="tv"?details.name:details.title)]||null:null;
-        const experience=moodExperience(mood,details,tags,pace,fallReason||editorial?.reason||null,editorialPace);
+        const experience=moodExperience(mood,details,tags,pace,
+          windingRef?.reason||fallReason||editorial?.reason||null,
+          editorialPace,windingRef?.lane||null);
+        // Pace changes the preference ordering among qualifying anchors,
+        // not their ability to fit the Winding Down mood at all.
+        if(mood==="winding"&&windingRef&&pace!=="medium")
+          experience.score+=windingRef.pace===pace?3:-1;
         // Reject superficial keyword matches when the experience conflicts:
         // The Ice Storm is not a playful Friday night just because of a party.
         if(experience.score<5)return;
