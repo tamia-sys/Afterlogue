@@ -915,7 +915,7 @@ discoverAgainButton.addEventListener("click", () => {
   rememberDiscovery();
 
   const label = document.querySelector(".discovery-section-header p");
-  label.textContent = "SELECTED / " + String(nextPage + 1).padStart(3, "0");
+  label.textContent = "SELECTED / " + String(discoveryPages[category] + 1).padStart(3, "0");
   document.getElementById("discovery-selections").scrollIntoView({
     behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
       ? "auto" : "smooth",

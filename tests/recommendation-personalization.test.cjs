@@ -514,3 +514,9 @@ test('Watchlist reminder does not wait for three slow TMDB lookups',()=>{
  assert.ok(section.indexOf('grid.replaceChildren(...chosen.map(createCard))')<section.indexOf('await recoverPoster(story)'));
  assert.doesNotMatch(section,/await Promise\.allSettled\(chosen\.map\(recoverPoster\)\)/);
 });
+
+test('Discover Again updates the page number from live state without a stale variable',()=>{
+ const home=read('discover.html');
+ assert.match(home,/String\(discoveryPages\[category\] \+ 1\)\.padStart\(3, "0"\)/);
+ assert.doesNotMatch(home,/String\(nextPage \+ 1\)\.padStart/);
+});
