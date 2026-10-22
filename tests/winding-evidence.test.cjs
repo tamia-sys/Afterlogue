@@ -77,3 +77,23 @@ test('Winding selection seeds multiple strands; user filters remain authoritativ
  assert.match(server,/if\(genres\.length&&!genres\.some\(g=>detailGenreIds\.includes\(categoryGenres\[g\]\)\)\)return/);
  assert.match(server,/const rangePenalty=mood==="winding"&&!genres\.length&&!countries\.length&&!languages\.length/);
 });
+
+test('Take your time has explicit contemplative global cinema references',()=>{
+ const anchors=section('const WINDING_REFERENCES:','const SEASONAL_FEATURES:');
+ for(const title of [
+  'Paterson','Columbus','Lost in Translation','Her',
+  'Spring, Summer, Fall, Winter... and Spring','Three Colors: Blue',
+  'Wendy and Lucy','Sound of Metal','Paris, Texas','Ikiru',
+  'Pather Panchali','Poetry','Ordet','Au Hasard Balthazar','Amour',
+  'The Tree of Life'
+ ]) assert.ok(anchors.includes(JSON.stringify(title)),title);
+ assert.match(server,/windingLaneSequence=pace==="slow"&&media==="movie"/);
+ assert.match(server,/windingRef\.lane==="contemplative"/);
+ assert.match(server,/if\(experience\.score<5\)return/);
+});
+test('Ambiguous or short-film titles do not falsely claim verified feature eligibility',()=>{
+ const anchors=section('const WINDING_REFERENCES:','const SEASONAL_FEATURES:');
+ assert.ok(!anchors.includes('"The Host":'),'Which The Host adaptation is ambiguous');
+ assert.ok(!anchors.includes('"The Red Balloon":'),'1956 short is under the current feature runtime minimum');
+ assert.ok(!anchors.includes('"Hamlet":'),'An adaptation/year was not selected');
+});
