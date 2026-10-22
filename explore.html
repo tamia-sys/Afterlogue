@@ -1616,6 +1616,7 @@ function saveMoodSnapshot(five){
   mood:state.mood,pace:state.pace,format:state.format,
   randomPick:state.randomPick,offset:state.offset,
   items:five.slice(0,5),savedAt:Date.now(),scope:moodScopeKey(),
+  moodAlgorithm:state.mood==="yearning"&&state.format==="tv"?"global-yearning-tv-2":null,
   owner:exploreOwner
  }));}catch(_){}
 }
@@ -1628,6 +1629,11 @@ async function restoreMoodSnapshot(){
   await window.AfterlogueSeen?.initialize?.();
   // Never expose the previous member's recommendations after sign-out.
   if(!snap.owner||snap.owner!==exploreOwner)return false;
+  // An old yearning/TV snapshot can preserve the pre-fix mono-regional
+  // selection after a refresh. Only expire that specific legacy experience;
+  // leave every other mood and the viewer's impression history untouched.
+  if(snap.mood==="yearning"&&snap.format==="tv"&&
+    snap.moodAlgorithm!=="global-yearning-tv-2")return false;
   if(!["movies","tv","either"].includes(snap.format))return false;
   if(!["slow","medium","energetic"].includes(snap.pace))return false;
   if(!snap.items.every(item=>Number.isSafeInteger(Number(item.id))&&
