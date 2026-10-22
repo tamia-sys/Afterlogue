@@ -1,0 +1,47 @@
+name: Verify Live Fall Mood
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-fall-mood-smoke.yml'
+      - 'supabase/functions/afterlogue-catalog/index.ts'
+permissions:
+  contents: read
+jobs:
+  fall-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify unfiltered Fall TV and films at two paces
+        shell: bash
+        run: |
+          node <<'NODE'
+          const endpoint='https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog';
+          async function picks(media,pace,excludeIds=[]){
+            const response=await fetch(endpoint,{
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({
+                mode:'mood',mood:'fall',media,pace,offset:0,
+                countries:[],genres:[],decades:[],ratings:[],excludeIds
+              }),
+              signal:AbortSignal.timeout(45000)
+            });
+            const data=await response.json();
+            if(!response.ok)throw Error(media+'/'+pace+' returned HTTP '+response.status);
+            const results=data.items||[];
+            console.log(media+'/'+pace+': '+results.length+' results — '+results.map(x=>x.title).join(' | '));
+            if(results.length<5)throw Error(media+'/'+pace+' supplied fewer than five verified stories');
+            if(new Set(results.map(x=>x.id)).size!==results.length)throw Error('Duplicate story in '+media+'/'+pace);
+            if(results.some(x=>!x.poster||!x.moodReason))throw Error('Missing poster or mood evidence');
+            if(results.some(x=>excludeIds.includes(x.id)))throw Error('Previously shown title repeated');
+            return results.slice(0,5).map(x=>x.id);
+          }
+          (async()=>{
+            for(const media of ['tv','movie']){
+              const seen=await picks(media,'slow');
+              await picks(media,'energetic',seen);
+            }
+          })().catch(error=>{console.error(error.message);process.exitCode=1;});
+          NODE
