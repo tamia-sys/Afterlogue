@@ -237,7 +237,7 @@ test('Discover draws from balanced decades, international cinema and under-seen 
 test('All Films does not invent a capped total or block Next without its provider signal',()=>{
  const html=read('explore.html'),browser=read('catalog-browser.js');
  const backend=read('supabase/functions/afterlogue-catalog/index.ts');
- assert.match(html,/catalog-browser\.js\?v=11/);
+ assert.match(html,/catalog-browser\.js\?v=12/);
  assert.match(browser,/hasNext=results\.some\(response=>response\.hasMore===true\)/);
  assert.match(browser,/" · Page "\+page;/);
  assert.doesNotMatch(browser,/" of "\+pages/);
@@ -447,7 +447,7 @@ test('All Films lets members save immediately, without needing to open details',
  assert.match(code,/\.from\("watchlist"\)\.insert/);
  assert.match(code,/AfterlogueCatalogMetadata/);
  assert.match(code,/catalogWatchlist\.add\(watchKey\)/);
- assert.match(html,/catalog-browser\.js\?v=11/);
+ assert.match(html,/catalog-browser\.js\?v=12/);
 });
 test('Film Details heart writes to the existing private Favorites table and artwork stays stable',()=>{
  const html=read('film-details.html'),code=read('film-details.js');
