@@ -36,11 +36,13 @@ test('Film details clearly acknowledges Watchlist, shares public card and embeds
  assert.match(html,/id="film-watchlist-feedback"/);
  assert.match(html,/id="film-share-modal"/);
  assert.match(html,/id="film-share-open"/);
- assert.match(script,/This story will no longer appear in Home recommendations/);
+ assert.match(script,/Saved to Watchlist\. Removed from Home\./);
  assert.match(script,/watchBtn\.closest\('\.film-watchlist-control'\)\.before\(eye\)/);
  const css=read('film-details.css');
  assert.match(css,/\.film-hero-actions \.film-watchlist-feedback\{/);
- assert.match(css,/position:static;display:block/);
+ assert.match(css,/position:absolute;display:block/);
+ assert.match(css,/white-space:nowrap/);
+ assert.match(css,/text-overflow:ellipsis/);
  assert.match(script,/navigator\.share/);
  assert.match(script,/navigator\.clipboard\.writeText/);
  assert.match(script,/autoplay=1&mute=1/);
