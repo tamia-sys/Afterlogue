@@ -45,7 +45,9 @@ test('Film details clearly acknowledges Watchlist, shares public card and embeds
  assert.match(css,/text-overflow:ellipsis/);
  assert.match(script,/navigator\.share/);
  assert.match(script,/navigator\.clipboard\.writeText/);
- assert.match(script,/autoplay=1&mute=1/);
+ assert.match(script,/autoplay:'1',mute:'1'/);
+ assert.match(script,/enablejsapi:'1'/);
+ assert.match(script,/nudgeMutedTrailerPlayback/);
 });
 test('Mood results have independent Watchlist save with existing title metadata',()=>{
  const html=read('explore.html');
