@@ -48,6 +48,8 @@ jobs:
         run: npm run test:rules
       - name: Check Fall mood ranking with simulated TMDB
         run: node --experimental-strip-types --test tests/fall-edge-behavior.test.cjs
+      - name: Test Winding Down beyond editorial examples
+        run: node --experimental-strip-types --test tests/winding-edge-discovery.test.cjs
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run focused browser checks
