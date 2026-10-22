@@ -10,21 +10,21 @@ const previews=Object.freeze({
   kind:'Film',genres:'Drama',duration:'2h 4m',
   synopsis:'Hirayama finds contentment in the routines of his life in Tokyo. A series of small encounters offers glimpses of the memories and emotions beneath his quiet days.'
  },
- 'sentimental-value':{
-  title:'Sentimental Value',year:'2025',country:'Norway',
-  kind:'Film',genres:'Drama',duration:'2h 13m',
-  synopsis:'Two sisters reconnect with their estranged filmmaker father when he returns with plans for a new project, reopening long-held family tensions.'
+ 'fallen-leaves':{
+  title:'Fallen Leaves',year:'2023',country:'Finland',
+  kind:'Film',genres:'Comedy · Romance',duration:'1h 21m',
+  synopsis:'Two lonely people meet by chance in Helsinki and try to find their way back to each other through a string of small misunderstandings.'
  },
- 'worst-person':{
-  title:'The Worst Person in the World',year:'2021',country:'Norway',
-  kind:'Film',genres:'Drama · Romance',duration:'2h 8m',
-  synopsis:'Julie navigates love, work, and uncertainty as she tries to understand who she wants to become.'
+ 'past-lives':{
+  title:'Past Lives',year:'2023',country:'United States · South Korea',
+  kind:'Film',genres:'Drama · Romance',duration:'1h 46m',
+  synopsis:'Childhood friends Nora and Hae Sung reconnect decades after her family emigrated, confronting the lives they have chosen and the ones they left behind.'
  },
  blue:{title:'Three Colors: Blue',year:'1993',kind:'Film',impression:'Loved',symbol:'♥'},
  'normal-people':{title:'Normal People',year:'2020',kind:'TV series',impression:'Okay',symbol:'●'},
  severance:{title:'Severance',year:'2022',kind:'TV series',impression:'Not for me',symbol:'×'}
 });
-const ratingTitles={moonlight:'Moonlight',boyhood:'Boyhood',manchester:'Manchester by the Sea'};
+const ratingTitles={moonlight:'Moonlight',boyhood:'Boyhood',frances:'Frances Ha'};
 const ratingPosters=[...document.querySelectorAll('#lp-rating-posters [data-preview-key]')];
 const ratings=[...document.querySelectorAll('#preview-impressions [data-preview-rating]')];
 const ratingStatus=$('lp-rating-status');
