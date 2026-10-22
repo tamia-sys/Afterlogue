@@ -96,7 +96,8 @@ test('Watch trailer opens a muted autoplay-ready player on the actual details pa
  await expect(page.locator('#film-trailer')).toBeVisible();
  await page.locator('#film-trailer').click();
  await expect(page.locator('#film-trailer-modal')).toBeVisible();
- const url=await expect.poll(()=>page.locator('#film-trailer-player').getAttribute('src')).toContain('autoplay=1');
+ // First click uses the already loaded muted video rather than restarting it.
+ await expect.poll(()=>page.locator('#film-trailer-player').getAttribute('src')).toContain('autoplay=0');
  const src=await page.locator('#film-trailer-player').getAttribute('src');
  const embed=new URL(src);
  expect(embed.hostname).toBe('www.youtube-nocookie.com');
@@ -105,4 +106,53 @@ test('Watch trailer opens a muted autoplay-ready player on the actual details pa
  expect(embed.searchParams.get('enablejsapi')).toBe('1');
  await page.locator('#film-trailer-close').click();
  await expect(page.locator('#film-trailer-player')).not.toHaveAttribute('src',/.+/);
+});
+
+test('Preloaded trailer starts muted with the very first Watch trailer click',async({page})=>{
+ await offline(page);
+ await page.route('**/functions/v1/afterlogue-catalog',route=>route.fulfill({
+  status:200,contentType:'application/json',body:'{"items":[]}'
+ }));
+ await page.route('https://www.youtube-nocookie.com/embed/**',route=>route.fulfill({
+  status:200,contentType:'text/html',
+  body:'<!doctype html><html><body data-play="no"><script>'+
+   'window.addEventListener("message",event=>{'+
+   'let data;try{data=JSON.parse(event.data)}catch(_){return;}'+
+   'if(data.event==="listening")window.parent.postMessage(JSON.stringify({event:"onReady"}),"*");'+
+   'if(data.event==="command"&&data.func==="playVideo"){'+
+   'document.body.dataset.play="yes";'+
+   'window.parent.postMessage(JSON.stringify({event:"onStateChange",info:1}),"*");'+
+   '}'+
+   '});<\/script></body></html>'
+ }));
+ await page.goto('film-details.html?title=perfect-days');
+ const player=page.frameLocator('#film-trailer-player');
+ await expect(player.locator('body')).toHaveAttribute('data-play','no');
+ await expect(page.locator('#film-trailer-player')).toHaveAttribute('src',/autoplay=0/);
+ await page.locator('#film-trailer').click();
+ await expect(player.locator('body')).toHaveAttribute('data-play','yes');
+ await expect(page.locator('#film-trailer-status')).toContainText('Playing muted');
+ await expect(page.locator('#film-trailer-player')).toHaveAttribute('src',/autoplay=0/);
+ await page.locator('#film-trailer-close').click();
+ await expect(page.locator('#film-trailer-player')).not.toHaveAttribute('src',/.+/);
+});
+test('Blocked autoplay provides an accurate explanation and manual fallback',async({page})=>{
+ await offline(page);
+ await page.route('**/functions/v1/afterlogue-catalog',route=>route.fulfill({
+  status:200,contentType:'application/json',body:'{"items":[]}'
+ }));
+ await page.route('https://www.youtube-nocookie.com/embed/**',route=>route.fulfill({
+  status:200,contentType:'text/html',
+  body:'<!doctype html><html><body><script>'+
+   'window.addEventListener("message",event=>{'+
+   'let data;try{data=JSON.parse(event.data)}catch(_){return;}'+
+   'if(data.event==="listening")window.parent.postMessage(JSON.stringify({event:"onReady"}),"*");'+
+   'if(data.event==="command"&&data.func==="playVideo")'+
+   'window.parent.postMessage(JSON.stringify({event:"onAutoplayBlocked"}),"*");'+
+   '});<\/script></body></html>'
+ }));
+ await page.goto('film-details.html?title=perfect-days');
+ await page.locator('#film-trailer').click();
+ await expect(page.locator('#film-trailer-status')).toContainText('browser blocked automatic playback');
+ await expect(page.locator('#film-trailer-external')).toHaveAttribute('href',/youtube\.com\/watch\?v=/);
 });
