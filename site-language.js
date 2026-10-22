@@ -13,7 +13,7 @@ let locale='en';
 try{const v=localStorage.getItem(KEY);if(supported.includes(v))locale=v;}catch(_){}
 const originals=new WeakMap();
 const exclusions='script,style,noscript,svg,pre,code,textarea,[contenteditable],.discovery-artwork,.film-lead,.film-synopsis-lead,.film-title,.film-hero-title,.archive-card-title,.watchlist-reminder-card-title,.explore-pick h3,.catalog-tile-title,.poster figcaption,.film-share-title,.archive-feature-title,.film-credits,.film-fact-row dd,.discuss-post-body,.discussion-body,.member-bio,.archive-feature-note,.film-other-grid';
-const clean=t=>t.trim().replace(/\\s+/g,' ');
+const clean=t=>t.trim().replace(/\s+/g,' ');
 function translate(v){
  const trimmed=clean(v);
  if(!trimmed)return null;
@@ -32,7 +32,7 @@ function translateNode(node){
  const replacement=locale==='en'?record.original:translate(record.original);
  if(replacement!==null){
   const front=record.original.match(/^\\s*/)?.[0]||'';
-  const back=record.original.match(/\\s*$/)?.[0]||'';
+  const back=record.original.match(/\s*$/)?.[0]||'';
   const output=front+replacement+back;
   if(node.nodeValue!==output)node.nodeValue=output;
   record.applied=output;
