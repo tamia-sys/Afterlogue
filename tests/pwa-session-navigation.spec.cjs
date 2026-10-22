@@ -23,8 +23,7 @@ window.supabase={createClient:()=>({
      }
      return {data:{discovery_country:null,discovery_language:null},error:null};
     },
-    order:async()=>({data:[],error:null}),
-    eq:()=>({maybeSingle:async()=>({data:null,error:null})})
+    order:async()=>({data:[],error:null})
    }),
    order:async()=>({data:[],error:null})
   })
