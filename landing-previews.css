@@ -306,27 +306,12 @@ html[lang="ko"] .how .step-intro h3{
 
 /* Film-picking invitation directly below all three example cards. */
 .landing-final-invitation{
-  position:relative;display:flex;
-  justify-content:space-between;align-items:center;
-  gap:28px;margin:35px 0 0;
-  min-height:164px;padding:30px clamp(24px,3.8vw,58px);
-  border:1px solid rgba(209,172,120,.65);border-radius:12px;
-  background:
-    linear-gradient(90deg,rgba(12,12,13,.98) 0%,rgba(15,15,15,.96) 40%,rgba(22,13,10,.56) 100%),
-    url("https://images.unsplash.com/photo-1751977146227-4fc506ca71a9?fm=jpg&q=65&w=1600") right center / cover no-repeat,
-    #171311;
-  overflow:hidden;isolation:isolate;
-}
-.landing-final-invitation::after{
-  content:"";position:absolute;inset:0;z-index:-1;
-  background:radial-gradient(ellipse at 80% 12%,rgba(211,145,76,.14),transparent 56%);
-  pointer-events:none;
+  display:flex;justify-content:space-between;align-items:center;
+  gap:32px;margin:44px 0 0;padding:12px 0 4px;
+  border:none;border-radius:0;background:none;
+  min-height:88px;overflow:visible;
 }
 .landing-final-copy{position:relative;min-width:0;max-width:850px;}
-.landing-final-eyebrow{
-  margin:0 0 13px;letter-spacing:.17em;color:#c9ad84;
-  font:600 10px/1.4 Arial,Helvetica,sans-serif;
-}
 .landing-final-invitation h2{
   margin:0;font:400 clamp(27px,3.0vw,45px)/1.18 Georgia,"Times New Roman",serif;
   letter-spacing:-.032em;color:var(--cream);
@@ -380,8 +365,8 @@ html[lang="ko"] .how .step-intro h3{
  .how .journey-posters{gap:9px}
  .how .lp-ratings .journey-rating{font-size:10px}
  .landing-final-invitation{
-  flex-direction:column;align-items:flex-start;
-  gap:23px;padding:28px 22px;min-height:0;
+  flex-direction:column;align-items:center;
+  gap:23px;padding:12px 6px 2px;min-height:0;text-align:center;
  }
  .landing-final-invitation h2{font-size:clamp(29px,7vw,39px)}
  .landing-final-button{width:100%;min-height:48px}
