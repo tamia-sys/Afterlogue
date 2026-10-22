@@ -133,7 +133,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=8"></script>
+<script src="recommendation-engine.js?v=9"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -162,6 +162,7 @@ if (isGuestMode) {
   // Guest preferences are temporary. Member preferences come exclusively
   // from the authenticated Supabase account, never from a previous browser user.
   const savedImpressions = {};
+  const impressionDates = {};
   if(isGuestMode) {
     // Only guests can use browser-persistent ratings pending an account import.
     for(let i=0;i<localStorage.length;i++){
@@ -529,7 +530,7 @@ function getDiscoveryRecommendations(category, page = 0, omit = null) {
   }
   const selected=window.AfterlogueRecommendationEngine.rank({
     entries:[...discoveryEntries,...discoverySourceEntries,...discoveryExpandedEntries],
-    category,impressions:savedImpressions,
+    category,impressions:savedImpressions,timestamps:impressionDates,
     favorites:discoveryFavorites,watchlist:discoveryWatchlist,seen:discoverySeen
   });
   // The original curated titles are taste references, not suggestions.
@@ -813,6 +814,7 @@ const discoveryCacheKey="afterlogue.discover.shelf.v2";
 function discoveryFingerprint(){
  return JSON.stringify({
   ratings:Object.entries(savedImpressions).sort((a,b)=>a[0].localeCompare(b[0])),
+  ratingDates:Object.entries(impressionDates).sort((a,b)=>a[0].localeCompare(b[0])),
   favorites:discoveryFavorites.map(x=>x.title_key).filter(Boolean).sort(),
   watchlist:discoveryWatchlist.map(x=>x.title_key).filter(Boolean).sort(),
   seen:[...discoverySeen].sort(),
@@ -940,6 +942,39 @@ discoverAgainButton.addEventListener("click", () => {
 /* AFTERLOGUE — LOAD ACCOUNT IMPRESSIONS */
 
 
+// Phase 2: enrich logged TMDB titles with provider-verified genres and
+// explicitly tagged story themes. The request contains public title IDs only,
+// never private ratings, identities or Log notes. No AI services are called.
+// Data is kept in this page's short-lived, account-bound Home snapshot.
+async function loadTasteFeatures(keys){
+ const unique=[...new Set(keys.filter(key=>/^tmdb-(movie|tv)-[1-9][0-9]{0,9}$/.test(key)))];
+ const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
+ const batches=[];
+ // Limit burst fanout. Editorial titles already have their own facets;
+ // 108 dynamic titles cover substantially larger Logs than initial onboarding.
+ for(let i=0;i<Math.min(unique.length,108);i+=18)batches.push(unique.slice(i,i+18));
+ const records=[];
+ let next=0;
+ await Promise.all(Array.from({length:Math.min(2,batches.length)},async()=>{
+   while(next<batches.length){
+     const keys=batches[next++];
+     const controller=new AbortController();
+     const timeout=setTimeout(()=>controller.abort(),14000);
+     try{
+       const response=await fetch(endpoint,{
+         method:"POST",signal:controller.signal,
+         headers:{"Content-Type":"application/json"},
+         body:JSON.stringify({mode:"taste-features",keys})
+       });
+       if(!response.ok)throw Error("taste features unavailable");
+       const data=await response.json();
+       records.push(...(Array.isArray(data.items)?data.items:[]));
+     }catch(error){console.warn("Taste profile metadata unavailable",error);}
+     finally{clearTimeout(timeout);}
+   }
+ }));
+ return records;
+}
 async function populateExpandedRecommendations(userId){
  discoveryCatalogState.movies="loading";discoveryCatalogState.tv="loading";
  const client=window.afterlogueSupabase;
@@ -990,6 +1025,12 @@ async function populateExpandedRecommendations(userId){
   ...Object.entries(window.AfterlogueFeaturedCatalog||{}),
   ...dynamic.map(x=>[x.title_key,x])
  ]);
+ const featureKeys=[
+   ...Object.keys(savedImpressions).map(key=>key.replace(/^afterlogue-/,"")),
+   ...discoveryFavorites.map(x=>x.title_key)
+ ];
+ // Retrieval runs concurrently with the existing two recommendation requests.
+ const tasteFeaturesPromise=loadTasteFeatures(featureKeys);
  const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
  const excluded=new Set([...sources.map(x=>x.key),...discoverySeen,
    ...discoveryWatchlist.map(x=>x.title_key)]);
@@ -1100,6 +1141,30 @@ async function populateExpandedRecommendations(userId){
    if(!entries.length&&state!=="error")state="empty";
    // A result can become available as soon as its own medium finishes:
    // don't hold TV hostage while movie queries are still in flight.
+   const features=await tasteFeaturesPromise;
+   const byKey=new Map(features.map(item=>[item.key,item]));
+   const recorded=new Set(discoverySourceEntries.map(item=>item.key));
+   discoverySourceEntries=discoverySourceEntries.map(item=>{
+     const details=byKey.get(item.key);
+     if(!details)return item;
+     return {...item,facets:{
+       themes:details.themes||[],tones:details.tones||[],
+       genres:details.genres||[],pace:null
+     }};
+   });
+   // Legacy Log titles may have ratings but no user_catalog_titles row.
+   // They still contribute safe metadata signals once TMDB resolves their ID.
+   for(const item of features){
+     if(recorded.has(item.key))continue;
+     discoverySourceEntries.push({
+       key:item.key,title:item.title,category:item.category,
+       position:300+discoverySourceEntries.length,year:null,poster:null,
+       directMatches:[],reason:null,synopsis:null,
+       facets:{themes:item.themes||[],tones:item.tones||[],
+         genres:item.genres||[],pace:null}
+     });
+     recorded.add(item.key);
+   }
    discoveryExpandedEntries=discoveryExpandedEntries.filter(x=>x.category!==category).concat(entries);
    discoveryCatalogState[category]=state;
    discoveryPages[category]=0;
@@ -1158,7 +1223,7 @@ async function loadAccountImpressions() {
 
     const { data: impressions, error } = await client
       .from("impressions")
-      .select("title_key, rating")
+      .select("title_key, rating, updated_at")
       .eq("user_id", userData.user.id)
       .order("updated_at",{ascending:false});
     // Favorites give a modest positive signal; watchlist items aren't re-recommended.
@@ -1200,12 +1265,14 @@ async function loadAccountImpressions() {
     Object.keys(savedImpressions).forEach(key => {
       delete savedImpressions[key];
     });
+    Object.keys(impressionDates).forEach(key=>delete impressionDates[key]);
 
     const validRatings = ["Loved", "Liked", "Okay", "Not for me"];
 
     impressions.forEach(item => {
       if (validRatings.includes(item.rating)) {
         savedImpressions["afterlogue-" + item.title_key] = item.rating;
+        if(item.updated_at)impressionDates[item.title_key]=item.updated_at;
       }
     });
 
