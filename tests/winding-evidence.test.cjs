@@ -1,0 +1,79 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const ts=require('typescript');
+const server=fs.readFileSync(path.join(__dirname,'../supabase/functions/afterlogue-catalog/index.ts'),'utf8');
+function section(a,b){
+ const start=server.indexOf(a),end=server.indexOf(b,start+a.length);
+ assert.ok(start>=0&&end>start,'source boundary missing: '+a);
+ return server.slice(start,end);
+}
+// Execute the actual server implementation; do not duplicate the heuristics.
+const source=section('function holidayEvidence(', '// Stronger than a genre label')+
+ '\n'+section('type MoodAssessment=', 'const HOLIDAY_GROUPS:string[][]=');
+const compiled=ts.transpileModule(source,{
+ compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}
+}).outputText;
+const {moodExperience}=new Function(compiled+'\nreturn {moodExperience};')();
+const film=(title,overview,genres=[],id=99)=>({id,title,overview,genres:genres.map(id=>({id}))});
+const match=(item,tags=[],pace='slow',reason=null,lane=null)=>
+ moodExperience('winding',item,tags,pace,reason,null,lane);
+
+test('Winding down includes easygoing neighborhood comedy, not only quiet dramas',()=>{
+ const beauty=film('Salon Days','A funny neighborhood salon comedy about friends, family and everyday life.',[35]);
+ const result=match(beauty);
+ assert.ok(result.score>=5,JSON.stringify(result));
+ assert.match(result.reason,/humor|lighthearted|everyday/i);
+});
+test('Winding down includes poetic routines and contemplative travel even when bittersweet',()=>{
+ const daily=film('Ordinary Days','A quiet contemplative story about daily routines and the passage of time.',[18]);
+ const roads=film('A Road Alone','An introspective journey in solitude as a traveler grapples with grief.',[18]);
+ assert.ok(match(daily).score>=5);
+ assert.ok(match(roads).score>=5,'Contemplative melancholy must not be mistaken for an automatic mismatch');
+ assert.match(match(daily).reason,/reflective|contemplative/i);
+});
+test('Light, energetic comedy can qualify without mislabeling it as slow',()=>{
+ const road=film('Unexpected Family Road Trip','A witty comedy about an unlikely duo and their misadventures on a road trip.',[35,12]);
+ const fast=match(road,[],'energetic'),slow=match(road,[],'slow');
+ assert.ok(fast.score>=5,JSON.stringify(fast));
+ assert.ok(fast.score>slow.score);
+});
+test('A slice-of-life keyword alone does not qualify chaotic material',()=>{
+ const falsePositive=film('Chaotic School Fantasy','Students fight monsters to survive a violent magical school war.',[16,10759]);
+ assert.ok(match(falsePositive,['slice of life']).score<5,JSON.stringify(match(falsePositive,['slice of life'])));
+});
+test('Trauma is not recast as relaxing just because the synopsis says intimate',()=>{
+ const prison=film('A Gentle Prison','A gentle prison guard witnesses an execution on death row.',[18,80]);
+ const documentary=film('Painful Search','An intimate search for missing daughters after domestic abuse and violence.',[99,18]);
+ assert.ok(match(prison).score<5,JSON.stringify(match(prison)));
+ assert.ok(match(documentary,['self discovery']).score<5,JSON.stringify(match(documentary,['self discovery'])));
+});
+test('A documented editorial rationale can acknowledge emotionally challenging contemplation',()=>{
+ const nomad=film('Nomadland','A woman travels through the American West after grief and job loss.',[18]);
+ const reason='Its unhurried journeys and attentive observations of everyday lives invite contemplation, despite difficult themes.';
+ const result=match(nomad,[],'slow',reason,'contemplative');
+ assert.ok(result.score>=5,JSON.stringify(result));
+ assert.equal(result.reason,reason);
+ assert.equal(result.lane,'contemplative');
+});
+test('Anchors preserve broad cinema while avoiding unspecified Hamlet adaptation',()=>{
+ const anchors=section('const WINDING_REFERENCES:','const SEASONAL_FEATURES:');
+ for(const name of ['"Beauty Shop"','"Zombieland"','"Nomadland"','"Perfect Days"','"Into the Wild"','"Boyhood"','"Midnight Diner"','"Reply 1988"','"K-On!"']){
+  assert.ok(anchors.includes(name),'Missing positive example '+name);
+ }
+ assert.ok(!anchors.includes('"Hamlet":'),'An unspecified adaptation cannot be hard-coded as a verified title');
+ assert.match(server,/windingRef\?\.reason\|\|fallReason/);
+ assert.match(server,/windingRef\?\.lane\|\|null/);
+ assert.match(server,/yearOf\(String\(media==="tv"\?item\.first_air_date:item\.release_date\|\|""\)\)===reference\.year/);
+});
+test('Winding selection seeds multiple strands; user filters remain authoritative',()=>{
+ assert.match(server,/const windingLanes=pace==="energetic"/);
+ assert.match(server,/const windingSeedJob=/);
+ assert.match(server,/if\(windingSeedJob\)\{/);
+ assert.match(server,/if\(experience\.score<5\)return/);
+ assert.match(server,/if\(countries\.length&&!countries\.some\(c=>produced\.includes\(c\)\)\)return/);
+ assert.match(server,/if\(ratings\.length&&!ratings\.includes\(certification!\)\)return/);
+ assert.match(server,/if\(genres\.length&&!genres\.some\(g=>detailGenreIds\.includes\(categoryGenres\[g\]\)\)\)return/);
+ assert.match(server,/const rangePenalty=mood==="winding"&&!genres\.length&&!countries\.length&&!languages\.length/);
+});
