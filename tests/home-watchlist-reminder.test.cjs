@@ -11,7 +11,7 @@ test('Home keeps one five-pick shelf followed by a collapsed saved collection',(
  assert.match(html,/Something from your collection, perhaps\?/);
  assert.match(html,/id="watchlist-reminder-content"[^>]*hidden/);
  assert.ok(html.indexOf('id="discovery-results"')<html.indexOf('id="watchlist-reminder-toggle"'));
- assert.match(html,/home-watchlist-reminder\.js\?v=1/);
+ assert.match(html,/home-watchlist-reminder\.js\?v=2/);
 });
 test('Reminder only uses authenticated personal Watchlist rows and catalog metadata',()=>{
  const js=read('home-watchlist-reminder.js');
