@@ -115,3 +115,44 @@ Implementation adds independently verifiable title/year anchors, expands candida
 - Verify comedy, contemplative, anime, international drama and film/adventure examples against both true and misleading matches; check *Why this story* for unsupported or generic explanations.
 - Verify production-country/genre/decade/rating filter integrity, duplicate exclusion, and actual candidate counts. If the catalog really cannot provide five, do not fill with irrelevant titles.
 - Inspect actual server performance and provider requests before deploying: editorial search adds up to 12 title-search requests per affected mood selection. Cache verified candidate metadata in a later performance iteration.
+
+
+## Personalization 2.0 — Phase 2: evolving taste profile (October 22, 2026)
+
+Home combines existing title-to-title recommendation evidence with a compact,
+deterministic **per-account taste profile** constructed on demand. There is no
+external AI model, persistent tracking profile, private-note analysis, or model
+training.
+
+- Member impressions and Favorites form signed signals across **genres, themes,
+  tones and (when editorially known) pace**. Loved/Liked are positive; Not for me
+  is negative; Okay is neutral; Favorites modestly strengthen positive evidence,
+  but cannot reverse a negative/neutral rating.
+- Recent impressions carry slightly more weight. Older tastes retain substantial
+  influence, and diminishing returns prevent a high-volume single genre from
+  completely suppressing other interests. Strong individual-title matches remain
+  important for explanation and candidate eligibility.
+- The 54 curated titles already have human-authored theme/tone tags. Previously
+  saved dynamically logged TMDB titles usually lacked any feature information.
+  A bounded **taste-features** catalog operation resolves dynamic public
+  TMDB IDs to official genre names and only narrow, explicitly mapped keyword
+  labels. Source lookup carries *only public title IDs*; it never sends users,
+  ratings, emails or private Log notes.
+- Up to 108 dynamic Log titles can be enriched on a Home visit, plus up to 24
+  matched candidate titles per media type. Missing metadata is ignored instead
+  of hallucinated. Home snapshots remain account-bound and short-lived.
+- The current candidate generator is still TMDB-based, with selected positive
+  titles seeding the discovery pool and full-profile evidence affecting ranking.
+  Coverage for long Logs beyond 108 dynamic titles and subtle films with limited
+  TMDB keywords is still imperfect. This is a **rule-based recommendation
+  system**, not a learned machine-learning user embedding.
+- Mood Explore currently uses the Log to exclude already-known works. Individual
+  taste-sensitive Explore ordering remains **Phase 3**, not part of Phase 2.
+- Test effectiveness empirically: preference changes should reorder candidates,
+  negative signals must not ban an entire genre, and a 5/20/50/100-title Log
+  should produce measurably more relevant recommendations. Automated unit and
+  browser tests verify behavior, **not actual viewer satisfaction**.
+
+Note: descriptive keyword mapping is a heuristic and never evidence of a user's
+mental state. Never treat an incidental generic genre tag as proof of a
+subtle emotional theme.
