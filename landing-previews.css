@@ -230,8 +230,10 @@ body.lp-preview-open{overflow:hidden}
 }
 .how .step-intro h3{
   margin:0 0 11px;color:var(--cream);
-  font:400 clamp(25px,2.25vw,36px)/1.12 Georgia,"Times New Roman",serif;
-  letter-spacing:-.035em;overflow-wrap:break-word;
+  /* The very same typeface and normal weight as the logo and hero headline. */
+  font-family:Georgia,serif;font-weight:400;
+  font-size:clamp(24px,2.2vw,34px);line-height:1.12;
+  letter-spacing:-.032em;overflow-wrap:break-word;
 }
 .how .step-lede{
   max-width:350px;margin:0;
@@ -307,27 +309,29 @@ html[lang="ko"] .how .step-intro h3{
 /* Film-picking invitation directly below all three example cards. */
 .landing-final-invitation{
   display:flex;justify-content:space-between;align-items:center;
-  gap:32px;margin:44px 0 0;padding:12px 0 4px;
-  border:none;border-radius:0;background:none;
-  min-height:88px;overflow:visible;
+  gap:32px;margin:32px 0 0;padding:30px 0 2px;
+  /* A single hairline separates the cards from the closing invitation. */
+  border:0;border-top:1px solid rgba(217,174,117,.35);
+  border-radius:0;background:none;
+  min-height:0;overflow:visible;
 }
 .landing-final-copy{position:relative;min-width:0;max-width:850px;}
 .landing-final-invitation h2{
-  margin:0;font:400 clamp(27px,3.0vw,45px)/1.18 Georgia,"Times New Roman",serif;
-  letter-spacing:-.032em;color:var(--cream);
+  margin:0;font:400 clamp(19px,1.75vw,25px)/1.35 Georgia,serif;
+  letter-spacing:-.02em;color:var(--cream);
   text-wrap:balance;
 }
 .landing-final-button{
   flex:none;display:inline-flex;align-items:center;justify-content:center;
-  min-width:222px;min-height:54px;padding:15px 28px;
-  border:1px solid #efd5a7;border-radius:999px;
-  color:#19140f;background:linear-gradient(120deg,#ffe8bb,#eac78d);
-  font:600 15px/1.2 Georgia,serif;text-decoration:none;
-  transition:background .2s ease,transform .2s ease,box-shadow .2s ease;
+  min-width:182px;min-height:43px;padding:12px 20px;
+  border:1px solid #ead8bc;border-radius:999px;
+  color:#211b16;background:#ead8bc;
+  /* Match the flat, compact primary action on First Impressions. */
+  font:600 12px/1.4 Inter,Arial,sans-serif;text-decoration:none;
+  transition:background .2s ease,border-color .2s ease;
 }
 .landing-final-button:hover,.landing-final-button:focus-visible{
-  background:#f7dfb7;transform:translateY(-2px);
-  box-shadow:0 7px 25px rgba(214,153,78,.16);
+  background:#d4b487;border-color:#d4b487;
 }
 @media(max-width:1050px){
  .how .steps{gap:13px}
@@ -336,7 +340,7 @@ html[lang="ko"] .how .step-intro h3{
  .how .step-intro h3{font-size:clamp(23px,2.5vw,30px)}
  .how .journey-posters{gap:6px}
  .how .lp-ratings .journey-rating{font-size:9px;gap:2px;padding:5px 1px}
- .landing-final-button{min-width:192px}
+ .landing-final-button{min-width:182px}
 }
 @media(max-width:850px){
  .how{padding:36px 22px 58px}
@@ -353,8 +357,8 @@ html[lang="ko"] .how .step-intro h3{
  .how .step-intro h3{font-size:29px}
  .how .step-lede{font-size:14px}
  .how .lp-ratings .journey-rating{font-size:10px}
- .landing-final-invitation{margin-top:30px;min-height:0;padding:18px 0 6px}
- .landing-final-invitation h2{font-size:clamp(25px,3.5vw,36px)}
+ .landing-final-invitation{margin-top:28px;min-height:0;padding:25px 0 5px}
+ .landing-final-invitation h2{font-size:clamp(19px,2.5vw,24px)}
 }
 @media(max-width:620px){
  .how{padding:31px 16px 50px}
@@ -366,17 +370,17 @@ html[lang="ko"] .how .step-intro h3{
  .how .lp-ratings .journey-rating{font-size:10px}
  .landing-final-invitation{
   flex-direction:column;align-items:center;
-  gap:23px;padding:12px 6px 2px;min-height:0;text-align:center;
+  gap:20px;padding:25px 6px 2px;min-height:0;text-align:center;
  }
- .landing-final-invitation h2{font-size:clamp(29px,7vw,39px)}
- .landing-final-button{width:100%;min-height:48px}
+ .landing-final-invitation h2{font-size:clamp(18px,5vw,22px)}
+ .landing-final-button{width:auto;min-width:182px;min-height:43px}
 }
 @media(max-width:380px){
  .how .step{padding:16px}
  .how .lp-ratings .journey-rating{font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){
- .landing-final-button{transition:none!important;transform:none!important}
+ .landing-final-button{transition:none!important}
  .how .steps{scroll-behavior:auto}
 }
 

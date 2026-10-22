@@ -143,10 +143,38 @@ test('Start discovering banner is below cards and points to guest First Impressi
   const c=getComputedStyle(el);
   return {border:c.borderTopWidth,image:c.backgroundImage,color:c.backgroundColor};
  });
- expect(frame.border).toBe('0px');
+ expect(frame.border).toBe('1px');
  expect(frame.image).toBe('none');
  expect(frame.color).toBe('rgba(0, 0, 0, 0)');
  await expect(page.locator('.landing-final-button')).not.toContainText('→');
+ const typography=await page.evaluate(()=>{
+  const logo=getComputedStyle(document.querySelector('.brand'));
+  const hero=getComputedStyle(document.querySelector('#welcome-title'));
+  const card=getComputedStyle(document.querySelector('.how .step-intro h3'));
+  const sentence=getComputedStyle(document.querySelector('.landing-final-invitation h2'));
+  const button=getComputedStyle(document.querySelector('.landing-final-button'));
+  const container=getComputedStyle(document.querySelector('.landing-final-invitation'));
+  return{
+   logoFamily:logo.fontFamily,heroFamily:hero.fontFamily,cardFamily:card.fontFamily,
+   cardWeight:card.fontWeight,headingWeight:hero.fontWeight,
+   sentenceSize:parseFloat(sentence.fontSize),
+   divider:container.borderTopWidth,
+   buttonColor:button.color,buttonBackground:button.backgroundColor,
+   buttonImage:button.backgroundImage,buttonFontSize:button.fontSize,
+   buttonFontFamily:button.fontFamily,buttonHeight:parseFloat(button.minHeight)
+  };
+ });
+ expect(typography.cardFamily).toBe(typography.logoFamily);
+ expect(typography.cardFamily).toBe(typography.heroFamily);
+ expect(typography.cardWeight).toBe(typography.headingWeight);
+ expect(typography.sentenceSize).toBeLessThanOrEqual(25);
+ expect(typography.divider).toBe('1px');
+ expect(typography.buttonColor).toBe('rgb(33, 27, 22)');
+ expect(typography.buttonBackground).toBe('rgb(234, 216, 188)');
+ expect(typography.buttonImage).toBe('none');
+ expect(typography.buttonFontSize).toBe('12px');
+ expect(typography.buttonHeight).toBe(43);
+
 });
 test('Narrow screens keep a horizontal swipeable three-card rail',async({page})=>{
  await page.setViewportSize({width:390,height:844});
