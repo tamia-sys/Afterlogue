@@ -1455,6 +1455,7 @@ document.body.classList.add("explore-gallery-mode");
 
 function view(section) {
   // A user changing their mind cancels stale results from an earlier mood.
+  if(section!=="results")cancelMoodPreload();
   if(section!=="results"&&window.afterlogueMoodRequestId)
     window.afterlogueMoodRequestId++;
   gallery.hidden = section !== "gallery";
@@ -1726,142 +1727,199 @@ document.addEventListener("afterlogue:language-changed",()=>{
   text.textContent=lang==="en"?text.dataset.originalReason:tr(text.dataset.moodIntro);
  });
 });
-/* Each answer produces exactly one verified, five-story selection.
-   Partial attempts are never recycled, and already shown titles never return. */
-/* Another selection should NEVER wipe out five working recommendations simply
-   because the next catalog offset returned too few qualifying stories.
-   Try additional genuine offsets and keep the current set if fresh results
-   are unavailable. Do not blame optional filters the viewer never selected. */
-async function displayResults(){
-  const requestId=window.afterlogueMoodRequestId=(window.afterlogueMoodRequestId||0)+1;
-  const host=$("explore-picks");
-  const hasPrevious=host.dataset.scope===moodScopeKey()&&host.querySelectorAll(".explore-pick").length>0;
-  // A pending or failed Fall request should never carry the prior Yearning label.
-  const tr=text=>window.AfterlogueLanguage?.translate?.(text)||text;
-  $("explore-results-label").textContent="AFTERLOGUE / "+tr(data.moods[state.mood].short).toLocaleUpperCase();
-  $("explore-results-title").textContent=state.randomPick?"A story you didn't ask for.":"A little something for you.";
-  results.classList.toggle("is-surprise",Boolean(state.randomPick));
-  if(!hasPrevious){
-    host.replaceChildren();
-    const pending=document.createElement("p");
-    pending.className="explore-question";
-    pending.textContent="Finding stories for your mood…";
-    host.append(pending);
-  }else{
-    $("explore-results-detail").textContent="Finding another selection of stories…";
+/* A full five-story mood set is always verified before replacing the current
+   selection. Search and preloading share this function so the next set stays
+   faithful to the chosen mood, pace, filters, history and current impressions. */
+const moodEndpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
+let nextMoodSelection=null;
+function cancelMoodPreload(){
+ if(nextMoodSelection?.controller)nextMoodSelection.controller.abort();
+ nextMoodSelection=null;
+}
+async function searchMoodSelection(scope,startOffset,signal=null){
+ // Capture the configuration at the beginning; a prefetch must never drift
+ // into the next mood if the viewer adjusts their choices while it loads.
+ const mood=state.mood,pace=state.pace||"medium";
+ const randomPick=Boolean(state.randomPick),desired=randomPick?1:5;
+ const format=state.format||"either";
+ const media=format==="tv"?["tv"]:format==="movies"?["movie"]:["movie","tv"];
+ const facet=randomPick?{genres:[],countries:[],decades:[],ratings:[]}
+   :(window.AfterlogueExploreFilters?.get()||{});
+ const shown=new Set(previousMoodTitles(scope));
+ const rated=ratedTitles();
+ const excluded=new Set([...rated,...(window.AfterlogueSeen?.seen||[])]);
+ const picks=[],unique=new Set();
+ let succeeded=false,attempts=0;
+ // At most two genuine catalog offsets, and one selection preloaded at a
+ // time. No endless background refreshes or speculative extra requests.
+ for(let attempt=0;attempt<2&&picks.length<desired;attempt++){
+  if(signal?.aborted)break;
+  const cursor=startOffset+attempt;
+  attempts++;
+  const responses=await Promise.allSettled(media.map(async type=>{
+   const controller=new AbortController();
+   const onAbort=()=>controller.abort();
+   if(signal){
+    if(signal.aborted)controller.abort();
+    else signal.addEventListener("abort",onAbort,{once:true});
+   }
+   const timeout=setTimeout(()=>controller.abort(),19000);
+   try{
+    const alreadyChosen=picks.filter(item=>(item.media==="tv"?"tv":"movie")===type)
+      .map(item=>Number(item.id));
+    const response=await fetch(moodEndpoint,{method:"POST",signal:controller.signal,
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        mode:"mood",mood:randomPick?"unexpected":mood,media:type,
+        offset:cursor,pace,
+        excludeIds:[...new Set([
+          ...[...shown].filter(k=>k.startsWith(type+":")).map(k=>Number(k.split(":")[1])),
+          ...alreadyChosen
+        ])],
+        genres:facet.genres||[],countries:facet.countries||[],
+        decades:facet.decades||[],ratings:facet.ratings||[]
+      })});
+    if(!response.ok)throw Error("Mood search returned "+response.status);
+    return (await response.json()).items||[];
+   }finally{
+    clearTimeout(timeout);
+    if(signal)signal.removeEventListener("abort",onAbort);
+   }
+  }));
+  if(signal?.aborted)break;
+  const lists=responses.filter(result=>result.status==="fulfilled").map(result=>result.value);
+  if(lists.length)succeeded=true;
+  const max=Math.max(0,...lists.map(list=>list.length));
+  for(let i=0;i<max&&picks.length<desired;i++){
+   for(const list of lists){
+    const item=list[i];
+    if(!item?.poster||!item.id)continue;
+    const type=item.media==="tv"?"tv":"movie";
+    const key="tmdb-"+type+"-"+item.id,history=type+":"+item.id;
+    if(unique.has(key)||excluded.has(key)||shown.has(history))continue;
+    unique.add(key);
+    picks.push({...item,key,media:type==="tv"?"tv":"movies",
+      reason:item.moodReason||"Selected for your mood."});
+    if(picks.length>=desired)break;
+   }
   }
-  $("explore-again").disabled=true;
-  view("results");
+ }
+ return {picks,succeeded,nextOffset:startOffset+attempts};
+}
+function preloadAnotherMoodSelection(){
+ if(state.randomPick||results.hidden||
+   $("explore-picks").querySelectorAll(".explore-pick").length!==5)return;
+ const scope=moodScopeKey(),offset=state.offset;
+ cancelMoodPreload();
+ const controller=new AbortController();
+ const preload={scope,offset,controller,promise:null};
+ nextMoodSelection=preload;
+ preload.promise=(async()=>{
   try{
-    await memberRatingsReady;
-    if(requestId!==window.afterlogueMoodRequestId)return;
-    const isSurprise=Boolean(state.randomPick),desired=isSurprise?1:5;
-    const format=state.format||"either";
-    const media=format==="tv"?["tv"]:format==="movies"?["movie"]:["movie","tv"];
-    const facet=isSurprise?{genres:[],countries:[],decades:[],ratings:[]}
-      :(window.AfterlogueExploreFilters?.get()||{});
-    const scope=moodScopeKey();
-    const shown=new Set(previousMoodTitles(scope));
-    const rated=ratedTitles();
-    const excluded=new Set([...rated,...(window.AfterlogueSeen?.seen||[])]);
-    const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
-    const picks=[],unique=new Set();
-    let succeeded=false;
-    // A second source offset is only requested when the first couldn't fill
-    // the five. Never silently recycle previous recommendations as new.
-    for(let attempt=0;attempt<2&&picks.length<desired;attempt++){
-      const cursor=state.offset++;
-      // Search film and TV in parallel, not sequentially.
-      const responses=await Promise.allSettled(media.map(async type=>{
-        const controller=new AbortController();
-        const timeout=setTimeout(()=>controller.abort(),19000);
-        try{
-          const alreadyChosen=picks.filter(item=>(item.media==="tv"?"tv":"movie")===type)
-            .map(item=>Number(item.id));
-          const response=await fetch(endpoint,{method:"POST",signal:controller.signal,
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({
-              mode:"mood",mood:isSurprise?"unexpected":state.mood,media:type,
-              offset:cursor,pace:state.pace||"medium",
-              excludeIds:[...new Set([
-                ...[...shown].filter(k=>k.startsWith(type+":")).map(k=>Number(k.split(":")[1])),
-                ...alreadyChosen
-              ])],
-              genres:facet.genres||[],countries:facet.countries||[],
-              decades:facet.decades||[],ratings:facet.ratings||[]
-            })});
-          if(!response.ok)throw Error("Mood search returned "+response.status);
-          return (await response.json()).items||[];
-        }finally{clearTimeout(timeout);}
-      }));
-      if(requestId!==window.afterlogueMoodRequestId)return;
-      const lists=responses.filter(result=>result.status==="fulfilled").map(result=>result.value);
-      if(lists.length)succeeded=true;
-      const max=Math.max(0,...lists.map(list=>list.length));
-      // Interleave media types, retaining the verified ranking within each.
-      for(let i=0;i<max&&picks.length<desired;i++){
-        for(const list of lists){
-          const item=list[i];
-          if(!item?.poster||!item.id)continue;
-          const type=item.media==="tv"?"tv":"movie";
-          const key="tmdb-"+type+"-"+item.id,history=type+":"+item.id;
-          if(unique.has(key)||excluded.has(key)||shown.has(history))continue;
-          unique.add(key);
-          picks.push({...item,key,media:type==="tv"?"tv":"movies",
-            reason:item.moodReason||"Selected for your mood."});
-          if(picks.length>=desired)break;
-        }
-      }
-    }
-    if(requestId!==window.afterlogueMoodRequestId)return;
-    if(picks.length!==desired){
-      const message=!succeeded
-        ?"The catalog couldn't finish loading another selection. Your current picks are still here."
-        :"There aren't enough fresh, verified stories for another complete selection right now. Your current picks are still here.";
-      if(hasPrevious){
-        $("explore-results-detail").textContent=message;
-        $("explore-again").textContent="Try another selection";
-        $("explore-again").disabled=false;
-        return;
-      }
-      // A first visit without five valid matches should still show the
-      // genuinely verified titles, rather than presenting a blank page.
-      if(picks.length){
-        rememberMoodTitles(scope,picks);
-        paintMoodPicks(picks);
-        saveMoodSnapshot(picks);
-        $("explore-results-detail").textContent="Showing "+picks.length+
-          " verified "+(picks.length===1?"story":"stories")+" for this mood. "+message.replace("Your current picks are still here.","Try another selection.");
-        return;
-      }
-      host.replaceChildren();
-      const explanation=document.createElement("p");
-      explanation.className="explore-question";
-      explanation.textContent="No verified stories loaded for this mood right now. Try again or explore another mood.";
-      host.append(explanation);
-      $("explore-results-detail").textContent="";
-      $("explore-again").textContent="Try again";
-      $("explore-again").disabled=false;
-      return;
-    }
+   await memberRatingsReady;
+   if(controller.signal.aborted)return null;
+   return await searchMoodSelection(scope,offset,controller.signal);
+  }catch(error){
+   // Preloading is optional. The visible five must never depend on it.
+   if(!controller.signal.aborted)console.warn("Next mood selection not preloaded",error);
+   return null;
+  }
+ })();
+}
+async function displayResults(){
+ const requestId=window.afterlogueMoodRequestId=(window.afterlogueMoodRequestId||0)+1;
+ const host=$("explore-picks"),scope=moodScopeKey();
+ const hasPrevious=host.dataset.scope===scope&&host.querySelectorAll(".explore-pick").length>0;
+ const tr=text=>window.AfterlogueLanguage?.translate?.(text)||text;
+ $("explore-results-label").textContent="AFTERLOGUE / "+tr(data.moods[state.mood].short).toLocaleUpperCase();
+ $("explore-results-title").textContent=state.randomPick?"A story you didn't ask for.":"A little something for you.";
+ results.classList.toggle("is-surprise",Boolean(state.randomPick));
+ if(!hasPrevious){
+  host.replaceChildren();
+  const pending=document.createElement("p");
+  pending.className="explore-question";
+  pending.textContent="Finding stories for your mood…";
+  host.append(pending);
+ }else{
+  $("explore-results-detail").textContent="Preparing another selection of stories…";
+ }
+ $("explore-again").disabled=true;
+ view("results");
+ try{
+  await memberRatingsReady;
+  if(requestId!==window.afterlogueMoodRequestId)return;
+  const desired=state.randomPick?1:5;
+  const cached=nextMoodSelection?.scope===scope&&
+    nextMoodSelection.offset===state.offset?nextMoodSelection:null;
+  if(cached)nextMoodSelection=null;
+  else cancelMoodPreload();
+  // If the next five have already loaded, this is a synchronous paint after
+  // the resolved promise. If not, keep today's five visible while they load.
+  let selection=cached?await cached.promise:null;
+  if(requestId!==window.afterlogueMoodRequestId)return;
+  const existing=new Set(previousMoodTitles(scope));
+  const disliked=ratedTitles();
+  if(selection){
+   selection.picks=selection.picks.filter(item=>
+     !existing.has((item.media==="tv"?"tv":"movie")+":"+item.id)&&
+     !disliked.has(item.key)&&
+     !(window.AfterlogueSeen?.seen||new Set()).has(item.key));
+   if(selection.picks.length!==desired)selection=null;
+  }
+  if(!selection)selection=await searchMoodSelection(scope,state.offset);
+  if(requestId!==window.afterlogueMoodRequestId)return;
+  state.offset=selection.nextOffset;
+  const {picks,succeeded}=selection;
+  if(picks.length!==desired){
+   const message=!succeeded
+     ?"The catalog couldn't finish loading another selection. Your current picks are still here."
+     :"There aren't enough fresh, verified stories for another complete selection right now. Your current picks are still here.";
+   if(hasPrevious){
+    $("explore-results-detail").textContent=message;
+    $("explore-again").textContent="Try another selection";
+    $("explore-again").disabled=false;
+    return;
+   }
+   // Keep genuine partial matches rather than inventing extra stories.
+   if(picks.length){
     rememberMoodTitles(scope,picks);
     paintMoodPicks(picks);
     saveMoodSnapshot(picks);
-  }catch(error){
-    if(requestId!==window.afterlogueMoodRequestId)return;
-    console.warn("Afterlogue mood discovery unavailable",error);
-    if(!hasPrevious){
-      host.replaceChildren();
-      const message=document.createElement("p");message.className="explore-question";
-      message.textContent="We couldn't finish finding stories. Please try again.";
-      host.append(message);
-    }
-    $("explore-results-detail").textContent=hasPrevious
-      ?"The catalog couldn't load another selection. Your five stories are still here.":"";
-    $("explore-again").textContent="Try again";
-    $("explore-again").disabled=false;
+    $("explore-results-detail").textContent="Showing "+picks.length+
+      " verified "+(picks.length===1?"story":"stories")+" for this mood. "+
+      message.replace("Your current picks are still here.","Try another selection.");
+    return;
+   }
+   host.replaceChildren();
+   const explanation=document.createElement("p");
+   explanation.className="explore-question";
+   explanation.textContent="No verified stories loaded for this mood right now. Try again or explore another mood.";
+   host.append(explanation);
+   $("explore-results-detail").textContent="";
+   $("explore-again").textContent="Try again";
+   $("explore-again").disabled=false;
+   return;
   }
+  rememberMoodTitles(scope,picks);
+  paintMoodPicks(picks);
+  saveMoodSnapshot(picks);
+  preloadAnotherMoodSelection();
+ }catch(error){
+  if(requestId!==window.afterlogueMoodRequestId)return;
+  console.warn("Afterlogue mood discovery unavailable",error);
+  if(!hasPrevious){
+   host.replaceChildren();
+   const message=document.createElement("p");message.className="explore-question";
+   message.textContent="We couldn't finish finding stories. Please try again.";
+   host.append(message);
+  }
+  $("explore-results-detail").textContent=hasPrevious
+    ?"The catalog couldn't load another selection. Your five stories are still here.":"";
+  $("explore-again").textContent="Try again";
+  $("explore-again").disabled=false;
+ }
 }
+
 function isVerticalExploreRail(){
   return window.matchMedia("(min-width: 700px)").matches;
 }
@@ -2035,6 +2093,7 @@ $("explore-again").addEventListener("click",()=>{
   displayResults();
 });
 restoreMoodSnapshot();
+if(!results.hidden)preloadAnotherMoodSelection();
 })();
 </script>
 <script src="pending-watchlist.js?v=1"></script>
