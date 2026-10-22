@@ -942,14 +942,29 @@ Deno.serve(async (req:Request) => {
       // Start reviewed autumn-title discovery at the SAME TIME as the broader
       // mood search; otherwise two sequential rounds of TMDB traffic cause a
       // long loading screen. These are candidates, NOT unverified outputs.
-      const fallSeedJob=mood==="fall"&&media==="movie"
-        ?Promise.allSettled(Object.keys(FALL_ATMOSPHERE).map(async title=>{
-           const result=await tmdb("/search/movie",
+      // Reviewed seasonal television gives the Fall + TV route genuine
+      // candidates. Previously only films were seeded, while the TV discover
+      // stream rarely had enough verified autumn evidence to show anything.
+      const FALL_TV_ATMOSPHERE:Record<string,string>={
+        "Gilmore Girls":"Its New England small-town setting, campus life and seasonal traditions suit a cozy fall watch.",
+        "Over the Garden Wall":"Its woodland journey, harvest palette and eerie folklore give it a distinctive autumn atmosphere.",
+        "Anne with an E":"Its literary schooldays, countryside setting and changing seasons make it a reflective fall choice.",
+        "Friday Night Lights":"Its small-town football season and community stories evoke autumn evenings.",
+        "Only Murders in the Building":"Its New York apartment setting and playful mystery suit a crisp fall evening.",
+        "Chilling Adventures of Sabrina":"Its school-year setting, witches and autumnal gothic atmosphere suit the spooky side of fall.",
+        "The Haunting of Hill House":"Its gothic family mystery gives a more frightening option for autumn evenings.",
+        "Twin Peaks":"Its misty woodland town and uncanny mysteries evoke the atmospheric side of fall."
+      };
+      const seasonalTitles=mood==="fall"?(media==="tv"
+        ?Object.keys(FALL_TV_ATMOSPHERE):Object.keys(FALL_ATMOSPHERE)):[];
+      const fallSeedJob=seasonalTitles.length
+        ?Promise.allSettled(seasonalTitles.map(async title=>{
+           const result=await tmdb("/search/"+media,
              new URLSearchParams({query:title,language:"en-US",include_adult:"false",page:"1"}),token);
            const normalize=(value:string)=>value.toLowerCase().normalize("NFKD")
              .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
            return (result.results||[]).find((v:Record<string,unknown>)=>
-             normalize(String(v.title||""))===normalize(title))||null;
+             normalize(String(v[media==="tv"?"name":"title"]||""))===normalize(title))||null;
          }))
         :null;
       const jobs=await Promise.allSettled(Array.from({length:total},async (_,i)=>{
@@ -1079,7 +1094,9 @@ Deno.serve(async (req:Request) => {
           .filter((id:number)=>idToTopic.has(id));
         const label=tagged.length?idToTopic.get(tagged[0])||"":""; 
         const editorial=mood==="holidays"&&media==="movie"?SEASONAL_FEATURES[Number(v.id)]:null;
-        const fallReason=mood==="fall"&&media==="movie"?FALL_ATMOSPHERE[String(details.title||"")]:null;
+        const fallReason=mood==="fall"
+          ?(media==="tv"?FALL_TV_ATMOSPHERE[String(details.name||"")]
+            :FALL_ATMOSPHERE[String(details.title||"")])||null:null;
         const tags=Array.isArray(detailKeywords)?detailKeywords.map((v:Record<string,unknown>)=>String(v.name||"")):[];
         const experience=moodExperience(mood,details,tags,pace,fallReason||editorial?.reason||null);
         // Reject superficial keyword matches when the experience conflicts:

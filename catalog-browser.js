@@ -140,7 +140,16 @@ function render(list){
    save.disabled=true;
    try{
     const member=await catalogAccount();
-    if(!member){location.assign("signup.html?mode=signin");return;}
+    if(!member){
+     const url="film-details.html?tmdb="+encodeURIComponent(title.id)+
+       "&type="+encodeURIComponent(title.media)+"&from=all-films";
+     const remembered=window.AfterloguePendingWatchlist?.remember({
+       key:watchKey,category:title.media==="tv"?"tv":"movies",
+       title:title.title,year:title.year,poster:title.poster,url
+     });
+     if(!remembered){save.disabled=false;return;}
+     location.assign("signup.html?mode=signin");return;
+    }
     if(catalogWatchlist.has(watchKey)){showCatalogSaved(save,true);return;}
     const client=window.afterlogueSupabase;
     const metadata=window.AfterlogueCatalogMetadata;

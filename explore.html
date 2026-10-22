@@ -1351,7 +1351,7 @@ html[lang="ko"] .explore-body .afterlogue-feature-copy strong{
 </section>
 </section>
 <section class="explore-experience" id="explore-experience" aria-live="polite" hidden>
-  <button type="button" class="explore-back" id="explore-back">← All moods</button>
+  <button type="button" class="explore-back" id="explore-back">All moods</button>
   <p class="explore-eyebrow" id="explore-stage">AFTERLOGUE / A LITTLE CLOSER</p>
   <h2 id="explore-mood-title"></h2>
   <p class="explore-question" id="explore-question"></p>
@@ -1363,18 +1363,18 @@ html[lang="ko"] .explore-body .afterlogue-feature-copy strong{
       <button type="button" id="explore-clear" hidden>Clear filters ×</button>
     </div>
   </details>
-  <div class="explore-step-actions"><p id="explore-step-count">01 / 02</p><button type="button" class="explore-button primary" id="explore-next" disabled>Continue →</button></div>
+  <div class="explore-step-actions"><p id="explore-step-count">01 / 02</p><button type="button" class="explore-button primary" id="explore-next" disabled>Continue</button></div>
 </section>
 <section class="explore-results" id="explore-results" aria-live="polite" hidden>
-  <button type="button" class="explore-back" id="explore-results-back">← All moods</button>
+  <button type="button" class="explore-back" id="explore-results-back">All moods</button>
   <div class="explore-results-head">
     <div><p class="explore-eyebrow" id="explore-results-label">SELECTED / EXPLORE</p><h2 id="explore-results-title">A little something for you.</h2><p class="explore-question" id="explore-results-detail"></p></div>
-    <button type="button" class="explore-button" id="explore-adjust">Adjust choices ↗</button>
+    <button type="button" class="explore-button" id="explore-adjust">Adjust choices</button>
   </div>
   <div class="explore-picks" id="explore-picks"></div>
   <div class="explore-results-actions">
     <button type="button" class="explore-button" id="explore-again">Another selection ↗</button>
-    <button type="button" class="explore-button" id="explore-another">Explore another mood →</button>
+    <button type="button" class="explore-button" id="explore-another">Explore another mood</button>
   </div>
 </section>
 </main>
@@ -1501,7 +1501,7 @@ function renderQuestion() {
   $("explore-mood-title").textContent = $("explore-mood-title").textContent.replace("..",".");
   $("explore-step-count").textContent = state.stage===0?"01 / 02":"02 / 02";
   $("explore-next").disabled = true;
-  $("explore-next").textContent = state.stage===0?"Continue →":"Find my stories →";
+  $("explore-next").textContent = state.stage===0?"Continue":"Find my stories";
   if (state.stage===0) {
     $("explore-question").textContent = "What would you like to watch?";
     choices([
@@ -1689,7 +1689,7 @@ function paintMoodPicks(five){
   $("explore-results-detail").textContent=data.moods[state.mood].intro+" Each selection includes a specific reason for appearing.";
     $("explore-results-label").textContent="AFTERLOGUE / "+(window.AfterlogueLanguage?.translate?.(data.moods[state.mood].short)||data.moods[state.mood].short).toLocaleUpperCase();
   $("explore-adjust").hidden=state.randomPick;
-  $("explore-again").textContent=state.randomPick?"Another surprise ↗":"Another selection ↗";
+  $("explore-again").textContent=state.randomPick?"Another surprise":"Another selection ↗";
     $("explore-again").disabled=false;
 
   results.hidden=false;
@@ -1720,6 +1720,10 @@ async function displayResults(){
   const requestId=window.afterlogueMoodRequestId=(window.afterlogueMoodRequestId||0)+1;
   const host=$("explore-picks");
   const hasPrevious=host.dataset.scope===moodScopeKey()&&host.querySelectorAll(".explore-pick").length>0;
+  // A pending or failed Fall request should never carry the prior Yearning label.
+  const tr=text=>window.AfterlogueLanguage?.translate?.(text)||text;
+  $("explore-results-label").textContent="AFTERLOGUE / "+tr(data.moods[state.mood].short).toLocaleUpperCase();
+  $("explore-results-title").textContent=state.randomPick?"A story you didn't ask for.":"A little something for you.";
   results.classList.toggle("is-surprise",Boolean(state.randomPick));
   if(!hasPrevious){
     host.replaceChildren();
@@ -1800,7 +1804,7 @@ async function displayResults(){
         :"There aren't enough fresh, verified stories for another complete selection right now. Your current picks are still here.";
       if(hasPrevious){
         $("explore-results-detail").textContent=message;
-        $("explore-again").textContent="Try another selection ↗";
+        $("explore-again").textContent="Try another selection";
         $("explore-again").disabled=false;
         return;
       }
@@ -1820,7 +1824,7 @@ async function displayResults(){
       explanation.textContent="No verified stories loaded for this mood right now. Try again or explore another mood.";
       host.append(explanation);
       $("explore-results-detail").textContent="";
-      $("explore-again").textContent="Try again ↗";
+      $("explore-again").textContent="Try again";
       $("explore-again").disabled=false;
       return;
     }
@@ -1838,7 +1842,7 @@ async function displayResults(){
     }
     $("explore-results-detail").textContent=hasPrevious
       ?"The catalog couldn't load another selection. Your five stories are still here.":"";
-    $("explore-again").textContent="Try again ↗";
+    $("explore-again").textContent="Try again";
     $("explore-again").disabled=false;
   }
 }
@@ -2017,7 +2021,8 @@ $("explore-again").addEventListener("click",()=>{
 restoreMoodSnapshot();
 })();
 </script>
-<script src="catalog-browser.js?v=11"></script>
+<script src="pending-watchlist.js?v=1"></script>
+<script src="catalog-browser.js?v=12"></script>
 
 
 </body>

@@ -679,3 +679,21 @@ body.discovery-home-page {
  .discovery-home-page .watchlist-reminder-poster img,
  .discovery-home-page .watchlist-reminder-toggle{transition:none}
 }
+
+/* Small opt-out control on each Home card; no movie is marked watched. */
+.discovery-home-page .discovery-card-actions .discovery-not-interested{
+  flex:0 0 auto;min-height:31px;max-width:120px;margin:0 0 0 3px;
+  padding:6px 9px;border:1px solid rgba(212,180,135,.45);
+  border-radius:99px;background:rgba(10,10,10,.72);
+  color:#cbbda7;font:10px/1.25 Inter,Arial,sans-serif;
+  white-space:nowrap;cursor:pointer;
+}
+.discovery-home-page .discovery-card-actions .discovery-not-interested:hover,
+.discovery-home-page .discovery-card-actions .discovery-not-interested:focus-visible{
+  background:#d4b487;color:#191715;
+}
+@media(max-width:500px){
+ .discovery-home-page .discovery-card-actions .discovery-not-interested{
+  font-size:10px;padding:5px 7px
+ }
+}
