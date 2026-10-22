@@ -29,7 +29,22 @@ const ratingPosters=[...document.querySelectorAll('#lp-rating-posters [data-prev
 const ratings=[...document.querySelectorAll('#preview-impressions [data-preview-rating]')];
 const ratingStatus=$('lp-rating-status');
 let currentRating=null;
-const localize=t=>window.AfterlogueLanguage?.translate?.(t)||t;
+const phrases={
+ en:{selected:'selected. Choose your impression below.',retry:'Choose another film to try again.'},
+ es:{selected:'seleccionada. Elige tu impresión debajo.',retry:'Elige otra película para probar de nuevo.'},
+ fr:{selected:'sélectionné. Donnez votre avis ci-dessous.',retry:'Choisissez un autre film pour recommencer.'},
+ pt:{selected:'selecionado. Escolha sua impressão abaixo.',retry:'Escolha outro filme para tentar novamente.'},
+ ko:{selected:'선택됨. 아래에서 감상을 고르세요.',retry:'다른 영화도 선택해 보세요.'}
+};
+const locale=()=>window.AfterlogueLanguage?.current?.()||'en';
+const impressionNames={
+  en:{Loved:'Loved',Liked:'Liked',Okay:'Okay','Not for me':'Not for me'},
+  es:{Loved:'Me encantó',Liked:'Me gustó',Okay:'Regular','Not for me':'No es para mí'},
+  fr:{Loved:'Adoré',Liked:'Aimé',Okay:'Moyen','Not for me':'Pas pour moi'},
+  pt:{Loved:'Amei',Liked:'Gostei',Okay:'Mais ou menos','Not for me':'Não é para mim'},
+  ko:{Loved:'정말 좋았어요',Liked:'좋았어요',Okay:'보통이에요','Not for me':'제 취향은 아니에요'}
+};
+const localize=t=>impressionNames[locale()]?.[t]||t;
 function activate(button){
  currentRating=button?.dataset.previewKey||null;
  for(const poster of ratingPosters){
@@ -44,9 +59,10 @@ function activate(button){
   control.setAttribute('aria-pressed',String(Boolean(reaction&&reaction===control.dataset.previewRating)));
  }
  if(!button)return;
+ const messages=phrases[locale()]||phrases.en;
  ratingStatus.textContent=reaction
-  ?ratingTitles[currentRating]+' — '+localize(reaction)+'. '+localize('Choose another film to try again.')
-  :ratingTitles[currentRating]+' '+localize('selected. Choose your impression below.');
+  ?ratingTitles[currentRating]+' — '+localize(reaction)+'. '+messages.retry
+  :ratingTitles[currentRating]+' '+messages.selected;
 }
 ratingPosters.forEach(button=>button.addEventListener('click',()=>activate(button)));
 ratings.forEach(button=>button.addEventListener('click',()=>{
@@ -133,6 +149,9 @@ function closePreview(){
  modalBody.replaceChildren();
  if(previousFocus?.isConnected)previousFocus.focus();
 }
+document.addEventListener('afterlogue:language-changed',()=>{
+ if(currentRating){const button=ratingPosters.find(p=>p.dataset.previewKey===currentRating);if(button)activate(button);}
+});
 document.querySelectorAll('[data-preview-detail]').forEach(poster=>
  poster.addEventListener('click',()=>openPreview(poster,'details')));
 document.querySelectorAll('[data-preview-log]').forEach(poster=>
