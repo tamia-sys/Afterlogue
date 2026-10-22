@@ -813,6 +813,11 @@ const discoveryCacheKey="afterlogue.discover.shelf.v2";
 function discoveryFingerprint(){
  return JSON.stringify({
   ratings:Object.entries(savedImpressions).sort((a,b)=>a[0].localeCompare(b[0])),
+  favorites:discoveryFavorites.map(x=>x.title_key).filter(Boolean).sort(),
+  watchlist:discoveryWatchlist.map(x=>x.title_key).filter(Boolean).sort(),
+  seen:[...discoverySeen].sort(),
+  // A growing Log should not be permanently restricted to its first few seeds.
+  seedDay:Math.floor(Date.now()/86400000),
   country:discoveryPreferences.country||"",
   language:discoveryPreferences.originalLanguage||""
  });
@@ -946,7 +951,11 @@ async function populateExpandedRecommendations(userId){
  // assigned a Loved/Liked label yet.
  for(const favorite of discoveryFavorites){
    const key=favorite.title_key;
-   if(key&&!sourceKeys.has(key)){sources.push({key,rating:"Liked"});sourceKeys.add(key);}
+   // An explicit negative or neutral impression wins over an old Favorite.
+   const rating=savedImpressions["afterlogue-"+key];
+   if(key&&!sourceKeys.has(key)&&rating!=="Not for me"&&rating!=="Okay"){
+     sources.push({key,rating:"Liked"});sourceKeys.add(key);
+   }
  }
  let dynamic=[];
  if(userId){
@@ -990,7 +999,10 @@ async function populateExpandedRecommendations(userId){
   tv:sources.filter(x=>named.get(x.key)?.category==="tv")
    .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved"))
  };
- const pickNames=category=>[...new Set(grouped[category].map(x=>named.get(x.key).title))].slice(0,4);
+ const pickNames=category=>window.AfterlogueRecommendationEngine.selectSeeds({
+   sources:grouped[category].map(x=>({title:named.get(x.key).title,rating:x.rating})),
+   limit:4,rotation:Math.floor(Date.now()/86400000)
+ });
  const request=async body=>{
    const controller=new AbortController();
    const deadline=setTimeout(()=>controller.abort(),26000);
@@ -1147,7 +1159,8 @@ async function loadAccountImpressions() {
     const { data: impressions, error } = await client
       .from("impressions")
       .select("title_key, rating")
-      .eq("user_id", userData.user.id);
+      .eq("user_id", userData.user.id)
+      .order("updated_at",{ascending:false});
     // Favorites give a modest positive signal; watchlist items aren't re-recommended.
     const [favoriteResult,watchlistResult,seenResult,preferenceResult]=await Promise.all([
       client.from("log_entries").select("title_key").eq("user_id",userData.user.id).eq("is_favorite",true),
