@@ -551,7 +551,7 @@ window.afterlogueExploreData = {
     "winding": {
       "label": "Something for winding down",
       "short": "Winding down",
-      "intro": "Unhurried stories for a softer kind of evening."
+      "intro": "For settling in, sharing a laugh, or watching life unfold."
     },
     "friday": {
       "label": "Something for a Friday night",
