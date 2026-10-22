@@ -491,7 +491,7 @@ test('Fall TV has reviewed source candidates with normal verification',()=>{
  assert.match(code,/const allFallTitles=mood==="fall"/);
  assert.match(code,/const seasonalTitles=\[\.\.\.rotate\(preferred/);
  assert.match(code,/const FALL_PACE_HINTS:Record/);
- assert.match(code,/const ids=mood==="fall"\?\[\]:await moodKeywordIds\(mood,token\)/);
+  assert.match(code,/const ids=mood==="fall"\|\|mood==="winding"\?\[\]:await moodKeywordIds\(mood,token\)/);
  assert.match(code,/\?6:Math\.min\(6/);
  assert.match(code,/if\(experience\.score<5\)return/);
 });
