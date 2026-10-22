@@ -42,7 +42,10 @@ test('Guest who loved Korean-titled films sees five film recommendations, not an
  });
  await page.goto('discover.html?guest=1');
  await expect(page.locator('#discovery-results .discovery-card')).toHaveCount(5,{timeout:25000});
- const titles=await page.locator('#discovery-results .discovery-card').allTextContents();
+ // Home intentionally presents posters without redundant titles below them.
+ // Validate the readable poster aria-labels rather than hidden caption text.
+ const titles=await page.locator('#discovery-results .discovery-poster')
+   .evaluateAll(nodes=>nodes.map(node=>node.getAttribute('aria-label')));
  expect(titles.join(' ')).toContain('한국 영화');
  expect(logged.some(q=>q.mode==='recommend'&&q.media==='movie'&&
    q.country==='KR'&&q.originalLanguage==='ko'&&
