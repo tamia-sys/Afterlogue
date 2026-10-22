@@ -29,10 +29,10 @@ test('Landing presents the tagline and a single clear first action',async({page}
  await page.goto('index.html');
  await expect(page.locator('#welcome-title')).toHaveText("A film ends. The conversation doesn't.");
  await expect(page.locator('.intro .welcome-eyebrow')).toHaveText('PERSONALIZED FILM & TV DISCOVERY');
- await expect(page.locator('.welcome-start .welcome-create')).toHaveText('Start discovering');
+ await expect(page.locator('.welcome-start .welcome-create')).toHaveText('Get started →');
  await expect(page.locator('.welcome-start .welcome-create')).toHaveAttribute('href','log.html?guest=1');
  await expect(page.locator('.welcome-reassurance')).toContainText('No account needed');
- await expect(page.locator('.welcome-description')).toContainText('Five recommendations, shaped by your taste.');
+ await expect(page.locator('.welcome-description')).toHaveText('Discover films and shows shaped by your taste.');
  await expect(page.locator('.welcome-start .welcome-guest')).toHaveCount(0);
  await expect(page.locator('.welcome-start-kicker')).toHaveCount(0);
  await expect(page.locator('.welcome-start-detail')).toHaveCount(0);
