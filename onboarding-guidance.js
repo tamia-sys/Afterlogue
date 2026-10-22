@@ -81,13 +81,13 @@ back.addEventListener("click",()=>moveTo("films"));
 // A rating chosen on the poster updates the step count immediately;
 // an imported or restored member impression updates it too.
 const observer=new MutationObserver(mutations=>{
- if(!mutations.some(m=>m.type==="attributes"&&m.attributeName==="class"))return;
+ if(!mutations.some(m=>m.type==="childList"||(m.type==="attributes"&&m.attributeName==="class")))return;
  if(queued)return;
  queued=true;
  requestAnimationFrame(()=>{queued=false;updateCount();});
 });
-observer.observe(filmSection,{subtree:true,attributes:true,attributeFilter:["class"]});
-observer.observe(tvSection,{subtree:true,attributes:true,attributeFilter:["class"]});
+observer.observe(filmSection,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
+observer.observe(tvSection,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
 document.addEventListener("afterlogue:saved-ratings",updateCount);
 document.addEventListener("afterlogue:language-changed",updateCount);
 // Some browsers restore position or hash after a refresh; keep TV reachable.
