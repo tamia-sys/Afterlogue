@@ -97,3 +97,15 @@ test('Ambiguous or short-film titles do not falsely claim verified feature eligi
  assert.ok(!anchors.includes('"The Red Balloon":'),'1956 short is under the current feature runtime minimum');
  assert.ok(!anchors.includes('"Hamlet":'),'An adaptation/year was not selected');
 });
+
+test('References do not monopolize discovery: look for unlisted, eligible TMDB neighbors',()=>{
+ assert.match(server,/const referenceNeighbors=references\.filter/);
+ assert.match(server,/\/similar",params,token/);
+ assert.match(server,/windingRelatedGroups=related\.filter/);
+ assert.match(server,/for\(const related of windingRelatedGroups\)/);
+ assert.match(server,/while\(queue\.length&&verified\.length<\(mood==="winding"\?20:12\)\)/);
+ assert.match(server,/windingReference: Boolean\(windingRef\)/);
+ assert.match(server,/const independent=curated\.filter\(entry=>!entry\.windingReference&&entry\.moodFit>=7\)/);
+ assert.match(server,/independent\.slice\(0,3\)\.forEach\(append\)/);
+ assert.match(server,/if\(experience\.score<5\)return/);
+});
