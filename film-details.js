@@ -289,11 +289,20 @@ const trailerExternal=$('film-trailer-external');
 const trailerStatus=$('film-trailer-status');
 const youtubeSearch='https://www.youtube.com/results?search_query='+encodeURIComponent([item.title,item.year,isTV?'series':'film','trailer'].filter(Boolean).join(' '));
 function getTrailerId(value){
+ // Title data can supply an 11-character video ID or a YouTube URL.
+ if(typeof value!=='string')return null;
+ const raw=value.trim();
+ if(/^[a-zA-Z0-9_-]{11}$/.test(raw))return raw;
  try{
-  const url=new URL(value);
-  if(url.hostname==='youtu.be')return /^[a-zA-Z0-9_-]{11}$/.test(url.pathname.slice(1))?url.pathname.slice(1):null;
-  if(['youtube.com','www.youtube.com','m.youtube.com'].includes(url.hostname)){
-   const id=url.searchParams.get('v')||url.pathname.split('/').filter(Boolean).slice(-1)[0];
+  const url=new URL(raw);
+  if(url.protocol!=='https:')return null;
+  if(url.hostname==='youtu.be'){
+   const id=url.pathname.split('/').filter(Boolean)[0];
+   return /^[a-zA-Z0-9_-]{11}$/.test(id||'')?id:null;
+  }
+  if(['youtube.com','www.youtube.com','m.youtube.com',
+       'youtube-nocookie.com','www.youtube-nocookie.com'].includes(url.hostname)){
+   const id=url.searchParams.get('v')||url.pathname.match(/^\/(?:embed|shorts|live)\/([a-zA-Z0-9_-]{11})/)?.[1];
    return /^[a-zA-Z0-9_-]{11}$/.test(id||'')?id:null;
   }
  }catch(_){}
@@ -308,9 +317,27 @@ if(!resolvedTrailerId&&window.AfterlogueFilmArtwork?.resolveTrailer){
  }).catch(()=>null);
 }
 let trailerPreviousFocus=null;
+const trailerAutoplayTasks=[];
+function clearTrailerAutoplayTasks(){
+ while(trailerAutoplayTasks.length)clearTimeout(trailerAutoplayTasks.pop());
+}
+function nudgeMutedTrailerPlayback(){
+ if(trailerModal.hidden||!trailerPlayer.getAttribute('src'))return;
+ // Autoplay query is first choice. These YouTube API commands are a fallback
+ // if the iframe loaded but the video failed to begin playing muted.
+ try{
+  const player=trailerPlayer.contentWindow;
+  if(!player)return;
+  for(const command of ['mute','playVideo']){
+   player.postMessage(JSON.stringify({event:'command',func:command,args:[]}),
+     'https://www.youtube-nocookie.com');
+  }
+ }catch(_){}
+}
 function closeTrailer(){
  if(trailerModal.hidden)return;
  trailerModal.hidden=true;
+ clearTrailerAutoplayTasks();
  if(trailerTimer){clearTimeout(trailerTimer);trailerTimer=null;}
  trailerPlayer.removeAttribute('src'); // Stop video and sound on close.
  document.body.classList.remove('film-trailer-open');
@@ -320,7 +347,10 @@ let trailerTimer=null;
 trailerPlayer.addEventListener("load",()=>{
  if(trailerModal.hidden)return;
  if(trailerTimer){clearTimeout(trailerTimer);trailerTimer=null;}
- trailerStatus.textContent="If playback is muted, unmute inside the player. If blocked, use Watch on YouTube below.";
+ trailerStatus.textContent="The trailer should start muted. If your browser blocks autoplay, tap Play inside the video or open it on YouTube.";
+ clearTrailerAutoplayTasks();
+ nudgeMutedTrailerPlayback();
+ for(const delay of [350,1100])trailerAutoplayTasks.push(setTimeout(nudgeMutedTrailerPlayback,delay));
 });
 function playTrailer(id){
  if(trailerModal.hidden)return;
@@ -334,9 +364,16 @@ function playTrailer(id){
    trailerStatus.textContent='The embedded player is taking too long. Open the trailer on YouTube instead.';
   }
  },6500);
- // Muted autoplay is most consistently permitted after a single click across
- // Safari, Firefox and Chrome. Sound can be enabled in the YouTube player.
- trailerPlayer.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&mute=1&rel=0&playsinline=1';
+ // Watch trailer is a user gesture; browsers generally permit muted inline
+ // playback, and the JS API retries after iframe load. Browser restrictions
+ // and videos that disallow embedding still require manual play or YouTube.
+ clearTrailerAutoplayTasks();
+ const embed=new URL('https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id));
+ for(const [name,value] of Object.entries({
+  autoplay:'1',mute:'1',rel:'0',playsinline:'1',
+  enablejsapi:'1',origin:location.origin,controls:'1'
+ }))embed.searchParams.set(name,value);
+ trailerPlayer.src=embed.href;
 }
 trailerLink.href='#film-trailer-modal';
 trailerLink.removeAttribute('target');
