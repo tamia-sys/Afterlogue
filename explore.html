@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>Explore — Afterlogue</title>
+<script>
+// Before the first paint, hide the gallery while we safely restore the
+// previous five. The snapshot is account-checked again before being shown.
+try{
+ const snapshot=JSON.parse(sessionStorage.getItem("afterlogue.explore.return-to-picks.v2")||"null");
+ if(snapshot&&snapshot.owner&&Array.isArray(snapshot.items)&&snapshot.items.length&&
+    snapshot.mood&&Number(snapshot.savedAt)>0&&
+    Date.now()-Number(snapshot.savedAt)<4*60*60*1000)
+   document.documentElement.classList.add("explore-restoring");
+}catch(_){}
+</script>
 <link rel="stylesheet" href="style.css?v=29">
 <style>
 :root { --ex-ink:#000;--ex-paper:#F4EADD;--ex-gold:#D4B487;--ex-faint:#B5A692;--ex-border:rgba(201,174,137,.40) }
@@ -1214,6 +1225,12 @@ html[lang="ko"] .explore-body .afterlogue-feature-copy strong{
  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",Arial,sans-serif;
  word-break:keep-all;line-height:1.33;letter-spacing:-.02em
 }
+/* A detail-page return must never flash the Explore landing gallery while
+   asynchronous account / Seen state checks are in progress. */
+#explore-return-status{display:none;margin:18vh auto 0;max-width:440px;
+  padding:25px;text-align:center;color:#CCBCA7;font:14px/1.8 Arial,sans-serif}
+html.explore-restoring #explore-return-status{display:block}
+html.explore-restoring #explore-gallery-wrap{display:none!important}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 <link rel="stylesheet" href="seen-impression.css?v=2">
@@ -1242,6 +1259,7 @@ html[lang="ko"] .explore-body .afterlogue-feature-copy strong{
   </nav>
 </header>
 <main class="explore-shell" id="explore-main">
+<p id="explore-return-status" role="status" aria-live="polite">Returning to your stories…</p>
 <section id="explore-gallery-wrap" class="explore-gallery-wrap" aria-labelledby="explore-title">
   <div class="explore-top">
     <div>
@@ -2154,6 +2172,10 @@ $("explore-again").addEventListener("click",()=>{
 });
 restoreMoodSnapshot().then(restored=>{
  if(restored)preloadAnotherMoodSelection();
+}).finally(()=>{
+ // If the snapshot was stale, belongs to another account, or cannot load,
+ // reveal ordinary Explore instead of leaving the user on a loading screen.
+ document.documentElement.classList.remove("explore-restoring");
 });
 })();
 </script>

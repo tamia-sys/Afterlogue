@@ -15,7 +15,7 @@ const source=section('function holidayEvidence(', '// Stronger than a genre labe
 const compiled=ts.transpileModule(source,{
  compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}
 }).outputText;
-const {moodExperience}=new Function(compiled+'\nreturn {moodExperience};')();
+const {moodExperience,slowWindingFilmEvidence}=new Function(compiled+'\nreturn {moodExperience,slowWindingFilmEvidence};')();
 const film=(title,overview,genres=[],id=99)=>({id,title,overview,genres:genres.map(id=>({id}))});
 const match=(item,tags=[],pace='slow',reason=null,lane=null)=>
  moodExperience('winding',item,tags,pace,reason,null,lane);
@@ -108,4 +108,32 @@ test('References do not monopolize discovery: look for unlisted, eligible TMDB n
  assert.match(server,/const independent=curated\.filter\(entry=>!entry\.windingReference&&entry\.moodFit>=7\)/);
  assert.match(server,/independent\.slice\(0,3\)\.forEach\(append\)/);
  assert.match(server,/if\(experience\.score<5\)return/);
+});
+
+test('Take your time rejects a frantic horror despite reflective marketing copy',()=>{
+ const horror=film('They Will Kill You','A young woman survives a violent horror siege; an intimate, reflective night of terror.',[27,28,53]);
+ assert.equal(slowWindingFilmEvidence(horror,[],[27,28,53],null,null),false);
+});
+test('Take your time rejects a broad party comedy that mentions friendship',()=>{
+ const party=film('American Pie','Four high-school friends plan a wild night and pledge to lose their virginity by prom.',[35,10749]);
+ assert.equal(slowWindingFilmEvidence(party,['coming of age'],[35,10749],null,null),false);
+});
+test('Take your time recognizes small routines without a named editorial anchor',()=>{
+ const ordinary=film('A Poem After Work','A quiet contemplative portrait of a bus driver and his daily routine in a small town.',[18]);
+ assert.equal(slowWindingFilmEvidence(ordinary,[],[18],null,null),true);
+});
+test('Take your time preserves demanding but contemplative cinema',()=>{
+ const ghost=film('A Ghost Story','A story about loss that drifts over centuries.',[18,14]);
+ assert.equal(slowWindingFilmEvidence(ghost,[],[18,14],'contemplative','slow'),true);
+ const dogville=film('Dogville','A brutal story about abuse in a small town.',[18,80]);
+ assert.equal(slowWindingFilmEvidence(dogville,[],[18,80],'contemplative','slow'),true);
+});
+test('Take your time is narrower than Winding Down generally',()=>{
+ const beauty=film('Beauty Shop','Funny salon conversations and neighborhood friendship.',[35]);
+ assert.equal(slowWindingFilmEvidence(beauty,[],[35],'everyday','slow'),false);
+ assert.ok(match(beauty,[],'energetic','Comforting salon humor.','everyday').score>=5);
+});
+test('Slow film evidence is checked before accepting a mood-verified item',()=>{
+ assert.match(server,/if\(mood==="winding"&&media==="movie"&&pace==="slow"&&/);
+ assert.match(server,/!slowWindingFilmEvidence\(details,tags,detailGenreIds,/);
 });
