@@ -2,7 +2,7 @@ const {test,expect}=require('@playwright/test');
 
 test('Landing leads with the film tagline and identifies personalized film and TV discovery',async({page})=>{
  await page.goto('index.html');
- await expect(page.locator('#welcome-title')).toHaveText("A film ends. The conversation doesn't.");
+ await expect(page.locator('#welcome-title')).toHaveText("A film ends. The conversation doesn’t.");
  await expect(page.locator('.intro .welcome-eyebrow')).toHaveText('PERSONALIZED FILM & TV DISCOVERY');
  await expect(page.locator('.intro .welcome-description')).toHaveText('Discover films and shows shaped by your taste.');
  await expect(page.locator('.intro .welcome-create')).toHaveText('Get started →');
