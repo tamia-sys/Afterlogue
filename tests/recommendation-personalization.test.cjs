@@ -472,7 +472,7 @@ test('Film Details heart writes to the existing private Favorites table and artw
 });
 test('A weak recommendation result uses honestly labeled archive discoveries rather than erasing the shelf',()=>{
  const code=read('discover.html');
- assert.match(code,/An archive discovery to explore while Afterlogue learns more about your taste/);
+ assert.match(code,/An archive discovery that fits your selected catalog preferences, not a direct match to your rated titles/);
  assert.match(code,/diversifyDiscoverResults\(\[\.\.\.expanded,\.\.\.extras\],category\)/);
  assert.match(code,/priorCards&&container\.dataset\.category===category/);
 });
