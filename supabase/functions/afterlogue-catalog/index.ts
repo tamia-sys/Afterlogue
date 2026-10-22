@@ -383,11 +383,11 @@ const FALL_ATMOSPHERE:Record<string,string>={
   "Rushmore":"Its school-year setting and eccentric campus life fit the back-to-school season.",
   "Whisper of the Heart":"Its Japanese schooldays, bookshops and creative ambitions fit a gentler fall afternoon.",
   "Autumn Sonata":"Its Swedish family reunion and autumn setting make a reflective seasonal watch.",
-  "Autumn Tale":"Its French countryside and autumn romance connect directly to the season.",
+  "A Tale of Autumn":"Its French countryside and autumn romance connect directly to the season.",
   "October Sky":"Its Appalachian school setting and science-club ambitions suit back-to-school viewing.",
   "ParaNorman":"Its New England town and supernatural adventure make a lively spooky-season choice.",
   "Harry Potter and the Philosopher's Stone":"Its opening school term and Gothic castle create cozy autumn atmosphere.",
-  "Little Forest":"Its Korean countryside, cooking and changing agricultural seasons make a quiet fall watch.",
+  "Little Forest":"Its countryside, cooking and changing agricultural seasons make a quiet fall watch.",
   "The Worst Person in the World":"Its Oslo seasons and reflective relationships suit an autumn evening.",
   "Monster House":"Its suburban Halloween adventure offers a spirited fall night."
 };
@@ -399,7 +399,7 @@ const FALL_PACE_HINTS:Record<Media,Record<string,"slow"|"medium"|"energetic">>={
   "Little Women":"slow","When Harry Met Sally...":"medium","Practical Magic":"medium",
   "Good Will Hunting":"slow","Knives Out":"energetic","Coraline":"energetic",
   "Rushmore":"medium","Whisper of the Heart":"slow","Autumn Sonata":"slow",
-  "Autumn Tale":"slow","October Sky":"medium","ParaNorman":"energetic",
+  "A Tale of Autumn":"slow","October Sky":"medium","ParaNorman":"energetic",
   "Harry Potter and the Philosopher's Stone":"energetic","Little Forest":"slow",
   "The Worst Person in the World":"slow","Monster House":"energetic"
  },
@@ -973,7 +973,9 @@ Deno.serve(async (req:Request) => {
       };
       // Fall searches prioritize atmospheric genres and reviewed setting
       // references; a Halloween-heavy keyword index would mislabel the mood.
-      const ids=await moodKeywordIds(mood,token);
+      // Fall is already seeded with reviewed references; avoid seven extra
+      // sequential keyword lookups on the latency-sensitive first request.
+      const ids=mood==="fall"?[]:await moodKeywordIds(mood,token);
       // Keyword coverage is incomplete, so also find subjects through title and synopsis evidence.
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
       // Seeded seasonal stories make fall fast; other moods explore several
