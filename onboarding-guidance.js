@@ -67,7 +67,7 @@ function moveTo(nextStage,scroll=true){
  primary.textContent=films?"Continue to TV Shows":guest?"See my five picks":"Save & see my five picks";
  updateCount();
  if(scroll){
-  guide.scrollIntoView({block:"start",behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});
+  window.scrollTo({top:0,behavior:"auto"});
   primary.focus({preventScroll:true});
  }
 }
