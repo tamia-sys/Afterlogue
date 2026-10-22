@@ -92,3 +92,44 @@ test('From a film detail, return to five picks without flashing the Explore gall
  await expect(page.locator('#explore-return-status')).toBeHidden();
  await expect(page.locator('#explore-gallery-wrap')).toBeHidden();
 });
+
+
+test('Four verified stories trigger another real catalog offset before first paint',async({page})=>{
+ const offsets=[];
+ await page.route('**/functions/v1/afterlogue-catalog',route=>{
+  const body=JSON.parse(route.request().postData()||'{}');
+  if(body.mode!=='mood')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({items:[]})});
+  offsets.push(body.offset);
+  const first=serverItems.slice(0,4),later=serverItems.slice(4,8);
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   items:body.offset===0?first:later
+  })});
+ });
+ await page.goto('explore.html?guest=1');
+ await chooseWinding(page);
+ expect(offsets).toEqual(expect.arrayContaining([0,1]));
+ await expect(page.locator('#explore-picks .explore-pick')).toHaveCount(5);
+ const saved=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('afterlogue.explore.return-to-picks.v2')||'null'));
+ expect(saved.items).toHaveLength(5);
+});
+
+test('Do not display or persist four cards as a completed five-story recommendation',async({page})=>{
+ const offsets=[];
+ await page.route('**/functions/v1/afterlogue-catalog',route=>{
+  const body=JSON.parse(route.request().postData()||'{}');
+  if(body.mode==='mood')offsets.push(body.offset);
+  return route.fulfill({status:200,contentType:'application/json',
+   body:JSON.stringify({items:serverItems.slice(0,4)})});
+ });
+ await page.goto('explore.html?guest=1');
+ await page.locator('.mood-card[data-mood="winding"] .mood-open').click();
+ await page.locator('.choice[data-value="movies"]').click();
+ await page.locator('#explore-next').click();
+ await page.locator('.choice[data-value="slow"]').click();
+ await page.locator('#explore-next').click();
+ await expect(page.locator('#explore-picks .explore-question')).toContainText('complete five',{timeout:30000});
+ await expect(page.locator('#explore-picks .explore-pick')).toHaveCount(0);
+ expect(offsets).toEqual([0,1,2,3]);
+ const saved=await page.evaluate(()=>sessionStorage.getItem('afterlogue.explore.return-to-picks.v2'));
+ expect(saved).toBeNull();
+});
