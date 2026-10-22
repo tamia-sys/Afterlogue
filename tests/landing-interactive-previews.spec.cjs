@@ -187,3 +187,22 @@ test('Narrow screens keep a horizontal swipeable three-card rail',async({page})=
  expect(metrics.display).toBe('flex');
  await expect(page.locator('.landing-final-button')).toBeVisible();
 });
+
+test('Landing headings and brand use the established First Impressions ivory',async({page})=>{
+ await page.goto('index.html');
+ const palette=await page.evaluate(()=>{
+  const style=selector=>getComputedStyle(document.querySelector(selector)).color;
+  return{
+   logo:style('.welcome-header .brand'),
+   hero:style('#welcome-title'),
+   feature:style('.feature h2'),
+   cards:[...document.querySelectorAll('.how .step-intro h3')].map(el=>getComputedStyle(el).color),
+   closing:style('.landing-final-invitation h2')
+  };
+ });
+ expect(palette.logo).toBe('rgb(244, 234, 221)');
+ expect(palette.hero).toBe(palette.logo);
+ expect(palette.feature).toBe(palette.logo);
+ expect(palette.cards).toEqual([palette.logo,palette.logo,palette.logo]);
+ expect(palette.closing).toBe(palette.logo);
+});

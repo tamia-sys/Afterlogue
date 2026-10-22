@@ -208,6 +208,12 @@
  line-height:1.4;white-space:normal;text-align:center
 }
 .afterlogue-onboarding .log-continue-button span[aria-hidden=true]{display:none!important}
+/* Completion remains wired to the visible Step 2 button; the old duplicate
+   bottom-of-page CTA is always hidden for both guests and members. */
+.afterlogue-onboarding .log-continue-section{display:none!important}
+.afterlogue-onboarding .impressions-journey .impressions-save-status{
+  margin:7px 0 0;color:#d4b487;font:12px/1.5 Inter,Arial,sans-serif;
+}
 </style>
 <script src="site-language.js?v=3" defer></script>
 </head>
@@ -719,7 +725,9 @@ backButton.addEventListener("click", event => {
   status.className = "impressions-save-status";
   status.setAttribute("role", "status");
   status.setAttribute("aria-live", "polite");
-  next.closest(".log-continue-section").append(status);
+  // Expose saving failures next to the actual visible action, not inside
+  // the hidden legacy continuation anchor.
+  document.querySelector(".impressions-journey-copy")?.append(status);
   const originalLabel = next.innerHTML;
   let busy = false;
   // Skip uses the same safe save/completion route as Continue, even when

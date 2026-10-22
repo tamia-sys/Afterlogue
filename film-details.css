@@ -188,7 +188,7 @@ body.film-share-open{overflow:hidden}
 /* Restore one aligned action row on Film Details. The Seen button was
    previously nested inside the Watchlist wrapper, while its feedback was
    absolutely positioned over the following content. Both are corrected. */
-.film-hero-actions{align-items:flex-start;gap:10px 12px}
+.film-hero-actions{align-items:flex-start;gap:10px 12px;padding-bottom:19px}
 .film-hero-actions>.film-action,
 .film-hero-actions>.film-seen-action,
 .film-hero-actions>.film-more-menu,
@@ -198,16 +198,24 @@ body.film-share-open{overflow:hidden}
   position:relative;max-width:min(265px,100%);min-width:0
 }
 .film-hero-actions .film-watchlist-feedback{
-  position:static;display:block;left:auto;top:auto;z-index:auto;
-  box-sizing:border-box;width:100%;max-width:245px;
-  margin:7px 0 0;padding:0;background:transparent;border-radius:0;
-  color:#d4b487;white-space:normal;overflow-wrap:break-word;
-  font:11px/1.45 Inter,Arial,sans-serif
+  /* A single-line, absolutely anchored acknowledgment below the Watchlist
+     pill. It must not add height to the pill or push Seen/Favorite/More. */
+  position:absolute;display:block;z-index:4;
+  top:calc(100% + 7px);left:0;
+  box-sizing:border-box;width:max-content;
+  max-width:min(330px,calc(100vw - 34px));
+  margin:0;padding:0;background:transparent;border-radius:0;
+  color:#d4b487;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;
+  font:11px/1.45 Inter,Arial,sans-serif;
+  pointer-events:none
 }
 .film-hero-actions .film-watchlist-feedback:empty{display:none}
 .film-feedback{margin:12px 0 0;clear:both;max-width:100%}
 @media(max-width:480px){
  .film-hero-actions{gap:9px}
  .film-hero-actions>.film-watchlist-control{max-width:min(240px,100%)}
- .film-hero-actions .film-watchlist-feedback{font-size:10px;max-width:215px}
+ .film-hero-actions .film-watchlist-feedback{
+   font-size:10px;max-width:min(300px,calc(100vw - 34px))
+ }
 }
