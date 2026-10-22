@@ -171,7 +171,7 @@ test('Explore returns one complete mood selection with no repeated Search furthe
  assert.match(html,/Finding stories for your mood/);
  assert.doesNotMatch(html,/Search further ↗/);
  assert.match(backend,/while\(queue\.length&&verified\.length<16\)/);
- assert.match(backend,/const queue=selected\.slice\(0,90\)/);
+ assert.match(backend,/const queue=selected\.slice\(0,mood==="fall"/);
 });
 test('All Films collects up to 70 actual filtered matches using cursor pagination',()=>{
  const client=read('catalog-browser.js');
