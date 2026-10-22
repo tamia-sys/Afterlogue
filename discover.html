@@ -809,7 +809,7 @@ const freshDiscovery=category=>getDiscoveryRecommendations(category,0,discoveryH
 // Account-bound snapshots prevent one person's private tastes being reused
 // for another account on a shared device.
 let discoveryCacheOwner=null;
-const discoveryCacheKey="afterlogue.discover.shelf.v1";
+const discoveryCacheKey="afterlogue.discover.shelf.v2";
 function discoveryFingerprint(){
  return JSON.stringify({
   ratings:Object.entries(savedImpressions).sort((a,b)=>a[0].localeCompare(b[0])),
@@ -838,6 +838,11 @@ function restoreDiscovery(owner){
      snapshot.fingerprint!==discoveryFingerprint()||
      Date.now()-snapshot.savedAt>4*60*60*1000||
      !Array.isArray(snapshot.entries)||!snapshot.entries.length)return false;
+  // A previous session might have loaded TV but failed to load films.
+  // That partial snapshot must not permanently suppress movie matching
+  // on the next visit (and vice versa).
+  if(!["movies","tv"].every(media=>snapshot.entries.some(item=>item.category===media)))
+    return false;
   discoveryExpandedEntries=snapshot.entries;
   discoverySourceEntries=Array.isArray(snapshot.sources)?snapshot.sources:[];
   for(const media of ["movies","tv"]){

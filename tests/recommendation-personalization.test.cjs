@@ -99,6 +99,12 @@ test('Explicit production country and original language are saved with member on
   assert.match(discovery,/originalLanguage:discoveryPreferences\.originalLanguage\|\|""/);
 });
 
+test('An older TV-only snapshot must not freeze a blank Movie shelf',()=>{
+ const html=read('discover.html');
+ assert.match(html,/afterlogue\.discover\.shelf\.v2/);
+ assert.match(html,/snapshot\.entries\.some\(item=>item\.category===media\)/);
+});
+
 test('International titles are never collapsed to blank ASCII-only movie identifiers',()=>{
  const backend=read('supabase/functions/afterlogue-catalog/index.ts');
  const home=read('discover.html'),engine=read('recommendation-engine.js');
@@ -443,7 +449,7 @@ test('Discover does not cycle back to the first five or let sequels and holiday 
 });
 test('Recommendations survive a film-details visit and keep guest routing and account isolation',()=>{
  const home=read('discover.html'),details=read('film-details.js');
- assert.match(home,/discoveryCacheKey="afterlogue\.discover\.shelf\.v1"/);
+ assert.match(home,/discoveryCacheKey="afterlogue\.discover\.shelf\.v2"/);
  assert.match(home,/sessionStorage\.setItem\(discoveryCacheKey/);
  assert.match(home,/snapshot\.owner!==owner/);
  assert.match(home,/snapshot\.fingerprint!==discoveryFingerprint\(\)/);
