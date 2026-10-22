@@ -129,7 +129,7 @@ const hashSeed=(str:string)=>{
 };
 const GENRE_MOODS:Record<string,{movie:number[][],tv:number[][],caption:string}>={
  yearning:{movie:[[10749,18],[18],[10749]],tv:[[18],[10765,18]],caption:"Romance, distance, and difficult connections."},
- winding:{movie:[[18],[99],[10751,35]],tv:[[18],[35]],caption:"Reflective and softer-paced stories."},
+ winding:{movie:[[35,10749],[18],[10751,12],[99,18],[16,35]],tv:[[35],[18],[10751],[99],[16,35]],caption:"Easygoing comedy, ordinary life, playful escapism and contemplative storytelling."},
  friday:{movie:[[35],[28,53],[9648,53]],tv:[[35],[10759,9648]],caption:"Lively, suspenseful or playful stories."},
  fall:{movie:[[18,10749],[18,35],[16,10751],[18,9648],[10749]],tv:[[18],[35,18],[10765,18]],caption:"Woodlands, campus life, city romance, warmth and autumn melancholy — not just Halloween."},
  holidays:{movie:[[10751,35],[10749,35],[14]],tv:[[35,10751],[10751]],caption:"Warmth, family and seasonal atmosphere."},
@@ -225,7 +225,7 @@ function narrativeMoodEvidence(mood:string,details:Record<string,unknown>,tag:st
 type MoodAssessment={score:number;reason:string;lane:string;energy:string;fitVersion:string};
 function moodExperience(
  mood:string,film:Record<string,unknown>,tagNames:string[],
- pace:string,editorialReason:string|null,editorialPace:string|null=null
+ pace:string,editorialReason:string|null,editorialPace:string|null=null,editorialLane:string|null=null
 ):MoodAssessment{
  const title=String(film.title||film.name||"");
  const story=String(film.overview||"").toLowerCase();
@@ -278,22 +278,38 @@ function moodExperience(
   add(!frantic&&!light&&!has(35,28,12,53,27,9648,10402),-3,"","low energy");
   if(!frantic&&!light&&!has(35,28,12,53,27,9648,10402))score-=2;
  }else if(mood==="winding"){
-  add(tender,6,
-   "Its intimate or reflective storytelling fits a slower evening.","reflective");
-  add(tagged(/\b(slice of life|healing|everyday life|self discovery|feel.good)\b/i),5,
-   "Its everyday or restorative theme suits winding down.","everyday");
-  add(cue(/\b(friendship|community|small town|family bonds|simple pleasures|ordinary|quiet lives)\b/i),3,
-   "Small human connections anchor this gentler viewing experience.","human connection");
-  add(has(99,35),1,"","documentary or comedy");
-  add(bleak,-6,"","heavy");
-  add(distressing,-9,"","distressing real-world subject");
-  add(has(27,53,28,80),-5,"","high intensity");
-  add(frantic,-3,"","frantic");
-  // A confrontational docudrama can be intimate without being restful.
+  // Winding Down can mean familiar, entertaining comfort OR an absorbing
+  // contemplative story. Narrative pace and emotional weight are independent.
+  // A sparse "slice of life" tag on its own is NOT evidence of restfulness.
+  const warmth=cue(/\b(comed(y|ic)|funny|humou?r|witty|light.hearted|playful|uplifting|feel.good|cheerful|hilarious|heartwarming|rom.com|romantic comedy|laugh(s|ter)?|whimsical)\b/i);
+  const everyday=cue(/\b(friendship|friends?|neighbou?rhood|community|family bonds|family life|family reunion|romantic relationship|workplace|salon|shop|restaurant|ordinary life|daily lives|day.to.day|everyday|school friends|growing up|coming.of.age|small town)\b/i);
+  const contemplating=cue(/\b(contemplative|introspect|reflective|meditative|solitude|daily routine|wanders?|life on the road|travel(s|ing)? across|life in the countryside|quiet observation|over the years|passage of time|poetry|artistic life)\b/i)||tagged(/\b(contemplation|meditation|slow cinema|poetry)\b/i);
+  const playfulAdventure=cue(/\b(road trip|comedic adventure|misadventure|hijinks|escapades?|unlikely duo|unlikely friendship|comic caper|wacky|zany)\b/i);
+  add(Boolean(editorialReason),9,editorialReason||"",editorialLane||"reviewed wind-down");
+  add(warmth,6,
+    "Its documented humor or lighthearted tone makes this an easygoing watch.","feel-good");
+  add(everyday,4,
+    "Everyday relationships and familiar surroundings make this a character-led choice.","everyday connections");
+  add(contemplating,7,
+    "Its reflective storytelling invites a more contemplative kind of evening.","contemplative");
+  add(playfulAdventure&&pace!=="slow",5,
+    "Its playful adventure offers an engaging, entertaining way to unwind.","playful escapism");
+  add(tagged(/\b(slice of life|healing|everyday life|self discovery|feel.good)\b/i),2,"","topic tags");
+  add(has(35,10749),1,"","comedy or romance");
+  // Neither animation nor slow pacing is proof of a relaxing experience.
+  // Dark topics are not automatically excluded: some verified, thoughtfully
+  // chosen films are cathartic. Avoid unverified trauma-as-comfort claims.
+  if(distressing)score-=editorialReason?2:10;
+  if(bleak&&!warmth)score-=editorialReason?1:contemplating?2:5;
+  if(has(27,53,28,80)&&!warmth&&!editorialReason)score-=4;
+  if(frantic&&!warmth&&!editorialReason)score-=4;
+  if(pace==="slow"&&frantic&&!editorialReason)score-=3;
+  if(pace==="energetic"&&warmth)score+=2;
+  // A serious contemporary drama can be a great wind-down when the viewer
+  // wants to reflect; never assume all viewers require happy endings.
   if(pace==="slow"&&Number(film.id)===1069193)score-=6;
-  // A nostalgic high-pressure fashion comedy needn't be quietly paced.
   if(pace==="slow"&&/the devil wears prada 2/i.test(title))score-=8;
-  if(!tender&&!tagged(/\b(slice of life|healing|everyday life|feel.good)\b/i))score-=3;
+  if(!editorialReason&&!warmth&&!everyday&&!contemplating&&!playfulAdventure)score-=4;
  }else if(mood==="fall"){
   // Fall is a VIEWING ATMOSPHERE, not a synonym for Halloween or horror.
   // Campus, woodland, literary, seasonal-city and reflective stories belong.
@@ -446,6 +462,97 @@ const FALL_REGIONAL_FILMS:Record<string,{country:string;language:string;year:num
   "Only Yesterday":{country:"JP",language:"ja",year:1991},
   "Whisper of the Heart":{country:"JP",language:"ja",year:1995}
 };
+// Human-reviewed mood anchors, not a permanent watchlist or user preference.
+// A windy evening can be playful, everyday, or contemplative (even bittersweet).
+// Search anchors are validated against TMDB title/year and ALL user filters.
+// Ambiguous adaptations (e.g. "Hamlet") are learned as a mood example, not
+// forced to a particular adaptation without a release year.
+type WindingReference={year:number;lane:string;pace:string;reason:string};
+const WINDING_REFERENCES:Record<Media,Record<string,WindingReference>>={
+  movie:{
+    "Columbus":{year:2017,lane:"contemplative",pace:"slow",reason:"Its architecture, patient conversations and personal uncertainties invite quiet observation."},
+    "Lost in Translation":{year:2003,lane:"contemplative",pace:"slow",reason:"Its unhurried Tokyo encounters and moments of disconnection invite emotional reflection."},
+    "Her":{year:2013,lane:"contemplative",pace:"slow",reason:"Its intimate questions about connection and loneliness offer thoughtful speculative romance."},
+    "Spring, Summer, Fall, Winter... and Spring":{year:2003,lane:"contemplative",pace:"slow",reason:"Its changing seasons and spiritual practice invite quiet philosophical contemplation."},
+    "Three Colors: Blue":{year:1993,lane:"contemplative",pace:"slow",reason:"Its carefully observed grief and music create a contemplative, emotionally demanding experience."},
+    "Three Colors: White":{year:1994,lane:"contemplative",pace:"slow",reason:"Its restrained character story offers reflective European cinema with bittersweet humor."},
+    "Three Colors: Red":{year:1994,lane:"contemplative",pace:"slow",reason:"Its patient encounters explore connection and chance in a meditative style."},
+    "Meet Joe Black":{year:1998,lane:"contemplative",pace:"slow",reason:"Its extended conversations about life, love and mortality reward an unhurried mood."},
+    "Liberal Arts":{year:2012,lane:"contemplative",pace:"slow",reason:"Its conversations about literature, growing older and connection encourage reflection."},
+    "Wendy and Lucy":{year:2008,lane:"contemplative",pace:"slow",reason:"Its spare, closely observed daily struggles invite quiet attention, though the story is sad."},
+    "Sound of Metal":{year:2019,lane:"contemplative",pace:"slow",reason:"Its attentive sound design and patient character journey invite immersive reflection despite emotional strain."},
+    "Fish Tank":{year:2009,lane:"contemplative",pace:"slow",reason:"Its intimate social-realist observations require attention and can be emotionally difficult."},
+    "The Piano":{year:1993,lane:"contemplative",pace:"slow",reason:"Its visual storytelling and complex personal relationships invite immersive, emotionally intense reflection."},
+    "A Ghost Story":{year:2017,lane:"contemplative",pace:"slow",reason:"Its long takes and consideration of grief and time are deliberately contemplative."},
+    "Arrival":{year:2016,lane:"contemplative",pace:"slow",reason:"Its deliberate science-fiction mystery reflects on language, memory and connection."},
+    "Breaking the Waves":{year:1996,lane:"contemplative",pace:"slow",reason:"Its patient moral and spiritual questions invite deep reflection, but its subject matter is distressing."},
+    "Paris, Texas":{year:1984,lane:"contemplative",pace:"slow",reason:"Its sparse dialogue, landscapes and gradual revelations reward patient attention."},
+    "Phantom Thread":{year:2017,lane:"contemplative",pace:"slow",reason:"Its restrained performances and meticulous domestic rhythms offer controlled psychological observation."},
+    "A Short Film About Love":{year:1988,lane:"contemplative",pace:"slow",reason:"Its quiet study of longing and intimacy invites ethically complicated reflection."},
+    "Pather Panchali":{year:1955,lane:"contemplative",pace:"slow",reason:"Its detailed observation of rural family life and childhood invites patient immersion."},
+    "Silent Souls":{year:2010,lane:"contemplative",pace:"slow",reason:"Its restrained travel narrative and ritual reflections contemplate grief and belonging."},
+    "Ordet":{year:1955,lane:"contemplative",pace:"slow",reason:"Its extended dialogue and questions of faith invite meditative contemplation."},
+    "Au Hasard Balthazar":{year:1966,lane:"contemplative",pace:"slow",reason:"Its restrained scenes and suffering invite serious, demanding moral reflection."},
+    "Barbara":{year:2012,lane:"contemplative",pace:"slow",reason:"Its quiet East German setting and subtle choices create patient, character-led tension."},
+    "Ikiru":{year:1952,lane:"contemplative",pace:"slow",reason:"Its measured examination of mortality and meaning invites compassionate reflection."},
+    "Poetry":{year:2010,lane:"contemplative",pace:"slow",reason:"Its carefully observed encounters invite contemplation of beauty alongside troubling realities."},
+    "After Life":{year:1998,lane:"contemplative",pace:"slow",reason:"Its gently paced conversations ask what memories give a life meaning."},
+    "Vive L'Amour":{year:1994,lane:"contemplative",pace:"slow",reason:"Its spare dialogue and urban solitude make patient observation the point."},
+    "A Pigeon Sat on a Branch Reflecting on Existence":{year:2014,lane:"contemplative",pace:"slow",reason:"Its deadpan tableaux and existential humor offer an unusual contemplative rhythm."},
+    "Amour":{year:2012,lane:"contemplative",pace:"slow",reason:"Its controlled intimate storytelling confronts difficult themes of aging and love."},
+    "Dogville":{year:2003,lane:"contemplative",pace:"slow",reason:"Its theatrical restraint invites ethical reflection but includes profoundly distressing violence."},
+    "The Tree of Life":{year:2011,lane:"contemplative",pace:"slow",reason:"Its lyrical images, family memories and philosophical passages invite patient immersion."},
+    "Beauty Shop":{year:2005,lane:"everyday",pace:"slow",reason:"Its neighborhood salon, close friendships and comic everyday conversations make an inviting comfort watch."},
+    "Just Wright":{year:2010,lane:"comfort",pace:"slow",reason:"An approachable romance grounded in friendship, personal connection and humor."},
+    "Roll Bounce":{year:2005,lane:"playful",pace:"energetic",reason:"Skating, friendship and playful competition offer upbeat nostalgic escapism."},
+    "ATL":{year:2006,lane:"everyday",pace:"slow",reason:"Friendship, neighborhood life and coming of age anchor its nostalgic everyday appeal."},
+    "Drumline":{year:2002,lane:"playful",pace:"energetic",reason:"Music, campus camaraderie and spirited competition make an energetic, enjoyable watch."},
+    "The Princess and the Frog":{year:2009,lane:"playful",pace:"energetic",reason:"Its songs, humor and lively fairy-tale adventure offer animated escapism."},
+    "We're the Millers":{year:2013,lane:"playful",pace:"energetic",reason:"Its road-trip comedy and mismatched traveling companions keep things playful."},
+    "Vacation":{year:2015,lane:"playful",pace:"energetic",reason:"An absurd family road trip makes an easygoing, comedic escape."},
+    "He's Just Not That Into You":{year:2009,lane:"comfort",pace:"slow",reason:"Interconnected romantic misunderstandings make for an approachable ensemble watch."},
+    "About Last Night":{year:2014,lane:"comfort",pace:"slow",reason:"Relationship comedy and conversational warmth keep this an accessible romantic watch."},
+    "Bruce Almighty":{year:2003,lane:"playful",pace:"energetic",reason:"Its playful supernatural premise and broad humor make an upbeat comedy."},
+    "The Switch":{year:2010,lane:"comfort",pace:"slow",reason:"A friendship-led romantic comedy with familiar, lighthearted relationship stakes."},
+    "This Is Where I Leave You":{year:2014,lane:"everyday",pace:"slow",reason:"Family reunion and everyday tensions blend emotional connection with comedy."},
+    "Guess Who":{year:2005,lane:"playful",pace:"energetic",reason:"Its awkward family introduction and comic clashes make a breezy relationship comedy."},
+    "Identity Thief":{year:2013,lane:"playful",pace:"energetic",reason:"An unlikely duo and outrageous road-trip misadventures offer spirited comedic escapism."},
+    "Zombieland":{year:2009,lane:"playful",pace:"energetic",reason:"Self-aware horror-comedy and found-family humor offer playful escapism for viewers comfortable with genre violence."},
+    "Nomadland":{year:2020,lane:"contemplative",pace:"slow",reason:"Its unhurried journeys and attentive observations of everyday lives invite contemplation, despite difficult themes."},
+    "Perfect Days":{year:2023,lane:"contemplative",pace:"slow",reason:"Small routines, music and everyday encounters invite an unhurried, attentive evening."},
+    "Into the Wild":{year:2007,lane:"contemplative",pace:"slow",reason:"Its scenic personal journey invites reflection even though the story becomes emotionally difficult."},
+    "Boyhood":{year:2014,lane:"contemplative",pace:"slow",reason:"Ordinary family moments across the years encourage patient, reflective viewing."},
+    "Avatar":{year:2009,lane:"playful",pace:"energetic",reason:"An immersive fantastical world and accessible adventure offer a more energetic way to unwind."},
+    "Little Forest":{year:2018,lane:"everyday",pace:"slow",reason:"Seasonal cooking and rural routines create a gentle everyday-life experience."},
+    "The Lunchbox":{year:2013,lane:"comfort",pace:"slow",reason:"Food, handwritten exchanges and small human connections make an intimate, approachable watch."},
+    "Paterson":{year:2016,lane:"contemplative",pace:"slow",reason:"Everyday routines and poetry create a warmly observant, unhurried rhythm."},
+    "Amélie":{year:2001,lane:"comfort",pace:"slow",reason:"Its playful imagination and neighborhood connections offer whimsical feel-good storytelling."},
+    "Our Little Sister":{year:2015,lane:"everyday",pace:"slow",reason:"Family relationships and everyday rituals make a warm, observant slice-of-life film."},
+    "Hunt for the Wilderpeople":{year:2016,lane:"playful",pace:"energetic",reason:"An unlikely friendship and offbeat wilderness adventure blend humor and heart."},
+    "School of Rock":{year:2003,lane:"playful",pace:"energetic",reason:"Music, classroom camaraderie and broad humor make an upbeat, rewatchable comedy."}
+  },
+  tv:{
+    "Abbott Elementary":{year:2021,lane:"everyday",pace:"slow",reason:"A workplace school comedy built around funny, caring colleagues and small victories."},
+    "Insecure":{year:2016,lane:"everyday",pace:"slow",reason:"Friendship, career and relationship misadventures offer relatable humor and everyday warmth."},
+    "The Good Place":{year:2016,lane:"comfort",pace:"slow",reason:"A witty, warm-hearted ensemble uses humor and friendship to explore life's bigger questions."},
+    "Midnight Diner":{year:2009,lane:"everyday",pace:"slow",reason:"Late-night meals and customers' everyday stories create a gentle, episodic rhythm."},
+    "Somebody Somewhere":{year:2022,lane:"everyday",pace:"slow",reason:"Friendship and small-town life offer compassionate humor and personal connection."},
+    "Detectorists":{year:2014,lane:"contemplative",pace:"slow",reason:"Its countryside wandering and affectionate character humor invite unhurried viewing."},
+    "Reply 1988":{year:2015,lane:"everyday",pace:"slow",reason:"Neighbors, family and adolescence evoke everyday warmth and nostalgia."},
+    "K-On!":{year:2009,lane:"comfort",pace:"slow",reason:"Light school-club music and friendships offer playful, low-stakes animated comfort."},
+    "Gilmore Girls":{year:2000,lane:"comfort",pace:"slow",reason:"Community, banter and relationships make a familiar small-town comfort watch."},
+    "Bob's Burgers":{year:2011,lane:"comfort",pace:"slow",reason:"Everyday family mishaps and affectionate comedy create approachable animated comfort."},
+    "Schitt's Creek":{year:2015,lane:"comfort",pace:"slow",reason:"Warm relationships grow through oddball small-town comedy."},
+    "Derry Girls":{year:2018,lane:"playful",pace:"energetic",reason:"Energetic school friendships and chaotic comedy deliver an upbeat escape."},
+    "Heartstopper":{year:2022,lane:"comfort",pace:"slow",reason:"Tender young relationships and friendship offer gentle coming-of-age warmth."},
+    "Kim's Convenience":{year:2016,lane:"everyday",pace:"slow",reason:"A family shop and neighborhood relationships provide relatable everyday comedy."},
+    "One Day at a Time":{year:2017,lane:"everyday",pace:"slow",reason:"Warm family relationships and lively sitcom humor make an approachable evening watch."},
+    "Misaeng":{year:2014,lane:"contemplative",pace:"slow",reason:"Office life and quietly persistent personal growth make a reflective character-focused watch."},
+    "Somebody Feed Phil":{year:2018,lane:"comfort",pace:"slow",reason:"Friendly food and travel encounters make an upbeat, easygoing factual watch."},
+    "Felicity":{year:1998,lane:"contemplative",pace:"slow",reason:"Its university friendships and relationship choices invite nostalgic, introspective viewing."}
+  }
+};
+
 const SEASONAL_FEATURES:Record<number,{event:string;reason:string}>={
   25195:{event:"Leap Day",reason:"The story centers on an Irish Leap Day proposal tradition."},
   1019420:{event:"Irish seasonal viewing",reason:"An Irish-set romance suited to St. Patrick’s season; it is not a St. Patrick’s Day plot."},
@@ -1007,7 +1114,7 @@ Deno.serve(async (req:Request) => {
       // references; a Halloween-heavy keyword index would mislabel the mood.
       // Fall is already seeded with reviewed references; avoid seven extra
       // sequential keyword lookups on the latency-sensitive first request.
-      const ids=mood==="fall"?[]:await moodKeywordIds(mood,token);
+      const ids=mood==="fall"||mood==="winding"?[]:await moodKeywordIds(mood,token);
       // Keyword coverage is incomplete, so also find subjects through title and synopsis evidence.
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
       // Seeded seasonal stories make fall fast; other moods explore several
@@ -1081,6 +1188,47 @@ Deno.serve(async (req:Request) => {
            })||null;
          }))
         :null;
+      // Reviewed wind-down references seed several DISTINCT viewing styles.
+      // Rotating by offset prevents a fixed shelf, while the wider TMDB search
+      // remains available for discoveries beyond these editorial examples.
+      const windingCatalog:Record<string,WindingReference>=mood==="winding"?WINDING_REFERENCES[media]:{};
+      const windingEntries=Object.entries(windingCatalog);
+      const preferredWinding=windingEntries.filter(([,ref])=>ref.pace===pace);
+      const alternateWinding=windingEntries.filter(([,ref])=>ref.pace!==pace);
+      // The actual "Take your time" request means sustained attention:
+      // subtle moments, slow cinema, thought and contemplation. This is
+      // different from the wider Winding Down umbrella of comfort and fun.
+      const windingLanes=pace==="energetic"
+        ?["playful","comfort","everyday","contemplative"]
+        :["contemplative","everyday","comfort","playful"];
+      const windingLaneSequence=pace==="slow"&&media==="movie"
+        ?["contemplative","contemplative","everyday","contemplative",
+          "contemplative","comfort","contemplative","contemplative",
+          "contemplative","contemplative","everyday","contemplative"]
+        :Array.from({length:12},(_,i)=>windingLanes[i%windingLanes.length]);
+      const windOrder=[...preferredWinding,...alternateWinding];
+      const windingByLane=new Map(windingLanes.map(lane=>[lane,
+        windOrder.filter(([,ref])=>ref.lane===lane)]));
+      const windingTitles:string[]=[];
+      const laneCursor=new Map<string,number>();
+      for(const lane of windingLaneSequence){
+        const entries=windingByLane.get(lane)||[];
+        const idx=laneCursor.get(lane)||0;laneCursor.set(lane,idx+1);
+        const row=entries.length?entries[(idx+offset*5)%entries.length]:null;
+        if(row&&!windingTitles.includes(row[0]))windingTitles.push(row[0]);
+      }
+      const windingSeedJob=windingTitles.length?Promise.allSettled(
+        windingTitles.map(async title=>{
+          const reference=windingCatalog[title];
+          const data=await tmdb("/search/"+media,
+            new URLSearchParams({query:title,language:"en-US",page:"1",include_adult:"false"}),token);
+          const normalized=(value:string)=>value.normalize("NFKD")
+            .replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+          return (data.results||[]).find((item:Record<string,unknown>)=>
+            normalized(String(media==="tv"?item.name:item.title||""))===normalized(title)
+            &&yearOf(String(media==="tv"?item.first_air_date:item.release_date||""))===reference.year)||null;
+        })
+      ):null;
       const jobs=await Promise.allSettled(Array.from({length:total},async (_,i)=>{
         const country=countries.length?countries[(i+offset)%countries.length]:null;
         const language=languages.length?languages[(Math.floor(i/Math.max(1,countries.length))+offset)%languages.length]:null;
@@ -1137,7 +1285,7 @@ Deno.serve(async (req:Request) => {
         });
       }));
       const groups=jobs.filter((x):x is PromiseFulfilledResult<Record<string,unknown>[]>=>x.status==="fulfilled").map(x=>x.value);
-      if(!groups.length&&!fallSeedJob)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
+      if(!groups.length&&!fallSeedJob&&!windingSeedJob)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
       const seen=new Set<number>(),selected:Record<string,unknown>[]=[];
       if(fallSeedJob){
         const exemplars=await fallSeedJob;
@@ -1148,6 +1296,34 @@ Deno.serve(async (req:Request) => {
           seen.add(id);selected.push(result.value);
         }
       }
+      let windingRelatedGroups:Record<string,unknown>[][]=[];
+      if(windingSeedJob){
+        const exemplars=await windingSeedJob;
+        const references=exemplars.filter((result):result is PromiseFulfilledResult<Record<string,unknown>>=>
+          result.status==="fulfilled"&&Boolean(result.value?.id)).map(result=>result.value);
+        // References define the viewing experience; they must not become an
+        // endless carousel of the founder's own example films.
+        // Reserve a few eligible reference candidates as fallbacks.
+        for(const item of references.slice(0,4)){
+          const id=Number(item.id);
+          if(excluded.has(id)||seen.has(id))continue;
+          seen.add(id);selected.push(item);
+        }
+        // TMDB's similar-title graph supplies previously unlisted candidates.
+        // Similarity is a *retrieval hint*, not automatic mood verification:
+        // all recommendations must pass the normal synopsis/keyword fit test.
+        const referenceNeighbors=references.filter((_,i)=>i%3===0).slice(0,3);
+        const related=await Promise.allSettled(referenceNeighbors.map(async item=>{
+          const params=new URLSearchParams({
+            language:"en-US",page:String(1+(offset%3)),include_adult:"false"
+          });
+          const payload=await tmdb("/"+media+"/"+Number(item.id)+"/similar",params,token);
+          return (payload.results||[]).filter((v:Record<string,unknown>)=>
+            eligible(v,media,media==="movie"?30:20));
+        }));
+        windingRelatedGroups=related.filter((r):r is PromiseFulfilledResult<Record<string,unknown>[]> =>
+          r.status==="fulfilled").map(r=>r.value);
+      }
       // Editor-reviewed occasion picks still must satisfy the production,
       // country, language, genre and decade checks before being returned.
       if(mood==="holidays"&&media==="movie"){
@@ -1156,6 +1332,16 @@ Deno.serve(async (req:Request) => {
         }
       }
       for(let index=0;index<20;index++){
+        // Interleave real catalog neighbors with worldwide/genre discovery
+        // instead of front-loading a static list. No provider recommendation
+        // is displayed until the same detailed mood evidence checks pass.
+        if(mood==="winding"&&index<12){
+          for(const related of windingRelatedGroups){
+            const entry=related[index];
+            if(!entry||seen.has(Number(entry.id))||excluded.has(Number(entry.id)))continue;
+            seen.add(Number(entry.id));selected.push(entry);
+          }
+        }
         for(const group of groups){
           const entry=group[index];
           if(!entry||seen.has(Number(entry.id))||excluded.has(Number(entry.id)))continue;
@@ -1172,9 +1358,10 @@ Deno.serve(async (req:Request) => {
       // Limit the candidate count and workers so we never flood TMDB.
       // Search more than the first 24: narrow pools repeatedly produced
       // only 2–3 Fall results despite unrestricted preferences.
-      const queue=selected.slice(0,mood==="fall"&&(countries.length||languages.length)?120:90);
+      const queue=selected.slice(0,mood==="winding"?55:mood==="fall"&&(countries.length||languages.length)?120:90);
       const verified:Array<ReturnType<typeof listItem>&{
-        moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string
+        moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string;
+        windingReference:boolean
       }>= [];
       async function verifyOne(v:Record<string,unknown>){
         const p=new URLSearchParams({language:"en-US",append_to_response:media==="movie"?"keywords,release_dates":"keywords,content_ratings"});
@@ -1218,9 +1405,22 @@ Deno.serve(async (req:Request) => {
           ?(media==="tv"?FALL_TV_ATMOSPHERE[String(details.name||"")]
             :FALL_ATMOSPHERE[String(details.title||"")])||null:null;
         const tags=Array.isArray(detailKeywords)?detailKeywords.map((v:Record<string,unknown>)=>String(v.name||"")):[];
+        const windingRef=mood==="winding"
+          ?WINDING_REFERENCES[media][String(media==="tv"?details.name:details.title)]||null:null;
         const editorialPace=mood==="fall"
           ?FALL_PACE_HINTS[media][String(media==="tv"?details.name:details.title)]||null:null;
-        const experience=moodExperience(mood,details,tags,pace,fallReason||editorial?.reason||null,editorialPace);
+        const experience=moodExperience(mood,details,tags,pace,
+          windingRef?.reason||fallReason||editorial?.reason||null,
+          editorialPace,windingRef?.lane||null);
+        // Pace changes the preference ordering among qualifying anchors,
+        // not their ability to fit the Winding Down mood at all.
+        if(mood==="winding"&&windingRef&&pace!=="medium"){
+          // For slow Film requests, prioritize genuinely contemplative cinema
+          // over just pleasant comedy, without excluding other eligible films.
+          experience.score+=windingRef.pace===pace?3:-1;
+          if(pace==="slow"&&media==="movie"&&windingRef.lane==="contemplative")
+            experience.score+=5;
+        }
         // Reject superficial keyword matches when the experience conflicts:
         // The Ice Storm is not a playful Friday night just because of a party.
         if(experience.score<5)return;
@@ -1235,13 +1435,14 @@ Deno.serve(async (req:Request) => {
         if(!titleItem.poster)return;
         verified.push({
           ...titleItem,certification,moodReason:reason,
+          windingReference:Boolean(windingRef),
           moodFit:experience.score,moodLane:experience.lane,
           energySignal:experience.energy,fitVersion:experience.fitVersion,
           matchedFilters:matching
         });
       }
       async function worker(){
-        while(queue.length&&verified.length<16){
+        while(queue.length&&verified.length<(mood==="winding"?20:16)){
           const item=queue.shift();
           if(!item)return;
           try{await verifyOne(item);}catch(error){
@@ -1299,14 +1500,48 @@ Deno.serve(async (req:Request) => {
             const lanePenalty=(laneCounts.get(entry.moodLane)||0)*2.4;
             const seenGenre=curated.filter(selected=>
               selected.genreIds.some(id=>entry.genreIds.includes(id))).length;
-            const adjusted=entry.moodFit-lanePenalty-Math.min(2,seenGenre)*0.4;
+            // Encourage stylistic range only among comparably fitting choices,
+            // and never counteract a specific animation or country filter.
+            const style=entry.genreIds.includes(16)?"animated":"other";
+            const styleRepeats=curated.filter(item=>
+              (item.genreIds.includes(16)?"animated":"other")===style).length;
+            const languageRepeats=curated.filter(item=>item.language&&item.language===entry.language).length;
+            const rangePenalty=mood==="winding"&&!genres.length&&!countries.length&&!languages.length
+              ?Math.max(0,styleRepeats-1)*1.8+Math.min(3,languageRepeats)*0.9:0;
+            const adjusted=entry.moodFit-lanePenalty-Math.min(2,seenGenre)*0.4-rangePenalty;
             if(adjusted>bestScore){bestScore=adjusted;best=i;}
           }
           const [winner]=remaining.splice(best,1);
           curated.push(winner);
           laneCounts.set(winner.moodLane,(laneCounts.get(winner.moodLane)||0)+1);
         }
-        verified.splice(0,verified.length,...curated);
+        // Keep the editorial references as examples, not the whole shelf.
+        // Prefer at least three qualifying, independently discovered stories
+        // across ten returned candidates; never promote a weak match.
+        if(mood==="winding"){
+          const independent=curated.filter(entry=>!entry.windingReference&&entry.moodFit>=7);
+          if(independent.length){
+            const known=curated.filter(entry=>entry.windingReference);
+            const preferred:typeof curated=[];
+            const used=new Set<number>();
+            const append=(entry:typeof curated[number])=>{
+              const id=Number(entry.id);
+              if(used.has(id))return;
+              used.add(id);preferred.push(entry);
+            };
+            // Alternating ensures both orientation and discovery. Return up
+            // to two editorial examples in the first five if available.
+            if(known[0])append(known[0]);
+            independent.slice(0,3).forEach(append);
+            if(known[1])append(known[1]);
+            curated.forEach(append); 
+            verified.splice(0,verified.length,...preferred);
+          }else{
+            verified.splice(0,verified.length,...curated);
+          }
+        }else{
+          verified.splice(0,verified.length,...curated);
+        }
       }
       return response({
         mood,matching:"experience-evidence-v1",pace,
