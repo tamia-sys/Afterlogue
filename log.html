@@ -605,7 +605,7 @@ backButton.addEventListener("click", event => {
         throw Error("Saving is not available. Please reload and try again.");
       }
       await window.saveFirstImpressions(window.afterlogueSupabase);
-      const destination=await window.AfterloguePendingWatchlist?.complete(window.afterlogueSupabase);
+      const destination=await window.AfterloguePendingWatchlist?.postLogin(window.afterlogueSupabase,null,true);
       location.assign(destination||"discover.html");
     } catch (error) {
       console.warn("Afterlogue: First Impressions could not be saved.", error);
