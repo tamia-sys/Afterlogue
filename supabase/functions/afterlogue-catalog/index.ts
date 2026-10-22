@@ -225,7 +225,7 @@ function narrativeMoodEvidence(mood:string,details:Record<string,unknown>,tag:st
 type MoodAssessment={score:number;reason:string;lane:string;energy:string;fitVersion:string};
 function moodExperience(
  mood:string,film:Record<string,unknown>,tagNames:string[],
- pace:string,editorialReason:string|null
+ pace:string,editorialReason:string|null,editorialPace:string|null=null
 ):MoodAssessment{
  const title=String(film.title||film.name||"");
  const story=String(film.overview||"").toLowerCase();
@@ -316,6 +316,10 @@ function moodExperience(
     "Its Halloween theme offers the spookier side of fall.","eerie");
   add(has(18,10749,16,10751,35),1,"","genres");
   if(has(27)&&!editorialReason)score-=4; // Keep horror as ONE lane, not the default mood.
+  // Treat the requested pace as a real ranking preference, rather
+  // than a tiny genre tie-break. These are editorial estimates.
+  if(pace!=="medium"&&editorialPace)
+   score+=editorialPace===pace?9:editorialPace==="medium"?0:-4;
   if(!signals.some(x=>x.points>=5))score=-100;
  }else if(mood==="unexpected"){
   add(cue(/\b(surreal|dream.like|alternate reality|parallel world|time travel|bizarre|absurd|experimental|unusual|strange phenomenon|reality shifts|body swap)\b/i),7,
@@ -373,7 +377,44 @@ const FALL_ATMOSPHERE:Record<string,string>={
   "Little Women":"A literary family story with warmth and the passing of seasons.",
   "When Harry Met Sally...":"New York romance and its seasonal city atmosphere make this a fall favorite.",
   "Practical Magic":"A small-town, atmospheric fantasy for the softer side of spooky season.",
-  "Good Will Hunting":"Its Boston academic and reflective setting fits an introspective fall watch."
+  "Good Will Hunting":"Its Boston academic and reflective setting fits an introspective fall watch.",
+  "Knives Out":"Its New England country-house mystery adds an involving autumn-night option.",
+  "Coraline":"Its rain-soaked Oregon setting and eerie storybook atmosphere suit spooky fall viewing.",
+  "Rushmore":"Its school-year setting and eccentric campus life fit the back-to-school season.",
+  "Whisper of the Heart":"Its Japanese schooldays, bookshops and creative ambitions fit a gentler fall afternoon.",
+  "Autumn Sonata":"Its Swedish family reunion and autumn setting make a reflective seasonal watch.",
+  "A Tale of Autumn":"Its French countryside and autumn romance connect directly to the season.",
+  "October Sky":"Its Appalachian school setting and science-club ambitions suit back-to-school viewing.",
+  "ParaNorman":"Its New England town and supernatural adventure make a lively spooky-season choice.",
+  "Harry Potter and the Philosopher's Stone":"Its opening school term and Gothic castle create cozy autumn atmosphere.",
+  "Little Forest":"Its countryside, cooking and changing agricultural seasons make a quiet fall watch.",
+  "The Worst Person in the World":"Its Oslo seasons and reflective relationships suit an autumn evening.",
+  "Monster House":"Its suburban Halloween adventure offers a spirited fall night."
+};
+/* Human-reviewed pace preferences, not an objective TMDB pace field. */
+const FALL_PACE_HINTS:Record<Media,Record<string,"slow"|"medium"|"energetic">>={
+ movie:{
+  "Twilight":"medium","Dead Poets Society":"slow","You've Got Mail":"slow",
+  "Manchester by the Sea":"slow","Fantastic Mr. Fox":"medium","The Holdovers":"slow",
+  "Little Women":"slow","When Harry Met Sally...":"medium","Practical Magic":"medium",
+  "Good Will Hunting":"slow","Knives Out":"energetic","Coraline":"energetic",
+  "Rushmore":"medium","Whisper of the Heart":"slow","Autumn Sonata":"slow",
+  "A Tale of Autumn":"slow","October Sky":"medium","ParaNorman":"energetic",
+  "Harry Potter and the Philosopher's Stone":"energetic","Little Forest":"slow",
+  "The Worst Person in the World":"slow","Monster House":"energetic"
+ },
+ tv:{
+  "Gilmore Girls":"slow","Over the Garden Wall":"medium","Anne with an E":"slow",
+  "Friday Night Lights":"medium","Only Murders in the Building":"energetic",
+  "Chilling Adventures of Sabrina":"energetic","The Haunting of Hill House":"energetic",
+  "Twin Peaks":"medium","Wednesday":"energetic","Heartstopper":"slow",
+  "Felicity":"slow","Buffy the Vampire Slayer":"energetic","Dark":"energetic",
+  "Reply 1988":"slow","The Makanai: Cooking for the Maiko House":"slow",
+  "Normal People":"slow","The Chestnut Man":"energetic",
+  "Sex Education":"energetic","Black Spot":"energetic",
+  "The Haunting of Bly Manor":"slow","All Creatures Great and Small":"slow",
+  "Autumn in My Heart":"slow"
+ }
 };
 const SEASONAL_FEATURES:Record<number,{event:string;reason:string}>={
   25195:{event:"Leap Day",reason:"The story centers on an Irish Leap Day proposal tradition."},
@@ -932,13 +973,15 @@ Deno.serve(async (req:Request) => {
       };
       // Fall searches prioritize atmospheric genres and reviewed setting
       // references; a Halloween-heavy keyword index would mislabel the mood.
+      // Fall is already seeded with reviewed references; avoid seven extra
+      // sequential keyword lookups on the latency-sensitive first request.
       const ids=mood==="fall"?[]:await moodKeywordIds(mood,token);
       // Keyword coverage is incomplete, so also find subjects through title and synopsis evidence.
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
       // Seeded seasonal stories make fall fast; other moods explore several
       // parallel pages but never spin through repeated frontend re-queries.
       const total=mood==="fall"&&!countries.length&&!languages.length&&!genres.length&&!decades.length&&!ratings.length
-        ?2:Math.min(6,Math.max(4,countries.length*languages.length,decades.length*2));
+        ?6:Math.min(6,Math.max(4,countries.length*languages.length,decades.length*2));
       // Start reviewed autumn-title discovery at the SAME TIME as the broader
       // mood search; otherwise two sequential rounds of TMDB traffic cause a
       // long loading screen. These are candidates, NOT unverified outputs.
@@ -953,10 +996,31 @@ Deno.serve(async (req:Request) => {
         "Only Murders in the Building":"Its New York apartment setting and playful mystery suit a crisp fall evening.",
         "Chilling Adventures of Sabrina":"Its school-year setting, witches and autumnal gothic atmosphere suit the spooky side of fall.",
         "The Haunting of Hill House":"Its gothic family mystery gives a more frightening option for autumn evenings.",
-        "Twin Peaks":"Its misty woodland town and uncanny mysteries evoke the atmospheric side of fall."
+        "Twin Peaks":"Its misty woodland town and uncanny mysteries evoke the atmospheric side of fall.",
+        "Wednesday":"Its Gothic boarding school and mysteries make for an energetic autumn watch.",
+        "Heartstopper":"Its British school-year setting and young relationships offer a gentler fall watch.",
+        "Felicity":"Its New York university years and intimate relationships suit a cozy fall evening.",
+        "Buffy the Vampire Slayer":"Its school-year setting and supernatural mysteries work for a lively fall night.",
+        "Dark":"Its German forest town and eerie mysteries evoke the darker side of autumn.",
+        "Reply 1988":"Its Korean neighborhood schooldays and family traditions bring nostalgic autumn warmth.",
+        "The Makanai: Cooking for the Maiko House":"Its Kyoto seasonal meals and quiet daily rituals suit reflective fall viewing.",
+        "Normal People":"Its Irish school and university years evoke the reflective back-to-school season.",
+        "The Chestnut Man":"Its Danish autumn crime mystery is an intense fall-night option.",
+        "Sex Education":"Its British school-year setting and lively teenage stories suit back-to-school season.",
+        "Black Spot":"Its French-language woodland setting and ominous mysteries fit an atmospheric autumn night.",
+        "The Haunting of Bly Manor":"Its English Gothic estate and subdued ghost story suit an eerie fall evening.",
+        "All Creatures Great and Small":"Its Yorkshire countryside and seasonal village life offer a cozy fall watch.",
+        "Autumn in My Heart":"Its Korean autumn romance and melancholy family story fit the season directly."
       };
-      const seasonalTitles=mood==="fall"?(media==="tv"
+      // Include curated slow and energetic titles, rotating the sample
+      // across attempts so a second request can discover different stories.
+      const allFallTitles=mood==="fall"?(media==="tv"
         ?Object.keys(FALL_TV_ATMOSPHERE):Object.keys(FALL_ATMOSPHERE)):[];
+      const preferred=allFallTitles.filter(t=>FALL_PACE_HINTS[media][t]===pace);
+      const remaining=allFallTitles.filter(t=>FALL_PACE_HINTS[media][t]!==pace);
+      const rotate=(titles:string[],n:number)=>titles.length
+        ?[...titles.slice(n%titles.length),...titles.slice(0,n%titles.length)]:[];
+      const seasonalTitles=[...rotate(preferred,offset*5),...rotate(remaining,offset*5)].slice(0,18);
       const fallSeedJob=seasonalTitles.length
         ?Promise.allSettled(seasonalTitles.map(async title=>{
            const result=await tmdb("/search/"+media,
@@ -1056,7 +1120,9 @@ Deno.serve(async (req:Request) => {
       // Recheck source details before displaying a result. This ensures that
       // "US", "Family", "2010s", and "English" all truly hold simultaneously.
       // Limit the candidate count and workers so we never flood TMDB.
-      const queue=selected.slice(0,24);
+      // Search more than the first 24: narrow pools repeatedly produced
+      // only 2–3 Fall results despite unrestricted preferences.
+      const queue=selected.slice(0,90);
       const verified:Array<ReturnType<typeof listItem>&{
         moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string
       }>= [];
@@ -1098,7 +1164,9 @@ Deno.serve(async (req:Request) => {
           ?(media==="tv"?FALL_TV_ATMOSPHERE[String(details.name||"")]
             :FALL_ATMOSPHERE[String(details.title||"")])||null:null;
         const tags=Array.isArray(detailKeywords)?detailKeywords.map((v:Record<string,unknown>)=>String(v.name||"")):[];
-        const experience=moodExperience(mood,details,tags,pace,fallReason||editorial?.reason||null);
+        const editorialPace=mood==="fall"
+          ?FALL_PACE_HINTS[media][String(media==="tv"?details.name:details.title)]||null:null;
+        const experience=moodExperience(mood,details,tags,pace,fallReason||editorial?.reason||null,editorialPace);
         // Reject superficial keyword matches when the experience conflicts:
         // The Ice Storm is not a playful Friday night just because of a party.
         if(experience.score<5)return;
@@ -1109,15 +1177,17 @@ Deno.serve(async (req:Request) => {
         if(genres.length)matching.push("Genre: "+genres.filter(g=>detailGenreIds.includes(categoryGenres[g])).join(" or "));
         if(decades.length&&year)matching.push("Decade: "+Math.floor(year/10)*10+"s");
         if(ratings.length&&certification)matching.push("US rating: "+certification);
+        const titleItem=listItem({...details,genre_ids:detailGenreIds},media);
+        if(!titleItem.poster)return;
         verified.push({
-          ...listItem({...details,genre_ids:detailGenreIds},media),certification,moodReason:reason,
+          ...titleItem,certification,moodReason:reason,
           moodFit:experience.score,moodLane:experience.lane,
           energySignal:experience.energy,fitVersion:experience.fitVersion,
           matchedFilters:matching
         });
       }
       async function worker(){
-        while(queue.length&&verified.length<10){
+        while(queue.length&&verified.length<12){
           const item=queue.shift();
           if(!item)return;
           try{await verifyOne(item);}catch(error){

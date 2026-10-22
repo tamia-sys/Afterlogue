@@ -33,6 +33,45 @@ test('Fall + TV + Take your time keeps FALL context and displays five verified s
  await expect(page.locator('#explore-results-label')).not.toContainText(' / EXPLORE');
 });
 
+test('Adjusting Fall TV pace excludes already suggested series and requests the new pace',async({page})=>{
+ await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
+  status:200,contentType:'application/javascript',body:fakeSupabase
+ }));
+ const requests=[];
+ await page.route('**/functions/v1/afterlogue-catalog',route=>{
+  const body=JSON.parse(route.request().postData()||'{}');
+  if(body.mode!=='mood')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({items:[]})});
+  requests.push(body);
+  const items=Array.from({length:12},(_,i)=>({
+   id:2000+i,media:'tv',title:'Seasonal story '+i,year:2010+i,
+   poster:'https://image.tmdb.org/t/p/w500/test.jpg',
+   moodReason:'A verified autumn school setting.',matchedFilters:[],moodFit:11
+  })).filter(item=>!(body.excludeIds||[]).includes(item.id)).slice(0,10);
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({items})});
+ });
+ await page.goto('explore.html?guest=1');
+ await page.locator('.mood-card[data-mood="fall"] .mood-open').click();
+ await page.locator('.choice[data-value="tv"]').click();
+ await page.locator('#explore-next').click();
+ await page.locator('.choice[data-value="slow"]').click();
+ await page.locator('#explore-next').click();
+ await expect(page.locator('#explore-picks .explore-pick')).toHaveCount(5);
+ const slowTitles=await page.locator('#explore-picks .explore-pick h3').allTextContents();
+ await page.locator('#explore-adjust').click();
+ await page.locator('.choice[data-value="tv"]').click();
+ await page.locator('#explore-next').click();
+ await page.locator('.choice[data-value="energetic"]').click();
+ await page.locator('#explore-next').click();
+ await expect(page.locator('#explore-picks .explore-pick')).toHaveCount(5);
+ const fastTitles=await page.locator('#explore-picks .explore-pick h3').allTextContents();
+ expect(slowTitles.filter(title=>fastTitles.includes(title))).toEqual([]);
+ const fastRequest=requests.find(req=>req.pace==='energetic');
+ expect(fastRequest).toBeTruthy();
+ expect(fastRequest.mood).toBe('fall');
+ expect(fastRequest.media).toBe('tv');
+ for(const id of [2000,2001,2002,2003,2004])expect(fastRequest.excludeIds).toContain(id);
+});
+
 test('Failed mood request never carries previous mood breadcrumb',async({page})=>{
  await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
   status:200,contentType:'application/javascript',body:fakeSupabase
@@ -64,7 +103,7 @@ test('Get started is outline-only until hovered or focused',async({page})=>{
  const button=page.locator('.welcome-create');
  await expect(button).toHaveText('Get started');
  const before=await button.evaluate(el=>getComputedStyle(el).backgroundColor);
- expect(before).toMatch(/rgba?(0, 0, 0, 0)/);
+ expect(before).toBe('rgba(0, 0, 0, 0)');
  await button.focus();
  await expect.poll(()=>button.evaluate(el=>getComputedStyle(el).backgroundColor))
   .not.toBe(before);

@@ -60,11 +60,13 @@ test('First Impressions uses a compact corner tick and one readable completion a
   status:200,contentType:'application/javascript',
   body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),getUser:async()=>({data:{user:null},error:null})}})};'
  }));
- await page.route('**/functions/v1/afterlogue-catalog',route=>route.fulfill({
-  status:200,contentType:'application/json',body:JSON.stringify({items:[]})
- }));
+ await page.route('**/functions/v1/afterlogue-catalog',route=>{
+  const body=JSON.parse(route.request().postData()||'{}');
+  const items=body.mode==='onboarding'?[{id:101,title:'Test Film',media:'movie',year:2024,poster:'https://image.tmdb.org/t/p/w500/test.jpg'}]:[];
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({items})});
+ });
  await page.goto('log.html?guest=1');
- const first=page.locator('#films .log-poster-placeholder').first();
+ const first=page.locator('#films .impressions-more-poster').first();
  await first.click();
  await first.locator('[data-rating="Loved"]').click();
  await expect(first).toHaveClass(/is-rated/);
