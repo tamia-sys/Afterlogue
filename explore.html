@@ -1687,7 +1687,7 @@ function paintMoodPicks(five){
     }
   $("explore-results-title").textContent=state.randomPick?"A story you didn't ask for.":"A little something for you.";
   $("explore-results-detail").textContent=data.moods[state.mood].intro+" Each selection includes a specific reason for appearing.";
-    $("explore-results-label").textContent="AFTERLOGUE / "+data.moods[state.mood].short.toUpperCase();
+    $("explore-results-label").textContent="AFTERLOGUE / "+(window.AfterlogueLanguage?.translate?.(data.moods[state.mood].short)||data.moods[state.mood].short).toLocaleUpperCase();
   $("explore-adjust").hidden=state.randomPick;
   $("explore-again").textContent=state.randomPick?"Another surprise ↗":"Another selection ↗";
     $("explore-again").disabled=false;
@@ -1701,6 +1701,8 @@ function paintMoodPicks(five){
 document.addEventListener("afterlogue:language-changed",()=>{
  const lang=window.AfterlogueLanguage?.current?.()||"en";
  const tr=text=>window.AfterlogueLanguage?.translate?.(text)||text;
+ if(state.mood&&data.moods[state.mood]&&!results.hidden)
+   $("explore-results-label").textContent="AFTERLOGUE / "+tr(data.moods[state.mood].short).toLocaleUpperCase();
  document.querySelectorAll(".explore-mood-why").forEach(box=>{
   const head=box.querySelector("strong"),text=box.querySelector(".explore-mood-explanation");
   if(!text)return;
