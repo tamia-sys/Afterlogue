@@ -66,3 +66,30 @@ test('Changing landing page language persists into the sign-in page',async({page
  await page.locator('.afterlogue-language-select').selectOption('fr');
  await expect(page.locator('.signup-container h1')).toHaveText('Bon retour.');
 });
+
+test('Korean remains selected from landing through sign-in and back to English',async({page})=>{
+ await page.goto('index.html');
+ const selector=page.locator('.afterlogue-language-select');
+ await expect(selector.locator('option[value="ko"]')).toHaveText('한국어');
+ await selector.selectOption('ko');
+ await expect(page.locator('html')).toHaveAttribute('lang','ko');
+ await expect(page.locator('#welcome-title')).toHaveText('애프터로그에 오신 것을 환영합니다.');
+ await expect(page.locator('.welcome-guest')).toHaveText('게스트로 둘러보기');
+ await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
+  status:200,contentType:'application/javascript',body:
+  'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null})}})};'
+ }));
+ await page.goto('signup.html?mode=signin');
+ await expect(page.locator('.afterlogue-language-select')).toHaveValue('ko');
+ await expect(page.locator('html')).toHaveAttribute('lang','ko');
+ await expect(page.locator('.signup-container h1')).toHaveText('다시 오신 것을 환영해요.');
+ await page.locator('.afterlogue-language-select').selectOption('en');
+ await expect(page.locator('.signup-container h1')).toHaveText('Welcome back.');
+});
+test('Korean language selector remains accessible on phone-sized landing page',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('index.html');
+ await page.locator('.afterlogue-language-select').selectOption('ko');
+ await expect(page.locator('.welcome-header .afterlogue-language-select')).toBeVisible();
+ await expect(page.locator('#welcome-title')).toHaveText('애프터로그에 오신 것을 환영합니다.');
+});

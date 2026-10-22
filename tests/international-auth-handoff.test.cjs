@@ -35,11 +35,27 @@ test('Language selector loads across all public Afterlogue pages',()=>{
  const pages=['index.html','signup.html','log.html','discover.html','film-details.html','explore.html',
   'my-log.html','discuss.html','discuss-thread.html','discuss-compose.html',
   'member-profile.html','account-settings.html'];
- for(const file of pages)assert.match(read(file),/site-language\.js\?v=1/,file);
+ for(const file of pages)assert.match(read(file),/site-language\.js\?v=2/,file);
  const source=read('site-language.js');
- for(const code of ['en','es','fr','pt'])assert.ok(source.includes(code));
+ for(const code of ['en','es','fr','pt','ko'])assert.ok(source.includes(code));
  assert.match(source,/afterlogue\.ui-language\.v1/);
  assert.match(source,/document\.documentElement\.lang=locale/);
  assert.match(source,/MutationObserver/);
  assert.match(source,/window\.AfterlogueLanguage/);
+});
+
+test('Korean covers the existing interface keys with native-script copy',()=>{
+ const source=read('site-language.js');
+ const start=source.indexOf('const translations=')+'const translations='.length;
+ const end=source.indexOf(';\n// Normalize legacy phrase',start);
+ assert.ok(start>20&&end>start,'translation dictionary should be present');
+ const dict=JSON.parse(source.slice(start,end));
+ for(const [key,entry] of Object.entries(dict)){
+  assert.ok(typeof entry.ko==='string'&&entry.ko.trim(),'Korean translation missing: '+key);
+ }
+ assert.match(source,/ko:'한국어'/);
+ assert.match(source,/html\[lang="ko"\]/);
+ assert.equal(dict['Welcome to afterlogue.'].ko,'애프터로그에 오신 것을 환영합니다.');
+ assert.equal(dict['Something from your collection, perhaps?'].ko,'내 컬렉션에서 골라볼까요?');
+ assert.equal(dict['Watchlist'].ko,'보고 싶은 작품');
 });
