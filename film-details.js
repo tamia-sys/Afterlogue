@@ -520,13 +520,13 @@ if(member){
 }else{watchBtn.textContent='＋ Sign in to save';}
 displaySaved();
 if(member&&params.get('watchlist_saved')==='1'&&saved){
- watchNotice('Saved to your Watchlist. Welcome back to your story.');
+ watchNotice('Saved to your Watchlist.');
  const cleaned=new URL(location.href);
  cleaned.searchParams.delete('watchlist_saved');
  history.replaceState(null,'',cleaned.pathname+cleaned.search+cleaned.hash);
 }
 if(member&&params.get('watchlist_error')==='1'&&!saved){
- watchNotice('You are signed in. The automatic save did not finish—tap Add to Watchlist to try again.');
+ watchNotice('Automatic save failed. Tap Add to Watchlist to retry.');
 }
 watchBtn.addEventListener('click',async()=>{
  if(!member){
@@ -553,7 +553,7 @@ watchBtn.addEventListener('click',async()=>{
     window.AfterloguePendingWatchlist.discard();
    }
    watchNotice(origin==='discover'
-    ?'Saved to your Watchlist. This story will no longer appear in Home recommendations.'
+    ?'Saved to Watchlist. Removed from Home.'
     :'Saved to your Watchlist.');
   }
   displaySaved();
