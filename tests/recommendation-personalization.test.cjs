@@ -122,7 +122,7 @@ test('Explore presents existing moodboard first and full searchable library unde
  assert.doesNotMatch(html,/id="explore-search"/);
  assert.doesNotMatch(html,/explore-global-search\.js/);
  assert.doesNotMatch(html,/id="explore-all-films"/);
- assert.match(html,/catalog-browser\.js\?v=11/);
+ assert.match(html,/catalog-browser\.js\?v=12/);
  assert.match(catalog,/IntersectionObserver/);
  assert.doesNotMatch(catalog,/\$\("catalog-open"\)/);
 });
@@ -479,4 +479,38 @@ test('Email confirmation requires a deliberate click before consuming the single
  assert.ok(script[1].indexOf('button.addEventListener("click"')>=0);
  assert.ok(script[1].indexOf('verifyOtp(')>script[1].indexOf('button.addEventListener("click"'),
    'Verification may never run automatically when an email scanner fetches the page');
+});
+
+test('Fall TV has reviewed source candidates with normal verification',()=>{
+ const code=read('supabase/functions/afterlogue-catalog/index.ts');
+ assert.match(code,/const FALL_TV_ATMOSPHERE:Record/);
+ assert.match(code,/"Over the Garden Wall"/);
+ assert.match(code,/"Gilmore Girls"/);
+ assert.match(code,/const seasonalTitles=mood==="fall"/);
+ assert.match(code,/if\(experience\.score<5\)return/);
+});
+test('Discover Again excludes previously seen shelves and offers Not for me',()=>{
+ const home=read('discover.html');
+ assert.match(home,/discoveryHistory=\{movies:new Set\(\),tv:new Set\(\)\}/);
+ assert.match(home,/const candidates=freshDiscovery\(category\)/);
+ assert.match(home,/if\(candidates\.length<5\)/);
+ assert.match(home,/className="discovery-not-interested"/);
+ assert.match(home,/discoveryDismissed\.add\(/);
+});
+test('Guest catalog Save remembers the exact title before authentication',()=>{
+ const browser=read('catalog-browser.js'),helper=read('pending-watchlist.js');
+ const explore=read('explore.html');
+ assert.match(browser,/AfterloguePendingWatchlist\?\.remember/);
+ assert.match(browser,/from=all-films/);
+ assert.match(explore,/pending-watchlist\.js\?v=1/);
+ assert.match(helper,/client\.from\('watchlist'\)\.insert/);
+ assert.match(helper,/watchlist_saved=1/);
+});
+test('Watchlist reminder does not wait for three slow TMDB lookups',()=>{
+ const code=read('home-watchlist-reminder.js');
+ const begin=code.indexOf('async function showThree(){'),end=code.indexOf('async function loadWatchlist()',begin);
+ const section=code.slice(begin,end);
+ assert.ok(section.indexOf('grid.replaceChildren(...chosen.map(createCard))')>=0);
+ assert.ok(section.indexOf('grid.replaceChildren(...chosen.map(createCard))')<section.indexOf('await recoverPoster(story)'));
+ assert.doesNotMatch(section,/await Promise\.allSettled\(chosen\.map\(recoverPoster\)\)/);
 });
