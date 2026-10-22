@@ -196,7 +196,8 @@ test('Explore mood clicks work without removed or redundant search controls',()=
  assert.doesNotMatch(html,/searchField\.addEventListener/);
  assert.match(html,/document\.querySelectorAll\("\.mood-open"\)/);
  assert.match(html,/\$\("explore-surprise"\)\.addEventListener/);
- assert.match(html,/const facet=isSurprise\?/);
+ assert.match(html,/const facet=randomPick\?/);
+ assert.match(html,/preloadAnotherMoodSelection\(\)/);
 });
 
 test('Film Details keeps the editorial heading as a question',()=>{
