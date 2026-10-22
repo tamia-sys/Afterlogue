@@ -110,6 +110,7 @@ test('Watch trailer opens a muted autoplay-ready player on the actual details pa
 });
 
 test('Preloaded trailer starts muted with the very first Watch trailer click',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
  await offline(page);
  await page.route('**/functions/v1/afterlogue-catalog',route=>route.fulfill({
   status:200,contentType:'application/json',body:'{"items":[]}'
