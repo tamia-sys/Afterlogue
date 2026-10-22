@@ -1,0 +1,43 @@
+name: Verify Live International Fall Mood
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-international-fall-smoke.yml'
+      - 'supabase/functions/afterlogue-catalog/index.ts'
+permissions:
+  contents: read
+jobs:
+  filtered-fall:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - name: Check real Korean film recommendations with and without language
+        shell: bash
+        run: |
+          node <<'NODE'
+          const endpoint='https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog';
+          async function search(name,countries,languages,pace='slow',excludeIds=[]){
+            const response=await fetch(endpoint,{method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({mode:'mood',mood:'fall',media:'movie',pace,offset:0,
+                countries,languages,genres:[],decades:[],ratings:[],excludeIds}),
+              signal:AbortSignal.timeout(90000)});
+            const data=await response.json();
+            if(!response.ok)throw Error(name+' HTTP '+response.status);
+            const arr=data.items||[];
+            console.log(name+': '+arr.length+' — '+arr.map(x=>x.title).join(' | '));
+            if(arr.length<5)throw Error(name+' returned '+arr.length+' instead of five verified films');
+            if(arr.some(x=>!x.poster||!x.moodReason||x.moodFit<5||excludeIds.includes(x.id)))
+              throw Error(name+' contains unverified or repeated films');
+            if(arr.some(x=>!countries.every(c=>x.matchedFilters.includes('Country: '+c))))
+              throw Error(name+' returned a title from the wrong production country');
+            if(languages.length&&arr.some(x=>!x.matchedFilters.includes('Language: ko')))
+              throw Error(name+' returned a title with the wrong original language');
+          }
+          (async()=>{
+            await search('South Korea origin','KR'.split(','),[]);
+            await search('Korean language and production',['KR'],['ko']);
+          })().catch(error=>{console.error(error.message);process.exitCode=1});
+          NODE
