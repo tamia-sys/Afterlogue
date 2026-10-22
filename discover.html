@@ -1229,13 +1229,20 @@ async function loadAccountImpressions() {
     const client = window.afterlogueSupabase;
 
 
-    const { data: userData, error: userError } =
-      await client.auth.getUser();
-
-    if (userError || !userData.user) {
-      window.location.href = "signup.html";
+    const account=await window.AfterlogueAuth.resolve();
+    // A transient network error in getUser() is NOT a signed-out session.
+    // Supabase's locally restored session is sufficient for UI and data
+    // queries; server-side RLS still verifies all private reads.
+    if(account.status==="unavailable"){
+      document.getElementById("impression-count").textContent =
+        "We couldn't check your session. Reopen this page to try again.";
       return;
     }
+    if(account.status==="guest"){
+      window.location.replace("signup.html?mode=signin");
+      return;
+    }
+    const userData={user:account.user};
 
     const { data: impressions, error } = await client
       .from("impressions")
@@ -1372,12 +1379,11 @@ loadAccountImpressions();
   }
 
   try {
-    const { data, error } = await client.auth.getUser();
+    const account=await window.AfterlogueAuth.resolve();
+    if(account.status==="unavailable")throw Error("Session check temporarily unavailable");
 
-    if (error) throw error;
-
-    if (data.user) {
-      emailLabel.textContent = data.user.email || "Afterlogue member";
+    if (account.user) {
+      emailLabel.textContent = account.user.email || "Afterlogue member";
       statusLabel.textContent = "● Signed in";
       signoutButton.hidden = false;
     } else {
