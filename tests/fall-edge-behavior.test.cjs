@@ -55,7 +55,7 @@ globalThis.fetch=async(input)=>{
   const item=details.get(mediaType+':'+id);
   if(!item)return new Response(JSON.stringify({status_message:'missing'}),{status:404});
   const full={
-   ...item,status:'Released',runtime:115,production_companies:[{id:1,name:'Studio'}],
+   ...item,status:'Released',runtime:115,production_companies:item.origin_country[0]==='KR'?[]:[{id:1,name:'Studio'}],
    production_countries:[{iso_3166_1:item.origin_country[0]}],
    networks:[{id:1,name:'Network'}],genres:[{id:18,name:'Drama'},{id:9648,name:'Mystery'}],
    keywords:{keywords:[],results:[]},release_dates:{results:[]},content_ratings:{results:[]}
