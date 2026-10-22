@@ -1,0 +1,186 @@
+/* Afterlogue / Landing demonstration. The previews borrow the live site's
+   charcoal, warm-champagne typography, and card proportions. */
+.intro{padding-top:clamp(74px,9vh,110px);padding-bottom:clamp(82px,11vh,132px)}
+.intro .welcome-eyebrow{
+ margin:0 auto 21px;max-width:680px;
+ color:#caaa7d;letter-spacing:.2em;font:600 10px/1.5 Arial,sans-serif
+}
+.intro #welcome-title{
+ max-width:1050px;margin:0 auto;
+ font:400 clamp(37px,5.15vw,75px)/1.11 Georgia,"Times New Roman",serif;
+ letter-spacing:-.035em;text-wrap:balance
+}
+.intro .welcome-description{max-width:490px;margin:23px auto 0}
+.intro .welcome-start{margin-top:30px}
+.how .journey-preview{min-height:270px;height:270px;grid-template-rows:29px minmax(0,1fr) 37px}
+.how #preview-impressions .journey-preview{grid-template-rows:29px minmax(0,1fr) 37px 25px}
+.how .journey-top{height:auto;min-height:25px}
+.how .journey-eyebrow{font-size:10px;letter-spacing:.055em}
+.how .lp-poster{
+ position:relative;display:block;width:100%;height:100%;margin:0;padding:0;
+ border:1px solid rgba(230,207,170,.15);border-radius:5px;
+ background:#252525;cursor:pointer;text-align:left;
+ -webkit-tap-highlight-color:transparent;
+ transition:transform .22s ease,border-color .2s ease,box-shadow .2s ease
+}
+.how .lp-poster img{
+ width:100%;height:100%;object-fit:cover;display:block;
+ transition:filter .18s ease
+}
+.how .lp-poster:hover,.how .lp-poster:focus-visible{
+ transform:translateY(-3px);border-color:#e6c69a;
+ box-shadow:0 0 0 1px rgba(230,198,154,.3),0 9px 19px rgba(0,0,0,.38);
+ outline:none
+}
+.how #preview-impressions .lp-poster.is-active{
+ border-color:#eacfa6;box-shadow:0 0 0 2px #bf9b69
+}
+.how #preview-impressions .lp-poster.is-rated::after{
+ content:"";position:absolute;inset:0;
+ background:rgba(10,10,12,.56);pointer-events:none
+}
+.how #preview-impressions .lp-poster .journey-check{
+ display:none!important;position:absolute;inset:0;
+ place-items:center;z-index:2;margin:0;
+ width:100%;height:100%;transform:none;
+ font:400 clamp(35px,4vw,57px)/1 Georgia,serif;
+ color:#f4eadd;text-shadow:0 0 8px rgba(0,0,0,.6);
+ pointer-events:none
+}
+.how #preview-impressions .lp-poster.is-rated .journey-check{display:grid!important}
+.how .lp-ratings{gap:4px}
+.how .lp-ratings .journey-rating{
+ cursor:pointer;background:transparent;min-height:35px;padding:3px 2px;
+ transition:background .15s ease,border-color .15s ease,color .15s ease
+}
+.how .lp-ratings .journey-rating:hover:not(:disabled),
+.how .lp-ratings .journey-rating:focus-visible{
+ border-color:#e5c58e;background:rgba(223,177,108,.18);outline:none
+}
+.how .lp-ratings .journey-rating.chosen{
+ background:rgba(190,177,151,.3);border-color:#e5c58e;color:#fff5df
+}
+.how .lp-ratings .journey-rating:disabled{opacity:.4;cursor:default}
+.how .lp-demo-status{
+ margin:3px 0 0;overflow:hidden;text-align:center;text-overflow:ellipsis;
+ white-space:nowrap;color:#ccbba6;font:10px/1.6 Arial,sans-serif
+}
+.how .journey-label{font:10px/1.5 Georgia,serif;color:#d4b487;letter-spacing:.1em}
+.how .journey-reaction{font-size:10px}
+body.lp-preview-open{overflow:hidden}
+.lp-modal[hidden]{display:none!important}
+.lp-modal{
+ position:fixed;inset:0;z-index:11000;
+ display:grid;place-items:center;
+ background:rgba(0,0,0,.86);padding:clamp(12px,4vw,36px);
+ backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)
+}
+.lp-modal-surface{
+ width:min(100%,1050px);max-height:min(92vh,870px);overflow-y:auto;
+ box-sizing:border-box;padding:clamp(18px,3.2vw,36px);
+ border:1px solid rgba(212,180,135,.45);border-radius:9px;
+ color:#f4eadd;background:linear-gradient(120deg,#131416,#08090a);
+ box-shadow:0 22px 78px rgba(0,0,0,.75)
+}
+.lp-modal-top{
+ display:flex;justify-content:space-between;align-items:center;gap:15px;
+ margin-bottom:24px;color:#d4b487;
+ font:600 10px/1.4 Arial,sans-serif;letter-spacing:.15em
+}
+.lp-modal-top button{
+ border:1px solid rgba(212,180,135,.5);border-radius:100%;
+ width:32px;height:32px;flex:none;color:#f4eadd;
+ background:transparent;font:22px/1 Arial,sans-serif;cursor:pointer
+}
+.lp-modal-top button:hover,.lp-modal-top button:focus-visible{
+ background:#d4b487;color:#111;outline:none
+}
+.lp-details{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);align-items:center;gap:clamp(18px,3.5vw,42px)}
+.lp-details-art{overflow:hidden;border-radius:5px;max-height:510px;background:#262627}
+.lp-details-image{display:block;width:100%;height:clamp(260px,39vw,480px);object-fit:contain}
+.lp-details-kicker,.lp-log-kicker{
+ margin:0 0 16px;color:#d4b487;letter-spacing:.15em;
+ font:600 10px/1.6 Arial,sans-serif
+}
+.lp-details-title{
+ margin:0 0 17px;font:400 clamp(31px,4.8vw,67px)/1.06 Georgia,serif;
+ letter-spacing:-.035em;overflow-wrap:anywhere
+}
+.lp-details-meta{margin:0 0 24px;color:#cdbd9f;font:12px/1.75 Arial,sans-serif}
+.lp-details-synopsis{
+ margin:0;color:#eee4d7;font:clamp(13px,1.2vw,16px)/1.72 Arial,sans-serif
+}
+.lp-details-actions,.lp-log-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:25px}
+.lp-demo-action{
+ display:inline-flex;justify-content:center;align-items:center;
+ border:1px solid rgba(221,179,119,.66);border-radius:99px;
+ min-height:33px;padding:8px 13px;color:#e9d7bd;
+ background:transparent;white-space:nowrap;
+ font:11px/1.3 Arial,sans-serif;
+ transition:background .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease;
+ cursor:default;user-select:none
+}
+.lp-demo-action:hover{
+ background:#e4c295;border-color:#e4c295;color:#151311;
+ box-shadow:0 0 12px rgba(231,187,131,.3)
+}
+.lp-modal-note{margin:25px 0 0;font:11px/1.5 Arial,sans-serif;color:#9f9383}
+.lp-log-layout{max-width:720px;margin:0 auto}
+.lp-log-heading{margin-bottom:16px}
+.lp-log-entry{
+ display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);
+ gap:22px;border:1px solid rgba(210,172,115,.5);
+ border-radius:8px;background:#1c1a18;padding:15px
+}
+.lp-log-image{display:block;width:100%;height:100%;max-height:270px;object-fit:cover;border-radius:5px}
+.lp-log-copy{min-width:0}
+.lp-log-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.lp-log-title{
+ margin:0;font:400 clamp(25px,4vw,38px)/1.13 Georgia,serif;overflow-wrap:anywhere
+}
+.lp-log-heart{color:#d5bd92;font-size:22px}
+.lp-log-meta{font:12px Arial,sans-serif;margin:9px 0;color:#b5a38e}
+.lp-log-impression{margin:16px 0 0;color:#e0bd81;font:13px Arial,sans-serif}
+.lp-log-actions{margin-top:18px}
+.lp-log-actions .lp-demo-action{border-radius:4px;font-size:11px;min-height:29px;padding:6px 9px}
+.lp-log-note{
+ display:flex;flex-direction:column;gap:7px;margin-top:22px;
+ padding-top:16px;border-top:1px solid rgba(212,180,135,.32)
+}
+.lp-log-note-heading{font:600 9px Arial,sans-serif;color:#d4b487;letter-spacing:.1em}
+.lp-log-note-text{color:#ae9e8c;font:12px Arial,sans-serif}
+@media(max-width:850px){
+ .intro #welcome-title{font-size:clamp(36px,7.1vw,61px)}
+}
+@media(max-width:650px){
+ .intro{padding-top:75px;padding-bottom:95px}
+ .intro #welcome-title{font-size:clamp(35px,8.5vw,51px)}
+ .intro .welcome-eyebrow{font-size:9px;letter-spacing:.13em;margin-bottom:18px}
+ .intro .welcome-description{max-width:330px;margin-top:17px}
+ .how .journey-preview{height:275px;min-height:275px}
+ .lp-modal-surface{padding:16px;max-height:95vh}
+ .lp-modal-top{margin-bottom:15px}
+ .lp-details{grid-template-columns:1fr;gap:16px}
+ .lp-details-art{max-width:215px;margin:0 auto;width:100%}
+ .lp-details-image{height:255px}
+ .lp-details-title{font-size:clamp(28px,8vw,42px);margin-bottom:11px}
+ .lp-details-kicker{margin-bottom:7px}
+ .lp-details-meta{margin-bottom:13px}
+ .lp-details-actions{margin-top:18px}
+ .lp-log-entry{grid-template-columns:minmax(0,105px) minmax(0,1fr);gap:12px;padding:11px}
+ .lp-log-image{max-height:200px}
+ .lp-log-title{font-size:clamp(22px,5vw,28px)}
+ .lp-log-actions{gap:5px;margin-top:12px}
+ .lp-log-actions .lp-demo-action{font-size:10px;padding:5px 7px}
+ .lp-log-note{margin-top:12px;padding-top:10px}
+}
+@media(max-width:385px){
+ .lp-log-entry{grid-template-columns:80px 1fr}
+ .lp-details-image{height:220px}
+ .how .journey-eyebrow{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .how .lp-poster,.how .lp-poster img,.how .lp-ratings .journey-rating,
+ .lp-demo-action{transition:none!important;transform:none!important}
+ .lp-modal{backdrop-filter:none}
+}
