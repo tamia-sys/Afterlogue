@@ -1247,14 +1247,33 @@ Deno.serve(async (req:Request) => {
           seen.add(id);selected.push(result.value);
         }
       }
+      let windingRelatedGroups:Record<string,unknown>[][]=[];
       if(windingSeedJob){
         const exemplars=await windingSeedJob;
-        for(const result of exemplars){
-          if(result.status!=="fulfilled"||!result.value?.id)continue;
-          const id=Number(result.value.id);
+        const references=exemplars.filter((result):result is PromiseFulfilledResult<Record<string,unknown>>=>
+          result.status==="fulfilled"&&Boolean(result.value?.id)).map(result=>result.value);
+        // References define the viewing experience; they must not become an
+        // endless carousel of the founder's own example films.
+        // Reserve a few eligible reference candidates as fallbacks.
+        for(const item of references.slice(0,4)){
+          const id=Number(item.id);
           if(excluded.has(id)||seen.has(id))continue;
-          seen.add(id);selected.push(result.value);
+          seen.add(id);selected.push(item);
         }
+        // TMDB's similar-title graph supplies previously unlisted candidates.
+        // Similarity is a *retrieval hint*, not automatic mood verification:
+        // all recommendations must pass the normal synopsis/keyword fit test.
+        const referenceNeighbors=references.filter((_,i)=>i%3===0).slice(0,3);
+        const related=await Promise.allSettled(referenceNeighbors.map(async item=>{
+          const params=new URLSearchParams({
+            language:"en-US",page:String(1+(offset%3)),include_adult:"false"
+          });
+          const payload=await tmdb("/"+media+"/"+Number(item.id)+"/similar",params,token);
+          return (payload.results||[]).filter((v:Record<string,unknown>)=>
+            eligible(v,media,media==="movie"?30:20));
+        }));
+        windingRelatedGroups=related.filter((r):r is PromiseFulfilledResult<Record<string,unknown>[]> =>
+          r.status==="fulfilled").map(r=>r.value);
       }
       // Editor-reviewed occasion picks still must satisfy the production,
       // country, language, genre and decade checks before being returned.
@@ -1264,6 +1283,16 @@ Deno.serve(async (req:Request) => {
         }
       }
       for(let index=0;index<20;index++){
+        // Interleave real catalog neighbors with worldwide/genre discovery
+        // instead of front-loading a static list. No provider recommendation
+        // is displayed until the same detailed mood evidence checks pass.
+        if(mood==="winding"&&index<12){
+          for(const related of windingRelatedGroups){
+            const entry=related[index];
+            if(!entry||seen.has(Number(entry.id))||excluded.has(Number(entry.id)))continue;
+            seen.add(Number(entry.id));selected.push(entry);
+          }
+        }
         for(const group of groups){
           const entry=group[index];
           if(!entry||seen.has(Number(entry.id))||excluded.has(Number(entry.id)))continue;
@@ -1280,9 +1309,10 @@ Deno.serve(async (req:Request) => {
       // Limit the candidate count and workers so we never flood TMDB.
       // Search more than the first 24: narrow pools repeatedly produced
       // only 2–3 Fall results despite unrestricted preferences.
-      const queue=selected.slice(0,90);
+      const queue=selected.slice(0,mood==="winding"?55:90);
       const verified:Array<ReturnType<typeof listItem>&{
-        moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string
+        moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string;
+        windingReference:boolean
       }>= [];
       async function verifyOne(v:Record<string,unknown>){
         const p=new URLSearchParams({language:"en-US",append_to_response:media==="movie"?"keywords,release_dates":"keywords,content_ratings"});
@@ -1352,13 +1382,16 @@ Deno.serve(async (req:Request) => {
         if(!titleItem.poster)return;
         verified.push({
           ...titleItem,certification,moodReason:reason,
+          // QA only: allows testing whether results were discovered from the
+          // wider library or were a known editorial seed.
+          windingReference: Boolean(windingRef),
           moodFit:experience.score,moodLane:experience.lane,
           energySignal:experience.energy,fitVersion:experience.fitVersion,
           matchedFilters:matching
         });
       }
       async function worker(){
-        while(queue.length&&verified.length<12){
+        while(queue.length&&verified.length<(mood==="winding"?20:12)){
           const item=queue.shift();
           if(!item)return;
           try{await verifyOne(item);}catch(error){
@@ -1431,7 +1464,33 @@ Deno.serve(async (req:Request) => {
           curated.push(winner);
           laneCounts.set(winner.moodLane,(laneCounts.get(winner.moodLane)||0)+1);
         }
-        verified.splice(0,verified.length,...curated);
+        // Keep the editorial references as examples, not the whole shelf.
+        // Prefer at least three qualifying, independently discovered stories
+        // across ten returned candidates; never promote a weak match.
+        if(mood==="winding"){
+          const independent=curated.filter(entry=>!entry.windingReference&&entry.moodFit>=7);
+          if(independent.length){
+            const known=curated.filter(entry=>entry.windingReference);
+            const preferred:typeof curated=[];
+            const used=new Set<number>();
+            const append=(entry:typeof curated[number])=>{
+              const id=Number(entry.id);
+              if(used.has(id))return;
+              used.add(id);preferred.push(entry);
+            };
+            // Alternating ensures both orientation and discovery. Return up
+            // to two editorial examples in the first five if available.
+            if(known[0])append(known[0]);
+            independent.slice(0,3).forEach(append);
+            if(known[1])append(known[1]);
+            curated.forEach(append); 
+            verified.splice(0,verified.length,...preferred);
+          }else{
+            verified.splice(0,verified.length,...curated);
+          }
+        }else{
+          verified.splice(0,verified.length,...curated);
+        }
       }
       return response({
         mood,matching:"experience-evidence-v1",pace,
