@@ -24,7 +24,7 @@ if(Number.isInteger(externalId)&&externalId>0&&externalId<=100000000){
  try{
   const response=await fetch('https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog',{
    method:'POST',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({mode:'detail',id:externalId,media:externalType})
+   body:JSON.stringify({mode:'detail',id:externalId,media:externalType,uiLocale:window.AfterlogueLanguage?.current?.()||'en'})
   });
   if(!response.ok)throw Error('Catalog service unavailable');
   dynamicDetails=await response.json();
@@ -66,6 +66,23 @@ $('film-title').textContent=item.title;
 $('film-eyebrow').textContent='AFTERLOGUE / '+(isTV?'A SERIES IN FOCUS':'A FILM IN FOCUS');
 const synopsis=rich.synopsis|| (fromExplore?fromExplore.reason+' Further synopsis and credits are being curated.':'A story in the Afterlogue collection. Detailed synopsis and credits are being curated.');
 $('film-lead').textContent=synopsis;
+if(dynamicDetails){
+  // Language changes within Film Details should update the synopsis without
+  // navigating away, changing the film identity or resetting the user's Log.
+  let localeRequest=0;
+  document.addEventListener('afterlogue:language-changed',async()=>{
+    const requestId=++localeRequest;
+    try{
+      const response=await fetch('https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({mode:'detail',id:externalId,media:externalType,uiLocale:window.AfterlogueLanguage?.current?.()||'en'})
+      });
+      if(!response.ok)return;
+      const copy=await response.json();
+      if(requestId===localeRequest&&copy?.synopsis)$('film-lead').textContent=copy.synopsis;
+    }catch(error){console.warn('Localized film synopsis unavailable',error);}
+  });
+}
 const meta=[String(item.year||''),rich.country||'',rich.certification?('US '+rich.certification):'',rich.genre||'',rich.runtime||''].filter(Boolean);
 for(const value of meta){const el=document.createElement('span');el.textContent=value;$('film-meta').append(el);}
 
