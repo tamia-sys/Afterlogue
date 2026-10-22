@@ -502,8 +502,22 @@ if(member){
  }catch(error){console.warn('Watchlist status not available',error);info('Watchlist status could not be loaded.');}
 }else{watchBtn.textContent='＋ Sign in to save';}
 displaySaved();
+if(member&&params.get('watchlist_saved')==='1'&&saved){
+ watchNotice('Saved to your Watchlist. Welcome back to your story.');
+ const cleaned=new URL(location.href);
+ cleaned.searchParams.delete('watchlist_saved');
+ history.replaceState(null,'',cleaned.pathname+cleaned.search+cleaned.hash);
+}
 watchBtn.addEventListener('click',async()=>{
- if(!member){location.assign('signup.html?mode=signin');return;}
+ if(!member){
+  const remembered=window.AfterloguePendingWatchlist?.remember({
+   key,category:item.category==='tv'?'tv':'movies',
+   title:item.title,year:item.year,poster:item.poster,url:location.href
+  });
+  if(!remembered)watchNotice('Sign in to save this story.');
+  location.assign('signup.html?mode=signup');
+  return;
+ }
  watchBtn.disabled=true;info('');watchNotice('');
  try{
   if(saved){
