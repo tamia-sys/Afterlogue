@@ -103,7 +103,7 @@ test('References do not monopolize discovery: look for unlisted, eligible TMDB n
  assert.match(server,/\/similar",params,token/);
  assert.match(server,/windingRelatedGroups=related\.filter/);
  assert.match(server,/for\(const related of windingRelatedGroups\)/);
- assert.match(server,/while\(queue\.length&&verified\.length<\(mood==="winding"\?20:12\)\)/);
+ assert.match(server,/while\(queue\.length&&verified\.length<\(mood==="winding"\?20:16\)\)/);
  assert.match(server,/windingReference: Boolean\(windingRef\)/);
  assert.match(server,/const independent=curated\.filter\(entry=>!entry\.windingReference&&entry\.moodFit>=7\)/);
  assert.match(server,/independent\.slice\(0,3\)\.forEach\(append\)/);
