@@ -129,7 +129,7 @@ const hashSeed=(str:string)=>{
 };
 const GENRE_MOODS:Record<string,{movie:number[][],tv:number[][],caption:string}>={
  yearning:{movie:[[10749,18],[18],[10749]],tv:[[18],[10765,18]],caption:"Romance, distance, and difficult connections."},
- winding:{movie:[[18],[99],[10751,35]],tv:[[18],[35]],caption:"Reflective and softer-paced stories."},
+ winding:{movie:[[35,10749],[18],[10751,12],[99,18],[16,35]],tv:[[35],[18],[10751],[99],[16,35]],caption:"Easygoing comedy, ordinary life, playful escapism and contemplative storytelling."},
  friday:{movie:[[35],[28,53],[9648,53]],tv:[[35],[10759,9648]],caption:"Lively, suspenseful or playful stories."},
  fall:{movie:[[18,10749],[18,35],[16,10751],[18,9648],[10749]],tv:[[18],[35,18],[10765,18]],caption:"Woodlands, campus life, city romance, warmth and autumn melancholy — not just Halloween."},
  holidays:{movie:[[10751,35],[10749,35],[14]],tv:[[35,10751],[10751]],caption:"Warmth, family and seasonal atmosphere."},
@@ -225,7 +225,7 @@ function narrativeMoodEvidence(mood:string,details:Record<string,unknown>,tag:st
 type MoodAssessment={score:number;reason:string;lane:string;energy:string;fitVersion:string};
 function moodExperience(
  mood:string,film:Record<string,unknown>,tagNames:string[],
- pace:string,editorialReason:string|null,editorialPace:string|null=null
+ pace:string,editorialReason:string|null,editorialPace:string|null=null,editorialLane:string|null=null
 ):MoodAssessment{
  const title=String(film.title||film.name||"");
  const story=String(film.overview||"").toLowerCase();
@@ -278,22 +278,38 @@ function moodExperience(
   add(!frantic&&!light&&!has(35,28,12,53,27,9648,10402),-3,"","low energy");
   if(!frantic&&!light&&!has(35,28,12,53,27,9648,10402))score-=2;
  }else if(mood==="winding"){
-  add(tender,6,
-   "Its intimate or reflective storytelling fits a slower evening.","reflective");
-  add(tagged(/\b(slice of life|healing|everyday life|self discovery|feel.good)\b/i),5,
-   "Its everyday or restorative theme suits winding down.","everyday");
-  add(cue(/\b(friendship|community|small town|family bonds|simple pleasures|ordinary|quiet lives)\b/i),3,
-   "Small human connections anchor this gentler viewing experience.","human connection");
-  add(has(99,35),1,"","documentary or comedy");
-  add(bleak,-6,"","heavy");
-  add(distressing,-9,"","distressing real-world subject");
-  add(has(27,53,28,80),-5,"","high intensity");
-  add(frantic,-3,"","frantic");
-  // A confrontational docudrama can be intimate without being restful.
+  // Winding Down can mean familiar, entertaining comfort OR an absorbing
+  // contemplative story. Narrative pace and emotional weight are independent.
+  // A sparse "slice of life" tag on its own is NOT evidence of restfulness.
+  const warmth=cue(/\b(comed(y|ic)|funny|humou?r|witty|light.hearted|playful|uplifting|feel.good|cheerful|hilarious|heartwarming|rom.com|romantic comedy|laugh(s|ter)?|whimsical)\b/i);
+  const everyday=cue(/\b(friendship|friends?|neighbou?rhood|community|family bonds|family life|family reunion|romantic relationship|workplace|salon|shop|restaurant|ordinary life|daily lives|day.to.day|everyday|school friends|growing up|coming.of.age|small town)\b/i);
+  const contemplating=tender||cue(/\b(contemplative|introspect|reflective journey|solitude|daily routine|wanders?|life on the road|travel(s|ing)? across|life in the countryside|quiet observation|over the years|passage of time|poetry|artistic life)\b/i);
+  const playfulAdventure=cue(/\b(road trip|comedic adventure|misadventure|hijinks|escapades?|unlikely duo|unlikely friendship|comic caper|wacky|zany)\b/i);
+  add(Boolean(editorialReason),9,editorialReason||"",editorialLane||"reviewed wind-down");
+  add(warmth,6,
+    "Its documented humor or lighthearted tone makes this an easygoing watch.","feel-good");
+  add(everyday,4,
+    "Everyday relationships and familiar surroundings make this a character-led choice.","everyday connections");
+  add(contemplating,6,
+    "Its reflective storytelling invites a more contemplative kind of evening.","contemplative");
+  add(playfulAdventure&&pace!=="slow",5,
+    "Its playful adventure offers an engaging, entertaining way to unwind.","playful escapism");
+  add(tagged(/\b(slice of life|healing|everyday life|self discovery|feel.good)\b/i),2,"","topic tags");
+  add(has(35,10749),1,"","comedy or romance");
+  // Neither animation nor slow pacing is proof of a relaxing experience.
+  // Dark topics are not automatically excluded: some verified, thoughtfully
+  // chosen films are cathartic. Avoid unverified trauma-as-comfort claims.
+  if(distressing)score-=editorialReason?2:10;
+  if(bleak&&!warmth)score-=editorialReason?1:5;
+  if(has(27,53,28,80)&&!warmth&&!editorialReason)score-=4;
+  if(frantic&&!warmth&&!editorialReason)score-=4;
+  if(pace==="slow"&&frantic&&!editorialReason)score-=3;
+  if(pace==="energetic"&&warmth)score+=2;
+  // A serious contemporary drama can be a great wind-down when the viewer
+  // wants to reflect; never assume all viewers require happy endings.
   if(pace==="slow"&&Number(film.id)===1069193)score-=6;
-  // A nostalgic high-pressure fashion comedy needn't be quietly paced.
   if(pace==="slow"&&/the devil wears prada 2/i.test(title))score-=8;
-  if(!tender&&!tagged(/\b(slice of life|healing|everyday life|feel.good)\b/i))score-=3;
+  if(!editorialReason&&!warmth&&!everyday&&!contemplating&&!playfulAdventure)score-=4;
  }else if(mood==="fall"){
   // Fall is a VIEWING ATMOSPHERE, not a synonym for Halloween or horror.
   // Campus, woodland, literary, seasonal-city and reflective stories belong.
@@ -1245,7 +1261,15 @@ Deno.serve(async (req:Request) => {
             const lanePenalty=(laneCounts.get(entry.moodLane)||0)*2.4;
             const seenGenre=curated.filter(selected=>
               selected.genreIds.some(id=>entry.genreIds.includes(id))).length;
-            const adjusted=entry.moodFit-lanePenalty-Math.min(2,seenGenre)*0.4;
+            // Encourage stylistic range only among comparably fitting choices,
+            // and never counteract a specific animation or country filter.
+            const style=entry.genreIds.includes(16)?"animated":"other";
+            const styleRepeats=curated.filter(item=>
+              (item.genreIds.includes(16)?"animated":"other")===style).length;
+            const languageRepeats=curated.filter(item=>item.language&&item.language===entry.language).length;
+            const rangePenalty=mood==="winding"&&!genres.length&&!countries.length&&!languages.length
+              ?Math.max(0,styleRepeats-1)*1.8+Math.min(3,languageRepeats)*0.9:0;
+            const adjusted=entry.moodFit-lanePenalty-Math.min(2,seenGenre)*0.4-rangePenalty;
             if(adjusted>bestScore){bestScore=adjusted;best=i;}
           }
           const [winner]=remaining.splice(best,1);
