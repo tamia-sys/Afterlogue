@@ -90,6 +90,7 @@
 @media(max-width:600px){.afterlogue-onboarding .impressions-more-rating-overlay{gap:4px;padding:7px}.afterlogue-onboarding .impressions-more-rating-overlay button{font-size:10px;min-height:26px;padding:5px 3px}.afterlogue-onboarding .impressions-more-check{width:40px;height:40px}}
 .afterlogue-onboarding .impressions-save-status{text-align:center;color:#d4b487;font:12px/1.5 Arial,sans-serif;min-height:1.5em;margin:12px auto}
 </style>
+<script src="site-language.js?v=1" defer></script>
 </head>
 
 <body class="afterlogue-onboarding">
@@ -389,6 +390,8 @@
       ?window.localStorage:window.sessionStorage;
 </script>
 <script src="onboarding-sync.js?v=7"></script>
+<script src="catalog-metadata.js?v=1"></script>
+<script src="pending-watchlist.js?v=1"></script>
 <script src="onboarding-catalog-search.js?v=9"></script>
 <script src="site-navigation.js?v=6"></script>
   <script>
@@ -602,7 +605,8 @@ backButton.addEventListener("click", event => {
         throw Error("Saving is not available. Please reload and try again.");
       }
       await window.saveFirstImpressions(window.afterlogueSupabase);
-      location.assign("discover.html");
+      const destination=await window.AfterloguePendingWatchlist?.postLogin(window.afterlogueSupabase,null,true);
+      location.assign(destination||"discover.html");
     } catch (error) {
       console.warn("Afterlogue: First Impressions could not be saved.", error);
       status.textContent = "Your choices are still here, but could not be saved to your account. Please try Continue again.";

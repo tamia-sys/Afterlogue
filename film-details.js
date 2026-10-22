@@ -502,8 +502,25 @@ if(member){
  }catch(error){console.warn('Watchlist status not available',error);info('Watchlist status could not be loaded.');}
 }else{watchBtn.textContent='＋ Sign in to save';}
 displaySaved();
+if(member&&params.get('watchlist_saved')==='1'&&saved){
+ watchNotice('Saved to your Watchlist. Welcome back to your story.');
+ const cleaned=new URL(location.href);
+ cleaned.searchParams.delete('watchlist_saved');
+ history.replaceState(null,'',cleaned.pathname+cleaned.search+cleaned.hash);
+}
+if(member&&params.get('watchlist_error')==='1'&&!saved){
+ watchNotice('You are signed in. The automatic save did not finish—tap Add to Watchlist to try again.');
+}
 watchBtn.addEventListener('click',async()=>{
- if(!member){location.assign('signup.html?mode=signin');return;}
+ if(!member){
+  const remembered=window.AfterloguePendingWatchlist?.remember({
+   key,category:item.category==='tv'?'tv':'movies',
+   title:item.title,year:item.year,poster:item.poster,url:location.href
+  });
+  if(!remembered)watchNotice('Sign in to save this story.');
+  location.assign('signup.html?mode=signup');
+  return;
+ }
  watchBtn.disabled=true;info('');watchNotice('');
  try{
   if(saved){
@@ -515,6 +532,9 @@ watchBtn.addEventListener('click',async()=>{
    const result=await client.from('watchlist').insert({user_id:member.id,title_key:key,category:item.category==='tv'?'tv':'movies'}).select('id').single();
    if(result.error)throw result.error;
    saved=true;watchId=result.data.id;
+   if(window.AfterloguePendingWatchlist?.read()?.key===key){
+    window.AfterloguePendingWatchlist.discard();
+   }
    watchNotice(origin==='discover'
     ?'Saved to your Watchlist. This story will no longer appear in Home recommendations.'
     :'Saved to your Watchlist.');

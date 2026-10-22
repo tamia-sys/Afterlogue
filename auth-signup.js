@@ -85,10 +85,15 @@ async function memberDestination(user,offerImport=false){
   const latest=await client.from("profiles")
    .select("onboarding_completed").eq("user_id",user.id).maybeSingle();
   if(latest.error)console.warn("Profile refresh unavailable",latest.error.code||latest.error.message);
-  if(latest.data?.onboarding_completed){location.replace("discover.html");return;}
+  if(latest.data?.onboarding_completed){
+   const pending=await window.AfterloguePendingWatchlist?.postLogin(client,user,true);
+   navigating=true;location.replace(pending||"discover.html");return;
+  }
  }
+ const pending=await window.AfterloguePendingWatchlist?.postLogin(
+  client,user,Boolean(profile?.onboarding_completed));
  navigating=true;
- location.replace(profile?.onboarding_completed?"discover.html":"log.html");
+ location.replace(pending||(profile?.onboarding_completed?"discover.html":"log.html"));
 }
 form.addEventListener("submit",async event=>{
  event.preventDefault();
