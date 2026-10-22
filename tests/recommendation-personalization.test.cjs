@@ -46,8 +46,9 @@ test('A rated film never recommends itself', () => {
 test('Continue must save member impressions before navigating to Home', () => {
   const html=read('log.html');
   const save=html.indexOf('await window.saveFirstImpressions(window.afterlogueSupabase)');
-  const leave=html.indexOf('location.assign("discover.html")', save);
-  assert.ok(save!==-1 && leave>save);
+  const handoff=html.indexOf('await window.AfterloguePendingWatchlist?.postLogin(',save);
+  const leave=html.indexOf('location.assign(destination||"discover.html")',handoff);
+  assert.ok(save!==-1&&handoff>save&&leave>handoff,'Complete onboarding, then pending save, before navigating');
   assert.match(html,/onboarding-sync\.js/);
 });
 
