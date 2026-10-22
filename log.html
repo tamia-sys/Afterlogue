@@ -389,6 +389,8 @@
       ?window.localStorage:window.sessionStorage;
 </script>
 <script src="onboarding-sync.js?v=7"></script>
+<script src="catalog-metadata.js?v=1"></script>
+<script src="pending-watchlist.js?v=1"></script>
 <script src="onboarding-catalog-search.js?v=9"></script>
 <script src="site-navigation.js?v=6"></script>
   <script>
@@ -602,7 +604,8 @@ backButton.addEventListener("click", event => {
         throw Error("Saving is not available. Please reload and try again.");
       }
       await window.saveFirstImpressions(window.afterlogueSupabase);
-      location.assign("discover.html");
+      const destination=await window.AfterloguePendingWatchlist?.complete(window.afterlogueSupabase);
+      location.assign(destination||"discover.html");
     } catch (error) {
       console.warn("Afterlogue: First Impressions could not be saved.", error);
       status.textContent = "Your choices are still here, but could not be saved to your account. Please try Continue again.";
