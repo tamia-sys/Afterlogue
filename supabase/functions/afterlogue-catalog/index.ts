@@ -128,7 +128,7 @@ const hashSeed=(str:string)=>{
  return h>>>0;
 };
 const GENRE_MOODS:Record<string,{movie:number[][],tv:number[][],caption:string}>={
- yearning:{movie:[[10749,18],[18],[10749]],tv:[[18],[10765,18]],caption:"Romance, distance, and difficult connections."},
+ yearning:{movie:[[10749,18],[18],[10749]],tv:[[18],[18,35],[35,18],[18,10765],[18,9648]],caption:"Romance, distance, and difficult connections."},
  winding:{movie:[[35,10749],[18],[10751,12],[99,18],[16,35]],tv:[[35],[18],[10751],[99],[16,35]],caption:"Easygoing comedy, ordinary life, playful escapism and contemplative storytelling."},
  friday:{movie:[[35],[28,53],[9648,53]],tv:[[35],[10759,9648]],caption:"Lively, suspenseful or playful stories."},
  fall:{movie:[[18,10749],[18,35],[16,10751],[18,9648],[10749]],tv:[[18],[35,18],[10765,18]],caption:"Woodlands, campus life, city romance, warmth and autumn melancholy — not just Halloween."},
@@ -247,8 +247,15 @@ function moodExperience(
  const distressing=cue(/\b(disappear|disappeared|missing daughters?|vanish|violence|trauma|traumatic|terroris|radicaliz|war crimes|torture|abduction|genocide|sexual assault|violent assault|domestic abuse|death row|execution|penitentiary|capital punishment|killing two|convicted of murdering)\b/i);
  const light=cue(/\b(comedy|comedic|funny|hilarious|playful|celebrat|uplifting|joyful|witty|adventure|laughter)\b/i);
  if(mood==="yearning"){
-  add(cue(/\b(unrequited|forbidden|secret love|love across|lovers? separated|separated by|long.distance|apart|years apart|heartbreak|heartbroken|lost love|yearn|longing|impossible love|love against|reunite|cannot be together|struggle to be together|unfulfilled|not meant to be)\b/i),8,
-   "Distance or an obstacle between people gives this story genuine longing.","distance");
+  // Different kinds of longing need different explanations. A generic
+  // supernatural obstacle or any "relationship" mention alone is not enough.
+  add(Boolean(editorialReason),10,editorialReason||"","reviewed relationship");
+  add(cue(/\b(unrequited|forbidden love|secret love|impossible love|love against|unfulfilled love|not meant to be)\b/i),8,
+    "The characters' feelings are complicated by what they cannot openly have.","forbidden feelings");
+  add(cue(/\b(lovers? separated|separated by|long.distance|years apart|reunite|cannot be together|struggle to be together|love across)\b/i),8,
+    "Distance and separation keep the characters' connection unresolved.","separation");
+  add(cue(/\b(heartbreak|heartbroken|lost love|yearn|longing|cannot forget)\b/i),7,
+    "Unresolved feelings or loss give the relationship emotional weight.","unfinished feelings");
   add(tagged(/\b(unrequited love|forbidden love|lost love|long distance relationship|unfulfilled love)\b/i),7,
    "Its documented theme is love complicated by distance, loss or impossibility.","complicated love");
   add(cue(/\b(lonely|loneliness|isolation|isolated|unspoken|secret feelings|desire|miss(es|ing)? (him|her|them)|grapples? with (love|feelings)|cannot forget)\b/i),5,
@@ -262,6 +269,9 @@ function moodExperience(
   add(has(14,10751)&&!cue(/\b(unrequited|forbidden|separat|heartbreak|lost love|yearn)\b/i),-3,"","light fantasy");
   // A simple date or happy relationship is not proof of yearning.
   if(!signals.some(x=>x.points>=5))score-=4;
+  // "Take your time" changes the preferred emotional pacing, not nation.
+  if(editorialPace&&pace!=="medium")
+   score+=editorialPace===pace?5:editorialPace==="medium"?0:-3;
  }else if(mood==="friday"){
   add(frantic,5,
    "An unpredictable, energetic premise suits an involving Friday-night watch.","high energy");
@@ -383,6 +393,54 @@ const HOLIDAY_GROUPS:string[][]=[
 /* Human-reviewed atmospheric fall references, not universal genre facts.
    All candidates still pass the SAME TMDB release/metadata and user filters.
    Broader mood discovery continues beyond these titles. */
+/* Editorial reference points, NOT a fixed five-story rotation. Every title
+ * is resolved through TMDB and must meet the usual title/metadata checks. */
+const YEARNING_TV_REFERENCES:Record<string,{reason:string;pace:"slow"|"medium"|"energetic"}>={
+ "Normal People":{reason:"Its intimate, years-spanning relationship develops through unspoken feelings.",pace:"slow"},
+ "One Day":{reason:"A friendship and near-romance revisited over the years creates unresolved longing.",pace:"slow"},
+ "Fleabag":{reason:"Its wit conceals loneliness and the ache of fragile connection.",pace:"slow"},
+ "Bridgerton":{reason:"Duty and reputation complicate attraction and emotional honesty.",pace:"medium"},
+ "The Summer I Turned Pretty":{reason:"Changing friendships and first loves create unfinished feelings.",pace:"medium"},
+ "NANA":{reason:"Love, loss and emotional dependency entwine two young women's lives.",pace:"slow"},
+ "Sex Education":{reason:"Awkward first loves and vulnerability complicate growing up.",pace:"energetic"},
+ "Outlander":{reason:"Love strained by separation and time gives its romance lasting emotional weight.",pace:"medium"},
+ "Nobody Wants This":{reason:"Attraction competes with differing expectations in a modern relationship.",pace:"medium"},
+ "Jane the Virgin":{reason:"Romantic choices and family loyalty shape complicated attachments.",pace:"energetic"},
+ "Sense8":{reason:"Love and belonging connect people across extraordinary distances.",pace:"medium"},
+ "Interview with the Vampire":{reason:"Desire and obsession complicate a deeply troubled relationship.",pace:"slow"},
+ "The Vampire Diaries":{reason:"Supernatural obstacles intensify romantic tensions and loyalties.",pace:"energetic"},
+ "Felicity":{reason:"University friendships and romantic uncertainty unfold through quiet choices.",pace:"slow"},
+ "North & South":{reason:"Class division and restrained attraction create slow-burn romantic tension.",pace:"slow"},
+ "Downton Abbey":{reason:"Love and unspoken loyalties unfold against social expectations.",pace:"slow"},
+ "Little Dorrit":{reason:"Love restrained by duty and class makes for a quietly emotional period drama.",pace:"slow"},
+ "Crash Landing on You":{reason:"Borders and distance stand between two people falling in love.",pace:"medium"},
+ "Hospital Playlist":{reason:"Long friendships and everyday care reveal affection that builds quietly.",pace:"slow"},
+ "One Tree Hill":{reason:"Youthful attachments evolve through loss, first love and friendship.",pace:"medium"},
+ "Fellow Travelers":{reason:"Secrecy and history complicate a long-running romantic connection.",pace:"slow"},
+ "Heartstopper":{reason:"Tender first love explores vulnerability and the desire to be known.",pace:"slow"},
+ "Sanditon":{reason:"Social boundaries and guarded affection sustain slow romantic tension.",pace:"slow"},
+ "Younger":{reason:"Romantic choices and questions of identity become difficult to separate.",pace:"medium"},
+ "Strong Woman Do Bong-soon":{reason:"Attraction and discovery emerge through a playful unusual relationship.",pace:"medium"},
+ "Young Royals":{reason:"A private romance conflicts with public duty and expectation.",pace:"slow"},
+ "My Liberation Notes":{reason:"Quiet loneliness drives a search for meaning and connection.",pace:"slow"},
+ "The Red Sleeve":{reason:"Affection restrained by duty shapes a historical romance.",pace:"slow"},
+ "Eternal Love":{reason:"Romantic bonds tested by time and separation underpin its fantasy world.",pace:"medium"},
+ "The Returned":{reason:"Loss and the return of loved ones turn absence into unsettling longing.",pace:"slow"},
+ "The Hook Up Plan":{reason:"Friendship and imperfect romantic choices propel a Paris-set love story.",pace:"medium"},
+ "SKAM France":{reason:"Vulnerable first loves and the desire to belong shape coming of age.",pace:"medium"},
+ "Never Have I Ever":{reason:"Grief and awkward romances complicate a lively coming-of-age journey.",pace:"energetic"},
+ "Ginny & Georgia":{reason:"Family attachment and young romance animate an emotional ensemble.",pace:"medium"},
+ "Lovesick":{reason:"Reflecting on old relationships brings unfinished feelings to the surface.",pace:"medium"},
+ "Starstruck":{reason:"Unexpected attraction creates awkward, uncertain emotional timing.",pace:"medium"},
+ "Love Life":{reason:"Changing adult relationships frame a search for meaningful intimacy.",pace:"slow"},
+ "Twenty-Five Twenty-One":{reason:"Youthful first love meets the bittersweet passage of time.",pace:"slow"},
+ "Our Beloved Summer":{reason:"Former lovers reconnect and face emotions they thought were finished.",pace:"slow"},
+ "Something in the Rain":{reason:"An intimate relationship confronts family and social expectations.",pace:"slow"},
+ "When the Weather Is Fine":{reason:"Guarded affection unfolds through a gentle small-town reunion.",pace:"slow"},
+ "A Perfect Story":{reason:"Growing intimacy challenges different social worlds.",pace:"medium"},
+ "Feel Good":{reason:"Emotional vulnerability complicates a relationship under personal strain.",pace:"slow"},
+ "Queen Charlotte: A Bridgerton Story":{reason:"Love and duty collide across different seasons of life.",pace:"slow"}
+};
 const FALL_ATMOSPHERE:Record<string,string>={
   "Twilight":"Its Pacific Northwest forest setting brings the misty, moody side of fall.",
   "Dead Poets Society":"Its boarding-school setting and literary themes evoke the academic side of autumn.",
@@ -1119,7 +1177,7 @@ Deno.serve(async (req:Request) => {
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
       // Seeded seasonal stories make fall fast; other moods explore several
       // parallel pages but never spin through repeated frontend re-queries.
-      const total=mood==="fall"
+      const total=mood==="fall"||mood==="yearning"&&media==="tv"&&!countries.length&&!languages.length
         ?6:Math.min(6,Math.max(4,countries.length*languages.length,decades.length*2));
       // Start reviewed autumn-title discovery at the SAME TIME as the broader
       // mood search; otherwise two sequential rounds of TMDB traffic cause a
@@ -1169,6 +1227,27 @@ Deno.serve(async (req:Request) => {
         ...rotate(regional.filter(t=>FALL_PACE_HINTS.movie[t]!==pace),offset*4)];
       const seasonalTitles=[...new Set([...regionFirst,...rotate(preferred,offset*5),
         ...rotate(remaining,offset*5)])].slice(0,18);
+      // Diverse global relationship stories are editorial signposts, never
+      // the only source of results: the keyword and TMDB discovery lanes run
+      // in parallel to surface stories the viewer hasn't heard about.
+      const yearningUnfiltered=mood==="yearning"&&media==="tv"&&
+        !countries.length&&!languages.length&&!genres.length&&!decades.length&&!ratings.length;
+      const yearningNames=yearningUnfiltered?Object.keys(YEARNING_TV_REFERENCES):[];
+      const yearningPreferred=yearningNames.filter(t=>YEARNING_TV_REFERENCES[t].pace===pace);
+      const yearningOther=yearningNames.filter(t=>YEARNING_TV_REFERENCES[t].pace!==pace);
+      const yearningSeeds=[...rotate(yearningPreferred,offset*7),
+        ...rotate(yearningOther,offset*7)].slice(0,16);
+      const yearningSeedJob=yearningSeeds.length
+        ?Promise.allSettled(yearningSeeds.map(async title=>{
+          const result=await tmdb("/search/tv",new URLSearchParams({
+            query:title,language:"en-US",include_adult:"false",page:"1"
+          }),token);
+          const normalize=(x:string)=>x.normalize("NFKD").toLowerCase()
+            .replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}]/gu,"");
+          return (result.results||[]).find((v:Record<string,unknown>)=>
+            [v.name,v.original_name].some(name=>
+              normalize(String(name||""))===normalize(title)))||null;
+        })):null;
       const fallSeedJob=seasonalTitles.length
         ?Promise.allSettled(seasonalTitles.map(async title=>{
            const result=await tmdb("/search/"+media,
@@ -1285,11 +1364,19 @@ Deno.serve(async (req:Request) => {
         });
       }));
       const groups=jobs.filter((x):x is PromiseFulfilledResult<Record<string,unknown>[]>=>x.status==="fulfilled").map(x=>x.value);
-      if(!groups.length&&!fallSeedJob&&!windingSeedJob)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
+      if(!groups.length&&!fallSeedJob&&!windingSeedJob&&!yearningSeedJob)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
       const seen=new Set<number>(),selected:Record<string,unknown>[]=[];
       if(fallSeedJob){
         const exemplars=await fallSeedJob;
         for(const result of exemplars){
+          if(result.status!=="fulfilled"||!result.value?.id)continue;
+          const id=Number(result.value.id);
+          if(excluded.has(id)||seen.has(id))continue;
+          seen.add(id);selected.push(result.value);
+        }
+      }
+      if(yearningSeedJob){
+        for(const result of await yearningSeedJob){
           if(result.status!=="fulfilled"||!result.value?.id)continue;
           const id=Number(result.value.id);
           if(excluded.has(id)||seen.has(id))continue;
@@ -1361,7 +1448,7 @@ Deno.serve(async (req:Request) => {
       const queue=selected.slice(0,mood==="winding"?55:mood==="fall"&&(countries.length||languages.length)?120:90);
       const verified:Array<ReturnType<typeof listItem>&{
         moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string;
-        windingReference:boolean
+        windingReference:boolean;originCountry:string;editorialAnchor:boolean
       }>= [];
       async function verifyOne(v:Record<string,unknown>){
         const p=new URLSearchParams({language:"en-US",append_to_response:media==="movie"?"keywords,release_dates":"keywords,content_ratings"});
@@ -1409,9 +1496,11 @@ Deno.serve(async (req:Request) => {
           ?WINDING_REFERENCES[media][String(media==="tv"?details.name:details.title)]||null:null;
         const editorialPace=mood==="fall"
           ?FALL_PACE_HINTS[media][String(media==="tv"?details.name:details.title)]||null:null;
+        const yearningHint=mood==="yearning"&&media==="tv"
+          ?YEARNING_TV_REFERENCES[String(details.name||"")]||null:null;
         const experience=moodExperience(mood,details,tags,pace,
-          windingRef?.reason||fallReason||editorial?.reason||null,
-          editorialPace,windingRef?.lane||null);
+          windingRef?.reason||fallReason||yearningHint?.reason||editorial?.reason||null,
+          editorialPace||yearningHint?.pace||null,windingRef?.lane||null);
         // Pace changes the preference ordering among qualifying anchors,
         // not their ability to fit the Winding Down mood at all.
         if(mood==="winding"&&windingRef&&pace!=="medium"){
@@ -1435,7 +1524,8 @@ Deno.serve(async (req:Request) => {
         if(!titleItem.poster)return;
         verified.push({
           ...titleItem,certification,moodReason:reason,
-          windingReference:Boolean(windingRef),
+          windingReference:Boolean(windingRef),originCountry:produced[0]||"",
+          editorialAnchor:Boolean(yearningHint),
           moodFit:experience.score,moodLane:experience.lane,
           energySignal:experience.energy,fitVersion:experience.fitVersion,
           matchedFilters:matching
@@ -1493,6 +1583,16 @@ Deno.serve(async (req:Request) => {
         // five near-identical reasons when comparably good alternatives exist.
         const remaining=[...verified],curated:typeof verified=[];
         const laneCounts=new Map<string,number>();
+        // Regional diversity applies only to an unfiltered TV yearning shelf.
+        // Hard user-selected filters are always authoritative.
+        const regionOf=(country:string)=>{
+          if(["US","CA","MX","BR","AR","CO"].includes(country))return "americas";
+          if(["JP","KR","CN","TW","HK","TH","PH","ID","IN","VN","SG","MY"].includes(country))return "asia";
+          if(["GB","IE","FR","DE","ES","IT","SE","NO","DK","PL","NL","TR","RU"].includes(country))return "europe";
+          return "other";
+        };
+        const mixedYearning=mood==="yearning"&&media==="tv"&&
+          !countries.length&&!languages.length&&!genres.length&&!decades.length&&!ratings.length;
         while(remaining.length){
           let best=0,bestScore=-Infinity;
           for(let i=0;i<remaining.length;i++){
@@ -1508,7 +1608,16 @@ Deno.serve(async (req:Request) => {
             const languageRepeats=curated.filter(item=>item.language&&item.language===entry.language).length;
             const rangePenalty=mood==="winding"&&!genres.length&&!countries.length&&!languages.length
               ?Math.max(0,styleRepeats-1)*1.8+Math.min(3,languageRepeats)*0.9:0;
-            const adjusted=entry.moodFit-lanePenalty-Math.min(2,seenGenre)*0.4-rangePenalty;
+            const originRepeat=curated.filter(x=>x.originCountry&&x.originCountry===entry.originCountry).length;
+            const region=regionOf(entry.originCountry);
+            const regionRepeat=curated.filter(x=>region!=="other"&&regionOf(x.originCountry)===region).length;
+            const animeRepeat=curated.filter(x=>x.genreIds.includes(16)).length;
+            const editorialRepeat=curated.filter(x=>x.editorialAnchor).length;
+            const mixPenalty=mixedYearning&&curated.length<5?
+              originRepeat*3+regionRepeat*2+
+              (entry.genreIds.includes(16)?animeRepeat*2:0)+
+              (entry.editorialAnchor?editorialRepeat*1.1:0):0;
+            const adjusted=entry.moodFit-lanePenalty-Math.min(2,seenGenre)*0.4-rangePenalty-mixPenalty;
             if(adjusted>bestScore){bestScore=adjusted;best=i;}
           }
           const [winner]=remaining.splice(best,1);
