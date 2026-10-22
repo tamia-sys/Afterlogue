@@ -2,6 +2,8 @@ name: Afterlogue Browser Checks
 
 on:
   workflow_dispatch:
+  # Validate unpublished changes using the pull request's own checkout.
+  pull_request:
   push:
     branches: [main]
     paths:
