@@ -1189,8 +1189,12 @@ Deno.serve(async (req:Request) => {
         const dateString=String(media==="movie"?details.release_date:details.first_air_date||"");
         if(!dateString||dateString>now||details.adult)return;
         if(media==="movie"){
-          if(details.status!=="Released"||Number(details.runtime)<40
-            ||!Array.isArray(details.production_companies)||!details.production_companies.length)return;
+          // TMDB frequently lacks studio credits for genuine older and
+          // international releases. Studio attribution is not evidence that
+          // the movie exists; requiring it excluded verified Korean films.
+          // Keep actual release status, feature runtime, production origin,
+          // original language, poster, synopsis and strong mood evidence.
+          if(details.status!=="Released"||Number(details.runtime)<40)return;
         }else{
           if(!Array.isArray(details.networks)||!details.networks.length)return;
         }
