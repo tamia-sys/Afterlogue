@@ -60,5 +60,20 @@ test('Film detail actions keep Seen outside the Watchlist feedback wrapper',asyn
  await expect(page.locator('.film-hero-actions > .film-seen-action')).toHaveCount(1);
  await expect(page.locator('.film-watchlist-control .film-seen-action')).toHaveCount(0);
  const feedback=page.locator('#film-watchlist-feedback');
- await expect(feedback).toHaveCSS('position','static');
+ await expect(feedback).toHaveCSS('position','absolute');
+ await expect(feedback).toHaveCSS('white-space','nowrap');
+ await expect(feedback).toHaveCSS('text-overflow','ellipsis');
+ const before=await page.locator('.film-hero-actions > *').evaluateAll(nodes=>
+  nodes.map(node=>({name:node.tagName,top:Math.round(node.getBoundingClientRect().top)})));
+ await feedback.evaluate(node=>node.textContent='Saved to Watchlist. Removed from Home.');
+ await expect(feedback).toHaveText('Saved to Watchlist. Removed from Home.');
+ const after=await page.locator('.film-hero-actions > *').evaluateAll(nodes=>
+  nodes.map(node=>({name:node.tagName,top:Math.round(node.getBoundingClientRect().top)})));
+ expect(after).toEqual(before);
+ const line=await feedback.evaluate(node=>({
+  height:node.getBoundingClientRect().height,
+  fontSize:parseFloat(getComputedStyle(node).fontSize),
+  lineHeight:parseFloat(getComputedStyle(node).lineHeight)
+ }));
+ expect(line.height).toBeLessThanOrEqual(line.lineHeight+2);
 });
