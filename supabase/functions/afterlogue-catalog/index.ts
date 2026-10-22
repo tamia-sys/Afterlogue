@@ -1070,7 +1070,7 @@ Deno.serve(async (req:Request) => {
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
       // Seeded seasonal stories make fall fast; other moods explore several
       // parallel pages but never spin through repeated frontend re-queries.
-      const total=mood==="fall"
+      const total=mood==="fall"||mood==="yearning"&&media==="tv"&&!countries.length&&!languages.length
         ?6:Math.min(6,Math.max(4,countries.length*languages.length,decades.length*2));
       // Start reviewed autumn-title discovery at the SAME TIME as the broader
       // mood search; otherwise two sequential rounds of TMDB traffic cause a
@@ -1120,6 +1120,27 @@ Deno.serve(async (req:Request) => {
         ...rotate(regional.filter(t=>FALL_PACE_HINTS.movie[t]!==pace),offset*4)];
       const seasonalTitles=[...new Set([...regionFirst,...rotate(preferred,offset*5),
         ...rotate(remaining,offset*5)])].slice(0,18);
+      // Diverse global relationship stories are editorial signposts, never
+      // the only source of results: the keyword and TMDB discovery lanes run
+      // in parallel to surface stories the viewer hasn't heard about.
+      const yearningUnfiltered=mood==="yearning"&&media==="tv"&&
+        !countries.length&&!languages.length&&!genres.length&&!decades.length&&!ratings.length;
+      const yearningNames=yearningUnfiltered?Object.keys(YEARNING_TV_REFERENCES):[];
+      const yearningPreferred=yearningNames.filter(t=>YEARNING_TV_REFERENCES[t].pace===pace);
+      const yearningOther=yearningNames.filter(t=>YEARNING_TV_REFERENCES[t].pace!==pace);
+      const yearningSeeds=[...rotate(yearningPreferred,offset*7),
+        ...rotate(yearningOther,offset*7)].slice(0,16);
+      const yearningSeedJob=yearningSeeds.length
+        ?Promise.allSettled(yearningSeeds.map(async title=>{
+          const result=await tmdb("/search/tv",new URLSearchParams({
+            query:title,language:"en-US",include_adult:"false",page:"1"
+          }),token);
+          const normalize=(x:string)=>x.normalize("NFKD").toLowerCase()
+            .replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}]/gu,"");
+          return (result.results||[]).find((v:Record<string,unknown>)=>
+            [v.name,v.original_name].some(name=>
+              normalize(String(name||""))===normalize(title)))||null;
+        })):null;
       const fallSeedJob=seasonalTitles.length
         ?Promise.allSettled(seasonalTitles.map(async title=>{
            const result=await tmdb("/search/"+media,
@@ -1195,11 +1216,19 @@ Deno.serve(async (req:Request) => {
         });
       }));
       const groups=jobs.filter((x):x is PromiseFulfilledResult<Record<string,unknown>[]>=>x.status==="fulfilled").map(x=>x.value);
-      if(!groups.length&&!fallSeedJob)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
+      if(!groups.length&&!fallSeedJob&&!yearningSeedJob)return response({error:"catalogue_unavailable",message:"Mood search is temporarily unavailable."},502);
       const seen=new Set<number>(),selected:Record<string,unknown>[]=[];
       if(fallSeedJob){
         const exemplars=await fallSeedJob;
         for(const result of exemplars){
+          if(result.status!=="fulfilled"||!result.value?.id)continue;
+          const id=Number(result.value.id);
+          if(excluded.has(id)||seen.has(id))continue;
+          seen.add(id);selected.push(result.value);
+        }
+      }
+      if(yearningSeedJob){
+        for(const result of await yearningSeedJob){
           if(result.status!=="fulfilled"||!result.value?.id)continue;
           const id=Number(result.value.id);
           if(excluded.has(id)||seen.has(id))continue;
