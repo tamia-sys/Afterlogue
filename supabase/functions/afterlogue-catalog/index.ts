@@ -440,6 +440,38 @@ const FALL_PACE_HINTS:Record<Media,Record<string,"slow"|"medium"|"energetic">>={
 type WindingReference={year:number;lane:string;pace:string;reason:string};
 const WINDING_REFERENCES:Record<Media,Record<string,WindingReference>>={
   movie:{
+    "Columbus":{year:2017,lane:"contemplative",pace:"slow",reason:"Its architecture, patient conversations and personal uncertainties invite quiet observation."},
+    "Lost in Translation":{year:2003,lane:"contemplative",pace:"slow",reason:"Its unhurried Tokyo encounters and moments of disconnection invite emotional reflection."},
+    "Her":{year:2013,lane:"contemplative",pace:"slow",reason:"Its intimate questions about connection and loneliness offer thoughtful speculative romance."},
+    "Spring, Summer, Fall, Winter... and Spring":{year:2003,lane:"contemplative",pace:"slow",reason:"Its changing seasons and spiritual practice invite quiet philosophical contemplation."},
+    "Three Colors: Blue":{year:1993,lane:"contemplative",pace:"slow",reason:"Its carefully observed grief and music create a contemplative, emotionally demanding experience."},
+    "Three Colors: White":{year:1994,lane:"contemplative",pace:"slow",reason:"Its restrained character story offers reflective European cinema with bittersweet humor."},
+    "Three Colors: Red":{year:1994,lane:"contemplative",pace:"slow",reason:"Its patient encounters explore connection and chance in a meditative style."},
+    "Meet Joe Black":{year:1998,lane:"contemplative",pace:"slow",reason:"Its extended conversations about life, love and mortality reward an unhurried mood."},
+    "Liberal Arts":{year:2012,lane:"contemplative",pace:"slow",reason:"Its conversations about literature, growing older and connection encourage reflection."},
+    "Wendy and Lucy":{year:2008,lane:"contemplative",pace:"slow",reason:"Its spare, closely observed daily struggles invite quiet attention, though the story is sad."},
+    "Sound of Metal":{year:2019,lane:"contemplative",pace:"slow",reason:"Its attentive sound design and patient character journey invite immersive reflection despite emotional strain."},
+    "Fish Tank":{year:2009,lane:"contemplative",pace:"slow",reason:"Its intimate social-realist observations require attention and can be emotionally difficult."},
+    "The Piano":{year:1993,lane:"contemplative",pace:"slow",reason:"Its visual storytelling and complex personal relationships invite immersive, emotionally intense reflection."},
+    "A Ghost Story":{year:2017,lane:"contemplative",pace:"slow",reason:"Its long takes and consideration of grief and time are deliberately contemplative."},
+    "Arrival":{year:2016,lane:"contemplative",pace:"slow",reason:"Its deliberate science-fiction mystery reflects on language, memory and connection."},
+    "Breaking the Waves":{year:1996,lane:"contemplative",pace:"slow",reason:"Its patient moral and spiritual questions invite deep reflection, but its subject matter is distressing."},
+    "Paris, Texas":{year:1984,lane:"contemplative",pace:"slow",reason:"Its sparse dialogue, landscapes and gradual revelations reward patient attention."},
+    "Phantom Thread":{year:2017,lane:"contemplative",pace:"slow",reason:"Its restrained performances and meticulous domestic rhythms offer controlled psychological observation."},
+    "A Short Film About Love":{year:1988,lane:"contemplative",pace:"slow",reason:"Its quiet study of longing and intimacy invites ethically complicated reflection."},
+    "Pather Panchali":{year:1955,lane:"contemplative",pace:"slow",reason:"Its detailed observation of rural family life and childhood invites patient immersion."},
+    "Silent Souls":{year:2010,lane:"contemplative",pace:"slow",reason:"Its restrained travel narrative and ritual reflections contemplate grief and belonging."},
+    "Ordet":{year:1955,lane:"contemplative",pace:"slow",reason:"Its extended dialogue and questions of faith invite meditative contemplation."},
+    "Au Hasard Balthazar":{year:1966,lane:"contemplative",pace:"slow",reason:"Its restrained scenes and suffering invite serious, demanding moral reflection."},
+    "Barbara":{year:2012,lane:"contemplative",pace:"slow",reason:"Its quiet East German setting and subtle choices create patient, character-led tension."},
+    "Ikiru":{year:1952,lane:"contemplative",pace:"slow",reason:"Its measured examination of mortality and meaning invites compassionate reflection."},
+    "Poetry":{year:2010,lane:"contemplative",pace:"slow",reason:"Its carefully observed encounters invite contemplation of beauty alongside troubling realities."},
+    "After Life":{year:1998,lane:"contemplative",pace:"slow",reason:"Its gently paced conversations ask what memories give a life meaning."},
+    "Vive L'Amour":{year:1994,lane:"contemplative",pace:"slow",reason:"Its spare dialogue and urban solitude make patient observation the point."},
+    "A Pigeon Sat on a Branch Reflecting on Existence":{year:2014,lane:"contemplative",pace:"slow",reason:"Its deadpan tableaux and existential humor offer an unusual contemplative rhythm."},
+    "Amour":{year:2012,lane:"contemplative",pace:"slow",reason:"Its controlled intimate storytelling confronts difficult themes of aging and love."},
+    "Dogville":{year:2003,lane:"contemplative",pace:"slow",reason:"Its theatrical restraint invites ethical reflection but includes profoundly distressing violence."},
+    "The Tree of Life":{year:2011,lane:"contemplative",pace:"slow",reason:"Its lyrical images, family memories and philosophical passages invite patient immersion."},
     "Beauty Shop":{year:2005,lane:"everyday",pace:"slow",reason:"Its neighborhood salon, close friendships and comic everyday conversations make an inviting comfort watch."},
     "Just Wright":{year:2010,lane:"comfort",pace:"slow",reason:"An approachable romance grounded in friendship, personal connection and humor."},
     "Roll Bounce":{year:2005,lane:"playful",pace:"energetic",reason:"Skating, friendship and playful competition offer upbeat nostalgic escapism."},
@@ -1114,20 +1146,27 @@ Deno.serve(async (req:Request) => {
       const windingEntries=Object.entries(windingCatalog);
       const preferredWinding=windingEntries.filter(([,ref])=>ref.pace===pace);
       const alternateWinding=windingEntries.filter(([,ref])=>ref.pace!==pace);
+      // The actual "Take your time" request means sustained attention:
+      // subtle moments, slow cinema, thought and contemplation. This is
+      // different from the wider Winding Down umbrella of comfort and fun.
       const windingLanes=pace==="energetic"
         ?["playful","comfort","everyday","contemplative"]
-        :["contemplative","comfort","everyday","playful"];
+        :["contemplative","everyday","comfort","playful"];
+      const windingLaneSequence=pace==="slow"&&media==="movie"
+        ?["contemplative","contemplative","everyday","contemplative",
+          "contemplative","comfort","contemplative","contemplative",
+          "contemplative","contemplative","everyday","contemplative"]
+        :Array.from({length:12},(_,i)=>windingLanes[i%windingLanes.length]);
       const windOrder=[...preferredWinding,...alternateWinding];
       const windingByLane=new Map(windingLanes.map(lane=>[lane,
         windOrder.filter(([,ref])=>ref.lane===lane)]));
       const windingTitles:string[]=[];
-      for(let round=0;round<16&&windingTitles.length<12;round++){
-        for(const lane of windingLanes){
-          const entries=windingByLane.get(lane)||[];
-          const row=entries.length?entries[(round+offset*3)%entries.length]:null;
-          if(row&&!windingTitles.includes(row[0]))windingTitles.push(row[0]);
-          if(windingTitles.length===12)break;
-        }
+      const laneCursor=new Map<string,number>();
+      for(const lane of windingLaneSequence){
+        const entries=windingByLane.get(lane)||[];
+        const idx=laneCursor.get(lane)||0;laneCursor.set(lane,idx+1);
+        const row=entries.length?entries[(idx+offset*5)%entries.length]:null;
+        if(row&&!windingTitles.includes(row[0]))windingTitles.push(row[0]);
       }
       const windingSeedJob=windingTitles.length?Promise.allSettled(
         windingTitles.map(async title=>{
@@ -1292,8 +1331,13 @@ Deno.serve(async (req:Request) => {
           editorialPace,windingRef?.lane||null);
         // Pace changes the preference ordering among qualifying anchors,
         // not their ability to fit the Winding Down mood at all.
-        if(mood==="winding"&&windingRef&&pace!=="medium")
+        if(mood==="winding"&&windingRef&&pace!=="medium"){
+          // For slow Film requests, prioritize genuinely contemplative cinema
+          // over just pleasant comedy, without excluding other eligible films.
           experience.score+=windingRef.pace===pace?3:-1;
+          if(pace==="slow"&&media==="movie"&&windingRef.lane==="contemplative")
+            experience.score+=5;
+        }
         // Reject superficial keyword matches when the experience conflicts:
         // The Ice Storm is not a playful Friday night just because of a party.
         if(experience.score<5)return;
