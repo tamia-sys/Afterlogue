@@ -253,7 +253,7 @@ function moodExperience(
   add(cue(/\b(unrequited|forbidden love|secret love|impossible love|love against|unfulfilled love|not meant to be)\b/i),8,
     "The characters' feelings are complicated by what they cannot openly have.","forbidden feelings");
   add(cue(/\b(lovers? separated|separated by|long.distance|years apart|reunite|cannot be together|struggle to be together|love across)\b/i),8,
-    "Separation keeps the characters' connection unresolved.","separation");
+    "Distance and separation keep the characters' connection unresolved.","separation");
   add(cue(/\b(heartbreak|heartbroken|lost love|yearn|longing|cannot forget)\b/i),7,
     "Unresolved feelings or loss give the relationship emotional weight.","unfinished feelings");
   add(tagged(/\b(unrequited love|forbidden love|lost love|long distance relationship|unfulfilled love)\b/i),7,
