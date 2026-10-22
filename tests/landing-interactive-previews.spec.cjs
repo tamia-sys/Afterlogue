@@ -138,6 +138,14 @@ test('Start discovering banner is below cards and points to guest First Impressi
  await expect(start).toHaveText('Start discovering');
  await expect(start).toHaveAttribute('href','log.html?guest=1');
  await expect(page.locator('.landing-final-invitation')).toBeVisible();
+ await expect(page.locator('.landing-final-eyebrow')).toHaveCount(0);
+ const frame=await page.locator('.landing-final-invitation').evaluate(el=>{
+  const c=getComputedStyle(el);
+  return {border:c.borderTopWidth,image:c.backgroundImage,color:c.backgroundColor};
+ });
+ expect(frame.border).toBe('0px');
+ expect(frame.image).toBe('none');
+ expect(frame.color).toBe('rgba(0, 0, 0, 0)');
  await expect(page.locator('.landing-final-button')).not.toContainText('→');
 });
 test('Narrow screens keep a horizontal swipeable three-card rail',async({page})=>{
