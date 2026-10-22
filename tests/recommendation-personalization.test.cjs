@@ -101,7 +101,8 @@ test('Home applies balanced shelf selection after personal filtering and invalid
  const home=read('discover.html');
  assert.match(home,/const qualified=diversifyDiscoverResults/);
  assert.match(home,/const varied=window.AfterlogueRecommendationEngine\.balanceShelves\(/);
- assert.ok(home.indexOf('const varied=window.AfterlogueRecommendationEngine.balanceShelves(')>
+ assert.ok(home.indexOf('const varied=window.AfterlogueRecommendationEngine.balanceShelves(',
+   home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
  assert.match(home,/algorithm:"balanced-home-shelves-v1"/);
  assert.match(home,/recommendation-engine\.js\?v=10/);
