@@ -237,7 +237,7 @@ test('Discover draws from balanced decades, international cinema and under-seen 
 test('All Films does not invent a capped total or block Next without its provider signal',()=>{
  const html=read('explore.html'),browser=read('catalog-browser.js');
  const backend=read('supabase/functions/afterlogue-catalog/index.ts');
- assert.match(html,/catalog-browser\.js\?v=11/);
+ assert.match(html,/catalog-browser\.js\?v=12/);
  assert.match(browser,/hasNext=results\.some\(response=>response\.hasMore===true\)/);
  assert.match(browser,/" · Page "\+page;/);
  assert.doesNotMatch(browser,/" of "\+pages/);
