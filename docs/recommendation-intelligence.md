@@ -94,3 +94,24 @@ Have real testers review 10–20 sets for each mood, rate emotional fit 1–5,
 mark misleading “why” claims, and note which picks they actually watch.
 Use anonymized *opt-in* feedback to tune the editorial rules. Measure whether
 the updated engine improves **mood fit** without hurting diversity and coverage.
+
+
+## Winding Down: broadened editorial definition (October 22, 2026)
+
+Winding down is not synonymous with *slow*, *unhappy indie drama*, or *gentle anime*. At least three genuinely different experiences can suit the mood:
+
+- **Easygoing connection:** neighborhood, friendship, family, relationship comedy and low-effort social warmth (e.g. *Beauty Shop*, *Just Wright*, *The Switch*).
+- **Playful escape:** lively but enjoyable adventure, comedy, music and occasionally comic horror when the viewer wants momentum (e.g. *Roll Bounce*, *Bruce Almighty*, *Zombieland*). Horror violence is not universally soothing.
+- **Reflective immersion:** ordinary routines, open landscapes, character observation, philosophy and even emotional seriousness (*Nomadland*, *Perfect Days*, *Boyhood*, *Into the Wild*). *Hamlet* is a valid user example of thoughtful unwinding but is intentionally not forced as one specific film adaptation.
+
+Pace remains a preference, not a definition of the mood. Reflective cinema may be sad; easygoing entertainment may be brisk. Use the viewer's Log in a later development phase to personalize which interpretations lead, rather than claiming the same five work for every person.
+
+Implementation adds independently verifiable title/year anchors, expands candidate search strands, reduces the power of unspecific *slice of life* tags, and improves evidence-backed explanations and soft stylistic diversity. Anchors are illustrative starting points, **not fixed or paid recommendations**; explicit filters, actual release metadata, and fit threshold remain requirements. Avoid scraping reviews or assuming an emotional experience from genre alone.
+
+### Release acceptance tests
+
+- Two consecutive unfiltered sets of five for Winding Down Movies and TV should not each cluster in one style just because of TMDB keyword coverage.
+- Test the *Take your time*, *Somewhere between*, and *Keep me on my toes* options separately.
+- Verify comedy, contemplative, anime, international drama and film/adventure examples against both true and misleading matches; check *Why this story* for unsupported or generic explanations.
+- Verify production-country/genre/decade/rating filter integrity, duplicate exclusion, and actual candidate counts. If the catalog really cannot provide five, do not fill with irrelevant titles.
+- Inspect actual server performance and provider requests before deploying: editorial search adds up to 12 title-search requests per affected mood selection. Cache verified candidate metadata in a later performance iteration.
