@@ -99,6 +99,12 @@ test('Explicit production country and original language are saved with member on
   assert.match(discovery,/originalLanguage:discoveryPreferences\.originalLanguage\|\|""/);
 });
 
+test('An older TV-only snapshot must not freeze a blank Movie shelf',()=>{
+ const html=read('discover.html');
+ assert.match(html,/afterlogue\.discover\.shelf\.v2/);
+ assert.match(html,/snapshot\.entries\.some\(item=>item\.category===media\)/);
+});
+
 test('International titles are never collapsed to blank ASCII-only movie identifiers',()=>{
  const backend=read('supabase/functions/afterlogue-catalog/index.ts');
  const home=read('discover.html'),engine=read('recommendation-engine.js');
