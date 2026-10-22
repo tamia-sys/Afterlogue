@@ -1048,9 +1048,10 @@ Deno.serve(async (req:Request) => {
       };
       // Fall searches prioritize atmospheric genres and reviewed setting
       // references; a Halloween-heavy keyword index would mislabel the mood.
-      // Fall is already seeded with reviewed references; avoid seven extra
-      // sequential keyword lookups on the latency-sensitive first request.
-      const ids=mood==="fall"?[]:await moodKeywordIds(mood,token);
+      // Fall and Winding Down have verified multi-lane editorial references.
+      // Avoid latency from several sequential keyword lookups and avoid
+      // prematurely narrowing Winding Down to anime-heavy slice-of-life tags.
+      const ids=mood==="fall"||mood==="winding"?[]:await moodKeywordIds(mood,token);
       // Keyword coverage is incomplete, so also find subjects through title and synopsis evidence.
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
       // Seeded seasonal stories make fall fast; other moods explore several
