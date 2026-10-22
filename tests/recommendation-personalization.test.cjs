@@ -213,10 +213,13 @@ test('Explicit production country and original language are saved with member on
   assert.match(discovery,/originalLanguage:discoveryPreferences\.originalLanguage\|\|""/);
 });
 
-test('An older TV-only snapshot must not freeze a blank Movie shelf',()=>{
+test('A one-medium snapshot restores the visible five and refreshes missing media',()=>{
  const html=read('discover.html');
  assert.match(html,/afterlogue\.discover\.shelf\.v2/);
- assert.match(html,/snapshot\.entries\.some\(item=>item\.category===media\)/);
+ assert.match(html,/afterlogue\.discover\.return\.v1/);
+ assert.match(html,/compactDiscoveryShelf\(snapshot\.shelves\?\.\[media\]\)/);
+ assert.match(html,/discoveryExpandedEntries\.some\(item=>item\.category===media\)/);
+ assert.match(html,/await populateExpandedRecommendations\(userData\.user\.id\)/);
 });
 
 test('International titles are never collapsed to blank ASCII-only movie identifiers',()=>{
