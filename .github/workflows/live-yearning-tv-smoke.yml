@@ -1,0 +1,48 @@
+name: Verify Live Yearning Television
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-yearning-tv-smoke.yml'
+      - 'supabase/functions/afterlogue-catalog/index.ts'
+permissions:
+  contents: read
+jobs:
+  global-yearning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check unfiltered yearning TV across regions and paces
+        run: |
+          node <<'NODE'
+          const endpoint='https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog';
+          async function search(pace,excludeIds=[]){
+            const r=await fetch(endpoint,{method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({mode:'mood',mood:'yearning',media:'tv',pace,
+                offset:0,countries:[],genres:[],languages:[],ratings:[],decades:[],excludeIds}),
+              signal:AbortSignal.timeout(60000)});
+            const body=await r.json();
+            if(!r.ok)throw Error('Yearning '+pace+' returned '+r.status);
+            const rows=body.items||[],top=rows.slice(0,5);
+            console.log(pace+': '+rows.length+' — '+top.map(v=>v.title+' ['+v.originCountry+'] ('+v.moodFit+'): '+v.moodReason).join(' | '));
+            if(rows.length<5)throw Error('Not enough verified '+pace+' shows');
+            if(new Set(top.map(v=>v.id)).size!==5||top.some(x=>!x.poster||!x.moodReason||x.moodFit<5))
+              throw Error('Unverified or repeated stories in '+pace);
+            if(top.some(x=>excludeIds.includes(x.id)))throw Error('Previously shown story was repeated');
+            if(pace==='slow'){
+              const countryCount=new Set(top.map(v=>v.originCountry).filter(Boolean)).size;
+              const asian=new Set(['JP','KR','CN','TW','HK','TH','IN','PH','ID']);
+              const countAsian=top.filter(v=>asian.has(v.originCountry)).length;
+              const explanationCount=new Set(top.map(v=>v.moodReason)).size;
+              if(countryCount<2||countAsian===5||explanationCount<3)
+                throw Error('Unfiltered slow yearning lacks global or emotional variety');
+            }
+            return top.map(v=>v.id);
+          }
+          (async()=>{
+            const ids=await search('slow');
+            await search('medium',ids);
+          })().catch(e=>{console.error(e.message);process.exitCode=1});
+          NODE
