@@ -1109,7 +1109,7 @@ Deno.serve(async (req:Request) => {
       // Reviewed wind-down references seed several DISTINCT viewing styles.
       // Rotating by offset prevents a fixed shelf, while the wider TMDB search
       // remains available for discoveries beyond these editorial examples.
-      const windingCatalog=mode==="mood"&&mood==="winding"?WINDING_REFERENCES[media]:{};
+      const windingCatalog:Record<string,WindingReference>=mood==="winding"?WINDING_REFERENCES[media]:{};
       const windingEntries=Object.entries(windingCatalog);
       const preferredWinding=windingEntries.filter(([,ref])=>ref.pace===pace);
       const alternateWinding=windingEntries.filter(([,ref])=>ref.pace!==pace);
