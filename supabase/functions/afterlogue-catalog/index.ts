@@ -1408,7 +1408,9 @@ Deno.serve(async (req:Request) => {
           const data=await tmdb("/search/"+sourceMedia,
             new URLSearchParams({query:title,language:"en-US",page:"1",include_adult:"false"}),token);
           const match=(data.results||[]).find((x:Record<string,unknown>)=>
-            normalized(String(sourceMedia==="movie"?x.title:x.name||""))===normalized(title));
+            [sourceMedia==="movie"?x.title:x.name,
+              sourceMedia==="movie"?x.original_title:x.original_name]
+              .some(name=>normalized(String(name||""))===normalized(title)));
           if(!match)return {title,results:[] as Record<string,unknown>[],targets:[] as number[]};
           const targets=[...new Set((Array.isArray(match.genre_ids)?match.genre_ids:[])
             .flatMap((id:number)=>genreBridge[String(id)]||[]))].slice(0,5);
@@ -1482,7 +1484,8 @@ Deno.serve(async (req:Request) => {
         const searchData=await tmdb("/search/"+media,
           new URLSearchParams({query:term,language:"en-US",page:"1",include_adult:"false"}),token);
         const source=(searchData.results||[]).find((v:Record<string,unknown>)=>
-          normalizeTitle(String(media==="tv"?v.name:v.title||""))===normalizeTitle(term));
+          [media==="tv"?v.name:v.title,media==="tv"?v.original_name:v.original_title]
+            .some(name=>normalizeTitle(String(name||""))===normalizeTitle(term)));
         if(!source?.id)return {term,results:[] as Record<string,unknown>[],genreIds:new Set<number>()};
         const endpoint="/"+media+"/"+source.id;
         const ids=Array.isArray(source.genre_ids)?source.genre_ids.slice(0,3).map(Number):[];
