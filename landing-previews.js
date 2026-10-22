@@ -119,6 +119,7 @@ function openPreview(poster,mode){
  const info=previews[key];
  if(!info)return;
  previousFocus=document.activeElement;
+ $('lp-modal-title').textContent=mode==='details'?'AFTERLOGUE / A FILM IN FOCUS':'AFTERLOGUE / YOUR LOG';
  modalBody.replaceChildren(mode==='details'?buildDetails(poster,info):buildLogCard(poster,info));
  modal.hidden=false;
  document.body.classList.add('lp-preview-open');
