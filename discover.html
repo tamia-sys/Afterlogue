@@ -955,11 +955,12 @@ async function loadTasteFeatures(keys){
  for(let i=0;i<Math.min(unique.length,108);i+=18)batches.push(unique.slice(i,i+18));
  const records=[];
  let next=0;
+ const deadline=Date.now()+8500; // A richer profile must not stall Home indefinitely.
  await Promise.all(Array.from({length:Math.min(2,batches.length)},async()=>{
-   while(next<batches.length){
+   while(next<batches.length&&Date.now()<deadline){
      const keys=batches[next++];
      const controller=new AbortController();
-     const timeout=setTimeout(()=>controller.abort(),14000);
+     const timeout=setTimeout(()=>controller.abort(),Math.max(1,deadline-Date.now()));
      try{
        const response=await fetch(endpoint,{
          method:"POST",signal:controller.signal,
