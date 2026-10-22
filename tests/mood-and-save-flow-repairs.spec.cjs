@@ -103,7 +103,7 @@ test('Get started is outline-only until hovered or focused',async({page})=>{
  const button=page.locator('.welcome-create');
  await expect(button).toHaveText('Get started');
  const before=await button.evaluate(el=>getComputedStyle(el).backgroundColor);
- expect(before).toMatch(/rgba?(0, 0, 0, 0)/);
+ expect(before).toBe('rgba(0, 0, 0, 0)');
  await button.focus();
  await expect.poll(()=>button.evaluate(el=>getComputedStyle(el).backgroundColor))
   .not.toBe(before);
