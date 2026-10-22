@@ -54,7 +54,7 @@ test('Changing landing page language persists into the sign-in page',async({page
  await page.goto('index.html');
  await expect(page.locator('.welcome-header .afterlogue-language-select')).toBeVisible();
  await page.locator('.afterlogue-language-select').selectOption('es');
- await expect(page.locator('#welcome-title')).toHaveText('Te damos la bienvenida a afterlogue.');
+ await expect(page.locator('#welcome-title')).toHaveText('Una película termina. La conversación continúa.');
  await expect(page.locator('html')).toHaveAttribute('lang','es');
  await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
   status:200,contentType:'application/javascript',body:
@@ -73,7 +73,7 @@ test('Korean remains selected from landing through sign-in and back to English',
  await expect(selector.locator('option[value="ko"]')).toHaveText('한국어');
  await selector.selectOption('ko');
  await expect(page.locator('html')).toHaveAttribute('lang','ko');
- await expect(page.locator('#welcome-title')).toHaveText('애프터로그에 오신 것을 환영합니다.');
+ await expect(page.locator('#welcome-title')).toHaveText('영화가 끝나도, 이야기는 계속됩니다.');
  await expect(page.locator('.welcome-start .welcome-create')).toHaveText('시작하기 →');
  await expect(page.locator('.welcome-start .welcome-create')).toHaveAttribute('href','log.html?guest=1');
  await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
@@ -92,5 +92,5 @@ test('Korean language selector remains accessible on phone-sized landing page',a
  await page.goto('index.html');
  await page.locator('.afterlogue-language-select').selectOption('ko');
  await expect(page.locator('.welcome-header .afterlogue-language-select')).toBeVisible();
- await expect(page.locator('#welcome-title')).toHaveText('애프터로그에 오신 것을 환영합니다.');
+ await expect(page.locator('#welcome-title')).toHaveText('영화가 끝나도, 이야기는 계속됩니다.');
 });
