@@ -128,7 +128,7 @@ const hashSeed=(str:string)=>{
  return h>>>0;
 };
 const GENRE_MOODS:Record<string,{movie:number[][],tv:number[][],caption:string}>={
- yearning:{movie:[[10749,18],[18],[10749]],tv:[[18],[10765,18]],caption:"Romance, distance, and difficult connections."},
+ yearning:{movie:[[10749,18],[18],[10749]],tv:[[18],[18,35],[35,18],[18,10765],[18,9648]],caption:"Romance, distance, and difficult connections."},
  winding:{movie:[[18],[99],[10751,35]],tv:[[18],[35]],caption:"Reflective and softer-paced stories."},
  friday:{movie:[[35],[28,53],[9648,53]],tv:[[35],[10759,9648]],caption:"Lively, suspenseful or playful stories."},
  fall:{movie:[[18,10749],[18,35],[16,10751],[18,9648],[10749]],tv:[[18],[35,18],[10765,18]],caption:"Woodlands, campus life, city romance, warmth and autumn melancholy — not just Halloween."},
@@ -367,6 +367,54 @@ const HOLIDAY_GROUPS:string[][]=[
 /* Human-reviewed atmospheric fall references, not universal genre facts.
    All candidates still pass the SAME TMDB release/metadata and user filters.
    Broader mood discovery continues beyond these titles. */
+/* Editorial reference points, NOT a fixed five-story rotation. Every title
+ * is resolved through TMDB and must meet the usual title/metadata checks. */
+const YEARNING_TV_REFERENCES:Record<string,{reason:string;pace:"slow"|"medium"|"energetic"}>={
+ "Normal People":{reason:"Its intimate, years-spanning relationship develops through unspoken feelings.",pace:"slow"},
+ "One Day":{reason:"A friendship and near-romance revisited over the years creates unresolved longing.",pace:"slow"},
+ "Fleabag":{reason:"Its wit conceals loneliness and the ache of fragile connection.",pace:"slow"},
+ "Bridgerton":{reason:"Duty and reputation complicate attraction and emotional honesty.",pace:"medium"},
+ "The Summer I Turned Pretty":{reason:"Changing friendships and first loves create unfinished feelings.",pace:"medium"},
+ "NANA":{reason:"Love, loss and emotional dependency entwine two young women's lives.",pace:"slow"},
+ "Sex Education":{reason:"Awkward first loves and vulnerability complicate growing up.",pace:"energetic"},
+ "Outlander":{reason:"Love strained by separation and time gives its romance lasting emotional weight.",pace:"medium"},
+ "Nobody Wants This":{reason:"Attraction competes with differing expectations in a modern relationship.",pace:"medium"},
+ "Jane the Virgin":{reason:"Romantic choices and family loyalty shape complicated attachments.",pace:"energetic"},
+ "Sense8":{reason:"Love and belonging connect people across extraordinary distances.",pace:"medium"},
+ "Interview with the Vampire":{reason:"Desire and obsession complicate a deeply troubled relationship.",pace:"slow"},
+ "The Vampire Diaries":{reason:"Supernatural obstacles intensify romantic tensions and loyalties.",pace:"energetic"},
+ "Felicity":{reason:"University friendships and romantic uncertainty unfold through quiet choices.",pace:"slow"},
+ "North & South":{reason:"Class division and restrained attraction create slow-burn romantic tension.",pace:"slow"},
+ "Downton Abbey":{reason:"Love and unspoken loyalties unfold against social expectations.",pace:"slow"},
+ "Little Dorrit":{reason:"Love restrained by duty and class makes for a quietly emotional period drama.",pace:"slow"},
+ "Crash Landing on You":{reason:"Borders and distance stand between two people falling in love.",pace:"medium"},
+ "Hospital Playlist":{reason:"Long friendships and everyday care reveal affection that builds quietly.",pace:"slow"},
+ "One Tree Hill":{reason:"Youthful attachments evolve through loss, first love and friendship.",pace:"medium"},
+ "Fellow Travelers":{reason:"Secrecy and history complicate a long-running romantic connection.",pace:"slow"},
+ "Heartstopper":{reason:"Tender first love explores vulnerability and the desire to be known.",pace:"slow"},
+ "Sanditon":{reason:"Social boundaries and guarded affection sustain slow romantic tension.",pace:"slow"},
+ "Younger":{reason:"Romantic choices and questions of identity become difficult to separate.",pace:"medium"},
+ "Strong Woman Do Bong-soon":{reason:"Attraction and discovery emerge through a playful unusual relationship.",pace:"medium"},
+ "Young Royals":{reason:"A private romance conflicts with public duty and expectation.",pace:"slow"},
+ "My Liberation Notes":{reason:"Quiet loneliness drives a search for meaning and connection.",pace:"slow"},
+ "The Red Sleeve":{reason:"Affection restrained by duty shapes a historical romance.",pace:"slow"},
+ "Eternal Love":{reason:"Romantic bonds tested by time and separation underpin its fantasy world.",pace:"medium"},
+ "The Returned":{reason:"Loss and the return of loved ones turn absence into unsettling longing.",pace:"slow"},
+ "The Hook Up Plan":{reason:"Friendship and imperfect romantic choices propel a Paris-set love story.",pace:"medium"},
+ "SKAM France":{reason:"Vulnerable first loves and the desire to belong shape coming of age.",pace:"medium"},
+ "Never Have I Ever":{reason:"Grief and awkward romances complicate a lively coming-of-age journey.",pace:"energetic"},
+ "Ginny & Georgia":{reason:"Family attachment and young romance animate an emotional ensemble.",pace:"medium"},
+ "Lovesick":{reason:"Reflecting on old relationships brings unfinished feelings to the surface.",pace:"medium"},
+ "Starstruck":{reason:"Unexpected attraction creates awkward, uncertain emotional timing.",pace:"medium"},
+ "Love Life":{reason:"Changing adult relationships frame a search for meaningful intimacy.",pace:"slow"},
+ "Twenty-Five Twenty-One":{reason:"Youthful first love meets the bittersweet passage of time.",pace:"slow"},
+ "Our Beloved Summer":{reason:"Former lovers reconnect and face emotions they thought were finished.",pace:"slow"},
+ "Something in the Rain":{reason:"An intimate relationship confronts family and social expectations.",pace:"slow"},
+ "When the Weather Is Fine":{reason:"Guarded affection unfolds through a gentle small-town reunion.",pace:"slow"},
+ "A Perfect Story":{reason:"Growing intimacy challenges different social worlds.",pace:"medium"},
+ "Feel Good":{reason:"Emotional vulnerability complicates a relationship under personal strain.",pace:"slow"},
+ "Queen Charlotte: A Bridgerton Story":{reason:"Love and duty collide across different seasons of life.",pace:"slow"}
+};
 const FALL_ATMOSPHERE:Record<string,string>={
   "Twilight":"Its Pacific Northwest forest setting brings the misty, moody side of fall.",
   "Dead Poets Society":"Its boarding-school setting and literary themes evoke the academic side of autumn.",
