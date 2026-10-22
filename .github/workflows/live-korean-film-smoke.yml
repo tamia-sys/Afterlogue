@@ -1,0 +1,46 @@
+name: Verify Live Korean Film Discovery
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-korean-film-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  korean-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Verify Korean rated-film connections with real public catalog
+        shell: bash
+        run: |
+          node <<'NODE'
+          const endpoint='https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog';
+          async function request(body){
+            const reply=await fetch(endpoint,{
+              method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify(body),signal:AbortSignal.timeout(90000)
+            });
+            const data=await reply.json();
+            if(!reply.ok)throw Error(body.mode+' returned '+reply.status+': '+JSON.stringify(data).slice(0,180));
+            return data.items||[];
+          }
+          (async()=>{
+            const choices={country:'KR',originalLanguage:'ko'};
+            for(const titles of [
+              ['Parasite','Burning','The Handmaiden'],
+              ['기생충','극한직업']
+            ]){
+              const results=await request({mode:'recommend',media:'movie',titles,...choices});
+              console.log('Sources '+titles.join(', ')+': '+results.length+' verified film recommendations — '+results.slice(0,8).map(x=>x.title).join(' | '));
+              if(results.length<5)throw Error('Too few Korean film matches from '+titles.join(', '));
+              if(results.some(x=>x.filterVerified!==true||!x.countries.includes('KR')||x.originalLanguage!=='ko'||!x.matched?.length))
+                throw Error('One or more titles lack verified country/language or a taste connection');
+            }
+            const archive=await request({mode:'discover',media:'movie',
+              page:1,pageSize:60,sort:'discover',...choices});
+            console.log('Korean film archive candidates: '+archive.length);
+            if(archive.length<5)throw Error('Korean archive fallback returned fewer than five films');
+          })().catch(error=>{console.error(error);process.exitCode=1});
+          NODE
