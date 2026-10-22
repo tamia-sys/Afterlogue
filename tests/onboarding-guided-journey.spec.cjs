@@ -27,7 +27,8 @@ async function setup(page){
 }
 test('Landing presents the tagline and a single clear first action',async({page})=>{
  await page.goto('index.html');
- await expect(page.locator('#welcome-title')).toHaveText("A film ends. The conversation doesn't.");
+ await expect(page.locator('#welcome-title')).toHaveText("A film ends. The conversation doesn’t.");
+ await expect(page.locator('#welcome-title span')).toHaveCount(2);
  await expect(page.locator('.intro .welcome-eyebrow')).toHaveText('PERSONALIZED FILM & TV DISCOVERY');
  await expect(page.locator('.welcome-start .welcome-create')).toHaveText('Get started →');
  await expect(page.locator('.welcome-start .welcome-create')).toHaveAttribute('href','log.html?guest=1');
@@ -48,14 +49,14 @@ test('First Impressions shows one step at a time and clear instructions',async({
  await expect(page.locator('.impressions-optional-filters summary')).toBeVisible();
  await expect(page.locator('.log-continue-section')).toBeHidden();
  await expect(page.locator('#impressions-current-step')).toHaveText('STEP 1 OF 2 / FILMS');
- await expect(page.locator('#impressions-step-next')).toHaveText('Continue to TV Shows →');
+ await expect(page.locator('#impressions-step-next')).toHaveText('Continue to TV Shows');
  await expect(page.locator('#impressions-rating-count')).toContainText('You can continue');
  await page.locator('#impressions-step-next').click();
  await expect(page.locator('#films')).toBeHidden();
  await expect(page.locator('#television')).toBeVisible();
  await expect(page.locator('.log-continue-section')).toBeVisible();
  await expect(page.locator('#impressions-current-step')).toHaveText('STEP 2 OF 2 / TV SHOWS');
- await expect(page.locator('#impressions-step-next')).toHaveText('See my five picks →');
+ await expect(page.locator('#impressions-step-next')).toHaveText('See my five picks');
  await page.locator('#impressions-step-back').click();
  await expect(page.locator('#films')).toBeVisible();
 });
@@ -87,7 +88,7 @@ test('Korean flow keeps its choice and stage labels after moving forward',async(
  await expect(page.locator('#impressions-current-step')).toHaveText('1 / 2단계 · 영화');
  await page.locator('#impressions-step-next').click();
  await expect(page.locator('#impressions-current-step')).toHaveText('2 / 2단계 · TV 시리즈');
- await expect(page.locator('#impressions-step-next')).toHaveText('추천 다섯 작품 보기 →');
+ await expect(page.locator('#impressions-step-next')).toHaveText('추천 다섯 작품 보기');
  await expect(page.locator('#impressions-rating-count')).toContainText('아직 평가한 TV 시리즈가 없어요');
 });
 test('On a phone the step action stays visible and works',async({page})=>{

@@ -184,3 +184,15 @@ body.lp-preview-open{overflow:hidden}
  .lp-demo-action{transition:none!important;transform:none!important}
  .lp-modal{backdrop-filter:none}
 }
+
+/* A subtle selection badge, not a giant mark across the poster.
+   The dimming remains gentle enough to preserve the illustration. */
+.how #preview-impressions .lp-poster.is-rated::after{background:rgba(8,9,10,.27)}
+.how #preview-impressions .lp-poster .journey-check{
+ inset:10px 10px auto auto;top:10px;right:10px;left:auto;bottom:auto;
+ display:none!important;width:25px;height:25px;
+ border:1px solid rgba(242,221,189,.72);border-radius:999px;
+ background:rgba(23,23,22,.88);font:400 17px/1 Georgia,serif;
+ text-shadow:none;place-items:center;box-shadow:0 2px 12px rgba(0,0,0,.28)
+}
+.how #preview-impressions .lp-poster.is-rated .journey-check{display:grid!important}

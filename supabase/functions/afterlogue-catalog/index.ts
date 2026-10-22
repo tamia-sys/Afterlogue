@@ -1493,6 +1493,19 @@ Deno.serve(async (req:Request) => {
       params.set("include_image_language","en,null");
       const data=await tmdb("/"+media+"/"+id,params,token);
       if(data.adult)return response({error:"Title not available"},404);
+      // Only presentation text is localized. Keep the verified English
+      // metadata, posters and trailers intact and fall back when TMDB has
+      // no published translation for this title.
+      const uiLocale=typeof input.uiLocale==="string"?input.uiLocale:"en";
+      const tmdbLocales:Record<string,string>={es:"es-ES",fr:"fr-FR",pt:"pt-BR",ko:"ko-KR"};
+      let localizedOverview="";
+      if(tmdbLocales[uiLocale]){
+        try{
+          const translated=await tmdb("/"+media+"/"+id,
+            new URLSearchParams({language:tmdbLocales[uiLocale]}),token);
+          localizedOverview=concise(translated.overview);
+        }catch(_){/* Continue with the verified original overview. */}
+      }
       const title=media==="tv"?data.name:data.title;
       const people=data.credits||{};
       const director=media==="movie"?(people.crew||[]).filter((p:Record<string,unknown>)=>p.job==="Director").map((p:Record<string,unknown>)=>p.name).join(" · "):null;
@@ -1512,7 +1525,7 @@ Deno.serve(async (req:Request) => {
         language:(data.spoken_languages||[]).map((p:Record<string,unknown>)=>p.english_name).slice(0,3).join(" · ")||data.original_language||null,
         genre:(data.genres||[]).map((g:Record<string,unknown>)=>g.name).slice(0,4).join(" · "),
         runtime:formatRuntime(media==="movie"?data.runtime:data.episode_run_time?.[0])||(media==="tv"?"Series":null),
-        synopsis:concise(data.overview),
+        synopsis:localizedOverview||concise(data.overview),
         trailer:videos[0]?.key ? "https://www.youtube.com/watch?v="+videos[0].key : null,
         stills:scenes.filter((url:string)=>url!==safePicture(data.backdrop_path,"w1280")),
         tmdbUrl:"https://www.themoviedb.org/"+media+"/"+id

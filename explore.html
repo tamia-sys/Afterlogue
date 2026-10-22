@@ -1200,10 +1200,24 @@ body.explore-body.explore-gallery-mode .explore-gallery-wrap{display:block!impor
 }
 .explore-mood-save-note{flex:1 0 100%;color:#d4b487;font:10px/1.45 Arial,sans-serif}
 .explore-mood-save-note:empty{display:none}
+
+/* Longer natural-language UI strings must wrap cleanly. */
+.explore-body .explore-mood-why strong,
+.explore-body .explore-mood-why p,
+.explore-body .mood-card .mood-title,
+.explore-body .afterlogue-feature-copy strong{
+ overflow-wrap:break-word;word-break:normal
+}
+html[lang="ko"] .explore-body .mood-title,
+html[lang="ko"] .explore-body .explore-results-head h2,
+html[lang="ko"] .explore-body .afterlogue-feature-copy strong{
+ font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",Arial,sans-serif;
+ word-break:keep-all;line-height:1.33;letter-spacing:-.02em
+}
 </style>
 <link rel="stylesheet" href="mobile-header.css?v=1">
 <link rel="stylesheet" href="seen-impression.css?v=2">
-<script src="site-language.js?v=2" defer></script>
+<script src="site-language.js?v=7" defer></script>
 </head>
 <body class="explore-body">
 <header class="site-header">
@@ -1595,10 +1609,23 @@ function paintMoodPicks(five){
       // Every recommendation must display the evidence for its mood match,
       // with an optional expansion for the exact verified country/language/genre/decade.
       const why=document.createElement("div");why.className="explore-mood-why";
-      const whyHeading=document.createElement("strong");whyHeading.textContent="WHY THIS STORY";
+      const whyHeading=document.createElement("strong");
       const whyText=document.createElement("p");
-      whyText.textContent=item.moodReason||"This story was matched to your chosen mood.";
+      whyText.className="explore-mood-explanation";
+      whyText.dataset.originalReason=item.moodReason||"This story was matched to your chosen mood.";
+      whyText.dataset.moodIntro=data.moods[state.mood].intro;
       why.append(whyHeading,whyText);
+      // TMDB mood reasoning is generated in English. Don't leave English-only
+      // prose on Korean, Spanish, French and Portuguese result cards.
+      // Keep the precise evidence in English; use a truthful mood-specific
+      // localized explanation until localized reasoning is available.
+      const translateMoodReason=()=>{
+       const language=window.AfterlogueLanguage?.current?.()||"en";
+       const tr=text=>window.AfterlogueLanguage?.translate?.(text)||text;
+       whyHeading.textContent=language==="en"?"WHY THIS STORY":"FOR YOUR MOOD";
+       whyText.textContent=language==="en"?whyText.dataset.originalReason:tr(whyText.dataset.moodIntro);
+      };
+      translateMoodReason();
       if(Array.isArray(item.matchedFilters)&&item.matchedFilters.length){
         const details=document.createElement("details");details.className="explore-mood-filter-proof";
         const summary=document.createElement("summary");summary.textContent="Matching filters ↗";
@@ -1660,7 +1687,7 @@ function paintMoodPicks(five){
     }
   $("explore-results-title").textContent=state.randomPick?"A story you didn't ask for.":"A little something for you.";
   $("explore-results-detail").textContent=data.moods[state.mood].intro+" Each selection includes a specific reason for appearing.";
-    $("explore-results-label").textContent="AFTERLOGUE / "+data.moods[state.mood].short.toUpperCase();
+    $("explore-results-label").textContent="AFTERLOGUE / "+(window.AfterlogueLanguage?.translate?.(data.moods[state.mood].short)||data.moods[state.mood].short).toLocaleUpperCase();
   $("explore-adjust").hidden=state.randomPick;
   $("explore-again").textContent=state.randomPick?"Another surprise ↗":"Another selection ↗";
     $("explore-again").disabled=false;
@@ -1669,6 +1696,20 @@ function paintMoodPicks(five){
   view("results");
 }
 
+// Update generated recommendation explanations when the viewer changes language
+// without throwing away the five films, their Save states or browsing position.
+document.addEventListener("afterlogue:language-changed",()=>{
+ const lang=window.AfterlogueLanguage?.current?.()||"en";
+ const tr=text=>window.AfterlogueLanguage?.translate?.(text)||text;
+ if(state.mood&&data.moods[state.mood]&&!results.hidden)
+   $("explore-results-label").textContent="AFTERLOGUE / "+tr(data.moods[state.mood].short).toLocaleUpperCase();
+ document.querySelectorAll(".explore-mood-why").forEach(box=>{
+  const head=box.querySelector("strong"),text=box.querySelector(".explore-mood-explanation");
+  if(!text)return;
+  if(head)head.textContent=lang==="en"?"WHY THIS STORY":"FOR YOUR MOOD";
+  text.textContent=lang==="en"?text.dataset.originalReason:tr(text.dataset.moodIntro);
+ });
+});
 /* Each answer produces exactly one verified, five-story selection.
    Partial attempts are never recycled, and already shown titles never return. */
 /* Another selection should NEVER wipe out five working recommendations simply

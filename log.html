@@ -171,6 +171,43 @@
 @media(prefers-reduced-motion:reduce){
  .afterlogue-onboarding .impressions-journey-next{transition:none}
 }
+
+/* Small, crisp corner checks used for both curated and catalog impressions. */
+.afterlogue-onboarding .log-poster-placeholder.is-rated img,
+.afterlogue-onboarding .impressions-more-poster.is-rated img{filter:brightness(.76)}
+.afterlogue-onboarding .rating-check,
+.afterlogue-onboarding .impressions-more-poster .rating-check{
+ position:absolute!important;left:auto!important;right:9px!important;
+ top:9px!important;bottom:auto!important;transform:none!important;
+ z-index:6!important;display:none;place-items:center;
+ width:26px!important;height:26px!important;border-radius:50%!important;
+ border:1px solid rgba(244,234,221,.75)!important;
+ background:rgba(25,24,23,.9)!important;
+ box-shadow:0 2px 10px rgba(0,0,0,.28)!important;
+ padding:5px!important
+}
+.afterlogue-onboarding .log-poster-placeholder.is-rated .rating-check,
+.afterlogue-onboarding .impressions-more-poster.is-rated .rating-check{
+ display:grid!important
+}
+.afterlogue-onboarding .rating-check svg,
+.afterlogue-onboarding .impressions-more-poster .rating-check svg{
+ width:100%!important;height:100%!important;display:block!important;
+ position:static!important;transform:none!important
+}
+.afterlogue-onboarding .rating-check svg path{stroke-width:3;stroke:#f4eadd}
+.afterlogue-onboarding .log-poster-placeholder.is-rated::after,
+.afterlogue-onboarding .impressions-more-poster.is-rated::after{
+ background:rgba(9,9,10,.15)!important
+}
+/* The single final action should read clearly and never overlap its label. */
+.afterlogue-onboarding .log-continue-section{padding-top:23px}
+.afterlogue-onboarding .log-continue-button{
+ display:inline-flex;align-items:center;justify-content:center;gap:0;
+ padding:13px 26px;min-width:224px;min-height:46px;
+ line-height:1.4;white-space:normal;text-align:center
+}
+.afterlogue-onboarding .log-continue-button span[aria-hidden=true]{display:none!important}
 </style>
 <script src="site-language.js?v=3" defer></script>
 </head>
@@ -468,7 +505,7 @@
     <div class="log-continue-section" hidden>
   <p class="impressions-finish-note">That's all you need. Your next five picks are waiting.</p>
   <a href="discover.html" class="log-continue-button">
-    See my five picks <span aria-hidden="true">→</span>
+    See my five picks
   </a>
 </div>
   </main>
@@ -489,7 +526,7 @@
 <script src="pending-watchlist.js?v=1"></script>
 <script src="onboarding-catalog-search.js?v=10"></script>
 <script src="site-navigation.js?v=6"></script>
-<script src="onboarding-guidance.js?v=1" defer></script>
+<script src="onboarding-guidance.js?v=2" defer></script>
   <script>
   // AFTERLOGUE — CHECK SIGNED-IN USER
 
