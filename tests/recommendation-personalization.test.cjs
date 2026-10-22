@@ -30,6 +30,46 @@ test('A loved dynamic TMDB onboarding title can personalize a wider-catalog film
   assert.doesNotMatch(ranked[0].why,/plot synopsis/i);
 });
 
+test('Growing Logs rotate older positive titles without discarding recent Loved anchors', () => {
+  const sources=Array.from({length:14},(_,i)=>({
+    title:'Story '+String(i+1),
+    rating:i<11?'Loved':'Liked'
+  }));
+  const daily=Array.from({length:14},(_,day)=>
+    Array.from(engine.selectSeeds({sources,limit:4,rotation:day})));
+  daily.forEach(picks=>{
+    assert.equal(picks.length,4);
+    assert.equal(new Set(picks).size,4);
+    assert.deepEqual(picks.slice(0,2),['Story 1','Story 2']);
+  });
+  assert.notDeepEqual(daily[0].slice(2),daily[1].slice(2));
+  assert.equal(new Set(daily.flat()).size,14,
+    'Every older title must enter a seed window over time, not disappear behind the first four');
+  const revised=engine.selectSeeds({sources:[
+    {title:'Freshly logged',rating:'Loved'},...sources
+  ],limit:4,rotation:0});
+  assert.equal(revised[0],'Freshly logged');
+  const duplicates=Array.from(engine.selectSeeds({sources:[
+    {title:'Léon',rating:'Loved'},{title:'Leon',rating:'Liked'},
+    {title:'A Different Film',rating:'Liked'}
+  ],limit:4,rotation:0}));
+  assert.equal(duplicates.length,2,'Unicode variants cannot consume multiple seed slots');
+});
+
+test('Home snapshot expires when Favorites, Watchlist, Seen or seed rotation changes', () => {
+  const html=read('discover.html');
+  const fingerprint=html.split('function discoveryFingerprint(){')[1].split('function rememberDiscovery(){')[0];
+  for(const key of ['favorites:discoveryFavorites','watchlist:discoveryWatchlist',
+      'seen:[...discoverySeen]','seedDay:Math.floor(Date.now()/86400000)']){
+    assert.ok(fingerprint.includes(key),'Fingerprint must track '+key);
+  }
+  assert.match(html,/\.order\("updated_at",\{ascending:false\}\)/,
+    'Recent ratings should be preferred when choosing taste anchors');
+  assert.match(html,/selectSeeds\(\{/);
+  assert.match(html,/rating!=="Not for me"&&rating!=="Okay"/,
+    'An obsolete Favorite must not reverse a later neutral or negative reaction');
+});
+
 test('With no positive tastes, WHY THIS STORY does not pretend a synopsis is a reason', () => {
   const ranked=engine.rank({entries:entries(),category:'movies',impressions:{}});
   const editorial=ranked.find(x=>x.key==='editorial-old');
