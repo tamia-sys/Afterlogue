@@ -106,7 +106,7 @@ test('References do not monopolize discovery: look for unlisted, eligible TMDB n
  assert.match(server,/while\(queue\.length&&verified\.length<\(mood==="winding"\?20:16\)\)/);
  assert.match(server,/windingReference:Boolean\(windingRef\)/);
  assert.match(server,/const independent=curated\.filter\(entry=>!entry\.windingReference&&entry\.moodFit>=7\)/);
- assert.match(server,/independent\.slice\(0,3\)\.forEach\(append\)/);
+ assert.match(server,/independent\.slice\(0,5\)\.forEach\(append\)/);
  assert.match(server,/if\(experience\.score<5\)return/);
 });
 
@@ -136,4 +136,13 @@ test('Take your time is narrower than Winding Down generally',()=>{
 test('Slow film evidence is checked before accepting a mood-verified item',()=>{
  assert.match(server,/if\(mood==="winding"&&media==="movie"&&pace==="slow"&&/);
  assert.match(server,/!slowWindingFilmEvidence\(details,tags,detailGenreIds,/);
+});
+
+test('Contemplative discovery searches reflective worldwide film strata, not just listed examples',()=>{
+ assert.match(server,/const contemplativeStrands=\[\[18\]/);
+ assert.match(server,/const useRatedSort=slowMovieSearch&&\(i%3===1\)/);
+ assert.match(server,/sort_by:useRatedSort\?"vote_average.desc":"popularity.desc"/);
+ assert.match(server,/mood==="winding"&&pace==="slow"&&media==="movie"\?120/);
+ assert.match(server,/references\.slice\(0,/);
+ assert.match(server,/independent\.slice\(0,5\)\.forEach\(append\)/);
 });

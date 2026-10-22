@@ -1335,10 +1335,16 @@ Deno.serve(async (req:Request) => {
         const country=countries.length?countries[(i+offset)%countries.length]:null;
         const language=languages.length?languages[(Math.floor(i/Math.max(1,countries.length))+offset)%languages.length]:null;
         const decade=decades.length?Number(decades[(Math.floor(i/Math.max(1,countries.length*languages.length))+offset)%decades.length]):null;
+        const slowMovieSearch=mood==="winding"&&pace==="slow"&&media==="movie";
+        // Older, quieter cinema rarely appears on the first popular pages.
+        // Blend relevance candidates from popular and critically rated
+        // catalog strata; keep the same feature/runtime/fit verification.
+        const useRatedSort=slowMovieSearch&&(i%3===1);
         const params=new URLSearchParams({
-          language:"en-US",include_adult:"false",sort_by:"popularity.desc",
+          language:"en-US",include_adult:"false",
+          sort_by:useRatedSort?"vote_average.desc":"popularity.desc",
           page:String(1+((offset*2+Math.floor(i/2))%24)),
-          "vote_count.gte":String(mood==="fall"&&(countries.length||languages.length)?8:media==="movie"?30:20)
+          "vote_count.gte":String(mood==="fall"&&(countries.length||languages.length)?8:useRatedSort?100:media==="movie"?30:20)
         });
         const keywordSearch=ids.length>0&&i<Math.ceil(total/2);
         if(keywordSearch){
@@ -1361,7 +1367,13 @@ Deno.serve(async (req:Request) => {
         }
         // A second discovery stream uses broader genres, then verifies the
         // actual synopsis or keywords. It catches titles with poor tag coverage.
-        const broader=GENRE_MOODS[mood][media][i%GENRE_MOODS[mood][media].length];
+        // The slow Winding Down path must actually *retrieve* reflective
+        // human dramas rather than spending half its provider budget on
+        // broad comedy/animation, only to discard them in verification.
+        const contemplativeStrands=[[18],[18,10749],[18,99],[18,36],[18,16],[99,18]];
+        const contemplativeSearch=mood==="winding"&&pace==="slow"&&media==="movie";
+        const strands=contemplativeSearch?contemplativeStrands:GENRE_MOODS[mood][media];
+        const broader=strands[i%strands.length];
         if(genres.length)params.set("with_genres",genres.map(name=>categoryGenres[name]).join("|"));
         else if(!keywordSearch)params.set("with_genres",broader.join("|"));
         if(country)params.set("with_origin_country",country);
@@ -1414,7 +1426,11 @@ Deno.serve(async (req:Request) => {
         // References define the viewing experience; they must not become an
         // endless carousel of the founder's own example films.
         // Reserve a few eligible reference candidates as fallbacks.
-        for(const item of references.slice(0,4)){
+        // Preserve reference titles as a compass, not the opening four cards.
+        // Editorial references found through other paths remain eligible
+        // but won't crowd out strong unknown films in final ranking.
+        for(const item of references.slice(0,
+          mood==="winding"&&pace==="slow"&&media==="movie"?2:3)){
           const id=Number(item.id);
           if(excluded.has(id)||seen.has(id))continue;
           seen.add(id);selected.push(item);
@@ -1468,7 +1484,9 @@ Deno.serve(async (req:Request) => {
       // Limit the candidate count and workers so we never flood TMDB.
       // Search more than the first 24: narrow pools repeatedly produced
       // only 2–3 Fall results despite unrestricted preferences.
-      const queue=selected.slice(0,mood==="winding"?55:mood==="fall"&&(countries.length||languages.length)?120:90);
+      const queue=selected.slice(0,
+        mood==="winding"&&pace==="slow"&&media==="movie"?120:
+        mood==="winding"?75:mood==="fall"&&(countries.length||languages.length)?120:90);
       const verified:Array<ReturnType<typeof listItem>&{
         moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string;
         windingReference:boolean;originCountry:string;editorialAnchor:boolean
@@ -1668,10 +1686,11 @@ Deno.serve(async (req:Request) => {
               if(used.has(id))return;
               used.add(id);preferred.push(entry);
             };
-            // Alternating ensures both orientation and discovery. Return up
-            // to two editorial examples in the first five if available.
+            // Feature strong discoveries FIRST rather than guaranteeing
+            // slots to the founder's suggestions. A couple of reviewed
+            // anchors can join only after the independent candidates.
+            independent.slice(0,5).forEach(append);
             if(known[0])append(known[0]);
-            independent.slice(0,3).forEach(append);
             if(known[1])append(known[1]);
             curated.forEach(append); 
             verified.splice(0,verified.length,...preferred);
