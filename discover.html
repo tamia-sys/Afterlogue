@@ -1051,7 +1051,11 @@ async function loadTasteFeatures(keys,onBatch=null){
  const batches=[];
  // Limit burst fanout. Editorial titles already have their own facets;
  // 108 dynamic titles cover substantially larger Logs than initial onboarding.
- for(let i=0;i<Math.min(unique.length,108);i+=18)batches.push(unique.slice(i,i+18));
+ const bounded=unique.slice(0,108);
+ // A smaller first request supplies source genres quickly enough to
+ // diversify candidate retrieval; background batches still enrich the Log.
+ if(bounded.length)batches.push(bounded.slice(0,10));
+ for(let i=10;i<bounded.length;i+=18)batches.push(bounded.slice(i,i+18));
  const records=[];
  let next=0;
  const deadline=Date.now()+8500; // A richer profile must not stall Home indefinitely.
@@ -1131,7 +1135,12 @@ async function populateExpandedRecommendations(userId){
  // film Log can broaden the *source* pool, not just rearrange an
  // animation-heavy pool after recommendation retrieval has finished.
  const featureKeys=[
-   ...sources.map(source=>source.key),
+   // Home opens on Movies; learn genres of those positive seeds FIRST,
+   // rather than letting an unrelated large TV Log consume the first batch.
+   ...sources.filter(source=>named.get(source.key)?.category==="movies")
+     .map(source=>source.key),
+   ...sources.filter(source=>named.get(source.key)?.category==="tv")
+     .map(source=>source.key),
    ...Object.keys(savedImpressions).map(key=>key.replace(/^afterlogue-/,"")),
    ...discoveryFavorites.map(x=>x.title_key)
  ];
@@ -1143,7 +1152,7 @@ async function populateExpandedRecommendations(userId){
  // its first fast batch a short chance to complete before choosing seeds;
  // never block discovery for the entire Log's metadata retrieval.
  if(sources.length>3){
-   await Promise.race([tasteFeaturesPromise,new Promise(resolve=>setTimeout(resolve,2000))]);
+   await Promise.race([tasteFeaturesPromise,new Promise(resolve=>setTimeout(resolve,3000))]);
  }
  const editorialSourceByKey=new Map(discoveryEntries.map(item=>[item.key,item]));
  const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
