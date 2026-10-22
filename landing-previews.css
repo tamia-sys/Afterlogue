@@ -393,3 +393,10 @@ html[lang="ko"] .how .step-intro h3{
   pointer-events:none;text-shadow:0 1px 5px #080809
  }
 }
+
+/* Bring the editorial landing headings into the First Impressions palette.
+   Supporting descriptions and gold micro-labels intentionally stay quieter. */
+.how .step-intro h3,
+.landing-final-invitation h2{
+ color:#F4EADD;
+}
