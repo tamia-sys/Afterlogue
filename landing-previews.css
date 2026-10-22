@@ -196,3 +196,201 @@ body.lp-preview-open{overflow:hidden}
  text-shadow:none;place-items:center;box-shadow:0 2px 12px rgba(0,0,0,.28)
 }
 .how #preview-impressions .lp-poster.is-rated .journey-check{display:grid!important}
+
+
+/* Approved three-card editorial layout, beneath the existing
+   Personalized / Explore / Discuss feature columns. */
+.how{max-width:1500px;padding:42px clamp(23px,3.5vw,52px) 64px;}
+.how .section-label{
+  margin:0 0 22px;text-align:left;
+  font:600 11px/1.4 Arial,Helvetica,sans-serif;
+  letter-spacing:.29em;color:#d4af7c;
+}
+.how .steps{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:stretch;gap:clamp(16px,1.85vw,26px);
+  max-width:none;margin:0;
+}
+.how .step{
+  position:relative;min-width:0;min-height:444px;
+  display:flex;flex-direction:column;
+  padding:clamp(17px,2vw,26px);
+  border:1px solid rgba(201,168,121,.59);
+  border-radius:12px;
+  background:linear-gradient(150deg,rgba(32,30,28,.68),rgba(15,16,17,.88));
+  box-shadow:0 12px 36px rgba(0,0,0,.15);
+}
+.how .step-intro{
+  min-height:148px;display:flex;flex-direction:column;
+  padding:0 0 13px;
+}
+.how .step-kicker{
+  margin:0 0 12px;color:#cdae7f;
+  letter-spacing:.2em;font:600 10px/1.5 Arial,sans-serif;
+}
+.how .step-intro h3{
+  margin:0 0 11px;color:var(--cream);
+  font:400 clamp(25px,2.25vw,36px)/1.12 Georgia,"Times New Roman",serif;
+  letter-spacing:-.035em;overflow-wrap:break-word;
+}
+.how .step-lede{
+  max-width:350px;margin:0;
+  color:#d9ccbc;font:clamp(12px,1.08vw,15px)/1.5 Arial,Helvetica,sans-serif;
+}
+.how .journey-preview,
+.how #preview-impressions .journey-preview{
+  flex:1;display:flex;flex-direction:column;
+  min-height:0;height:auto;
+  row-gap:0;padding:0;
+  border:0;border-radius:0;background:transparent;overflow:visible;
+}
+.how .journey-top{display:none}
+.how .journey-posters{
+  height:auto;min-height:0;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(7px,.75vw,12px);align-items:start;
+  overflow:visible;
+}
+.how .journey-posters .lp-poster{
+  width:100%;height:auto;aspect-ratio:2/3;
+  border:1px solid rgba(215,183,136,.30);
+  border-radius:6px;overflow:hidden;
+  background:#232321;
+}
+.how .journey-posters .lp-poster img{
+  width:100%;height:100%;display:block;object-fit:cover;
+}
+.how #preview-impressions .lp-ratings{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:5px;margin-top:13px;min-height:42px;
+}
+.how .lp-ratings .journey-rating{
+  display:flex;flex-direction:row;align-items:center;
+  justify-content:center;gap:4px;
+  min-width:0;min-height:40px;
+  padding:6px 3px;border-radius:6px;
+  font:10px/1.2 Arial,Helvetica,sans-serif;white-space:nowrap;
+}
+.how .lp-ratings .journey-rating b{font-size:13px;line-height:1}
+.how #preview-impressions .lp-demo-status{
+  min-height:17px;margin:11px 0 0;
+  font:10px/1.45 Arial,sans-serif;
+  color:#c7b6a0;white-space:normal;
+}
+.how #preview-discovery .journey-label{
+  min-height:26px;height:auto;display:flex;
+  justify-content:center;align-items:center;
+  margin:13px 0 0;color:#b9a688;
+  font:10px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.055em;
+  text-align:center;
+}
+.how #preview-log .journey-bottom{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  margin-top:14px;min-height:31px;
+  align-items:center;
+}
+.how #preview-log .journey-reaction{font:11px/1.4 Arial,sans-serif;gap:5px;}
+.how #preview-log .journey-reaction b{font-size:18px;}
+.how #preview-log .log-collections{
+  margin:auto 0 0;padding-top:12px;
+  color:#ab9679;font:11px/1.4 Georgia,serif;
+}
+.how #preview-impressions .lp-poster .journey-check{
+  top:9px;right:9px;width:25px;height:25px;
+  font:400 17px/1 Georgia,serif;
+}
+html[lang="ko"] .how .step-intro h3{
+  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  word-break:keep-all;letter-spacing:-.025em;line-height:1.23;
+}
+
+/* Film-picking invitation directly below all three example cards. */
+.landing-final-invitation{
+  position:relative;display:flex;
+  justify-content:space-between;align-items:center;
+  gap:28px;margin:35px 0 0;
+  min-height:164px;padding:30px clamp(24px,3.8vw,58px);
+  border:1px solid rgba(209,172,120,.65);border-radius:12px;
+  background:
+    linear-gradient(90deg,rgba(12,12,13,.98) 0%,rgba(15,15,15,.96) 40%,rgba(22,13,10,.56) 100%),
+    url("https://images.unsplash.com/photo-1751977146227-4fc506ca71a9?fm=jpg&q=65&w=1600") right center / cover no-repeat,
+    #171311;
+  overflow:hidden;isolation:isolate;
+}
+.landing-final-invitation::after{
+  content:"";position:absolute;inset:0;z-index:-1;
+  background:radial-gradient(ellipse at 80% 12%,rgba(211,145,76,.14),transparent 56%);
+  pointer-events:none;
+}
+.landing-final-copy{position:relative;min-width:0;max-width:850px;}
+.landing-final-eyebrow{
+  margin:0 0 13px;letter-spacing:.17em;color:#c9ad84;
+  font:600 10px/1.4 Arial,Helvetica,sans-serif;
+}
+.landing-final-invitation h2{
+  margin:0;font:400 clamp(27px,3.0vw,45px)/1.18 Georgia,"Times New Roman",serif;
+  letter-spacing:-.032em;color:var(--cream);
+  text-wrap:balance;
+}
+.landing-final-button{
+  flex:none;display:inline-flex;align-items:center;justify-content:center;
+  min-width:222px;min-height:54px;padding:15px 28px;
+  border:1px solid #efd5a7;border-radius:999px;
+  color:#19140f;background:linear-gradient(120deg,#ffe8bb,#eac78d);
+  font:600 15px/1.2 Georgia,serif;text-decoration:none;
+  transition:background .2s ease,transform .2s ease,box-shadow .2s ease;
+}
+.landing-final-button:hover,.landing-final-button:focus-visible{
+  background:#f7dfb7;transform:translateY(-2px);
+  box-shadow:0 7px 25px rgba(214,153,78,.16);
+}
+@media(max-width:1050px){
+ .how .steps{gap:13px}
+ .how .step{padding:17px;min-height:410px}
+ .how .step-intro{min-height:152px}
+ .how .step-intro h3{font-size:clamp(23px,2.5vw,30px)}
+ .how .journey-posters{gap:6px}
+ .how .lp-ratings .journey-rating{font-size:9px;gap:2px;padding:5px 1px}
+ .landing-final-button{min-width:192px}
+}
+@media(max-width:850px){
+ .how{padding:36px 22px 58px}
+ .how .steps{
+  display:flex;overflow-x:auto;gap:16px;max-width:none;
+  margin:0;padding:2px 2px 15px;
+  scroll-snap-type:x mandatory;scrollbar-width:thin;
+ }
+ .how .step{
+  flex:0 0 min(82vw,375px);min-height:430px;
+  scroll-snap-align:start;
+ }
+ .how .step-intro{min-height:140px}
+ .how .step-intro h3{font-size:29px}
+ .how .step-lede{font-size:14px}
+ .how .lp-ratings .journey-rating{font-size:10px}
+ .landing-final-invitation{margin-top:25px;min-height:155px;padding:25px 28px}
+ .landing-final-invitation h2{font-size:clamp(25px,3.5vw,36px)}
+}
+@media(max-width:620px){
+ .how{padding:31px 16px 50px}
+ .how .steps{gap:13px}
+ .how .step{flex-basis:min(88vw,380px);padding:19px;min-height:420px}
+ .how .step-intro{min-height:137px}
+ .how .step-intro h3{font-size:29px}
+ .how .journey-posters{gap:9px}
+ .how .lp-ratings .journey-rating{font-size:10px}
+ .landing-final-invitation{
+  flex-direction:column;align-items:flex-start;
+  gap:23px;padding:28px 22px;min-height:0;
+ }
+ .landing-final-invitation h2{font-size:clamp(29px,7vw,39px)}
+ .landing-final-button{width:100%;min-height:48px}
+}
+@media(max-width:380px){
+ .how .step{padding:16px}
+ .how .lp-ratings .journey-rating{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .landing-final-button{transition:none!important;transform:none!important}
+ .how .steps{scroll-behavior:auto}
+}
