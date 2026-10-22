@@ -394,3 +394,13 @@ html[lang="ko"] .how .step-intro h3{
  .landing-final-button{transition:none!important;transform:none!important}
  .how .steps{scroll-behavior:auto}
 }
+
+/* Subtle directional cues link the three steps, never added to buttons. */
+@media(min-width:1051px){
+ .how #preview-impressions::after,
+ .how #preview-discovery::after{
+  content:"→";position:absolute;top:54%;right:-19px;z-index:3;
+  color:#e1bf90;font:23px/1 Georgia,serif;
+  pointer-events:none;text-shadow:0 1px 5px #080809
+ }
+}
