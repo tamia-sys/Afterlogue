@@ -361,7 +361,7 @@ function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[
        // Only comparable, qualified suggestions may break a run of one style.
        // Do not sacrifice relevance merely to fill a diversity quota.
        const alternative=remaining.findIndex((candidate,index)=>{
-         if(!index||index>65)return false;
+         if(!index||index>220)return false; // Extra source pool can exceed 70 titles.
          if(Boolean(candidate.starter)!==Boolean(leader.starter))return false;
          const lane=storyLane(candidate);
          if(!lane||lane===mainLane||(
