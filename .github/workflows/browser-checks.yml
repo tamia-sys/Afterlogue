@@ -46,6 +46,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Check recommendation intelligence rules
         run: npm run test:rules
+      - name: Check Fall mood ranking with simulated TMDB
+        run: node --experimental-strip-types --test tests/fall-edge-behavior.test.cjs
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser checks
