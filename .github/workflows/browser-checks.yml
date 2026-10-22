@@ -21,6 +21,7 @@ on:
       - 'film-details.html'
       - 'film-details.js'
       - 'signup.html'
+      - 'index.html'
       - 'auth-signup.js'
       - 'log.html'
       - 'discover.html'
