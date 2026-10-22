@@ -46,6 +46,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Check recommendation intelligence rules
         run: npm run test:rules
+      - name: Verify evolving Log features with simulated TMDB
+        run: node --experimental-strip-types --test tests/taste-features-edge.cjs
       - name: Check Fall mood ranking with simulated TMDB
         run: node --experimental-strip-types --test tests/fall-edge-behavior.test.cjs
       - name: Verify Winding Down discovery with simulated TMDB

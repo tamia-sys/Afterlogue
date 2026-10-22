@@ -30,6 +30,80 @@ test('A loved dynamic TMDB onboarding title can personalize a wider-catalog film
   assert.doesNotMatch(ranked[0].why,/plot synopsis/i);
 });
 
+test('Phase 2 profile learns multiple genres and themes from the whole rated Log', () => {
+ const build=(key,genre,theme,tone)=>({key,title:key,category:'movies',
+   facets:{genres:[genre],themes:[theme],tones:[tone],pace:'slow'},directMatches:[],position:1});
+ const works=[
+   build('slow-1','drama','connection','intimate'),
+   build('slow-2','drama','connection','intimate'),
+   build('funny-1','comedy','friendship','funny'),
+   build('funny-2','comedy','friendship','funny'),
+   build('frantic-1','thriller','crime','intense'),
+   build('frantic-2','thriller','crime','intense')
+ ];
+ const impressions={
+   'afterlogue-slow-1':'Loved','afterlogue-slow-2':'Liked',
+   'afterlogue-funny-1':'Loved','afterlogue-funny-2':'Liked',
+   'afterlogue-frantic-1':'Not for me','afterlogue-frantic-2':'Not for me'
+ };
+ const profile=engine.buildTasteProfile({entries:works,impressions});
+ assert.equal(profile.logSignals,6);
+ assert.equal(profile.covered,6);
+ const dims=profile.dimensions;
+ assert.ok(dims.themes.find(x=>x.tag==='connection').affinity>0);
+ assert.ok(dims.tones.find(x=>x.tag==='funny').affinity>0);
+ assert.ok(dims.genres.find(x=>x.tag==='thriller').affinity<0);
+ assert.ok(engine.tasteMatch(profile,{genres:['comedy'],themes:['friendship'],tones:['funny']}).score>0);
+ assert.ok(engine.tasteMatch(profile,{genres:['thriller'],themes:['crime'],tones:['intense']}).score<0);
+});
+
+test('Changing a Log opinion changes taste evidence; private notes do not enter scoring', () => {
+ const titles=[
+   {key:'one',title:'one',facets:{genres:['drama'],themes:['love'],tones:[],pace:null}},
+   {key:'two',title:'two',facets:{genres:['comedy'],themes:['friendship'],tones:[],pace:null}}
+ ];
+ const first=engine.buildTasteProfile({entries:titles,impressions:{one:'Loved',two:'Not for me'}});
+ const revised=engine.buildTasteProfile({entries:titles,impressions:{one:'Not for me',two:'Loved'}});
+ assert.ok(engine.tasteMatch(first,{genres:['drama'],themes:['love']}).score>0);
+ assert.ok(engine.tasteMatch(revised,{genres:['drama'],themes:['love']}).score<0);
+ assert.ok(engine.tasteMatch(revised,{genres:['comedy'],themes:['friendship']}).score>0);
+ const empty=engine.buildTasteProfile({entries:titles,impressions:{}});
+ assert.equal(empty.covered,0);
+ assert.equal(engine.tasteMatch(empty,{genres:['drama']}).score,0);
+});
+
+test('Phase 2 combines dynamic title genre evidence with recency without erasing old tastes',()=>{
+ const base=Date.UTC(2026,9,22),old=Date.UTC(2022,4,10),prior='tmdb-movie-301',fresh='tmdb-movie-302';
+ const items=[{
+   key:prior,title:'Earlier Adventure',facets:{genres:['adventure'],themes:[],tones:[],pace:null}
+ },{
+   key:fresh,title:'New Dramatic Interest',facets:{genres:['drama'],themes:[],tones:[],pace:null}
+ }];
+ const taste=engine.buildTasteProfile({entries:items,now:base,
+   impressions:{[prior]:'Loved',[fresh]:'Loved'},
+   timestamps:{[prior]:new Date(old).toISOString(),[fresh]:new Date(base).toISOString()}});
+ assert.ok(taste.dimensions.genres.find(x=>x.tag==='adventure').affinity>0,
+   'Older preferences must remain in the profile');
+ assert.ok(taste.dimensions.genres.find(x=>x.tag==='drama').affinity>
+   taste.dimensions.genres.find(x=>x.tag==='adventure').affinity,
+   'Recent Loved titles should have modest additional influence');
+});
+
+test('Phase 2 Home obtains dynamic title evidence without sharing member notes or identities',()=>{
+ const backend=read('supabase/functions/afterlogue-catalog/index.ts');
+ const home=read('discover.html');
+ assert.match(backend,/if\(mode==="taste-features"\)/);
+ const block=backend.split('if(mode==="taste-features"){')[1].split('if(mode==="collection"){')[0];
+ assert.match(block,/slice\(0,18\)/,'Bound the public batch size');
+ assert.doesNotMatch(block,/private_note|user_id|updated_at|impressions/);
+ assert.match(home,/const tasteFeaturesPromise=loadTasteFeatures\(featureKeys\)/);
+ assert.match(home,/tasteFeaturesPromise,candidatePromise/);
+ assert.match(home,/const candidatePromise=loadTasteFeatures/);
+ assert.match(home,/select\("title_key, rating, updated_at"\)/);
+ assert.match(home,/timestamps:impressionDates/);
+ assert.match(home,/ratingDates:Object\.entries\(impressionDates\)/);
+});
+
 test('Growing Logs rotate older positive titles without discarding recent Loved anchors', () => {
   const sources=Array.from({length:14},(_,i)=>({
     title:'Story '+String(i+1),
