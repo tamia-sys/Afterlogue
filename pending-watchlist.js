@@ -82,7 +82,14 @@ window.AfterloguePendingWatchlist=Object.freeze({
  // their First Impressions before the pending title is automatically saved.
  async postLogin(client,user,onboardingComplete){
   if(!onboardingComplete||!read())return null;
-  return complete(client,user);
+  try{return await complete(client,user);}
+  catch(error){
+   console.warn('Watchlist save after sign-in needs retry',error);
+   const intent=read();
+   if(!intent)return null;
+   const url=safeURL(intent.url);
+   return url+(url.includes('?')?'&':'?')+'watchlist_error=1';
+  }
  }
 });
 })();
