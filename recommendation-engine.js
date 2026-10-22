@@ -404,7 +404,7 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
  const known=ranked.filter(source=>storyLane(source));
  const animationShare=known.filter(source=>storyLane(source)==="animation").length/Math.max(1,ranked.length);
  const animationDominates=known.length>=7&&animationShare>=.78;
- const varied=category==="movies"&&known.length>=3&&!animationDominates;
+ const varied=known.length>=3&&!animationDominates;
  if(!varied)return [...pickPool,...rotated.slice(0,cap-pickPool.length)].map(x=>x.title);
  const chosen=[],remainingAll=[...pickPool,...rotated];
  while(chosen.length<cap&&remainingAll.length){
@@ -415,7 +415,8 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
    }
    const choice=remainingAll.findIndex((source,index)=>{
      const lane=storyLane(source);
-     if(!lane)return index===0; // Do not pretend unknown metadata is variety.
+     if(!lane)return true; // Broaden the retrieval seeds when the top genre is saturated.
+     // This is exploration, not a claim about an unknown title's genre.
      return (counts.get(lane)||0)<2;
    });
    const at=choice>=0?choice:0;
