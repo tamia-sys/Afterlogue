@@ -133,7 +133,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=10"></script>
+<script src="recommendation-engine.js?v=11"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -917,7 +917,7 @@ function discoveryFingerprint(){
   seen:[...discoverySeen].sort(),
   // A growing Log should not be permanently restricted to its first few seeds.
   seedDay:Math.floor(Date.now()/86400000),
-  algorithm:"balanced-home-shelves-v1",
+  algorithm:"balanced-home-shelves-v2-broad-candidate-seeds",
   country:discoveryPreferences.country||"",
   language:discoveryPreferences.originalLanguage||""
  });
@@ -1045,7 +1045,7 @@ discoverAgainButton.addEventListener("click", () => {
 // explicitly tagged story themes. The request contains public title IDs only,
 // never private ratings, identities or Log notes. No AI services are called.
 // Data is kept in this page's short-lived, account-bound Home snapshot.
-async function loadTasteFeatures(keys){
+async function loadTasteFeatures(keys,onBatch=null){
  const unique=[...new Set(keys.filter(key=>/^tmdb-(movie|tv)-[1-9][0-9]{0,9}$/.test(key)))];
  const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
  const batches=[];
@@ -1068,7 +1068,9 @@ async function loadTasteFeatures(keys){
        });
        if(!response.ok)throw Error("taste features unavailable");
        const data=await response.json();
-       records.push(...(Array.isArray(data.items)?data.items:[]));
+       const returned=Array.isArray(data.items)?data.items:[];
+       records.push(...returned);
+       if(typeof onBatch==="function")onBatch(returned);
      }catch(error){console.warn("Taste profile metadata unavailable",error);}
      finally{clearTimeout(timeout);}
    }
@@ -1125,12 +1127,25 @@ async function populateExpandedRecommendations(userId){
   ...Object.entries(window.AfterlogueFeaturedCatalog||{}),
   ...dynamic.map(x=>[x.title_key,x])
  ]);
+ // Prioritize positive signals in the first metadata batch so a mixed
+ // film Log can broaden the *source* pool, not just rearrange an
+ // animation-heavy pool after recommendation retrieval has finished.
  const featureKeys=[
+   ...sources.map(source=>source.key),
    ...Object.keys(savedImpressions).map(key=>key.replace(/^afterlogue-/,"")),
    ...discoveryFavorites.map(x=>x.title_key)
  ];
- // Retrieval runs concurrently with the existing two recommendation requests.
- const tasteFeaturesPromise=loadTasteFeatures(featureKeys);
+ const sourceFeatureMap=new Map();
+ const tasteFeaturesPromise=loadTasteFeatures(featureKeys,items=>{
+   for(const item of items)sourceFeatureMap.set(item.key,item);
+ });
+ // Source metadata is already being fetched for the taste profile. Give
+ // its first fast batch a short chance to complete before choosing seeds;
+ // never block discovery for the entire Log's metadata retrieval.
+ if(sources.length>3){
+   await Promise.race([tasteFeaturesPromise,new Promise(resolve=>setTimeout(resolve,2000))]);
+ }
+ const editorialSourceByKey=new Map(discoveryEntries.map(item=>[item.key,item]));
  const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
  const excluded=new Set([...sources.map(x=>x.key),...discoverySeen,
    ...discoveryWatchlist.map(x=>x.title_key)]);
@@ -1141,8 +1156,11 @@ async function populateExpandedRecommendations(userId){
    .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved"))
  };
  const pickNames=category=>window.AfterlogueRecommendationEngine.selectSeeds({
-   sources:grouped[category].map(x=>({title:named.get(x.key).title,rating:x.rating})),
-   limit:4,rotation:Math.floor(Date.now()/86400000)
+   sources:grouped[category].map(x=>({
+     title:named.get(x.key).title,rating:x.rating,
+     facets:sourceFeatureMap.get(x.key)||editorialSourceByKey.get(x.key)?.facets||{}
+   })),
+   category,limit:4,rotation:Math.floor(Date.now()/86400000)
  });
  const request=async body=>{
    const controller=new AbortController();
