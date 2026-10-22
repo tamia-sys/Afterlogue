@@ -1537,7 +1537,7 @@ const memberRatingsReady=isGuest?Promise.resolve():(async()=>{
   const {data:auth,error:authError}=await client.auth.getUser();
   if(authError||!auth?.user)return;
   exploreOwner=auth.user.id;
-  await Promise.all(["impressions","seen_entries","watchlist","favorites"].map(async table=>{
+  await Promise.all(["impressions","seen_entries","watchlist","log_entries"].map(async table=>{
    try{
     const {data,error}=await client.from(table).select("title_key").eq("user_id",auth.user.id);
     if(error)throw error;
@@ -1836,7 +1836,11 @@ async function searchMoodSelection(scope,startOffset,signal=null){
     if(!item?.poster||!item.id)continue;
     const type=item.media==="tv"?"tv":"movie";
     const key="tmdb-"+type+"-"+item.id,history=type+":"+item.id;
-    if(unique.has(key)||excluded.has(key)||shown.has(history))continue;
+    // Older First Impressions and featured catalog entries sometimes use a
+    // canonical title slug rather than a TMDB key. Do not rediscover those.
+    const titleSlug=slug(item.title);
+    if(unique.has(key)||excluded.has(key)||shown.has(history)
+      ||excluded.has(titleSlug)||excluded.has("afterlogue-"+titleSlug))continue;
     unique.add(key);
     picks.push({...item,key,media:type==="tv"?"tv":"movies",
       reason:item.moodReason||"Selected for your mood."});
@@ -1905,6 +1909,8 @@ async function displayResults(){
    selection.picks=selection.picks.filter(item=>
      !existing.has((item.media==="tv"?"tv":"movie")+":"+item.id)&&
      !disliked.has(item.key)&&
+     !disliked.has(slug(item.title))&&
+     !disliked.has("afterlogue-"+slug(item.title))&&
      !(window.AfterlogueSeen?.seen||new Set()).has(item.key));
    if(selection.picks.length!==desired)selection=null;
   }
