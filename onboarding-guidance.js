@@ -22,8 +22,29 @@ const guest=new URLSearchParams(location.search).get("guest")==="1";
 let current="films",queued=false;
 const ratedWithin=element=>element?.querySelectorAll(".log-poster-placeholder.is-rated,.impressions-more-poster.is-rated").length||0;
 function selectionText(n,kind){
- if(n===0)return "No "+kind+" rated yet. You can continue without rating everything.";
- return n+" "+kind+" "+(n===1?"impression":"impressions")+" selected. You're ready to continue.";
+ const lang=window.AfterlogueLanguage?.current?.()||"en";
+ if(n===0){
+  const empty={
+   en:kind==="film"?"No film rated yet. You can continue without rating everything.":"No TV show rated yet. You can continue without rating everything.",
+   es:kind==="film"?"Aún no has valorado ninguna película. Puedes continuar sin valorarlas todas.":"Aún no has valorado ninguna serie. Puedes continuar sin valorarlas todas.",
+   fr:kind==="film"?"Aucun film noté pour le moment. Vous pouvez continuer sans tout noter.":"Aucune série notée pour le moment. Vous pouvez continuer sans tout noter.",
+   pt:kind==="film"?"Nenhum filme avaliado ainda. Você pode continuar sem avaliar todos.":"Nenhuma série avaliada ainda. Você pode continuar sem avaliar todas.",
+   ko:kind==="film"?"아직 평가한 영화가 없어요. 모두 평가하지 않아도 계속할 수 있어요.":"아직 평가한 TV 시리즈가 없어요. 모두 평가하지 않아도 계속할 수 있어요."
+  };
+  return empty[lang]||empty.en;
+ }
+ const media={
+  en:kind==="film"?"film":"TV show",
+  es:kind==="film"?"película":"serie",
+  fr:kind==="film"?"film":"série",
+  pt:kind==="film"?"filme":"série",
+  ko:kind==="film"?"영화":"TV 시리즈"
+ };
+ if(lang==="ko")return media.ko+" "+n+"편 평가 완료. 준비되면 계속해 주세요.";
+ if(lang==="es")return n+" "+media.es+(n===1?" valorada":" valoradas")+". Puedes continuar.";
+ if(lang==="fr")return n+" "+media.fr+(n===1?" noté":" notés")+". Vous pouvez continuer.";
+ if(lang==="pt")return n+" "+media.pt+(n===1?" avaliado":" avaliados")+". Você pode continuar.";
+ return n+" "+media.en+" "+(n===1?"impression":"impressions")+" selected. You're ready to continue.";
 }
 function updateCount(){
  const n=ratedWithin(current==="films"?filmSection:tvSection);
@@ -68,6 +89,7 @@ const observer=new MutationObserver(mutations=>{
 observer.observe(filmSection,{subtree:true,attributes:true,attributeFilter:["class"]});
 observer.observe(tvSection,{subtree:true,attributes:true,attributeFilter:["class"]});
 document.addEventListener("afterlogue:saved-ratings",updateCount);
+document.addEventListener("afterlogue:language-changed",updateCount);
 // Some browsers restore position or hash after a refresh; keep TV reachable.
 moveTo(location.hash==="#television"?"tv":"films",false);
 })();
