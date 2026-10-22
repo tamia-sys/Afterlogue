@@ -290,7 +290,7 @@ function moodExperience(
     "Its documented humor or lighthearted tone makes this an easygoing watch.","feel-good");
   add(everyday,4,
     "Everyday relationships and familiar surroundings make this a character-led choice.","everyday connections");
-  add(contemplating,6,
+  add(contemplating,7,
     "Its reflective storytelling invites a more contemplative kind of evening.","contemplative");
   add(playfulAdventure&&pace!=="slow",5,
     "Its playful adventure offers an engaging, entertaining way to unwind.","playful escapism");
@@ -300,7 +300,7 @@ function moodExperience(
   // Dark topics are not automatically excluded: some verified, thoughtfully
   // chosen films are cathartic. Avoid unverified trauma-as-comfort claims.
   if(distressing)score-=editorialReason?2:10;
-  if(bleak&&!warmth)score-=editorialReason?1:5;
+  if(bleak&&!warmth)score-=editorialReason?1:contemplating?2:5;
   if(has(27,53,28,80)&&!warmth&&!editorialReason)score-=4;
   if(frantic&&!warmth&&!editorialReason)score-=4;
   if(pace==="slow"&&frantic&&!editorialReason)score-=3;
