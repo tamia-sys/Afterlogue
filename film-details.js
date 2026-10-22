@@ -449,7 +449,10 @@ function playTrailer(id){
  },5000);
  // Use the preloaded player immediately when it's ready. Otherwise create
  // a fresh autoplay-enabled iframe and retry after YouTube signals readiness.
- if(trailerPlayerId!==id){
+ if(trailerPlayerId!==id||!trailerPlayerReady){
+  // A warmed iframe is only useful once YouTube actually reports ready.
+  // If iOS postponed loading it in the hidden dialog, fall back to a fresh
+  // muted autoplay URL rather than relying on early ignored play commands.
   trailerPlayerId=id;
   trailerPlayerReady=false;
   trailerPlayer.src=trailerEmbedURL(id,true);
