@@ -1194,6 +1194,40 @@ async function populateExpandedRecommendations(userId){
    };
    const plans=[];
    if(own.length)plans.push({kind:"direct",body:{mode:"recommend",media,titles:own,...filters}});
+   // A different, positively rated group of source films unlocks a genuinely
+   // wider candidate pool. Reordering five cartoons cannot create a drama.
+   // Make one additional bounded TMDB recommendation request only when the
+   // member's *verified positive* film genres demonstrate mixed interests.
+   if(category==="movies"&&grouped.movies.length>=7){
+     const getFacets=source=>sourceFeatureMap.get(source.key)
+       ||editorialSourceByKey.get(source.key)?.facets||{};
+     const evidence=grouped.movies.map(source=>({
+       source,lane:window.AfterlogueRecommendationEngine.storyLane({facets:getFacets(source)})
+     }));
+     const known=evidence.filter(x=>x.lane);
+     const laneCounts=new Map();
+     for(const x of known)laneCounts.set(x.lane,(laneCounts.get(x.lane)||0)+1);
+     const animationShare=(laneCounts.get("animation")||0)/Math.max(1,grouped.movies.length);
+     if(laneCounts.size>=2&&animationShare<.78){
+       const chosen=new Set(own.map(name=>name.toLowerCase()));
+       const alternatives=evidence.filter(x=>!chosen.has(named.get(x.source.key).title.toLowerCase()));
+       // Lead with underrepresented, positively rated non-animation genres,
+       // then let the normal daily source rotation complete the group.
+       const genresInFirst=new Set(evidence
+         .filter(x=>chosen.has(named.get(x.source.key).title.toLowerCase()))
+         .map(x=>x.lane).filter(Boolean));
+       alternatives.sort((a,b)=>
+         Number(Boolean(genresInFirst.has(a.lane)))-Number(Boolean(genresInFirst.has(b.lane))));
+       const extra=window.AfterlogueRecommendationEngine.selectSeeds({
+         sources:alternatives.map(x=>({
+           title:named.get(x.source.key).title,rating:x.source.rating,facets:getFacets(x.source)
+         })),
+         category,limit:4,rotation:Math.floor(Date.now()/86400000)+3
+       });
+       if(extra.length>=2)plans.push({kind:"direct-breadth",
+         body:{mode:"recommend",media,titles:extra,...filters}});
+     }
+   }
    if(other.length)plans.push({kind:"bridge",body:{mode:"recommend",media,
      sourceMedia:otherCategory==="tv"?"tv":"movie",titles:other,...filters}});
    if(!plans.length)plans.push({kind:"starter",body:{mode:"discover",media,page:1,
