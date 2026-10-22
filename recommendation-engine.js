@@ -337,7 +337,7 @@ function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[
    known++;
    counts.set(lane,(counts.get(lane)||0)+1);
  }
- const dominant=known>=5?[...counts].filter(([,count])=>count/known>=.65)
+ const dominant=known>=9?[...counts].filter(([,count])=>count/known>=.72)
    .map(([lane])=>lane):[];
  const remaining=[...eligible],result=[];
  while(remaining.length){
@@ -353,8 +353,11 @@ function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[
      const cap=dominant.includes(mainLane)?width:2;
      let nextIndex=0;
      if(mainLane&&(laneCounts.get(mainLane)||0)>=cap){
+       // Ranker scores can be highly concentrated even when multiple
+       // genuinely related, positively scored genres remain available.
+       // Requiring 38% of an animation's score hid most live-action films.
        const minimum=Number.isFinite(leader.score)&&leader.score>0
-         ?Math.max(1,leader.score*.38):0;
+         ?Math.max(6,leader.score*.16):0;
        // Only comparable, qualified suggestions may break a run of one style.
        // Do not sacrifice relevance merely to fill a diversity quota.
        const alternative=remaining.findIndex((candidate,index)=>{
@@ -377,7 +380,7 @@ function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[
 // Keep recent, strongly positive Log titles in the anchor seats, while giving
 // every older positive title a turn as the Log grows. This selects names only:
 // it never fabricates titles, downloads metadata or changes TMDB eligibility.
-function selectSeeds({sources=[],limit=4,rotation=0}={}){
+function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
  const cap=Math.max(0,Math.min(8,Math.floor(Number(limit)||0)));
  if(!cap)return [];
  const unique=new Set();
@@ -387,14 +390,38 @@ function selectSeeds({sources=[],limit=4,rotation=0}={}){
    if(!id||unique.has(id))return [];
    unique.add(id);
    const strength=source.rating==="Loved"?3:source.rating==="Liked"?2:1;
-   return [{title,strength,index}];
+   return [{title,strength,index,facets:source.facets||{}}];
  }).sort((a,b)=>b.strength-a.strength||a.index-b.index);
  if(ranked.length<=cap)return ranked.map(source=>source.title);
- const anchors=ranked.slice(0,Math.min(2,cap));
- const remaining=ranked.slice(anchors.length);
- const shift=((Math.floor(Number(rotation)||0)%remaining.length)+remaining.length)%remaining.length;
- const rotated=[...remaining.slice(shift),...remaining.slice(0,shift)];
- return [...anchors,...rotated.slice(0,cap-anchors.length)].map(source=>source.title);
+ const shift=Math.abs(Math.floor(Number(rotation)||0))%ranked.length;
+ const pickPool=ranked.slice(0,Math.min(2,cap));
+ const remaining=ranked.slice(pickPool.length);
+ const turn=remaining.length?shift%remaining.length:0;
+ const rotated=[...remaining.slice(turn),...remaining.slice(0,turn)];
+ // Use actual rated-title genres to keep candidate RETRIEVAL broad as
+ // well as arranging the final shelf. If too few genres are known, retain
+ // the proven recency + rotation behavior rather than guessing by title.
+ const known=ranked.filter(source=>storyLane(source));
+ const animationShare=known.filter(source=>storyLane(source)==="animation").length/Math.max(1,ranked.length);
+ const animationDominates=known.length>=9&&animationShare>=.72;
+ const varied=category==="movies"&&known.length>=3&&!animationDominates;
+ if(!varied)return [...pickPool,...rotated.slice(0,cap-pickPool.length)].map(x=>x.title);
+ const chosen=[],remainingAll=[...pickPool,...rotated];
+ while(chosen.length<cap&&remainingAll.length){
+   const counts=new Map();
+   for(const member of chosen){
+     const lane=storyLane(member);
+     if(lane)counts.set(lane,(counts.get(lane)||0)+1);
+   }
+   const choice=remainingAll.findIndex((source,index)=>{
+     const lane=storyLane(source);
+     if(!lane)return index===0; // Do not pretend unknown metadata is variety.
+     return (counts.get(lane)||0)<2;
+   });
+   const at=choice>=0?choice:0;
+   chosen.push(remainingAll.splice(at,1)[0]);
+ }
+ return chosen.map(x=>x.title);
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"2.1",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,facets:tags});
+root.AfterlogueRecommendationEngine=Object.freeze({version:"2.2",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
