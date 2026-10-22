@@ -449,7 +449,7 @@ test('Discover does not cycle back to the first five or let sequels and holiday 
 });
 test('Recommendations survive a film-details visit and keep guest routing and account isolation',()=>{
  const home=read('discover.html'),details=read('film-details.js');
- assert.match(home,/discoveryCacheKey="afterlogue\.discover\.shelf\.v1"/);
+ assert.match(home,/discoveryCacheKey="afterlogue\.discover\.shelf\.v2"/);
  assert.match(home,/sessionStorage\.setItem\(discoveryCacheKey/);
  assert.match(home,/snapshot\.owner!==owner/);
  assert.match(home,/snapshot\.fingerprint!==discoveryFingerprint\(\)/);
