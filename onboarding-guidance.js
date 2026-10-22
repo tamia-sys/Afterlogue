@@ -64,7 +64,7 @@ function moveTo(nextStage,scroll=true){
  help.textContent=films
    ?"Tap any familiar poster, then choose your impression. You only need to rate a few—or none."
    :"Rate a few shows if you like. When you're done, we'll find your first five picks.";
- primary.textContent=films?"Continue to TV Shows →":guest?"See my five picks →":"Save & see my five picks →";
+ primary.textContent=films?"Continue to TV Shows":guest?"See my five picks":"Save & see my five picks";
  updateCount();
  if(scroll){
   guide.scrollIntoView({block:"start",behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});
