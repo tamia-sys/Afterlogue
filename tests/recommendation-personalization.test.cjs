@@ -541,3 +541,11 @@ test('Discover Again updates the page number from live state without a stale var
  assert.match(home,/String\(discoveryPages\[category\] \+ 1\)\.padStart\(3, "0"\)/);
  assert.doesNotMatch(home,/String\(nextPage \+ 1\)\.padStart/);
 });
+
+test('Legacy Yearning TV recommendations refresh without deleting unrelated mood histories',()=>{
+ const page=read('explore.html');
+ assert.match(page,/snap\.mood==="yearning"&&snap\.format==="tv"/);
+ assert.match(page,/snap\.moodAlgorithm!=="global-yearning-tv-2"/);
+ assert.match(page,/items:five\.slice\(0,5\),savedAt:Date\.now\(\)/);
+ assert.match(page,/const moodHistoryKey="afterlogue\.explore\.seen-mood-titles\.v3"/);
+});
