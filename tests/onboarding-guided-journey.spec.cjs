@@ -32,7 +32,11 @@ test('Landing presents the tagline and a single clear first action',async({page}
  await expect(page.locator('.welcome-start .welcome-create')).toHaveText('Get started →');
  await expect(page.locator('.welcome-start .welcome-create')).toHaveAttribute('href','log.html?guest=1');
  await expect(page.locator('.welcome-reassurance')).toContainText('No account needed');
- await expect(page.locator('.welcome-start .welcome-guest')).toHaveAttribute('href','signup.html?mode=signup');
+ await expect(page.locator('.welcome-description')).toHaveText("Tell us what you thought of a few films or shows. We'll find five picks for you.");
+ await expect(page.locator('.welcome-start .welcome-guest')).toHaveCount(0);
+ await expect(page.locator('.welcome-start-kicker')).toHaveCount(0);
+ await expect(page.locator('.welcome-start-detail')).toHaveCount(0);
+ await expect(page.locator('.welcome-header .member-entry a')).toHaveAttribute('href','signup.html?mode=signin');
 });
 test('First Impressions shows one step at a time and clear instructions',async({page})=>{
  await setup(page);
