@@ -94,10 +94,11 @@ test('Watch trailer opens a muted autoplay-ready player on the actual details pa
  }));
  await page.goto('film-details.html?title=perfect-days');
  await expect(page.locator('#film-trailer')).toBeVisible();
+ await expect.poll(()=>page.locator('#film-trailer-player').getAttribute('src')).toContain('autoplay=0');
  await page.locator('#film-trailer').click();
  await expect(page.locator('#film-trailer-modal')).toBeVisible();
- // First click uses the already loaded muted video rather than restarting it.
- await expect.poll(()=>page.locator('#film-trailer-player').getAttribute('src')).toContain('autoplay=0');
+ // A frame that never reported player-ready uses muted autoplay on first tap.
+ await expect.poll(()=>page.locator('#film-trailer-player').getAttribute('src')).toContain('autoplay=1');
  const src=await page.locator('#film-trailer-player').getAttribute('src');
  const embed=new URL(src);
  expect(embed.hostname).toBe('www.youtube-nocookie.com');
