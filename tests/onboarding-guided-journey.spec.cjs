@@ -34,6 +34,8 @@ test('First Impressions shows one step at a time and clear instructions',async({
  await expect(page.locator('#films')).toBeVisible();
  await expect(page.locator('#television')).toBeHidden();
  await expect(page.locator('.impressions-more')).toBeHidden();
+ await expect(page.locator('.impressions-optional-filters')).not.toHaveAttribute('open');
+ await expect(page.locator('.impressions-optional-filters summary')).toBeVisible();
  await expect(page.locator('.log-continue-section')).toBeHidden();
  await expect(page.locator('#impressions-current-step')).toHaveText('STEP 1 OF 2 / FILMS');
  await expect(page.locator('#impressions-step-next')).toHaveText('Continue to TV Shows →');
