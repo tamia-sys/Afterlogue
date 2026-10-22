@@ -357,7 +357,7 @@ test('First Impressions now displays up to 18 films and 18 TV series with filter
  assert.match(client,/items=\(payload.items\|\|\[\]\)\.filter\(item=>item.poster\)\.slice\(0,18\)/);
  assert.match(server,/const shortlist=balanced\.slice\(0,28\)/);
  assert.match(server,/items:verified\.slice\(0,18\)/);
- assert.match(html,/onboarding-catalog-search\.js\?v=9/);
+ assert.match(html,/onboarding-catalog-search\.js\?v=10/);
  assert.match(client,/first-refresh/);
  assert.match(client,/impressions-search/);
 });
