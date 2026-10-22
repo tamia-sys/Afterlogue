@@ -11,6 +11,17 @@
   <link rel="stylesheet" href="discover-home.css?v=12">
   <link rel="stylesheet" href="mobile-header.css?v=1">
 <script src="site-language.js?v=7" defer></script>
+<style>
+.discovery-card-actions .discovery-not-interested{
+ background:transparent;color:#d8c7ac;border:1px solid rgba(212,180,135,.55);
+ border-radius:99px;font:11px/1.2 Arial,sans-serif;padding:7px 10px;
+ cursor:pointer
+}
+.discovery-card-actions .discovery-not-interested:hover,
+.discovery-card-actions .discovery-not-interested:focus-visible{
+ background:#d4b487;color:#171717
+}
+</style>
 </head>
 
 <body class="discovery-home-page">
@@ -447,6 +458,23 @@ const discoveryPreferences={country:null,originalLanguage:null};
 const discoveryFeaturedKeys=new Set(Object.keys(window.AfterlogueFeaturedCatalog||{}));
 let discoveryWatchlist=[];
 let discoverySeen=[];
+const discoveryDismissed=new Set();
+const discoveryCurrent={movies:null,tv:null};
+const discoveryHistory={movies:new Set(),tv:new Set()};
+let discoveryDismissOwner=isGuestMode?"guest":null;
+const discoveryItemKey=item=>item?.catalogKey||item?.key||"tmdb-"+item?.tmdb?.media+"-"+item?.tmdb?.id;
+const dismissStoreKey=owner=>"afterlogue.discover.dismissed.v1."+owner;
+function loadDismissedFor(owner){
+ discoveryDismissOwner=owner;discoveryDismissed.clear();
+ try{const list=JSON.parse(localStorage.getItem(dismissStoreKey(owner))||"[]");
+  if(Array.isArray(list))list.filter(x=>typeof x==="string").slice(-600).forEach(x=>discoveryDismissed.add(x));
+ }catch(_){}
+}
+function saveDismissed(){
+ try{localStorage.setItem(dismissStoreKey(discoveryDismissOwner),JSON.stringify([...discoveryDismissed].slice(-600)));}
+ catch(error){console.warn("Could not store discovery skips",error);}
+}
+if(isGuestMode)loadDismissedFor("guest");
 try{if(isGuestMode)discoverySeen=JSON.parse(localStorage.getItem("afterlogue.seen.guest.v1")||"[]");}catch(_){discoverySeen=[];}
 const discoveryEntries=window.AfterlogueRecommendationEngine?.normalizeEntries(
   window.AfterlogueFeaturedCatalog||{},
@@ -486,7 +514,8 @@ function diversifyDiscoverResults(entries,category){
  }
  return picked;
 }
-function getDiscoveryRecommendations(category, page = 0) {
+function getDiscoveryRecommendations(category, page = 0, omit = null) {
+ const eligible=item=>!discoveryDismissed.has(discoveryItemKey(item))&&!(omit?.has(discoveryItemKey(item)));
   if(!window.AfterlogueRecommendationEngine)return [];
   // No one gets curated filler just to make a row contain five titles.
   const hasPositive=Object.values(savedImpressions).some(v=>v==="Loved"||v==="Liked")
@@ -495,7 +524,7 @@ function getDiscoveryRecommendations(category, page = 0) {
   // selection, never pretend an unpersonalized list is taste-matched.
   if(!hasPositive){
     if(discoveryCatalogState[category]==="loading")return [];
-    return discoveryExpandedEntries.filter(x=>x.category===category&&x.starter)
+    return discoveryExpandedEntries.filter(x=>x.category===category&&x.starter&&eligible(x))
       .slice(page*5,page*5+5).map(x=>({...x,why:x.reason,personalized:false,catalogKey:x.key}));
   }
   const selected=window.AfterlogueRecommendationEngine.rank({
@@ -541,7 +570,7 @@ function getDiscoveryRecommendations(category, page = 0) {
     &&!rated.has(item.key)&&!watched.has(item.key)&&!viewed.has(item.key)
     &&!expansionKeys.has(item.key));
   return diversifyDiscoverResults([...expanded,...extras],category)
-   .slice(page*5,page*5+5).map(item=>{
+   .filter(eligible).slice(page*5,page*5+5).map(item=>{
     if(item.starter)return {...item,why:item.reason,personalized:false,catalogKey:item.key};
     let why=item.why;
     if(item.matchMethod==="shared_genre"){
@@ -559,9 +588,14 @@ function getDiscoveryRecommendations(category, page = 0) {
     return {...item,why,reason:why,catalogKey:item.key,tmdb:item.tmdb};
   });
 }
-function displayDiscoveryRecommendations(category, page = 0) {
+function displayDiscoveryRecommendations(category, page = 0, chosen = null) {
   const container = document.getElementById("discovery-results");
-  const selected = getDiscoveryRecommendations(category, page);
+  const selected = (chosen||discoveryCurrent[category]||getDiscoveryRecommendations(category,page))
+    .filter(item=>!discoveryDismissed.has(discoveryItemKey(item)));
+  if(selected.length&&discoveryCatalogState[category]!=="loading"){
+   discoveryCurrent[category]=selected;
+   selected.forEach(item=>discoveryHistory[category].add(discoveryItemKey(item)));
+  }
   const priorCards=container.querySelectorAll(".discovery-card").length;
   // A transient provider error should not erase five real cards already
   // shown for this exact media section.
@@ -737,6 +771,22 @@ bookmarkButton.setAttribute(
  const eye=window.AfterlogueSeen?.button({key:item.catalogKey||item.key,title:item.title,year:item.year,poster:item.poster,category});
  actions.append(bookmarkButton);
  if(eye)actions.append(eye);
+ // A dismissal is not a claim that the viewer watched this film.
+ const reject=document.createElement("button");
+ reject.type="button";reject.className="discovery-not-interested";
+ reject.textContent="Not for me";
+ reject.setAttribute("aria-label","Do not recommend "+item.title+" again");
+ reject.addEventListener("click",()=>{
+   discoveryDismissed.add(discoveryItemKey(item));saveDismissed();
+   const remaining=(discoveryCurrent[category]||selected).filter(x=>discoveryItemKey(x)!==discoveryItemKey(item));
+   const unavailable=new Set([...discoveryHistory[category],...remaining.map(discoveryItemKey),...discoveryDismissed]);
+   const replacements=getDiscoveryRecommendations(category,0,unavailable);
+   const updated=[...remaining,...replacements.slice(0,Math.max(0,5-remaining.length))];
+   discoveryCurrent[category]=updated;
+   displayDiscoveryRecommendations(category,discoveryPages[category],updated);
+   rememberDiscovery();
+ });
+ actions.append(reject);
  posterStack.append(poster,actions);
  card.append(posterStack);
  container.appendChild(card);
@@ -751,6 +801,7 @@ const discoveryPages = {
   movies: 0,
   tv: 0
 };
+const freshDiscovery=category=>getDiscoveryRecommendations(category,0,discoveryHistory[category]);
 // Return from Film Details to the very same selections in this tab.
 // Account-bound snapshots prevent one person's private tastes being reused
 // for another account on a shared device.
@@ -769,7 +820,10 @@ function rememberDiscovery(){
   sessionStorage.setItem(discoveryCacheKey,JSON.stringify({
    owner:discoveryCacheOwner,fingerprint:discoveryFingerprint(),
    savedAt:Date.now(),entries:discoveryExpandedEntries,
-   sources:discoverySourceEntries,pages:discoveryPages,category:selectedCategory
+   sources:discoverySourceEntries,pages:discoveryPages,category:selectedCategory,
+   shelves:discoveryCurrent,history:{
+     movies:[...discoveryHistory.movies],tv:[...discoveryHistory.tv]
+   }
   }));
  }catch(error){console.warn("Discovery snapshot unavailable",error);}
 }
@@ -783,6 +837,11 @@ function restoreDiscovery(owner){
      !Array.isArray(snapshot.entries)||!snapshot.entries.length)return false;
   discoveryExpandedEntries=snapshot.entries;
   discoverySourceEntries=Array.isArray(snapshot.sources)?snapshot.sources:[];
+  for(const media of ["movies","tv"]){
+   discoveryCurrent[media]=Array.isArray(snapshot.shelves?.[media])?snapshot.shelves[media]:null;
+   discoveryHistory[media]=new Set(Array.isArray(snapshot.history?.[media])
+     ?snapshot.history[media].filter(k=>typeof k==="string"):[]);
+  }
   for(const media of ["movies","tv"]){
    discoveryCatalogState[media]="ready";
    discoveryPages[media]=Math.max(0,Number(snapshot.pages?.[media])||0);
@@ -815,7 +874,7 @@ document.querySelectorAll(".discovery-category").forEach(button => {
     const category = button.dataset.category;
     if(discoverAgainButton.dataset.exhaustedFor&&discoverAgainButton.dataset.exhaustedFor!==category){
       delete discoverAgainButton.dataset.exhaustedFor;
-      if(!isGuestMode)discoverAgainButton.textContent="Discover another selection →";
+      if(!isGuestMode)discoverAgainButton.textContent="Discover another selection";
     }
     if(discoveryReady)displayDiscoveryRecommendations(category, discoveryPages[category]);
   });
@@ -841,17 +900,19 @@ discoverAgainButton.addEventListener("click", () => {
     window.location.assign("explore.html");
     return;
   }
-  let nextPage = discoveryPages[category] + 1;
-  if (getDiscoveryRecommendations(category, nextPage).length === 0) {
+  // No previous selection is recycled just because the ranking reorders.
+  const candidates=freshDiscovery(category);
+  if(candidates.length<5){
     discoverAgainButton.dataset.exhaustedFor=category;
-    discoverAgainButton.textContent="Explore the full archive →";
-    discoverAgainButton.title="Browse All Films & TV instead of repeating your first selection";
+    discoverAgainButton.textContent="Explore the full archive";
+    discoverAgainButton.title="No five fresh titles available without repeating prior picks";
     return;
   }
   delete discoverAgainButton.dataset.exhaustedFor;
-  discoveryPages[category] = nextPage;
+  discoveryPages[category]++;
+  discoveryCurrent[category]=candidates;
+  displayDiscoveryRecommendations(category,discoveryPages[category],candidates);
   rememberDiscovery();
-  displayDiscoveryRecommendations(category, nextPage);
 
   const label = document.querySelector(".discovery-section-header p");
   label.textContent = "SELECTED / " + String(nextPage + 1).padStart(3, "0");
@@ -1091,6 +1152,7 @@ async function loadAccountImpressions() {
     if(watchlistResult.error)console.warn("Recommendation watchlist unavailable",watchlistResult.error);
     discoveryFavorites=favoriteResult.data||[];
     discoveryWatchlist=watchlistResult.data||[];
+    loadDismissedFor(userData.user.id);
     discoverySeen=(seenResult.data||[]).map(x=>x.title_key);
 
     if (error) throw error;
