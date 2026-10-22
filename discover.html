@@ -1134,13 +1134,23 @@ async function populateExpandedRecommendations(userId){
  // Prioritize positive signals in the first metadata batch so a mixed
  // film Log can broaden the *source* pool, not just rearrange an
  // animation-heavy pool after recommendation retrieval has finished.
+ const movieSourceKeys=sources.filter(source=>named.get(source.key)?.category==="movies")
+   .map(source=>source.key);
+ const tvSourceKeys=sources.filter(source=>named.get(source.key)?.category==="tv")
+   .map(source=>source.key);
+ // Do not sample only the most recent 10 movies: a long Log can have a
+ // temporary animation streak without actually being an animation-only taste.
+ // Keep two recent anchors, then sample positive films across the full Log.
+ const firstMovieSources=movieSourceKeys.slice(0,2);
+ const restMovies=movieSourceKeys.slice(2);
+ for(let i=0;i<Math.min(8,restMovies.length);i++){
+   const at=restMovies.length<=8?i:Math.floor(i*(restMovies.length-1)/7);
+   firstMovieSources.push(restMovies[at]);
+ }
  const featureKeys=[
-   // Home opens on Movies; learn genres of those positive seeds FIRST,
-   // rather than letting an unrelated large TV Log consume the first batch.
-   ...sources.filter(source=>named.get(source.key)?.category==="movies")
-     .map(source=>source.key),
-   ...sources.filter(source=>named.get(source.key)?.category==="tv")
-     .map(source=>source.key),
+   ...firstMovieSources,
+   ...movieSourceKeys,
+   ...tvSourceKeys,
    ...Object.keys(savedImpressions).map(key=>key.replace(/^afterlogue-/,"")),
    ...discoveryFavorites.map(x=>x.title_key)
  ];
