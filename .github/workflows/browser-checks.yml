@@ -13,6 +13,10 @@ on:
       - 'playwright.config.cjs'
       - 'catalog-browser.js'
       - 'explore.html'
+      - 'supabase-client.js'
+      - 'site-navigation.js'
+      - 'style.css'
+      - 'my-log.js'
       - 'explore-facets.js'
       - 'film-details.html'
       - 'film-details.js'
@@ -55,7 +59,7 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run focused browser checks
-        run: npx playwright test tests/korean-home-shelf.spec.cjs tests/mood-prefetch-and-trailer.spec.cjs tests/mood-and-save-flow-repairs.spec.cjs tests/explore-return-and-exclusions.spec.cjs tests/localized-discovery-polish.spec.cjs tests/confirmed-guest-save-handoff.spec.cjs tests/onboarding-guided-journey.spec.cjs
+        run: npx playwright test tests/korean-home-shelf.spec.cjs tests/mood-prefetch-and-trailer.spec.cjs tests/mood-and-save-flow-repairs.spec.cjs tests/explore-return-and-exclusions.spec.cjs tests/pwa-session-navigation.spec.cjs tests/localized-discovery-polish.spec.cjs tests/confirmed-guest-save-handoff.spec.cjs tests/onboarding-guided-journey.spec.cjs
       # WebKit runs the same browser engine family as Safari. This is not an
       # iPhone device test, but catches web-engine playback regressions.
       - name: Install WebKit
