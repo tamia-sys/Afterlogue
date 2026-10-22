@@ -213,6 +213,11 @@ async function populate(media,sectionId,requestId){
  }
 }
 function refresh(){
+ const filtersActive=Boolean(countrySelect.value||languageSelect.value);
+ if(filtersActive)filtersDisclosure.open=true;
+ filtersSummary.textContent=filtersActive
+   ?'Filters applied — adjust your selection'
+   :'Not seeing familiar titles? Refine the selection';
  const id=++sequence;
  statusLine.textContent='Finding familiar films and shows…';
  Promise.allSettled([populate('movie','#films',id),populate('tv','#television',id)]);
