@@ -1141,7 +1141,22 @@ async function populateExpandedRecommendations(userId){
    if(!entries.length&&state!=="error")state="empty";
    // A result can become available as soon as its own medium finishes:
    // don't hold TV hostage while movie queries are still in flight.
-   const features=await tasteFeaturesPromise;
+   // Score emotional dimensions only when TMDB supplies actual tags
+   // for a candidate, never by inventing its mood from its genre.
+   const candidatePromise=loadTasteFeatures(entries
+     .filter(entry=>!entry.starter&&entry.tmdb).slice(0,24).map(entry=>entry.key));
+   const [features,candidateFeatures]=await Promise.all([
+     tasteFeaturesPromise,candidatePromise
+   ]);
+   const candidateFacets=new Map(candidateFeatures.map(item=>[item.key,item]));
+   entries=entries.map(entry=>{
+     const data=candidateFacets.get(entry.key);
+     if(!data)return entry;
+     return {...entry,facets:{
+       genres:data.genres||entry.facets.genres||[],
+       themes:data.themes||[],tones:data.tones||[],pace:null
+     }};
+   });
    const byKey=new Map(features.map(item=>[item.key,item]));
    const recorded=new Set(discoverySourceEntries.map(item=>item.key));
    discoverySourceEntries=discoverySourceEntries.map(item=>{
