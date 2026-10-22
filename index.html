@@ -21,31 +21,32 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rail-track{animation:none}.rail{overflow-x:auto;scroll-snap-type:x mandatory}.poster{scroll-snap-align:start}}
 
 
-/* One obvious next step, without disrupting the cinematic landing imagery. */
+/* A quiet cinematic invitation, not an onboarding instruction sheet.
+   The actual step-by-step guidance lives on First Impressions. */
+.intro{
+  padding:clamp(88px,10vh,128px) 20px clamp(98px,12vh,148px);
+}
+.intro h1{margin-bottom:0}
 .intro .welcome-tagline{
-  max-width:720px;margin:15px auto 20px;color:var(--cream);
+  max-width:720px;margin:23px auto 0;
+  color:var(--cream);
   font:400 clamp(19px,2.2vw,29px)/1.35 Georgia,serif;
   letter-spacing:-.015em
 }
 .intro .welcome-description{
-  margin:0 auto 32px;color:var(--muted);
-  font:clamp(13px,1.2vw,16px)/1.6 Arial,Helvetica,sans-serif
+  max-width:520px;margin:24px auto 0;
+  color:var(--muted);font:clamp(13px,1.15vw,16px)/1.65 Arial,Helvetica,sans-serif
 }
 .intro .welcome-start{
-  max-width:540px;margin:0 auto;display:flex;flex-direction:column;
-  align-items:center;gap:12px
-}
-.intro .welcome-start-kicker{
-  margin:0;color:#d9ae75;font:600 10px/1.5 Arial,sans-serif;letter-spacing:.18em
-}
-.intro .welcome-start-detail{
-  margin:0 0 7px;max-width:430px;color:#e4d3bc;font:14px/1.6 Arial,sans-serif
+  display:flex;flex-direction:column;align-items:center;
+  gap:13px;margin:32px auto 0
 }
 .intro .welcome-start .welcome-create{
-  display:inline-flex;justify-content:center;align-items:center;
-  min-width:260px;min-height:49px;padding:13px 26px;
-  background:var(--cream);border:1px solid var(--cream);border-radius:99px;
-  color:#1c1713;text-decoration:none;font:600 13px Arial,sans-serif;
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:248px;min-height:48px;padding:12px 26px;
+  border:1px solid var(--cream);border-radius:99px;
+  background:var(--cream);color:#1c1713;
+  text-decoration:none;font:600 13px Arial,Helvetica,sans-serif;
   transition:background .2s ease,transform .2s ease
 }
 .intro .welcome-start .welcome-create:hover,
@@ -53,20 +54,18 @@
   background:#e1b77e;border-color:#e1b77e;transform:translateY(-2px)
 }
 .intro .welcome-reassurance{
-  margin:0;color:#b7a58e;font:11px/1.5 Arial,sans-serif
+  margin:0;color:#b7a58e;
+  font:11px/1.5 Arial,Helvetica,sans-serif
 }
-.intro .welcome-start .welcome-guest{
-  display:inline-block;color:#dec39e;text-decoration:underline;
-  text-underline-offset:5px;font:12px/1.6 Arial,sans-serif;padding:5px
-}
-.intro .welcome-start .welcome-guest:hover,
-.intro .welcome-start .welcome-guest:focus-visible{color:#fff0d4}
+.welcome-header .member-entry{gap:10px}
+.welcome-header .member-entry a{font:12px/1.4 Arial,Helvetica,sans-serif}
 @media(max-width:600px){
-  .intro .welcome-tagline{font-size:clamp(19px,5.5vw,25px);margin:10px auto 14px}
-  .intro .welcome-description{margin-bottom:25px}
-  .intro .welcome-start{gap:11px}
-  .intro .welcome-start-detail{font-size:13px;max-width:330px}
+  .intro{padding:80px 18px 95px}
+  .intro .welcome-tagline{font-size:clamp(18px,5.4vw,25px);margin-top:18px}
+  .intro .welcome-description{max-width:335px;margin-top:21px;font-size:13px}
+  .intro .welcome-start{margin-top:27px}
   .intro .welcome-start .welcome-create{min-width:230px}
+  .welcome-header .member-entry a{padding:8px 14px;font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){
   .intro .welcome-start .welcome-create{transition:none;transform:none!important}
@@ -271,31 +270,19 @@ body {
   <a href="index.html" class="brand">afterlogue.</a>
 
   <div class="member-entry">
-    <span>Already a member?</span>
     <a href="signup.html?mode=signin">Sign in</a>
   </div>
 </header>
 
 <main>
 <section class="intro" aria-labelledby="welcome-title">
-
- 
-<p class="welcome-eyebrow">
-  PERSONALIZED FILM & TV DISCOVERY
-</p>
-
-<h1 id="welcome-title">Welcome to afterlogue.</h1>
-<p class="welcome-tagline">A film ends. The conversation doesn't.</p>
-<p class="welcome-description">Find your next film or series, shaped by your taste.</p>
-
-<div class="welcome-start">
-  <p class="welcome-start-kicker">YOUR FIRST STEP / ABOUT 2 MINUTES</p>
-  <p class="welcome-start-detail">Tell us what you think of a few films and shows you know. We'll find five stories for you.</p>
-  <a class="welcome-create" href="log.html?guest=1">Get started →</a>
-  <p class="welcome-reassurance">No account needed to explore. Skip anything you haven't seen.</p>
-  <a class="welcome-guest" href="signup.html?mode=signup">Or create an account to save your discoveries ↗</a>
-</div>
-
+  <h1 id="welcome-title">Welcome to afterlogue.</h1>
+  <p class="welcome-tagline">A film ends. The conversation doesn't.</p>
+  <p class="welcome-description">Tell us what you thought of a few films or shows. We'll find five picks for you.</p>
+  <div class="welcome-start">
+    <a class="welcome-create" href="log.html?guest=1">Get started →</a>
+    <p class="welcome-reassurance">No account needed · About 2 minutes</p>
+  </div>
 </section>
 <section class="rail" aria-label="Selected film and television posters; scroll or swipe horizontally to explore" tabindex="0">
   <div class="rail-track" id="rail-track"></div>
