@@ -635,10 +635,11 @@
     const accountStatus = document.getElementById('account-status');
     const signout = document.getElementById('account-signout');
     try {
-      const current = await client.auth.getUser();
-      if (current.error) throw current.error;
-      if (!current.data.user) { location.replace('signup.html?mode=signin'); return; }
-      state.user = current.data.user;
+      const account=await window.AfterlogueAuth.resolve();
+      if(account.status==="unavailable")
+        throw Error("Could not check your session. Try this page again.");
+      if(account.status==="guest") {location.replace('signup.html?mode=signin');return;}
+      state.user=account.user;
       email.textContent = state.user.email || 'Afterlogue member';
       accountStatus.textContent = '● Signed in';
       signout.hidden = false;

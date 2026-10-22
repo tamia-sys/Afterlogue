@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>Welcome to afterlogue — Discover what stays with you</title>
+  <script>
+  // iOS Home Screen apps should open a member's Discover, never advertise
+  // account creation before checking an already-persisted Supabase session.
+  try{
+    if((window.navigator.standalone===true||
+        window.matchMedia("(display-mode: standalone)").matches)&&
+       !new URLSearchParams(location.search).has("welcome")){
+      document.documentElement.classList.add("afterlogue-entry-check");
+    }
+  }catch(_){}
+  // A failed CDN load or interrupted mobile connection must never leave
+  // someone on a blank launch screen.
+  window.setTimeout(()=>document.documentElement.classList.remove("afterlogue-entry-check"),6500);
+  </script>
+  <style>
+   html.afterlogue-entry-check body>*{visibility:hidden}
+   html.afterlogue-entry-check body:before{
+     content:"Opening afterlogue.";
+     position:fixed;inset:0;z-index:100;
+     display:grid;place-items:center;
+     background:#101113;color:#e7c79c;
+     font:normal 24px Georgia,serif;
+   }
+  </style>
   
 
   <style>
@@ -503,6 +527,38 @@ document.querySelectorAll('.journey-poster img').forEach(img => {
     img.replaceWith(fallback);
   }, { once: true });
 });
+</script>
+<script>
+(()=>{
+ if(new URLSearchParams(location.search).has("welcome")){
+   document.documentElement.classList.remove("afterlogue-entry-check");
+   return;
+ }
+ const finish=()=>document.documentElement.classList.remove("afterlogue-entry-check");
+ // Load authentication without delaying initial page parsing for guests.
+ // The extra check is for UI routing only; private data uses Supabase RLS.
+ const supabaseScript=document.createElement("script");
+ supabaseScript.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+ supabaseScript.onerror=finish;
+ supabaseScript.onload=()=>{
+   if(!window.supabase){finish();return;}
+   const clientScript=document.createElement("script");
+   clientScript.src="supabase-client.js?v=2";
+   clientScript.onerror=finish;
+   clientScript.onload=async()=>{
+     try{
+       const state=await window.AfterlogueAuth.resolve();
+       if(state.status==="member"){
+         location.replace("discover.html");
+         return;
+       }
+     }catch(error){console.warn("Landing session check unavailable",error);}
+     finish();
+   };
+   document.head.append(clientScript);
+ };
+ document.head.append(supabaseScript);
+})();
 </script>
 </body>
 </html>
