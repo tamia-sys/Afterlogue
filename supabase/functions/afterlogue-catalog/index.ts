@@ -302,13 +302,13 @@ function moodExperience(
     "Its documented setting evokes autumn and the change of seasons.","autumn setting");
   add(tagged(/\b(autumn|fall season|falling leaves|harvest)\b/i),7,
     "Autumn is part of its documented atmosphere.","autumn setting");
-  add(cue(/\b(boarding school|college|campus|university|professor|poetry|literature|bookshop|bookstore|school year|school term)\b/i),6,
+  add(cue(/\b(boarding school|high school|schooldays|college|campus|university|professor|poetry|literature|bookshop|bookstore|school year|school term)\b/i),6,
     "Its academic or literary setting gives it a back-to-school, autumn feel.","literary or campus");
   // A generic 'small town' or 'woodland' tag is not proof of fall
   // atmosphere—otherwise unrelated films such as Kinky Boots qualify.
   add(cue(/\b(woodland|forest|woods|countryside|misty|foggy|rainy|coastal new england)\b/i),2,
     "Its outdoor setting may fit a reflective autumn watch.","woodland");
-  add(tagged(/\b(autumn leaves|fall foliage|new england autumn|school year|boarding school)\b/i),5,
+  add(tagged(/\b(autumn leaves|fall foliage|new england autumn|school year|school life|university|boarding school)\b/i),5,
     "Its documented setting connects to the atmospheric side of autumn.","seasonal atmosphere");
   add(cue(/\b(halloween|pumpkin|spooky|ghost|haunted|witch|gothic)\b/i),3,
     "Its eerie seasonal elements suit an autumn evening.","eerie");
@@ -389,7 +389,18 @@ const FALL_ATMOSPHERE:Record<string,string>={
   "Harry Potter and the Philosopher's Stone":"Its opening school term and Gothic castle create cozy autumn atmosphere.",
   "Little Forest":"Its countryside, cooking and changing agricultural seasons make a quiet fall watch.",
   "The Worst Person in the World":"Its Oslo seasons and reflective relationships suit an autumn evening.",
-  "Monster House":"Its suburban Halloween adventure offers a spirited fall night."
+  "Monster House":"Its suburban Halloween adventure offers a spirited fall night.",
+  // Korean Film Council, "KO-pick: Movies with autumn vibes" (2023):
+  // https://www.koreanfilm.or.kr/eng/news/features.jsp?blbdComCd=601013&mode=FEATURES_VIEW&seq=626
+  "Art Museum by the Zoo":"Its Seoul park's autumn maple leaves and gently comic romance bring a warm fall atmosphere.",
+  "Love Wind Love Song":"Its Jeju autumn silvergrass landscapes and romance evoke a breezy fall escape.",
+  "Il Mare":"Its windswept Korean seaside landscape and reflective letter-writing romance suit a quiet autumn watch.",
+  "Spring, Summer, Fall, Winter... and Spring":"Its forest temple and vivid autumn mountain foliage connect directly to the changing seasons.",
+  "Traces of Love":"Its autumn-set journey through Korea's seasonal landscapes ties grief and memory to fall.",
+  "Late Autumn":"Its Seattle autumn leaves and fleeting romance make fall central to its atmosphere.",
+  // Little Forest is the Korean 2018 adaptation, not the Japanese 2014 film.
+  "Little Forest: Summer/Autumn":"Its Japanese forest cooking and the progression into autumn capture seasonal rural life.",
+  "Only Yesterday":"Its Japanese countryside farming and harvest memories suit a reflective autumn afternoon."
 };
 /* Human-reviewed pace preferences, not an objective TMDB pace field. */
 const FALL_PACE_HINTS:Record<Media,Record<string,"slow"|"medium"|"energetic">>={
@@ -401,7 +412,11 @@ const FALL_PACE_HINTS:Record<Media,Record<string,"slow"|"medium"|"energetic">>={
   "Rushmore":"medium","Whisper of the Heart":"slow","Autumn Sonata":"slow",
   "A Tale of Autumn":"slow","October Sky":"medium","ParaNorman":"energetic",
   "Harry Potter and the Philosopher's Stone":"energetic","Little Forest":"slow",
-  "The Worst Person in the World":"slow","Monster House":"energetic"
+  "The Worst Person in the World":"slow","Monster House":"energetic",
+  "Art Museum by the Zoo":"slow","Love Wind Love Song":"medium",
+  "Il Mare":"slow","Spring, Summer, Fall, Winter... and Spring":"slow",
+  "Traces of Love":"slow","Late Autumn":"slow",
+  "Little Forest: Summer/Autumn":"slow","Only Yesterday":"slow"
  },
  tv:{
   "Gilmore Girls":"slow","Over the Garden Wall":"medium","Anne with an E":"slow",
@@ -415,6 +430,21 @@ const FALL_PACE_HINTS:Record<Media,Record<string,"slow"|"medium"|"energetic">>={
   "The Haunting of Bly Manor":"slow","All Creatures Great and Small":"slow",
   "Autumn in My Heart":"slow"
  }
+};
+/* Film Council-reviewed national autumn references. These do NOT waive
+   country, language, year, poster or other catalog quality verification.
+   Year protects e.g. the 2018 Korean Little Forest from a 2014 Japanese match. */
+const FALL_REGIONAL_FILMS:Record<string,{country:string;language:string;year:number}>={
+  "Little Forest":{country:"KR",language:"ko",year:2018},
+  "Art Museum by the Zoo":{country:"KR",language:"ko",year:1998},
+  "Love Wind Love Song":{country:"KR",language:"ko",year:1999},
+  "Il Mare":{country:"KR",language:"ko",year:2000},
+  "Spring, Summer, Fall, Winter... and Spring":{country:"KR",language:"ko",year:2003},
+  "Traces of Love":{country:"KR",language:"ko",year:2006},
+  "Late Autumn":{country:"KR",language:"en",year:2010},
+  "Little Forest: Summer/Autumn":{country:"JP",language:"ja",year:2014},
+  "Only Yesterday":{country:"JP",language:"ja",year:1991},
+  "Whisper of the Heart":{country:"JP",language:"ja",year:1995}
 };
 const SEASONAL_FEATURES:Record<number,{event:string;reason:string}>={
   25195:{event:"Leap Day",reason:"The story centers on an Irish Leap Day proposal tradition."},
@@ -982,7 +1012,7 @@ Deno.serve(async (req:Request) => {
       const now=new Date().toISOString().slice(0,10),offset=number(input.offset,0,120,0);
       // Seeded seasonal stories make fall fast; other moods explore several
       // parallel pages but never spin through repeated frontend re-queries.
-      const total=mood==="fall"&&!countries.length&&!languages.length&&!genres.length&&!decades.length&&!ratings.length
+      const total=mood==="fall"
         ?6:Math.min(6,Math.max(4,countries.length*languages.length,decades.length*2));
       // Start reviewed autumn-title discovery at the SAME TIME as the broader
       // mood search; otherwise two sequential rounds of TMDB traffic cause a
@@ -1022,15 +1052,33 @@ Deno.serve(async (req:Request) => {
       const remaining=allFallTitles.filter(t=>FALL_PACE_HINTS[media][t]!==pace);
       const rotate=(titles:string[],n:number)=>titles.length
         ?[...titles.slice(n%titles.length),...titles.slice(0,n%titles.length)]:[];
-      const seasonalTitles=[...rotate(preferred,offset*5),...rotate(remaining,offset*5)].slice(0,18);
+      const regional=media==="movie"&&mood==="fall"&&(countries.length||languages.length)
+        ?allFallTitles.filter(title=>{
+           const ref=FALL_REGIONAL_FILMS[title];
+           return Boolean(ref&&(!countries.length||countries.includes(ref.country))&&
+             (!languages.length||languages.includes(ref.language)));
+         }):[];
+      const regionFirst=[...rotate(regional.filter(t=>FALL_PACE_HINTS.movie[t]===pace),offset*4),
+        ...rotate(regional.filter(t=>FALL_PACE_HINTS.movie[t]!==pace),offset*4)];
+      const seasonalTitles=[...new Set([...regionFirst,...rotate(preferred,offset*5),
+        ...rotate(remaining,offset*5)])].slice(0,18);
       const fallSeedJob=seasonalTitles.length
         ?Promise.allSettled(seasonalTitles.map(async title=>{
            const result=await tmdb("/search/"+media,
              new URLSearchParams({query:title,language:"en-US",include_adult:"false",page:"1"}),token);
            const normalize=(value:string)=>value.toLowerCase().normalize("NFKD")
              .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
-           return (result.results||[]).find((v:Record<string,unknown>)=>
-             normalize(String(v[media==="tv"?"name":"title"]||""))===normalize(title))||null;
+           const anchor=media==="movie"?FALL_REGIONAL_FILMS[title]:null;
+           return (result.results||[]).find((v:Record<string,unknown>)=>{
+             if(anchor){
+               const year=yearOf(v.release_date);
+               if(year&&Math.abs(year-anchor.year)>1)return false;
+               if(v.original_language&&v.original_language!==anchor.language)return false;
+             }
+             return [v[media==="tv"?"name":"title"],
+               v[media==="tv"?"original_name":"original_title"]]
+               .some(name=>normalize(String(name||""))===normalize(title));
+           })||null;
          }))
         :null;
       const jobs=await Promise.allSettled(Array.from({length:total},async (_,i)=>{
@@ -1040,7 +1088,7 @@ Deno.serve(async (req:Request) => {
         const params=new URLSearchParams({
           language:"en-US",include_adult:"false",sort_by:"popularity.desc",
           page:String(1+((offset*2+Math.floor(i/2))%24)),
-          "vote_count.gte":String(media==="movie"?30:20)
+          "vote_count.gte":String(mood==="fall"&&(countries.length||languages.length)?8:media==="movie"?30:20)
         });
         const keywordSearch=ids.length>0&&i<Math.ceil(total/2);
         if(keywordSearch){
@@ -1075,7 +1123,7 @@ Deno.serve(async (req:Request) => {
         }else params.set(prefix+".lte",now);
         const payload=await tmdb("/discover/"+media,params,token);
         return (payload.results||[]).filter((v:Record<string,unknown>)=>{
-          if(!eligible(v,media,media==="movie"?30:20))return false;
+          if(!eligible(v,media,mood==="fall"&&(countries.length||languages.length)?8:media==="movie"?30:20))return false;
           const genreIds=Array.isArray(v.genre_ids)?v.genre_ids.map(Number):[];
           if(genres.length&&!genres.some(g=>genreIds.includes(categoryGenres[g])))return false;
           if(language&&v.original_language!==language)return false;
@@ -1124,7 +1172,7 @@ Deno.serve(async (req:Request) => {
       // Limit the candidate count and workers so we never flood TMDB.
       // Search more than the first 24: narrow pools repeatedly produced
       // only 2–3 Fall results despite unrestricted preferences.
-      const queue=selected.slice(0,90);
+      const queue=selected.slice(0,mood==="fall"&&(countries.length||languages.length)?120:90);
       const verified:Array<ReturnType<typeof listItem>&{
         moodReason:string;matchedFilters:string[];moodFit:number;moodLane:string;energySignal:string;fitVersion:string
       }>= [];
@@ -1189,7 +1237,7 @@ Deno.serve(async (req:Request) => {
         });
       }
       async function worker(){
-        while(queue.length&&verified.length<12){
+        while(queue.length&&verified.length<16){
           const item=queue.shift();
           if(!item)return;
           try{await verifyOne(item);}catch(error){
