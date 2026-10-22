@@ -402,7 +402,7 @@ test('First Impressions instructions are readable and ratings are saved as watch
  assert.match(html,/id="impressions-step-next"/);
  assert.match(html,/id="impressions-rating-count"/);
  assert.match(html,/id="television"[^>]*hidden/);
- assert.match(html,/onboarding-guidance\.js\?v=2/);
+ assert.match(html,/onboarding-guidance\.js\?v=3/);
  assert.match(html,/onboarding\.category/);
  assert.match(html,/onboarding-sync\.js\?v=7/);
  assert.match(sync,/\.from\("seen_entries"\)/);
