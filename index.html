@@ -1,178 +1,477 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0c0d0d"><title>Afterlogue — Personalized Film & TV Discovery</title><meta name="description" content="Find films and television shows you might never have discovered. Five recommendations, shaped by your taste."><style>
-:root{--bg:#0c0d0d;--bg2:#151617;--ink:#eee3d0;--ink2:#d2bfa2;--muted:#9f9b92;--accent:#cdb083;--line:rgba(212,182,131,.23);--line2:rgba(232,214,176,.09)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}button,a{font:inherit}button{cursor:pointer}a{color:inherit}button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid #ead8b4;outline-offset:4px}::selection{background:#bfa16e;color:#10100e}
-body::before{content:"";position:fixed;pointer-events:none;inset:0;background:radial-gradient(ellipse 50% 38% at 50% 14%,rgba(108,92,69,.10),transparent 75%);z-index:-1}
-.content{max-width:1200px;margin:0 auto;padding:0 50px}.site-header{height:83px;display:flex;align-items:center;justify-content:space-between;max-width:1360px;margin:auto;padding:0 52px;gap:22px}.wordmark{font:700 25px/1 Georgia,serif;letter-spacing:-1.4px;text-decoration:none;color:#dbc7a4}.header-right{display:flex;align-items:center;gap:28px}.header-quiet{font-size:12px;text-decoration:none;color:#b1a693}.header-quiet:hover{color:#e6dac4}.header-language{display:flex;align-items:center;gap:8px;color:#af9d82}.header-language svg{width:16px;height:16px}.header-language select{width:82px;background:transparent;border:0;outline:0;color:#c7b292;font-size:11px;appearance:none;cursor:pointer}.header-language select option{background:#1b1c1d;color:#eee}.header-signin{font-size:12px;text-decoration:none;color:#e2cba5;padding:10px 21px;border-radius:28px;border:1px solid #978363;transition:background .15s}.header-signin:hover{background:rgba(213,178,122,.12)}
-.hero{padding:100px 18px 69px;text-align:center;min-height:635px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}.eyebrow{font-size:10px;font-weight:600;color:#bd9e70;letter-spacing:.22em}.hero .eyebrow{margin-bottom:27px}.hero h1{font:400 clamp(57px,6.55vw,102px)/1.035 Georgia,'Times New Roman',serif;letter-spacing:-.047em;max-width:1100px;text-wrap:balance;margin:0;color:#f0e4ce}.hero h1 span{display:block}.hero h1 span+span{margin-top:4px}.hero-copy{max-width:520px;margin:29px auto 0;font-size:15px;line-height:1.72;color:#bdb7aa}.hero-copy strong{font-weight:500;color:#e0ceaf}.hero-button{margin-top:33px;display:inline-flex;align-items:center;justify-content:center;gap:17px;min-width:230px;padding:15px 30px;border-radius:40px;border:1px solid #e5d1ad;background:#e5d1ad;color:#1d1b18;font-size:13px;font-weight:600;box-shadow:0 10px 28px rgba(0,0,0,.13);text-decoration:none;transition:transform .2s,background .2s}.hero-button:hover{transform:translateY(-2px);background:#f4e2c4}.hero-micro{margin:23px 0 0;color:#8d867b;font-size:11px;letter-spacing:.015em}.hero-micro span{margin:0 9px;color:#796d5c}
-.collection-strip{position:relative;overflow:hidden;max-width:1460px;margin:0 auto;padding:0 0 90px}.collection-strip:before,.collection-strip:after{content:"";position:absolute;top:0;bottom:90px;width:100px;pointer-events:none;z-index:2}.collection-strip:before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}.collection-strip:after{right:0;background:linear-gradient(-90deg,var(--bg),transparent)}.strip-title{padding:0 50px 19px;max-width:1300px;margin:auto;display:flex;gap:13px;align-items:center;font-size:10px;letter-spacing:.18em;color:#a18e72}.strip-title:after{content:"";height:1px;flex:1;background:var(--line2)}.poster-rail{display:flex;gap:13px;overflow-x:auto;padding:0 50px 12px;scrollbar-width:none;scroll-snap-type:x proximity}.poster-rail::-webkit-scrollbar{display:none}.rail-cell{min-width:136px;max-width:136px;scroll-snap-align:start}.rail-art{width:136px;height:194px;overflow:hidden;border-radius:4px;border:1px solid rgba(227,207,179,.15);display:block;background-size:cover;background-position:center}.rail-art img{width:100%;height:100%;object-fit:cover;display:block}.rail-title{font-size:11px;line-height:1.25;color:#b6ab9c;margin:10px 0 3px;font-weight:500}.rail-year{font-size:9px;color:#746e66;margin:0}
-.how{padding:48px 0 112px;border-top:1px solid var(--line2)}.how-head{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin-bottom:36px}.how-intro h2{font:400 clamp(33px,4vw,53px)/1.12 Georgia,serif;color:#eaddc7;margin:13px 0 0;letter-spacing:-.03em}.how-intro .eyebrow{color:#ad9877}.how-description{font-size:13px;line-height:1.7;max-width:315px;color:#96928c;margin:0 0 4px}.how-description strong{color:#bdb09a;font-weight:400}.demo-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:start}.demo-card{min-width:0}.demo-heading{min-height:103px}.demo-n{font-size:10px;letter-spacing:.13em;color:#a99475;margin:0 0 13px}.demo-heading h3{font:400 23px/1.21 Georgia,serif;letter-spacing:-.015em;color:#d5c4aa;margin:0 0 7px}.demo-heading p:last-child{color:#98928a;font-size:12px;line-height:1.48;margin:0}.demo-stage{position:relative;background:linear-gradient(135deg,#202020,#18191a 65%);border:1px solid rgba(221,186,130,.27);border-radius:8px;min-height:299px;padding:15px;box-shadow:0 11px 32px rgba(0,0,0,.18)}.stage-label{display:flex;justify-content:space-between;gap:10px;font-size:9px;color:#b8a27f;letter-spacing:.07em;white-space:nowrap;min-height:16px}.stage-label .stage-index{opacity:.6}.mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}.mini-poster{border:1px solid rgba(247,222,180,.2);border-radius:4px;display:block;position:relative;overflow:hidden;aspect-ratio:2/3;background-size:cover;background-position:center;padding:0;width:100%;transition:transform .2s,border-color .2s,box-shadow .2s}.mini-poster:hover,.mini-poster:focus-visible{transform:translateY(-3px);border-color:#dec397;box-shadow:0 8px 18px rgba(0,0,0,.3)}.mini-poster img{width:100%;height:100%;display:block;object-fit:cover}.mini-poster.is-selected{border-color:#f3dfbf;box-shadow:0 0 0 2px rgba(215,186,138,.5)}.mini-poster.is-rated:after{content:"";position:absolute;inset:0;background:rgba(14,17,19,.27);pointer-events:none}.rating-tick{display:none;position:absolute;top:8px;right:8px;z-index:3;background:#e7d4b3;width:25px;height:25px;border-radius:100%;align-items:center;justify-content:center;box-shadow:0 2px 14px rgba(0,0,0,.2)}.rating-tick svg{width:15px;height:15px;stroke:#191713;stroke-width:2;fill:none}.mini-poster.is-rated .rating-tick{display:flex}.rating-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-top:11px}.rating-control{padding:8px 1px;border-radius:5px;color:#b6ab99;background:transparent;border:1px solid #544b40;font-size:9px;white-space:nowrap}.rating-control:hover:not(:disabled){border-color:#d3b282;color:#efe5d6;background:rgba(218,176,118,.12)}.rating-control:disabled{opacity:.45;cursor:default}.rating-control.is-active{background:#d3b282;color:#161513;border-color:#d3b282}.demo-status{min-height:19px;margin:11px 0 0;color:#ac9f8d;font-size:10px;line-height:1.4;text-align:center}.showcase-footer{display:flex;gap:4px;justify-content:center;align-items:center;font-size:9px;color:#ad9b80;margin-top:13px;letter-spacing:.09em}.log-reactions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.log-reactions div{font-size:10px;color:#bcaa8d;white-space:nowrap;text-align:center}.log-reactions strong{font-size:12px;font-weight:400;color:#d2b789}.demo-note{margin:23px auto 0;max-width:730px;text-align:center;font-size:11px;color:#716e68;line-height:1.5}
-.strip-bottom{margin:0 auto 95px;max-width:1100px;padding:38px 24px 0;border-top:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between;gap:26px}.bottom-caption{font:400 clamp(20px,3vw,31px)/1.2 Georgia,serif;color:#d6c3a6;letter-spacing:-.016em;margin:0}.bottom-caption span{color:#918778}.bottom-cta{display:inline-block;padding:12px 21px;border:1px solid #7e6b51;border-radius:32px;color:#d6c3a6;text-decoration:none;font-size:12px;flex:none}.bottom-cta:hover{background:rgba(211,178,130,.1)}.footer{max-width:1200px;margin:auto;border-top:1px solid var(--line2);padding:27px 50px 42px;display:flex;justify-content:space-between;align-items:center;color:#716d65;font-size:11px}.footer strong{font-family:Georgia,serif;color:#a59175;font-size:15px;font-weight:400}.footer .preview-note{font-size:10px;color:#817568}
-.preview-backdrop{display:none;position:fixed;inset:0;background:rgba(3,4,5,.86);z-index:20;align-items:center;justify-content:center;padding:30px;backdrop-filter:blur(7px)}.preview-backdrop.is-open{display:flex}.preview-modal{width:min(920px,100%);max-height:min(88vh,740px);overflow:auto;border:1px solid rgba(221,182,121,.36);border-radius:11px;background:linear-gradient(125deg,#1b1c1d,#101112);padding:26px 31px 32px;box-shadow:0 30px 120px rgba(0,0,0,.65)}.modal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;font-size:10px;letter-spacing:.13em;color:#c09f73}.modal-close{display:grid;place-items:center;background:none;border:1px solid #7f6d52;color:#d2bea0;border-radius:100%;width:32px;height:32px;font-size:20px}.modal-close:hover{background:#d6bd95;color:#0f100f}.detail-layout{display:grid;grid-template-columns:42% 1fr;gap:33px;align-items:center}.detail-poster{width:100%;aspect-ratio:2/3;max-height:500px;background-size:cover;background-position:center;overflow:hidden;border-radius:5px;border:1px solid var(--line)}.detail-poster img{width:100%;height:100%;object-fit:cover;display:block}.detail-copy h2{font:400 clamp(30px,4vw,55px)/1.1 Georgia,serif;letter-spacing:-.028em;margin:10px 0 15px;color:#f0e4d0}.detail-meta{font-size:12px;color:#a89c8b;line-height:1.65}.detail-synopsis{font-size:14px;line-height:1.85;color:#d2c8ba;margin-top:24px}.mock-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:25px}.mock-action{padding:10px 14px;border:1px solid #a28661;color:#dcc7a6;border-radius:26px;font-size:11px;white-space:nowrap;cursor:default;transition:background .15s,color .15s,box-shadow .15s}.mock-action:hover{background:#dcc7a6;color:#171714;box-shadow:0 0 18px rgba(215,187,143,.22)}.modal-footnote{font-size:10px;color:#887f70;margin:24px 0 0}.log-layout{max-width:620px;margin:auto}.log-summary{display:grid;grid-template-columns:31% 1fr;gap:24px;padding:19px;background:#1d1e1e;border:1px solid rgba(216,187,145,.31);border-radius:7px}.log-summary .detail-poster{max-height:278px}.log-summary h2{font:400 clamp(27px,4vw,41px)/1.2 Georgia,serif;margin:0 0 11px}.log-overline{margin:0 0 15px;color:#aa9474;font-size:9px;letter-spacing:.13em}.log-entry-reaction{color:#d2b485;font-size:12px;margin:17px 0 4px}.log-note{margin-top:18px;padding-top:16px;border-top:1px solid rgba(206,171,119,.2)}.log-note p{margin:7px 0 0;color:#877f72;font-size:12px}.log-actions{margin-top:17px;display:flex;flex-wrap:wrap;gap:7px}.log-actions .mock-action{border-radius:5px;padding:7px 9px;font-size:10px}.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-@media(max-width:1000px){.demo-row{gap:13px}.content{padding:0 30px}.site-header{padding:0 30px}.demo-heading h3{font-size:21px}.demo-stage{padding:10px}.poster-rail{padding-left:30px}.strip-title{padding-left:30px}}
-@media(max-width:760px){.site-header{height:70px;padding:0 22px}.header-right{gap:16px}.header-quiet{display:none}.content{padding:0 22px}.hero{min-height:530px;padding:75px 18px 62px}.hero h1{font-size:clamp(39px,8vw,66px)}.hero-copy{max-width:460px;font-size:14px}.collection-strip{padding-bottom:70px}.poster-rail{padding:0 22px 12px}.rail-cell{min-width:120px;max-width:120px}.rail-art{width:120px;height:173px}.strip-title{padding:0 22px 16px}.how{padding-top:44px;padding-bottom:65px}.how-head{display:block}.how-description{margin-top:18px;max-width:530px}.demo-row{grid-template-columns:1fr;gap:32px;max-width:490px;margin:0 auto}.demo-heading{min-height:0;margin-bottom:15px}.demo-stage{padding:17px;min-height:0}.mini-grid{gap:10px}.rating-control{font-size:11px;padding:10px 4px}.showcase-footer{font-size:11px}.demo-note{margin-top:25px}.detail-layout{grid-template-columns:1fr;gap:18px}.detail-poster{max-height:240px;width:180px;margin:auto}.detail-copy h2{font-size:34px}.preview-modal{padding:18px}.log-summary{grid-template-columns:130px 1fr;gap:15px}.strip-bottom{margin:0 22px 70px;padding:24px 0 0}.bottom-caption{font-size:24px}.footer{padding:22px}.preview-backdrop{padding:17px}}
-@media(max-width:430px){.wordmark{font-size:23px}.header-signin{padding:8px 14px}.header-language{gap:4px}.header-language select{width:70px;font-size:10px}.hero{min-height:478px;padding-top:73px;padding-bottom:49px}.hero h1{font-size:clamp(35px,9.3vw,49px);line-height:1.08}.hero .eyebrow{margin-bottom:22px;font-size:9px}.hero-copy{font-size:13px;line-height:1.65;margin-top:23px}.hero-button{margin-top:28px}.hero-micro{margin-top:19px;font-size:10px}.poster-rail{gap:10px}.rail-cell{min-width:108px;max-width:108px}.rail-art{width:108px;height:154px}.how-head{margin-bottom:29px}.how-intro h2{font-size:37px}.strip-bottom{display:block}.bottom-cta{display:inline-block;margin-top:17px}.log-summary{grid-template-columns:105px 1fr;padding:12px;gap:13px}.log-summary h2{font-size:24px}.log-note{display:none}.log-actions .mock-action{padding:6px}.detail-copy h2{font-size:32px}.detail-synopsis{font-size:12px;margin-top:15px}.mock-actions{margin-top:18px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition-duration:0s!important}}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Welcome to afterlogue — Discover what stays with you</title>
+  
 
-/* Concept v2: a more explicit discovery promise without a busier hero. */
-.hero{min-height:650px;padding-top:100px;padding-bottom:82px}
-.hero .eyebrow{color:#bfa57e;margin-bottom:31px;letter-spacing:.20em}
-.hero h1{max-width:1120px;letter-spacing:-.043em}
-.hero-copy{max-width:590px;font-size:16px;line-height:1.68;color:#d2c8b9;margin:30px auto 0;text-wrap:balance}
-.hero-copy strong{font-weight:500;color:#e7d6bc}
-.hero-button{min-width:245px;margin-top:38px;padding:16px 30px}
-.hero-micro{margin-top:21px}
-.collection-strip{padding-bottom:94px}
-.how{padding-top:67px}
-.how-head{margin-bottom:47px}
-.how-intro h2{color:#e7dac6}
-.how-description{color:#aeaa9f;max-width:350px;font-size:13px}
-.how-description strong{color:#dac8ad}
-.demo-row{gap:29px}
-.demo-card{position:relative}
-.demo-heading{min-height:116px}
-.demo-heading h3{color:#d0bba1;font-size:22px}
-.demo-heading p:last-child{max-width:310px;color:#9f998d;line-height:1.6;font-size:12px}
-.demo-stage{border-color:rgba(214,182,132,.29)}
-@media(min-width:900px){
- .demo-card:not(:last-child)::after{content:'→';position:absolute;right:-23px;top:177px;z-index:3;
- color:#a58d6b;opacity:.62;font:21px/1 Georgia,serif;pointer-events:none}
-}
-.strip-bottom{margin-top:1px}
-.bottom-caption{color:#e0ceb3}
-.bottom-caption span{color:#988d7b}
-@media(max-width:760px){
- .hero{min-height:580px;padding-top:79px;padding-bottom:77px}
- .hero-copy{font-size:14px;max-width:450px}
- .hero-button{margin-top:32px}
- .demo-heading{min-height:auto;margin-bottom:18px}
- .how{padding-top:48px}
- .how-head{margin-bottom:33px}
- .demo-row{gap:26px}
-}
-@media(max-width:430px){
- .hero{min-height:520px;padding-top:77px;padding-bottom:58px}
- .hero .eyebrow{margin-bottom:23px}
- .hero-copy{max-width:335px;font-size:13px;margin-top:25px}
- .hero-button{margin-top:31px}
- .how-head{margin-bottom:29px}
- .how-description{font-size:12px}
-}
+  <style>
+    :root{--ink:#101113;--cream:#f2ddbd;--muted:#c9b8a0;--gold:#d9ae75;--border:#64533e;--line:rgba(218,175,113,.42)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse 32% 22% at 50% 17%,rgba(171,108,43,.13),transparent 95%),var(--ink);color:var(--cream);font-family:Arial,Helvetica,sans-serif}a{color:inherit}button{font:inherit}img{max-width:100%}
+    .welcome-header{display:flex;justify-content:space-between;align-items:center;max-width:1450px;margin:auto;padding:24px 5% 0;gap:16px}.brand{font:normal clamp(29px,3vw,40px) Georgia,serif;text-decoration:none;letter-spacing:-1.6px}.member-entry{display:flex;align-items:center;gap:16px;font:13px Georgia,serif}.member-entry a{border:1px solid var(--gold);border-radius:999px;padding:10px 24px;text-decoration:none}.member-entry a:hover,.member-entry a:focus-visible{background:var(--gold);color:#14100b}
+    .intro{text-align:center;padding:62px 20px 66px;position:relative}.intro::before{content:"";position:absolute;z-index:-1;inset:70px 25% 10px;background:radial-gradient(ellipse,rgba(200,134,65,.18),transparent 70%);filter:blur(38px);pointer-events:none}.intro h1{font:normal clamp(38px,5vw,70px)/1.08 Georgia,serif;letter-spacing:-2px;margin:0 0 13px}.intro>p{font-size:clamp(13px,1.5vw,17px);line-height:1.6;margin:0 auto 26px;color:var(--muted);max-width:570px}.entry{width:min(365px,100%);margin:auto;padding:16px;border-radius:20px;background:rgba(22,21,20,.67);border:1px solid rgba(188,149,100,.18);box-shadow:0 0 55px rgba(181,112,49,.11);display:flex;flex-direction:column;gap:10px}.entry a,.entry button{min-height:40px;width:100%;display:flex;align-items:center;justify-content:center;gap:12px;border-radius:999px;text-decoration:none;border:1px solid #79664f;background:#141414;color:var(--cream);font-size:13px;cursor:pointer}.entry a:hover,.entry button:hover,.entry a:focus-visible,.entry button:focus-visible{border-color:var(--gold)}.entry .or{display:flex;gap:12px;align-items:center;justify-content:center;text-transform:uppercase;font-size:10px;letter-spacing:1.5px;color:#b7a58b}.or::before,.or::after{content:"";height:1px;background:var(--border);flex:1}.entry .create{border-color:var(--gold)}.entry .guest{border:0;background:transparent;margin-top:2px;min-height:30px}.gmark{font-weight:bold;font-size:20px;color:#4285f4}.apple{font-size:20px}.preview-note{display:block;color:#9e917c;font-size:10px;margin:8px auto 0;max-width:340px}
+    .entry button:disabled{cursor:not-allowed;opacity:.7}
+    .rail{overflow:hidden;position:relative;max-width:100%;padding:2px 0 0}.rail::before,.rail::after{content:"";position:absolute;top:0;bottom:0;width:38px;z-index:2;pointer-events:none}.rail::before{left:0;background:linear-gradient(90deg,var(--ink),transparent)}.rail::after{right:0;background:linear-gradient(-90deg,var(--ink),transparent)}.rail-track{display:flex;gap:0;width:max-content;animation:marquee 110s linear infinite;will-change:transform}.rail:hover .rail-track,.rail:focus-within .rail-track{animation-play-state:paused}.poster{width:clamp(105px,calc((100vw - 80px)/6),220px);padding-right:12px;margin:0;flex-shrink:0}.poster .poster-image{height:auto;aspect-ratio:2/3;border-radius:4px;background:#292724;overflow:hidden}.poster img{display:block;width:100%;height:100%;object-fit:cover}.poster figcaption{text-align:center;padding:9px 2px 0;font-size:11px;line-height:1.35;color:var(--cream);min-height:49px}.poster .year{display:block;color:var(--muted);margin-top:4px}.poster .year::after{content:"";display:block;width:38px;height:1px;background:var(--gold);margin:8px auto 0}@keyframes marquee{to{transform:translateX(-50%)}}
+    .feature-wrap{max-width:1300px;margin:32px auto 0;padding:25px 5% 26px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}.feature{text-align:center;padding:10px 22px;border-right:1px solid rgba(211,174,117,.23)}.feature:last-child{border:0}.icon-circle{border:1px solid var(--gold);width:55px;height:55px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;color:var(--gold)}.icon-circle svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}.feature h2{font:normal 22px Georgia,serif;margin:0 0 8px}.feature p{margin:0 auto;color:var(--muted);font-size:13px;line-height:1.45;max-width:210px}
+    .how{max-width:1330px;margin:0 auto;padding:32px 5% 84px}.section-label{text-align:center;color:var(--gold);letter-spacing:3px;font-size:11px;margin:0 0 24px}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.step-head{display:flex;align-items:baseline;gap:13px;margin-bottom:12px}.step-head span{font:normal 23px Georgia,serif;color:var(--gold)}.step-head h3{font:normal clamp(15px,1.6vw,20px) Georgia,serif;margin:0}.step-panel{border:1px solid var(--border);border-radius:12px;padding:12px;height:250px;background:rgba(25,24,24,.76);overflow:hidden}.step-desc{text-align:center;font:15px/1.45 Georgia,serif;color:var(--muted);margin:10px auto 0;max-width:330px}.rating-images{display:flex;gap:8px;height:160px}.rating-images img{width:33.33%;height:100%;object-fit:cover;border-radius:5px;min-width:0}.rating-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}.rating-row span{border:1px solid var(--border);border-radius:8px;text-align:center;padding:10px 2px;font:11px Arial,sans-serif;white-space:nowrap}.rating-row b{display:block;font-size:14px;margin-bottom:3px;color:var(--cream)}.recs-kicker{font-size:13px;font-family:Georgia,serif;margin:0 0 8px}.rec-picks{display:flex;gap:8px;height:145px}.rec-picks img{width:33.33%;min-width:0;object-fit:cover;border-radius:6px}.mood-mini{margin-top:11px;display:flex;gap:7px}.mood-mini span{font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:7px 8px;flex:1;text-align:center}.moments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;height:100%}.moments img{width:100%;height:108px;object-fit:cover;border-radius:5px}.footer{text-align:center;border-top:1px solid var(--line);padding:26px 20px 35px;color:#978972;font:12px Georgia,serif}
+    @media(max-width:850px){.intro{padding:64px 20px 50px}.features{grid-template-columns:repeat(3,minmax(0,1fr))}.steps{grid-template-columns:1fr;gap:32px;max-width:430px;margin:auto}.how{padding-bottom:50px}.poster{width:clamp(135px,35vw,205px)}}
+    @media(max-width:500px){.welcome-header{padding:19px 18px 0}.brand{font-size:26px}.member-entry>span{display:none}.member-entry a{font-size:12px;padding:8px 16px}.intro{padding:59px 18px 55px}.intro h1{font-size:clamp(37px,9vw,48px);letter-spacing:-1.4px}.intro>p{max-width:315px;font-size:13px}.entry{max-width:330px;padding:12px}.poster{width:39vw;padding-right:9px}.feature-wrap{margin-top:25px;padding:18px 14px 25px}.feature{padding:14px 10px}.feature h2{font-size:18px}.feature p{font-size:12px}.icon-circle{width:44px;height:44px}.icon-circle svg{width:22px;height:22px}.how{padding:28px 20px 40px}.step-panel{height:242px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rail-track{animation:none}.rail{overflow-x:auto;scroll-snap-type:x mandatory}.poster{scroll-snap-align:start}}
 
-/* Approved visual: exact same warm ivory for the wordmark and headline. */
-.wordmark,.footer strong{color:#f0e4ce}
-.hero h1{color:#f0e4ce}
-.member-entry{display:flex;align-items:center;gap:16px}
-.welcome-header .afterlogue-language-control{margin:0}
-.welcome-header .member-entry .header-signin{flex:none}
-.hero .welcome-start{display:flex;flex-direction:column;align-items:center;gap:0}
-.hero .hero-micro{margin-top:26px}
-.hero .hero-button{min-width:225px}
-html[lang="ko"] .hero h1,html[lang="ko"] .how h2,html[lang="ko"] .demo-card h3{
- font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",Arial,sans-serif;
- word-break:keep-all;letter-spacing:-.035em
+
+/* A quiet cinematic invitation, not an onboarding instruction sheet.
+   The actual step-by-step guidance lives on First Impressions. */
+.intro{
+  padding:clamp(88px,10vh,128px) 20px clamp(98px,12vh,148px);
 }
+.intro h1{margin-bottom:0}
+.intro .welcome-tagline{
+  max-width:720px;margin:23px auto 0;
+  color:var(--cream);
+  font:400 clamp(19px,2.2vw,29px)/1.35 Georgia,serif;
+  letter-spacing:-.015em
+}
+.intro .welcome-description{
+  max-width:520px;margin:24px auto 0;
+  color:var(--muted);font:clamp(13px,1.15vw,16px)/1.65 Arial,Helvetica,sans-serif
+}
+.intro .welcome-start{
+  display:flex;flex-direction:column;align-items:center;
+  gap:13px;margin:32px auto 0
+}
+.intro .welcome-start .welcome-create{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:248px;min-height:48px;padding:12px 26px;
+  border:1px solid var(--cream);border-radius:99px;
+  background:var(--cream);color:#1c1713;
+  text-decoration:none;font:600 13px Arial,Helvetica,sans-serif;
+  transition:background .2s ease,transform .2s ease
+}
+.intro .welcome-start .welcome-create:hover,
+.intro .welcome-start .welcome-create:focus-visible{
+  background:#e1b77e;border-color:#e1b77e;transform:translateY(-2px)
+}
+.intro .welcome-reassurance{
+  margin:0;color:#b7a58e;
+  font:11px/1.5 Arial,Helvetica,sans-serif
+}
+.welcome-header .member-entry{gap:10px}
+.welcome-header .member-entry a{font:12px/1.4 Arial,Helvetica,sans-serif}
+@media(max-width:600px){
+  .intro{padding:80px 18px 95px}
+  .intro .welcome-tagline{font-size:clamp(18px,5.4vw,25px);margin-top:18px}
+  .intro .welcome-description{max-width:335px;margin-top:21px;font-size:13px}
+  .intro .welcome-start{margin-top:27px}
+  .intro .welcome-start .welcome-create{min-width:230px}
+  .welcome-header .member-entry a{padding:8px 14px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  .intro .welcome-start .welcome-create{transition:none;transform:none!important}
+}
+/* Afterlogue: equally aligned three-step previews */
+.how .journey-preview {
+  height: 256px;
+  display: grid;
+  grid-template-rows: 32px minmax(0, 1fr) 34px;
+  row-gap: 9px;
+  padding: 12px;
+}
+.how .journey-top {height:32px; display:flex; align-items:center; min-width:0;}
+.how .journey-eyebrow {font:12px Georgia,serif; color:#d9bd8b; letter-spacing:.035em;}
+.how .journey-tabs {width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.how .journey-tab {min-height:30px;display:flex;align-items:center;justify-content:center;border-radius:999px;font:12px Arial,sans-serif;color:#e8d9bd;}
+.how .journey-tab.active {background:rgba(190,177,151,.38)}
+.how .journey-posters {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-height:0;height:100%;}
+.how .journey-poster {position:relative;min-width:0;min-height:0;border-radius:5px;overflow:hidden;background:#252525;}
+.how .journey-poster img {display:block;width:100%;height:100%;object-fit:cover;}
+.how .journey-poster.is-selected::after {content:"";position:absolute;inset:0;background:rgba(4,5,5,.36);pointer-events:none;}
+.how .journey-check {position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%);font:33px Georgia,serif;color:#fff3d7;text-shadow:0 1px 8px #000;}
+.how .journey-bottom {min-height:34px;display:grid;align-items:stretch;}
+.how .journey-bottom.four {grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;}
+.how .journey-bottom.three {grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.how .journey-rating {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid rgba(217,174,117,.35);border-radius:6px;color:#ead9b8;font:10px Arial,sans-serif;white-space:nowrap;min-width:0;}
+.how .journey-rating b {color:#e5c58e;font:13px/1 Arial,sans-serif;}
+.how .journey-rating.chosen {background:rgba(190,177,151,.23);border-color:#d9ae75;}
+.how .journey-reaction {display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;font:11px Arial,sans-serif;color:#ead9b8;white-space:nowrap;}
+.how .journey-reaction b {font:16px/1 Arial,sans-serif;color:#e5c58e;}
+.how .journey-label {display:grid;place-items:center;font:10px Georgia,serif;letter-spacing:.07em;color:#ae9877;}
+.how .journey-description {text-align:center;font:15px/1.45 Georgia,serif;color:var(--muted);margin:10px auto 0;max-width:330px;}
+@media(max-width:500px){.how .journey-rating{font-size:9px}.how .journey-reaction{font-size:10px}.how .journey-description{font-size:13px}}
+
+  
+/* AFTERLOGUE — EDITORIAL THREE-STEP HEADINGS */
+.features { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.step { display: flex; flex-direction: column; min-width:0; }
+.step-intro { min-height: 127px; padding: 0 2px 10px; }
+.step-kicker { color: var(--gold); font: 700 10px/1.5 Arial,Helvetica,sans-serif; letter-spacing: .16em; margin:0 0 8px; }
+.step-intro h3 { font: normal clamp(17px,1.65vw,21px)/1.18 Georgia,serif; margin:0 0 8px; color:var(--cream); }
+.step-lede { font: 14px/1.4 Georgia,serif; color:var(--muted); margin:0; max-width:340px; }
+.log-collections { align-self:stretch; text-align:center; color:#d7b988; letter-spacing:.04em; font: 13px/1.45 Georgia,serif; margin:12px 0 0; }
+.log-collections span { padding: 0 6px; color:#7f6848; }
+@media(max-width:850px){ .step-intro{min-height:unset;padding-bottom:13px;} }
 @media(max-width:650px){
- .header-quiet{display:none}
- .site-header{gap:8px;padding:0 17px;height:73px}
- .header-right{gap:7px}
- .member-entry{gap:7px}
- .member-entry .afterlogue-language-control{margin:0}
- .wordmark{font-size:23px}
- .header-signin{padding:9px 13px}
+  .features { grid-template-columns:1fr; gap:0; }
+  .feature { display:grid; grid-template-columns:48px 1fr; grid-template-rows:auto auto; column-gap:13px; text-align:left; padding:13px 2px; border-right:0; border-bottom:1px solid rgba(211,174,117,.19); }
+  .feature:last-child { border-bottom:0; }
+  .feature .icon-circle { grid-row:1 / 3; width:42px; height:42px; margin:0; }
+  .feature h2 { margin:0 0 4px; font-size:18px; }
+  .feature p { margin:0; max-width:none; }
 }
-</style><script src="site-language.js?v=6" defer></script></head><body>
-<header class="site-header welcome-header" id="top">
- <a class="wordmark brand" aria-label="Afterlogue home" href="index.html">afterlogue.</a>
- <div class="header-right">
-  <a class="header-quiet" href="#experience">See how it works</a>
-  <div class="member-entry"><a class="header-signin" href="signup.html?mode=signin">Sign in</a></div>
- </div>
+    
+/* LANDING PAGE — MATCH GLOBAL LOGO */
+
+.welcome-header {
+  max-width: none;
+  margin: 0;
+  padding: 24px 5% 0;
+}
+
+.welcome-header .brand {
+  font: normal 32px/1 Georgia, "Times New Roman", serif;
+  letter-spacing: -1px;
+  color: #F4EADD;
+  text-decoration: none;
+}
+
+/* AFTERLOGUE — BLACK LANDING PAGE */
+
+:root {
+  --ink: #000000;
+}
+
+body {
+  background: #000000;
+}
+
+.intro::before {
+  display: none;
+}
+
+/* AFTERLOGUE — SIMPLIFIED WELCOME BUTTONS */
+
+.welcome-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 30px auto 0;
+}
+
+.welcome-actions a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 46px;
+  padding: 12px 26px;
+  border-radius: 999px;
+  font-size: 13px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.welcome-create {
+  background: #F4EADD;
+  color: #111111;
+}
+
+.welcome-guest {
+  border: 1px solid #8A7559;
+  color: #F4EADD;
+}
+
+.welcome-create:hover {
+  background: #D7C4A9;
+}
+
+.welcome-guest:hover {
+  background: #24201D;
+}
+
+@media (max-width: 500px) {
+  .welcome-actions {
+    flex-direction: column;
+  }
+
+  .welcome-actions a {
+    width: min(280px, 100%);
+  }
+}
+
+/* AFTERLOGUE — EDITORIAL WELCOME LABEL */
+
+.intro > .welcome-eyebrow {
+  color: #BFA58B;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  line-height: 1.5;
+  margin: 0 auto 18px;
+}
+
+
+/* AFTERLOGUE — STABLE, SWIPEABLE POSTER RAIL
+   Safari's continuously animated rail caused repeated whole-page flicker.
+   Keep the artwork accessible by scrolling rather than auto-transforming it. */
+.rail {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.rail::-webkit-scrollbar { display: none; }
+.rail-track {
+  animation: none !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+.rail .poster { scroll-snap-align: start; }
+ /* Avoid scrolled edge masks overlapping posters (visible as a dark seam). */
+.rail::before, .rail::after { display: none !important; }
+
+
+/* HOW IT WORKS — RESTORE THE ORIGINAL CARD PROPORTIONS */
+@media (min-width: 1000px) {
+  .how {
+    max-width: 1330px;
+    padding: 32px 5% 84px;
+  }
+  .how .steps { gap: 20px; }
+  .how .step-intro { min-height: 127px; }
+}
+
+/* Show complete artwork instead of cropping poster titles and faces. */
+.how .journey-poster img { object-fit: contain; }
+
+/* MATCH FIRST IMPRESSIONS CHECKMARK */
+
+.how .journey-check {
+  display: block;
+  width: 52px;
+  height: 52px;
+}
+
+.how .journey-check svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+</style>
+<link rel="stylesheet" href="landing-previews.css?v=1">
+<script src="site-language.js?v=5" defer></script>
+<script src="landing-previews.js?v=1" defer></script>
+</head>
+<body>
+
+<header class="welcome-header">
+  <a href="index.html" class="brand">afterlogue.</a>
+
+  <div class="member-entry">
+    <a href="signup.html?mode=signin">Sign in</a>
+  </div>
 </header>
+
 <main>
-<section class="hero intro" aria-labelledby="welcome-title"><div class="eyebrow welcome-eyebrow" data-i18n="eyebrow">PERSONALIZED FILM & TV DISCOVERY</div><h1 id="welcome-title"><span data-i18n="hero1">A film ends.</span> <span data-i18n="hero2">The conversation doesn't.</span></h1><p class="hero-copy welcome-description" data-i18n="copy">Discover films and shows you might never have found. <strong>Five recommendations, shaped by your taste.</strong></p><div class="welcome-start"><a class="hero-button welcome-create" href="log.html?guest=1" id="hero-cta"><span data-i18n="cta">Start discovering</span></a><p class="hero-micro welcome-reassurance"><span data-i18n="micro3">No account needed</span><span aria-hidden="true">·</span><span data-i18n="micro2">About 2 minutes</span></p></div></section>
-<section class="collection-strip" aria-label="A glimpse of the stories on Afterlogue"><div class="strip-title"><span data-i18n="strip">STORIES WORTH DISCOVERING</span></div><div class="poster-rail" id="poster-rail"></div></section>
-<section class="how content" id="experience"><div class="how-head"><div class="how-intro"><span class="eyebrow" data-i18n="howEyebrow">HOW AFTERLOGUE FINDS YOUR NEXT STORY</span><h2 data-i18n="howTitle">Your taste shapes<br>what comes next.</h2></div><p class="how-description" data-i18n="howCopy">Share a few impressions. Afterlogue uses them to <strong>find stories you'll want to explore</strong>, then gives you a place to keep them.</p></div>
-<div class="demo-row">
-<article class="demo-card" id="impressions"><header class="demo-heading"><p class="demo-n">01 — FIRST IMPRESSIONS</p><h3 data-i18n="step1">Share your taste.</h3><p data-i18n="step1copy">Tell us what you thought of films and shows you've seen.</p></header><div class="demo-stage"><div class="stage-label"><span data-i18n="stage1">CHOOSE A FILM YOU KNOW</span><span class="stage-index">01 / 03</span></div><div class="mini-grid" id="rate-posters"></div><div class="rating-controls" id="rating-controls"><button class="rating-control" data-reaction="Loved" disabled>♥ Loved</button><button class="rating-control" data-reaction="Liked" disabled>♡ Liked</button><button class="rating-control" data-reaction="Okay" disabled>• Okay</button><button class="rating-control" data-reaction="Not for me" disabled>× Not for me</button></div><p class="demo-status" id="rating-status" aria-live="polite" data-i18n="rateHint">Tap a poster to begin.</p></div></article>
-<article class="demo-card"><header class="demo-heading"><p class="demo-n">02 — DISCOVERY</p><h3 data-i18n="step2">Discover something new.</h3><p data-i18n="step2copy">Get five carefully chosen stories based on your impressions.</p></header><div class="demo-stage"><div class="stage-label"><span data-i18n="stage2">SELECTED / FOR YOU</span><span class="stage-index">02 / 03</span></div><div class="mini-grid" id="discover-posters"></div><p class="showcase-footer" data-i18n="tryDetail">TAP A POSTER TO PREVIEW DETAILS</p></div></article>
-<article class="demo-card"><header class="demo-heading"><p class="demo-n">03 — YOUR LOG</p><h3 data-i18n="step3">Keep your collection.</h3><p data-i18n="step3copy">Save, revisit, and log the stories that stay with you.</p></header><div class="demo-stage"><div class="stage-label"><span data-i18n="stage3">YOUR COLLECTION / SAMPLE</span><span class="stage-index">03 / 03</span></div><div class="mini-grid" id="log-posters"></div><div class="log-reactions" id="log-reactions"></div></div></article>
-</div><p class="demo-note" data-i18n="demoNote">Explore these sample cards. They’re demonstrations—not part of anyone’s account.</p></section>
-<section class="strip-bottom"><p class="bottom-caption" data-i18n="bottom">Your next favorite might be a film<span> you've never heard of.</span></p><a class="bottom-cta" href="log.html?guest=1" data-i18n="bottomLink">Start discovering</a></section></main>
-<footer class="footer"><strong>afterlogue.</strong><span>A film ends. The conversation doesn’t.</span><span>© 2026</span></footer>
-<div class="preview-backdrop" id="preview-backdrop" role="presentation"><div class="preview-modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading"><div class="modal-top"><span id="modal-eyebrow">AFTERLOGUE / PREVIEW</span><button class="modal-close" id="modal-close" aria-label="Close preview">×</button></div><div id="modal-body"></div><p class="modal-footnote" data-i18n="modalNote">Preview only. The highlighted controls are illustrative.</p></div></div>
+<section class="intro" aria-labelledby="welcome-title">
+  <p class="welcome-eyebrow">PERSONALIZED FILM & TV DISCOVERY</p>
+  <h1 id="welcome-title">A film ends. The conversation doesn't.</h1>
+  <p class="welcome-description">Discover films and shows shaped by your taste.</p>
+  <div class="welcome-start">
+    <a class="welcome-create" href="log.html?guest=1">Get started →</a>
+    <p class="welcome-reassurance">No account needed · About 2 minutes</p>
+  </div>
+</section>
+<section class="rail" aria-label="Selected film and television posters; scroll or swipe horizontally to explore" tabindex="0">
+  <div class="rail-track" id="rail-track"></div>
+</section>
+<section class="feature-wrap" aria-label="What you can do on Afterlogue">
+  <div class="features">
+    <div class="feature">
+      <div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <h2>Personalized</h2>
+      <p>Recommendations that evolve with you.</p>
+    </div>
+    <div class="feature">
+      <div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 6 6"/></svg></div>
+      <h2>Explore</h2>
+      <p>Find something for your mood, the moment, or the season.</p>
+    </div>
+    <div class="feature">
+      <div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5c0 4-3.7 7.3-8.5 7.3-1.2 0-2.3-.2-3.4-.6L4 20l1.2-3.5a7 7 0 0 1-1.7-5c0-4 3.8-7.3 8.5-7.3s8.5 3.3 8.5 7.3Z"/><path d="M8 10.5h8M8 13.5h5"/></svg></div>
+      <h2>Discuss</h2>
+      <p>Talk about films and shows with other viewers.</p>
+    </div>
+  </div>
+</section>
+<section class="how" aria-labelledby="how-heading">
+  <h2 class="section-label" id="how-heading">HOW IT WORKS</h2>
+  <div class="steps">
+    <!-- 01 / Interactive first-impressions demonstration. All state is local. -->
+    <article class="step" id="preview-impressions">
+      <div class="step-intro">
+        <p class="step-kicker">01 — FIRST IMPRESSIONS</p>
+        <h3>Tell us what you think</h3>
+        <p class="step-lede">Pick a film you know. Choose your impression.</p>
+      </div>
+      <div class="step-panel journey-preview" aria-label="Try rating a film — demo only">
+        <div class="journey-top"><span class="journey-eyebrow">Select a poster, then a reaction</span></div>
+        <div class="journey-posters" id="lp-rating-posters">
+          <button type="button" class="journey-poster lp-poster" data-preview-key="moonlight" aria-pressed="false" aria-label="Select Moonlight">
+            <img src="https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg" alt="Moonlight poster">
+            <span class="journey-check" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-key="boyhood" aria-pressed="false" aria-label="Select Boyhood">
+            <img src="boyhood.jpg" alt="Boyhood poster">
+            <span class="journey-check" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-key="manchester" aria-pressed="false" aria-label="Select Manchester by the Sea">
+            <img src="https://www.tinymixtapes.com/sites/default/files/1611/manchester_0.jpg" alt="Manchester by the Sea poster">
+            <span class="journey-check" aria-hidden="true">✓</span>
+          </button>
+        </div>
+        <div class="journey-bottom four lp-ratings" aria-label="Rate your selected film">
+          <button type="button" class="journey-rating" data-preview-rating="Loved" disabled><b>♥</b> Loved</button>
+          <button type="button" class="journey-rating" data-preview-rating="Liked" disabled><b>♡</b> Liked</button>
+          <button type="button" class="journey-rating" data-preview-rating="Okay" disabled><b>●</b> Okay</button>
+          <button type="button" class="journey-rating" data-preview-rating="Not for me" disabled><b>×</b> Not for me</button>
+        </div>
+        <p class="lp-demo-status" id="lp-rating-status" role="status" aria-live="polite">Choose any poster to begin.</p>
+      </div>
+    </article>
+    <!-- 02 / Full-detail lookalike, with deliberate non-operational controls. -->
+    <article class="step" id="preview-discovery">
+      <div class="step-intro">
+        <p class="step-kicker">02 — DISCOVERY</p>
+        <h3>Find your next story</h3>
+        <p class="step-lede">Open a poster to preview its details.</p>
+      </div>
+      <div class="step-panel journey-preview" aria-label="Explore a sample story detail">
+        <div class="journey-top"><span class="journey-eyebrow">MOVIES / A LITTLE SOMETHING FOR YOU</span></div>
+        <div class="journey-posters">
+          <button type="button" class="journey-poster lp-poster" data-preview-detail="perfect-days" aria-label="Preview details for Perfect Days">
+            <img src="https://www.nippon.com/en/ncommon/contents/japan-topics/2541413/2541413.jpg" alt="Perfect Days poster">
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-detail="sentimental-value" aria-label="Preview details for Sentimental Value">
+            <img src="sentimental-value.jpg" alt="Sentimental Value poster">
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-detail="worst-person" aria-label="Preview details for The Worst Person in the World">
+            <img src="https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg" alt="The Worst Person in the World poster">
+          </button>
+        </div>
+        <div class="journey-bottom journey-label">CLICK ANY POSTER TO EXPLORE ↗</div>
+      </div>
+    </article>
+    <!-- 03 / An accurate miniature of Log cards, not actual member data. -->
+    <article class="step" id="preview-log">
+      <div class="step-intro">
+        <p class="step-kicker">03 — LOG</p>
+        <h3>The more you log, the better it gets</h3>
+        <p class="step-lede">Open a poster to see how your Log feels.</p>
+      </div>
+      <div class="step-panel journey-preview" aria-label="Explore a sample Log entry">
+        <div class="journey-top"><span class="journey-eyebrow">RECENT LOG / SAMPLE ENTRIES</span></div>
+        <div class="journey-posters">
+          <button type="button" class="journey-poster lp-poster" data-preview-log="blue" aria-label="View sample Log card for Three Colors: Blue">
+            <img src="https://m.media-amazon.com/images/M/MV5BZWU5NWQ2MWMtYmI4Ni00Yjk5LTk3ODktMDVlZGViNGUwN2M5XkEyXkFqcGdeQXVyNTAyODkwOQ%40%40._V1_FMjpg_UX1000_.jpg" alt="Three Colors: Blue poster">
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-log="normal-people" aria-label="View sample Log card for Normal People">
+            <img src="https://media.senscritique.com/media/000019931710/0/normal_people.jpg" alt="Normal People poster">
+          </button>
+          <button type="button" class="journey-poster lp-poster" data-preview-log="severance" aria-label="View sample Log card for Severance">
+            <img src="https://image.tmdb.org/t/p/original/w5O3VVeG3jIR62IVbNMvFKY0p1Q.jpg" alt="Severance poster">
+          </button>
+        </div>
+        <div class="journey-bottom three" aria-label="Sample impressions in corresponding poster order">
+          <span class="journey-reaction"><b>♥</b> Loved</span>
+          <span class="journey-reaction"><b>●</b> Okay</span>
+          <span class="journey-reaction"><b>×</b> Not for me</span>
+        </div>
+      </div>
+      <p class="log-collections">Watched <span aria-hidden="true">·</span> Watchlist <span aria-hidden="true">·</span> Favorites</p>
+    </article>
+
+  </div>
+</section>
+</main>
+<div class="lp-modal" id="lp-modal" role="dialog" aria-modal="true" aria-labelledby="lp-modal-title" hidden>
+  <div class="lp-modal-surface">
+    <div class="lp-modal-top"><span id="lp-modal-title">AFTERLOGUE / A CLOSER LOOK</span><button type="button" id="lp-modal-close" aria-label="Close preview">×</button></div>
+    <div id="lp-modal-body"></div>
+    <p class="lp-modal-note">A preview of Afterlogue. These controls are for illustration only.</p>
+  </div>
+</div>
+<footer class="footer">The film ends. The conversation doesn't.</footer>
 <script>
-const FILMS={"perfect":{"title":"Perfect Days","year":"2023","kind":"Film","tone":["#1d4137","#081615","#a8a66e"],"pattern":"forest","remote":"https://image.tmdb.org/t/p/original/8MwQJsVPZeJjEIzy6qBwKgNLm7o.jpg","synopsis":"In Tokyo, Hirayama finds contentment in a routine of work, music, books and small moments of beauty. An intimate portrait of an ordinary life, attentively lived.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMxZDQxMzciLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwODE2MTUiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjU2IiByPSI5NCIgZmlsbD0iI2JjY2E4NCIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZD0iTTM2IDB2Mjg1TTc3IDB2Mjg1TTE4NiAwdjI4NU0yMDEgMHYyODUiIHN0cm9rZT0iIzA1MWUxMyIgc3Ryb2tlLXdpZHRoPSIxOSIgb3BhY2l0eT0iLjY1Ii8+PHBhdGggZD0iTS0xMCA4NFE0NCAxMiAxMTYgODNUMjQxIDc5TS04IDEyNVE1OCAzOCAxMDQgMTExVDIzMCAxMTAiIHN0cm9rZT0iI2IyYmY4MiIgc3Ryb2tlLXdpZHRoPSIxNyIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjIyIi8+PGVsbGlwc2UgY3g9IjEyMSIgY3k9IjIyNyIgcng9IjI0IiByeT0iNDciIGZpbGw9IiMwNzE1MWEiLz48Y2lyY2xlIGN4PSIxMjEiIGN5PSIxNjYiIHI9IjE3IiBmaWxsPSIjMDkxNzFiIi8+PHJlY3Qgd2lkdGg9IjIyMCIgaGVpZ2h0PSIzMDAiIG9wYWNpdHk9Ii4xMiIgZmlsdGVyPSJ1cmwoI2dyYWluKSIvPjxyZWN0IHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiBmaWxsPSJ1cmwoI3NoYWRlKSIvPjx0ZXh0IHg9IjE2IiB5PSIyMzgiIGZvbnQtc2l6ZT0iMjUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjZjdlYmRhIiBsZXR0ZXItc3BhY2luZz0iLS41Ij5QZXJmZWN0IERheXM8L3RleHQ+PHBhdGggZD0iTTE2IDI4NmgzNSIgc3Ryb2tlPSIjYThhNjZlIiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIxNiIgeT0iMjMiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjgiIGZpbGw9IiNlY2RlYzkiIGxldHRlci1zcGFjaW5nPSIzIj5BRlRFUkxPR1VFPC90ZXh0Pjwvc3ZnPg=="},"moonlight":{"title":"Moonlight","year":"2016","kind":"Film","tone":["#204b69","#101a3a","#789ca0"],"pattern":"portrait","remote":"https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg","synopsis":"A young man searches for connection and a sense of self across three defining chapters of his life.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMyMDRiNjkiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMxMDFhM2EiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Ik02MyAyOTZRMzQgMjQyIDU1IDE3MFE3NSA5MyAxMjAgODJRMTY0IDgyIDE3MSAxNjJMMTU3IDI1OEwxODIgMzAwIiBmaWxsPSIjMGMxYjM2Ii8+PHBhdGggZD0iTTk3IDgyUTE0NCA3MiAxNjMgMTEwUTE2NyAxNTQgMTM0IDE5NUwxMDMgMjE2TDg4IDE2NloiIGZpbGw9IiM0Mzg4YTAiIG9wYWNpdHk9Ii43NCIvPjxwYXRoIGQ9Ik04OCAxNzlRMTEyIDIwMiAxNTEgMTcyIiBzdHJva2U9IiNiNmM3YmUiIHN0cm9rZS13aWR0aD0iMTAiIG9wYWNpdHk9Ii4yOCIgZmlsbD0ibm9uZSIvPjxyZWN0IHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiBvcGFjaXR5PSIuMTIiIGZpbHRlcj0idXJsKCNncmFpbikiLz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNzaGFkZSkiLz48dGV4dCB4PSIxNiIgeT0iMjM4IiBmb250LXNpemU9IjI1IiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2Y3ZWJkYSIgbGV0dGVyLXNwYWNpbmc9Ii0uNSI+TW9vbmxpZ2h0PC90ZXh0PjxwYXRoIGQ9Ik0xNiAyODZoMzUiIHN0cm9rZT0iIzc4OWNhMCIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMTYiIHk9IjIzIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI4IiBmaWxsPSIjZWNkZWM5IiBsZXR0ZXItc3BhY2luZz0iMyI+QUZURVJMT0dVRTwvdGV4dD48L3N2Zz4="},"boyhood":{"title":"Boyhood","year":"2014","kind":"Film","tone":["#627846","#233929","#c8c18d"],"pattern":"grass","remote":"https://raw.githubusercontent.com/tamia-sys/Afterlogue/main/boyhood.jpg","synopsis":"A boy grows up before our eyes in Richard Linklater’s quietly observant portrait of family and time.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM2Mjc4NDYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyMzM5MjkiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Ik0wIDBoMjIwdjMwMEgwWiIgZmlsbD0iIzVkNzU0NyIgb3BhY2l0eT0iLjQ1Ii8+PHBhdGggZD0iTTAgMTQ1bDIyMCA0ME0wIDIwMGwyMjAgMzBNMzAgMGwzMCAzMDBNMTQ4IDBsLTMwIDMwMCIgc3Ryb2tlPSIjYjRjODdjIiBzdHJva2Utd2lkdGg9IjI0IiBvcGFjaXR5PSIuMDgiLz48ZWxsaXBzZSBjeD0iMTEzIiBjeT0iMjIzIiByeD0iNTIiIHJ5PSI0NiIgZmlsbD0iIzQxNTM0MSIvPjxjaXJjbGUgY3g9IjExNCIgY3k9IjE4NCIgcj0iMjMiIGZpbGw9IiNkNmJhYTEiIG9wYWNpdHk9Ii44Ii8+PHJlY3Qgd2lkdGg9IjIyMCIgaGVpZ2h0PSIzMDAiIG9wYWNpdHk9Ii4xMiIgZmlsdGVyPSJ1cmwoI2dyYWluKSIvPjxyZWN0IHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiBmaWxsPSJ1cmwoI3NoYWRlKSIvPjx0ZXh0IHg9IjE2IiB5PSIyMzgiIGZvbnQtc2l6ZT0iMjUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjZjdlYmRhIiBsZXR0ZXItc3BhY2luZz0iLS41Ij5Cb3lob29kPC90ZXh0PjxwYXRoIGQ9Ik0xNiAyODZoMzUiIHN0cm9rZT0iI2M4YzE4ZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMTYiIHk9IjIzIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI4IiBmaWxsPSIjZWNkZWM5IiBsZXR0ZXItc3BhY2luZz0iMyI+QUZURVJMT0dVRTwvdGV4dD48L3N2Zz4="},"before":{"title":"Before Sunrise","year":"1995","kind":"Film","tone":["#b77361","#3a3850","#f7cc90"],"pattern":"sunset","remote":"https://image.tmdb.org/t/p/w500/qNHZMe92A7Pyl46qUH29hVOtbSK.jpg","synopsis":"Two strangers meet on a train and spend one night walking through Vienna, discovering each other along the way.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiNiNzczNjEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMzYTM4NTAiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjEyNiIgY3k9Ijk3IiByPSI2OCIgZmlsbD0iI2ZmZTBhNiIgb3BhY2l0eT0iLjY1Ii8+PHBhdGggZD0iTTAgMTg1UTU4IDE1NiAxMTAgMTk2VDIyMCAxODZWMzEwSDBaIiBmaWxsPSIjNTkzNjRiIiBvcGFjaXR5PSIuOSIvPjxwYXRoIGQ9Ik0wIDIwMVE1NSAxODEgMjIwIDIzMCIgc3Ryb2tlPSIjZmZlNWI5IiBvcGFjaXR5PSIuMTYiIHN0cm9rZS13aWR0aD0iMTYiLz48cGF0aCBkPSJNMTA0IDE3N3Y5OU0xNTAgMTkwdjg5IiBzdHJva2U9IiMxYTI0MzMiIHN0cm9rZS13aWR0aD0iMjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjEwNCIgY3k9IjE2NiIgcj0iMTciIGZpbGw9IiMxYTI0MzMiLz48Y2lyY2xlIGN4PSIxNTAiIGN5PSIxNzciIHI9IjE3IiBmaWxsPSIjMWEyNDMzIi8+PHJlY3Qgd2lkdGg9IjIyMCIgaGVpZ2h0PSIzMDAiIG9wYWNpdHk9Ii4xMiIgZmlsdGVyPSJ1cmwoI2dyYWluKSIvPjxyZWN0IHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiBmaWxsPSJ1cmwoI3NoYWRlKSIvPjx0ZXh0IHg9IjE2IiB5PSIyMzgiIGZvbnQtc2l6ZT0iMjAiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjZjdlYmRhIiBsZXR0ZXItc3BhY2luZz0iLS41Ij5CZWZvcmUgU3VucmlzZTwvdGV4dD48cGF0aCBkPSJNMTYgMjg2aDM1IiBzdHJva2U9IiNmN2NjOTAiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iOCIgZmlsbD0iI2VjZGVjOSIgbGV0dGVyLXNwYWNpbmc9IjMiPkFGVEVSTE9HVUU8L3RleHQ+PC9zdmc+"},"aftersun":{"title":"Aftersun","year":"2022","kind":"Film","tone":["#6c969b","#35405c","#efd4ae"],"pattern":"coast","remote":"https://image.tmdb.org/t/p/w500/4T3K5CE8ja5HfUJPzUkheqDlu1a.jpg","synopsis":"A woman looks back on a seaside holiday with her father, piecing together memories from a childhood summer.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM2Yzk2OWIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMzNTQwNWMiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHk9IjAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMTcwIiBmaWxsPSIjODBiY2JmIiBvcGFjaXR5PSIuNDMiLz48cGF0aCBkPSJNMCAxNzBRODAgMTQyIDIyMCAxODN2MTE1SDBaIiBmaWxsPSIjMzE0OTY0Ii8+PHBhdGggZD0iTTAgMjA2UTc1IDE4OSAyMjAgMjIwTTAgMjU4UTEyMCAyMjkgMjIwIDI1MCIgc3Ryb2tlPSIjOWZiZGJiIiBvcGFjaXR5PSIuNDQiIHN0cm9rZS13aWR0aD0iNyIvPjxjaXJjbGUgY3g9IjE0NyIgY3k9IjgyIiByPSIzNyIgZmlsbD0iI2ZmZjBjOCIgb3BhY2l0eT0iLjI1Ii8+PHJlY3QgeD0iNzQiIHk9IjE1NyIgd2lkdGg9IjI0IiBoZWlnaHQ9Ijk5IiByeD0iMTMiIGZpbGw9IiMxMzJiMzUiLz48Y2lyY2xlIGN4PSI4NCIgY3k9IjE0NiIgcj0iMTciIGZpbGw9IiMxMzJiMzUiLz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgb3BhY2l0eT0iLjEyIiBmaWx0ZXI9InVybCgjZ3JhaW4pIi8+PHJlY3Qgd2lkdGg9IjIyMCIgaGVpZ2h0PSIzMDAiIGZpbGw9InVybCgjc2hhZGUpIi8+PHRleHQgeD0iMTYiIHk9IjIzOCIgZm9udC1zaXplPSIyNSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiNmN2ViZGEiIGxldHRlci1zcGFjaW5nPSItLjUiPkFmdGVyc3VuPC90ZXh0PjxwYXRoIGQ9Ik0xNiAyODZoMzUiIHN0cm9rZT0iI2VmZDRhZSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMTYiIHk9IjIzIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI4IiBmaWxsPSIjZWNkZWM5IiBsZXR0ZXItc3BhY2luZz0iMyI+QUZURVJMT0dVRTwvdGV4dD48L3N2Zz4="},"frances":{"title":"Frances Ha","year":"2012","kind":"Film","tone":["#55595b","#121416","#d9ceae"],"pattern":"city","remote":"https://image.tmdb.org/t/p/w500/6HjdvLZtLWuf1a9B5S4Ww6lAGfE.jpg","synopsis":"A young dancer searches for a place in New York and a clearer sense of who she wants to become.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM1NTU5NWIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMxMjE0MTYiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjUiIHk9IjcwIiB3aWR0aD0iNTYiIGhlaWdodD0iMjU1IiBmaWxsPSIjMTcxZDIxIiBvcGFjaXR5PSIuOCIvPjxyZWN0IHg9IjE1OSIgeT0iMzAiIHdpZHRoPSI1MiIgaGVpZ2h0PSIyNzUiIGZpbGw9IiMyODMwMzkiLz48cGF0aCBkPSJNODMgMHYzMDBNMTQ1IDB2MzAwIiBzdHJva2U9IiNjMGMyYmMiIHN0cm9rZS13aWR0aD0iMiIgb3BhY2l0eT0iLjI1Ii8+PHBhdGggZD0iTTEzMCAxNDZsLTQyIDQyIDM1IDMwLTMwIDgwIiBzdHJva2U9IiNkZGQ0YjkiIHN0cm9rZS13aWR0aD0iMTkiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjEzMSIgY3k9IjEyOSIgcj0iMTUiIGZpbGw9IiNkZGQ0YjkiLz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgb3BhY2l0eT0iLjEyIiBmaWx0ZXI9InVybCgjZ3JhaW4pIi8+PHJlY3Qgd2lkdGg9IjIyMCIgaGVpZ2h0PSIzMDAiIGZpbGw9InVybCgjc2hhZGUpIi8+PHRleHQgeD0iMTYiIHk9IjIzOCIgZm9udC1zaXplPSIyNSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiNmN2ViZGEiIGxldHRlci1zcGFjaW5nPSItLjUiPkZyYW5jZXMgSGE8L3RleHQ+PHBhdGggZD0iTTE2IDI4NmgzNSIgc3Ryb2tlPSIjZDljZWFlIiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIxNiIgeT0iMjMiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjgiIGZpbGw9IiNlY2RlYzkiIGxldHRlci1zcGFjaW5nPSIzIj5BRlRFUkxPR1VFPC90ZXh0Pjwvc3ZnPg=="},"severance":{"title":"Severance","year":"2022","kind":"TV series","tone":["#6f9298","#233e54","#c5dde1"],"pattern":"office","remote":"https://image.tmdb.org/t/p/original/w5O3VVeG3jIR62IVbNMvFKY0p1Q.jpg","synopsis":"An office worker begins to question the unsettling procedure that separates employees’ work memories from their personal lives.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM2ZjkyOTgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyMzNlNTQiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Ik0xMiAwbDg2IDEzOEwxMiAzMDBNMjA4IDBsLTg2IDEzOCA4NiAxNjIiIHN0cm9rZT0iI2JiZGJlMSIgc3Ryb2tlLXdpZHRoPSI2IiBvcGFjaXR5PSIuNCIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDIxMUwxMDAgMTQ1TDIyMCAyMTEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzc3OWVhZCIgc3Ryb2tlLXdpZHRoPSIxNCIgb3BhY2l0eT0iLjM0Ii8+PHBhdGggZD0iTTk3IDE2MGgyN3YxNDFIOTdaIiBmaWxsPSIjMTkzMDQwIi8+PGNpcmNsZSBjeD0iMTExIiBjeT0iMTQyIiByPSIyMSIgZmlsbD0iIzE5MzA0MCIvPjxyZWN0IHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiBvcGFjaXR5PSIuMTIiIGZpbHRlcj0idXJsKCNncmFpbikiLz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNzaGFkZSkiLz48dGV4dCB4PSIxNiIgeT0iMjM4IiBmb250LXNpemU9IjI1IiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2Y3ZWJkYSIgbGV0dGVyLXNwYWNpbmc9Ii0uNSI+U2V2ZXJhbmNlPC90ZXh0PjxwYXRoIGQ9Ik0xNiAyODZoMzUiIHN0cm9rZT0iI2M1ZGRlMSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMTYiIHk9IjIzIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI4IiBmaWxsPSIjZWNkZWM5IiBsZXR0ZXItc3BhY2luZz0iMyI+QUZURVJMT0dVRTwvdGV4dD48L3N2Zz4="},"normal":{"title":"Normal People","year":"2020","kind":"TV series","tone":["#779bb4","#4b536c","#f3daca"],"pattern":"couple","remote":"https://media.senscritique.com/media/000019931710/0/normal_people.jpg","synopsis":"Two young people navigate intimacy, class and the difficulty of saying what they mean.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM3NzliYjQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM0YjUzNmMiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxlbGxpcHNlIGN4PSI4NCIgY3k9IjE0MSIgcng9IjU0IiByeT0iNjgiIGZpbGw9IiNlNmI2YTUiIG9wYWNpdHk9Ii40NiIvPjxlbGxpcHNlIGN4PSIxNTAiIGN5PSIxMzYiIHJ4PSI1MCIgcnk9IjY2IiBmaWxsPSIjYjlkMGRhIiBvcGFjaXR5PSIuNDUiLz48cGF0aCBkPSJNMTMgMjgxUTQwIDIxNCA5MyAyMThMMTE0IDMwMk0yMDcgMjkxUTE4OCAyMjAgMTQzIDIxOEwxMjAgMzAyIiBmaWxsPSIjMzI0NDU5Ii8+PGNpcmNsZSBjeD0iODUiIGN5PSIxNzIiIHI9IjI0IiBmaWxsPSIjYjg4YzgxIi8+PGNpcmNsZSBjeD0iMTQ5IiBjeT0iMTU5IiByPSIyNyIgZmlsbD0iI2IxYjFiNCIvPjxyZWN0IHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiBvcGFjaXR5PSIuMTIiIGZpbHRlcj0idXJsKCNncmFpbikiLz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNzaGFkZSkiLz48dGV4dCB4PSIxNiIgeT0iMjM4IiBmb250LXNpemU9IjI1IiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2Y3ZWJkYSIgbGV0dGVyLXNwYWNpbmc9Ii0uNSI+Tm9ybWFsIFBlb3BsZTwvdGV4dD48cGF0aCBkPSJNMTYgMjg2aDM1IiBzdHJva2U9IiNmM2RhY2EiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iOCIgZmlsbD0iI2VjZGVjOSIgbGV0dGVyLXNwYWNpbmc9IjMiPkFGVEVSTE9HVUU8L3RleHQ+PC9zdmc+"},"blue":{"title":"Three Colors: Blue","year":"1993","kind":"Film","tone":["#284b86","#0c1738","#adc9e5"],"pattern":"blue","remote":"https://m.media-amazon.com/images/M/MV5BZWU5NWQ2MWMtYmI4Ni00Yjk5LTk3ODktMDVlZGViNGUwN2M5XkEyXkFqcGdeQXVyNTAyODkwOQ%40%40._V1_FMjpg_UX1000_.jpg","synopsis":"After a devastating loss, a woman searches for freedom from her past in a world saturated with memory.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMyODRiODYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwYzE3MzgiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Ik0wIDBMMjIwIDcwVjMwMEgwWiIgZmlsbD0iIzMyNjRhYiIgb3BhY2l0eT0iLjUyIi8+PHBhdGggZD0iTTAgMTk2TDIyMCAxMjYiIHN0cm9rZT0iI2EyYzRlMyIgc3Ryb2tlLXdpZHRoPSIyMSIgb3BhY2l0eT0iLjIxIi8+PGNpcmNsZSBjeD0iMTE4IiBjeT0iMTIxIiByPSI1NCIgZmlsbD0iIzhlYjVkOSIgb3BhY2l0eT0iLjQiLz48cGF0aCBkPSJNODMgMTI4cTMzLTQ3IDc3LTJsLTExIDk4LTY2LTdaIiBmaWxsPSIjMTIyYzViIi8+PHBhdGggZD0iTTc1IDMwMHEwLTg5IDQyLTg4dDYwIDg4IiBmaWxsPSIjMTYzNDY4Ii8+PHJlY3Qgd2lkdGg9IjIyMCIgaGVpZ2h0PSIzMDAiIG9wYWNpdHk9Ii4xMiIgZmlsdGVyPSJ1cmwoI2dyYWluKSIvPjxyZWN0IHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiBmaWxsPSJ1cmwoI3NoYWRlKSIvPjx0ZXh0IHg9IjE2IiB5PSIyMzgiIGZvbnQtc2l6ZT0iMjUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjZjdlYmRhIiBsZXR0ZXItc3BhY2luZz0iLS41Ij5UaHJlZSBDb2xvcnM6PC90ZXh0Pjx0ZXh0IHg9IjE2IiB5PSIyNjciIGZvbnQtc2l6ZT0iMjUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjZjdlYmRhIiBsZXR0ZXItc3BhY2luZz0iLS41Ij5CbHVlPC90ZXh0PjxwYXRoIGQ9Ik0xNiAyODZoMzUiIHN0cm9rZT0iI2FkYzllNSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMTYiIHk9IjIzIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI4IiBmaWxsPSIjZWNkZWM5IiBsZXR0ZXItc3BhY2luZz0iMyI+QUZURVJMT0dVRTwvdGV4dD48L3N2Zz4="},"sentimental":{"title":"Sentimental Value","year":"2025","kind":"Film","tone":["#566958","#282c2b","#c1b391"],"pattern":"house","remote":"https://raw.githubusercontent.com/tamia-sys/Afterlogue/main/sentimental-value.jpg","synopsis":"Two sisters reconnect with their estranged filmmaker father, reopening old wounds as he plans a new project.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM1NjY5NTgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyODJjMmIiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjEzIiB5PSIxMTMiIHdpZHRoPSIxOTIiIGhlaWdodD0iMTc5IiBmaWxsPSIjNDM1MTQzIi8+PHBhdGggZD0iTTAgMTE5bDExMC04MSAxMTAgODEiIGZpbGw9IiM4Mjk2N2IiIG9wYWNpdHk9Ii44MyIvPjxyZWN0IHg9Ijg5IiB5PSIxNjMiIHdpZHRoPSI0NiIgaGVpZ2h0PSIxMjciIGZpbGw9IiMxYzJhMjkiLz48cmVjdCB4PSIzNiIgeT0iMTUyIiB3aWR0aD0iMzUiIGhlaWdodD0iNTUiIGZpbGw9IiM5ZWFmOWEiLz48cmVjdCB4PSIxNTEiIHk9IjE1MiIgd2lkdGg9IjM1IiBoZWlnaHQ9IjU1IiBmaWxsPSIjOWVhZjlhIi8+PHBhdGggZD0iTTAgMjUyUTExNyAyMTAgMjIwIDI1MlYzMDBIMFoiIGZpbGw9IiMyNzNhMzUiLz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgb3BhY2l0eT0iLjEyIiBmaWx0ZXI9InVybCgjZ3JhaW4pIi8+PHJlY3Qgd2lkdGg9IjIyMCIgaGVpZ2h0PSIzMDAiIGZpbGw9InVybCgjc2hhZGUpIi8+PHRleHQgeD0iMTYiIHk9IjIzOCIgZm9udC1zaXplPSIyNSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiNmN2ViZGEiIGxldHRlci1zcGFjaW5nPSItLjUiPlNlbnRpbWVudGFsPC90ZXh0Pjx0ZXh0IHg9IjE2IiB5PSIyNjciIGZvbnQtc2l6ZT0iMjUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjZjdlYmRhIiBsZXR0ZXItc3BhY2luZz0iLS41Ij5WYWx1ZTwvdGV4dD48cGF0aCBkPSJNMTYgMjg2aDM1IiBzdHJva2U9IiNjMWIzOTEiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iOCIgZmlsbD0iI2VjZGVjOSIgbGV0dGVyLXNwYWNpbmc9IjMiPkFGVEVSTE9HVUU8L3RleHQ+PC9zdmc+"},"worst":{"title":"The Worst Person in the World","year":"2021","kind":"Film","tone":["#bb8269","#374961","#ebc8aa"],"pattern":"street","remote":"https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg","synopsis":"Julie navigates the uncertainty of love, work, and identity in the years between youth and adulthood.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiNiYjgyNjkiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMzNzQ5NjEiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Ik0wIDQybDEwMC00MnYzMDBIMFpNMTI4IDBoOTR2MzAwaC05NFoiIGZpbGw9IiNlNWI3OTkiIG9wYWNpdHk9Ii4yOCIvPjxwYXRoIGQ9Ik0wIDIxMkwyMjAgMTU3djE1M0gwWiIgZmlsbD0iIzVjNDU1MSIvPjxwYXRoIGQ9Ik0xMDcgMTU0bDI0LTI2IDE1IDM1LTE3IDI0IDI0IDc1IiBzdHJva2U9IiMyNzFmMmYiIHN0cm9rZS13aWR0aD0iMTYiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjEyNSIgY3k9IjExMyIgcj0iMTciIGZpbGw9IiMyNzFmMmYiLz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgb3BhY2l0eT0iLjEyIiBmaWx0ZXI9InVybCgjZ3JhaW4pIi8+PHJlY3Qgd2lkdGg9IjIyMCIgaGVpZ2h0PSIzMDAiIGZpbGw9InVybCgjc2hhZGUpIi8+PHRleHQgeD0iMTYiIHk9IjIzOCIgZm9udC1zaXplPSIyMCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiNmN2ViZGEiIGxldHRlci1zcGFjaW5nPSItLjUiPlRoZSBXb3JzdCBQZXJzb248L3RleHQ+PHRleHQgeD0iMTYiIHk9IjI2NyIgZm9udC1zaXplPSIyMCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiNmN2ViZGEiIGxldHRlci1zcGFjaW5nPSItLjUiPmluIHRoZSBXb3JsZDwvdGV4dD48cGF0aCBkPSJNMTYgMjg2aDM1IiBzdHJva2U9IiNlYmM4YWEiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iOCIgZmlsbD0iI2VjZGVjOSIgbGV0dGVyLXNwYWNpbmc9IjMiPkFGVEVSTE9HVUU8L3RleHQ+PC9zdmc+"},"memoir":{"title":"Memoir of a Snail","year":"2024","kind":"Film","tone":["#6e524e","#30272c","#e0b38c"],"pattern":"spiral","remote":"https://raw.githubusercontent.com/tamia-sys/Afterlogue/main/memoir-of-a-snail.jpg","synopsis":"A bittersweet animated story about finding hope, connection and the courage to emerge from your shell.","fallback":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjIwIDMwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iLjEiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM2ZTUyNGUiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMzMDI3MmMiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ic2hhZGUiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDAwIiBzdG9wLW9wYWNpdHk9IjAiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzAwMCIgc3RvcC1vcGFjaXR5PSIuMDgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDAiIHN0b3Atb3BhY2l0eT0iLjc0Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJncmFpbiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii44NSIgbnVtT2N0YXZlcz0iMiIgc2VlZD0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjExNSIgY3k9IjE1MSIgcj0iNzkiIGZpbGw9IiNiZTkzNzYiIG9wYWNpdHk9Ii42Ii8+PHBhdGggZD0iTTEyNiAxNDhjNDgtMjYtMTQtNzAtMzYtMjZzNTUgNTMgNTkgNy04My03NC05OCAwYy0xNCA2OSAxMDUgMTEzIDE0NCAyNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNDMzMjM2IiBzdHJva2Utd2lkdGg9IjE1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjAgMjU2UTEwMCAyMDUgMjIwIDI2OSIgc3Ryb2tlPSIjZTNjOWE4IiBzdHJva2Utd2lkdGg9IjE3IiBvcGFjaXR5PSIuMiIvPjxyZWN0IHdpZHRoPSIyMjAiIGhlaWdodD0iMzAwIiBvcGFjaXR5PSIuMTIiIGZpbHRlcj0idXJsKCNncmFpbikiLz48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNzaGFkZSkiLz48dGV4dCB4PSIxNiIgeT0iMjM4IiBmb250LXNpemU9IjI1IiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2Y3ZWJkYSIgbGV0dGVyLXNwYWNpbmc9Ii0uNSI+TWVtb2lyIG9mPC90ZXh0Pjx0ZXh0IHg9IjE2IiB5PSIyNjciIGZvbnQtc2l6ZT0iMjUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjZjdlYmRhIiBsZXR0ZXItc3BhY2luZz0iLS41Ij5hIFNuYWlsPC90ZXh0PjxwYXRoIGQ9Ik0xNiAyODZoMzUiIHN0cm9rZT0iI2UwYjM4YyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMTYiIHk9IjIzIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI4IiBmaWxsPSIjZWNkZWM5IiBsZXR0ZXItc3BhY2luZz0iMyI+QUZURVJMT0dVRTwvdGV4dD48L3N2Zz4="}};
-const byId=id=>document.getElementById(id);
-const $=sel=>document.querySelector(sel);
-let language='en',selectedRatingFilm=null;
-const reactions={
- en:{Loved:'Loved',Liked:'Liked',Okay:'Okay','Not for me':'Not for me'},
- es:{Loved:'Me encantó',Liked:'Me gustó',Okay:'Regular','Not for me':'No es para mí'},
- fr:{Loved:'Adoré',Liked:'Aimé',Okay:'Moyen','Not for me':'Pas pour moi'},
- pt:{Loved:'Amei',Liked:'Gostei',Okay:'Mais ou menos','Not for me':'Não é para mim'},
- ko:{Loved:'정말 좋았어요',Liked:'좋았어요',Okay:'보통이에요','Not for me':'제 취향은 아니에요'}
-};
-const rail=['perfect','severance','normal','before','aftersun','sentimental','memoir','boyhood','frances','moonlight'];
-const ratings=['moonlight','boyhood','frances'];
-const discovery=['perfect','sentimental','worst'];
-const logs=[['blue','Loved'],['normal','Okay'],['severance','Not for me']];
-const cover=(key,{button=false,context='',title=true}={})=>{
- const f=FILMS[key];const el=document.createElement(button?'button':'div');
- if(button){el.type='button';el.className='mini-poster';el.dataset.film=key;el.dataset.context=context;el.setAttribute('aria-label',f.title+' '+(context==='rating'?'— select film':context==='log'?'— preview Log':'— preview details'));}
- else {el.className='rail-art';el.setAttribute('role','img');el.setAttribute('aria-label',f.title+' poster');}
- el.style.backgroundImage=`url("${f.fallback}")`;
- if(f.remote){const img=document.createElement('img');img.src=f.remote;img.alt=f.title+' poster';img.loading='lazy';img.onerror=()=>img.remove();el.append(img);}
- if(button&&context==='rating'){
-  const tick=document.createElement('span');tick.className='rating-tick';tick.setAttribute('aria-hidden','true');tick.innerHTML='<svg viewBox="0 0 24 24"><path d="m5 12 4.2 4.2L19 6.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';el.append(tick);
- }
- return el;
-};
-rail.forEach(key=>{const cell=document.createElement('div');cell.className='rail-cell';cell.append(cover(key));const name=document.createElement('p');name.className='rail-title';name.textContent=FILMS[key].title;const year=document.createElement('p');year.className='rail-year';year.textContent=FILMS[key].year;cell.append(name,year);byId('poster-rail').append(cell)});
-ratings.forEach(key=>byId('rate-posters').append(cover(key,{button:true,context:'rating'})));
-discovery.forEach(key=>byId('discover-posters').append(cover(key,{button:true,context:'detail'})));
-logs.forEach(([key,reaction])=>{
- byId('log-posters').append(cover(key,{button:true,context:'log'}));const label=document.createElement('div');label.innerHTML=`<strong>${reaction==='Loved'?'♥':reaction==='Okay'?'●':'×'}</strong> <span>${reactions[language][reaction]}</span>`;label.dataset.reaction=reaction;byId('log-reactions').append(label);
+const titles = [
+ ["Moonlight","2016","https://cdn.posteritati.com/posters/000/000/059/832/moonlight-md-web.jpg"],
+ ["Manchester by the Sea","2016","https://www.tinymixtapes.com/sites/default/files/1611/manchester_0.jpg"],
+ ["Boyhood","2014","boyhood.jpg"],
+ ["Three Colors: Blue","1993","https://m.media-amazon.com/images/M/MV5BZWU5NWQ2MWMtYmI4Ni00Yjk5LTk3ODktMDVlZGViNGUwN2M5XkEyXkFqcGdeQXVyNTAyODkwOQ%40%40._V1_FMjpg_UX1000_.jpg"],
+ ["Perfect Days","2023","https://www.nippon.com/en/ncommon/contents/japan-topics/2541413/2541413.jpg"],
+ ["Severance","2022","https://image.tmdb.org/t/p/original/w5O3VVeG3jIR62IVbNMvFKY0p1Q.jpg"],
+ ["Normal People","2020","https://media.senscritique.com/media/000019931710/0/normal_people.jpg"],
+ ["My Brilliant Friend","2018","https://m.media-amazon.com/images/M/MV5BMzJkOWNjZDUtODkwZi00NGVjLTk0ZjUtMTNlYmYxZDcxMDEyXkEyXkFqcGc%40._V1_.jpg"],
+ ["The Leftovers","2014","leftovers.jpg"],
+["Memoir of a Snail","2024","memoir-of-a-snail.jpg"],
+["Sentimental Value","2025","sentimental-value.jpg"],
+  ["The Worst Person in the World","2021","https://miro.medium.com/1%2ABZQA06ZfJCCduguLAujaIA.jpeg"],
+];
+const track=document.getElementById('rail-track');
+for (let cycle=0;cycle<2;cycle++) for(const [name,year,url] of titles){
+  const fig=document.createElement('figure');fig.className='poster';if(cycle)fig.setAttribute('aria-hidden','true');
+  const wrap=document.createElement('div');wrap.className='poster-image';
+  const img=document.createElement('img');img.src=url;img.alt=cycle?'':name+' poster';img.loading=cycle?'lazy':'eager';img.onerror=()=>{img.style.display='none';wrap.style.background='linear-gradient(145deg,#354147,#382721)';wrap.textContent=name;wrap.style.cssText+='display:grid;place-items:center;text-align:center;padding:12px;font:17px Georgia,serif;';};
+  wrap.appendChild(img);const cap=document.createElement('figcaption');cap.textContent=name;const yr=document.createElement('span');yr.className='year';yr.textContent=year;cap.appendChild(yr);fig.append(wrap,cap);track.appendChild(fig);
+}
+/* SAFARI-FRIENDLY CAROUSEL: one poster at a time using native scrolling.
+   No continuously animated transforms, which caused page-wide flickering. */
+const posterRail = document.querySelector(".rail");
+let railIsPaused = false;
+let resumeRailTimer;
+const prefersLessMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+posterRail.addEventListener("pointerenter", () => { railIsPaused = true; });
+posterRail.addEventListener("pointerleave", () => { railIsPaused = false; });
+posterRail.addEventListener("focusin", () => { railIsPaused = true; });
+posterRail.addEventListener("focusout", () => { railIsPaused = false; });
+posterRail.addEventListener("touchstart", () => {
+  railIsPaused = true;
+  clearTimeout(resumeRailTimer);
+}, { passive: true });
+posterRail.addEventListener("touchend", () => {
+  clearTimeout(resumeRailTimer);
+  resumeRailTimer = setTimeout(() => { railIsPaused = false; }, 8000);
+}, { passive: true });
+setInterval(() => {
+  if (railIsPaused || document.hidden || prefersLessMotion.matches) return;
+  const first = track.querySelector(".poster");
+  if (!first) return;
+  const step = first.getBoundingClientRect().width;
+  const repeatPoint = step * titles.length;
+  // Both sets are identical; resetting at the duplicate boundary is invisible.
+  if (posterRail.scrollLeft >= repeatPoint - 1) {
+    posterRail.scrollLeft -= repeatPoint;
+  }
+  posterRail.scrollTo({ left: posterRail.scrollLeft + step, behavior: "smooth" });
+}, 5000);
+// Preserve a polished layout even if an external poster image does not load.
+document.querySelectorAll('.journey-poster img').forEach(img => {
+  img.addEventListener('error', () => {
+    const holder = img.parentElement;
+    if (!holder) return;
+    holder.setAttribute('role', 'img');
+    holder.setAttribute('aria-label', img.alt);
+    holder.style.background = 'linear-gradient(145deg,#26343d,#43322c)';
+    const fallback = document.createElement('span');
+    fallback.textContent = img.alt.replace(/ poster$/i, '');
+    fallback.style.cssText = 'position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:8px;font:14px Georgia,serif;color:#f2ddbd;';
+    img.replaceWith(fallback);
+  }, { once: true });
 });
-const ratingButtons=[...document.querySelectorAll('.rating-control')];
-function renderSelection(){
- [...document.querySelectorAll('#rate-posters .mini-poster')].forEach(el=>{
- const key=el.dataset.film;el.classList.toggle('is-selected',key===selectedRatingFilm);el.classList.toggle('is-rated',Boolean(el.dataset.reaction));el.setAttribute('aria-pressed',key===selectedRatingFilm?'true':'false');
- });
- const chosen=document.querySelector(`#rate-posters .mini-poster[data-film="${selectedRatingFilm}"]`);
- ratingButtons.forEach(button=>{
-  button.disabled=!chosen;button.classList.toggle('is-active',button.dataset.reaction===(chosen?.dataset.reaction||null));
- });
- const status=byId('rating-status');
- if(!chosen){status.textContent={en:'Tap a poster to begin.',es:'Elige un póster para empezar.',fr:'Choisissez une affiche pour commencer.',pt:'Escolha um cartaz para começar.',ko:'포스터를 눌러 시작해 보세요.'}[language]||'Tap a poster to begin.';return;}
- if(!chosen.dataset.reaction){status.textContent=FILMS[selectedRatingFilm].title+' · '+({en:'Selected. Choose a reaction below.',es:'Seleccionado. Elige tu reacción.',fr:'Sélectionné. Donnez votre avis.',pt:'Selecionado. Escolha sua reação.',ko:'선택됨. 아래에서 감상을 선택하세요.'}[language]||'Selected. Choose a reaction below.');return;}
- status.textContent=FILMS[selectedRatingFilm].title+' · '+(reactions[language]||reactions.en)[chosen.dataset.reaction]+' ✓';
-}
-byId('rate-posters').addEventListener('click',event=>{const el=event.target.closest('button[data-context="rating"]');if(!el)return;selectedRatingFilm=el.dataset.film;renderSelection()});
-byId('rating-controls').addEventListener('click',event=>{const button=event.target.closest('[data-reaction]');if(!button||!selectedRatingFilm)return;const el=document.querySelector(`#rate-posters .mini-poster[data-film="${selectedRatingFilm}"]`);el.dataset.reaction=button.dataset.reaction;renderSelection()});
-const overlay=byId('preview-backdrop'),modalClose=byId('modal-close'),modalBody=byId('modal-body');let focusBefore=null;
-const e=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el};
-function makePoster(key){const el=e('div','detail-poster');el.style.backgroundImage=`url("${FILMS[key].fallback}")`;if(FILMS[key].remote){const img=e('img');img.src=FILMS[key].remote;img.alt=FILMS[key].title+' poster';img.onerror=()=>img.remove();el.append(img)}return el}
-function action(text){return e('span','mock-action',text)}
-function showDetail(key){const f=FILMS[key];byId('modal-eyebrow').textContent=language==='ko'?'애프터로그 / 작품 상세 미리보기':'AFTERLOGUE / FILM IN FOCUS';const layout=e('div','detail-layout');layout.append(makePoster(key));const info=e('div','detail-copy');const title=e('h2','',f.title);title.id='modal-heading';info.append(title);info.append(e('p','detail-meta',`${f.year} · ${f.kind} · ${key==='perfect'?'Japan':key==='sentimental'?'Norway':'Drama'}`));info.append(e('p','detail-synopsis',f.synopsis));const actions=e('div','mock-actions');['▷  Watch trailer','◉  Seen it','＋  Add to Watchlist','♡','•••'].forEach(t=>actions.append(action(t)));info.append(actions);layout.append(info);modalBody.append(layout)}
-function showLog(key){const f=FILMS[key];const reaction=logs.find(([k])=>k===key)?.[1]||'Okay';byId('modal-eyebrow').textContent=language==='ko'?'애프터로그 / 나의 기록 미리보기':'AFTERLOGUE / YOUR LOG';const layout=e('div','log-layout');layout.append(e('p','log-overline','RECENT LOG / SAMPLE ENTRY'));const summary=e('div','log-summary');summary.append(makePoster(key));const info=e('div');const title=e('h2','',f.title);title.id='modal-heading';info.append(title);info.append(e('p','detail-meta',`${f.year} · ${f.kind}`));info.append(e('p','log-entry-reaction',`${reaction==='Loved'?'♥':reaction==='Okay'?'●':'×'}  ${reactions[language][reaction]}`));const acts=e('div','log-actions');['Details','✎ Edit entry','Share'].forEach(x=>acts.append(action(x)));info.append(acts);const note=e('div','log-note');note.append(e('p','log-overline','PRIVATE NOTE'),e('p','',language==='ko'?'여기에 메모를 남길 수 있어요…':'A space for your own thoughts…'));info.append(note);summary.append(info);layout.append(summary);modalBody.append(layout)}
-function openModal(key,context){focusBefore=document.activeElement;modalBody.replaceChildren();context==='detail'?showDetail(key):showLog(key);overlay.classList.add('is-open');document.body.style.overflow='hidden';modalClose.focus()}
-function closeModal(){overlay.classList.remove('is-open');document.body.style.overflow='';if(focusBefore&&focusBefore.isConnected)focusBefore.focus()}
-document.querySelectorAll('#discover-posters,#log-posters').forEach(container=>container.addEventListener('click',event=>{const button=event.target.closest('button[data-film]');if(button)openModal(button.dataset.film,button.dataset.context)}));
-modalClose.addEventListener('click',closeModal);
-overlay.addEventListener('click',e=>{if(e.target===overlay)closeModal()});
-document.addEventListener('keydown',event=>{if(!overlay.classList.contains('is-open'))return;if(event.key==='Escape'){closeModal();return}if(event.key==='Tab'){event.preventDefault();modalClose.focus()}});
-function syncLanguage(locale){
- language=['en','es','fr','pt','ko'].includes(locale)?locale:'en';
- for(const button of ratingButtons){
-  const symbol={Loved:'♥',Liked:'♡',Okay:'•','Not for me':'×'}[button.dataset.reaction];
-  button.textContent=symbol+' '+reactions[language][button.dataset.reaction];
- }
- for(const span of document.querySelectorAll('#log-reactions [data-reaction] span')){
-  span.textContent=reactions[language][span.parentElement.dataset.reaction];
- }
- renderSelection();
-}
-document.addEventListener('afterlogue:language-changed',event=>syncLanguage(event.detail.locale));
-document.addEventListener('DOMContentLoaded',()=>syncLanguage(window.AfterlogueLanguage?.current?.()||'en'),{once:true});
-renderSelection();
-</script></body></html>
+</script>
+</body>
+</html>

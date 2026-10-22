@@ -74,7 +74,7 @@ test('Korean remains selected from landing through sign-in and back to English',
  await selector.selectOption('ko');
  await expect(page.locator('html')).toHaveAttribute('lang','ko');
  await expect(page.locator('#welcome-title')).toHaveText('영화가 끝나도, 이야기는 계속됩니다.');
- await expect(page.locator('.welcome-start .welcome-create')).toHaveText('작품 발견 시작하기');
+ await expect(page.locator('.welcome-start .welcome-create')).toHaveText('시작하기 →');
  await expect(page.locator('.welcome-start .welcome-create')).toHaveAttribute('href','log.html?guest=1');
  await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
   status:200,contentType:'application/javascript',body:

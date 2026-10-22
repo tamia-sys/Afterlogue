@@ -35,7 +35,7 @@ test('Language selector loads across all public Afterlogue pages',()=>{
  const pages=['index.html','signup.html','log.html','discover.html','film-details.html','explore.html',
   'my-log.html','discuss.html','discuss-thread.html','discuss-compose.html',
   'member-profile.html','account-settings.html'];
- for(const file of pages)assert.match(read(file),/site-language\.js\?v=(?:2|3|4|5|6)/,file);
+ for(const file of pages)assert.match(read(file),/site-language\.js\?v=(?:2|3|4|5)/,file);
  const source=read('site-language.js');
  for(const code of ['en','es','fr','pt','ko'])assert.ok(source.includes(code));
  assert.match(source,/afterlogue\.ui-language\.v1/);
