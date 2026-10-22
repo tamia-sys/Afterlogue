@@ -60,6 +60,75 @@ test('A member with varied taste sees both animation and live-action across each
  assert.ok(balanced.slice(0,5).some(x=>x.key==='comedy'));
 });
 
+test('Mixed tastes do not become five animations because animation scores are larger',()=>{
+ const entries=[
+  ...Array.from({length:10},(_,i)=>({
+   key:'cartoon-'+i,title:'Cartoon '+i,category:'movies',
+   facets:{genres:['animation','drama']},score:180-i,personalized:true
+  })),
+  {key:'drama',title:'Drama',category:'movies',facets:{genres:['drama']},
+   score:42,personalized:true},
+  {key:'romance',title:'Romance',category:'movies',facets:{genres:['romance']},
+   score:39,personalized:true},
+  {key:'comedy',title:'Comedy',category:'movies',facets:{genres:['comedy']},
+   score:35,personalized:true}
+ ];
+ const log=Array.from({length:12},(_,i)=>({
+   key:'rated-'+i,title:'Rated '+i,category:'movies',
+   facets:{genres:i<3?['animation']:i<6?['drama']:i<9?['comedy']:['romance']}
+ }));
+ const impressions=Object.fromEntries(log.map(x=>[x.key,'Loved']));
+ const picks=Array.from(engine.balanceShelves({
+   entries,profileEntries:log,impressions,category:'movies'
+ })).slice(0,5);
+ assert.ok(picks.filter(x=>engine.storyLane(x)==='animation').length<=2);
+ assert.ok(picks.some(x=>x.key==='drama'));
+ assert.ok(picks.some(x=>x.key==='romance'));
+ assert.ok(picks.every(x=>x.personalized));
+});
+
+test('Diversify recommendation SEED titles before an animation-only pool is retrieved',()=>{
+ const all=[
+  ...Array.from({length:7},(_,i)=>({title:'Animation '+i,
+   rating:'Loved',facets:{genres:['animation']}})),
+  ...Array.from({length:4},(_,i)=>({title:'Live drama '+i,
+   rating:'Loved',facets:{genres:['drama']}})),
+  ...Array.from({length:3},(_,i)=>({title:'Comedy '+i,
+   rating:'Liked',facets:{genres:['comedy']}}))
+ ];
+ const mixed=Array.from(engine.selectSeeds({
+   sources:all,category:'movies',limit:4,rotation:0
+ }));
+ assert.equal(mixed.length,4);
+ assert.ok(mixed.filter(x=>x.startsWith('Animation')).length<=2);
+ assert.ok(mixed.some(x=>x.startsWith('Live drama')));
+ assert.equal(new Set(mixed).size,4);
+ const unknown=Array.from(engine.selectSeeds({
+   sources:all.map(({title,rating})=>({title,rating})),
+   category:'movies',limit:4,rotation:0
+ }));
+ assert.deepEqual(unknown,all.slice(0,4).map(x=>x.title));
+ const fan=all.slice(0,7).concat([
+   {title:'Live drama',rating:'Loved',facets:{genres:['drama']}},
+   {title:'Comedy',rating:'Loved',facets:{genres:['comedy']}},
+   {title:'Another cartoon',rating:'Loved',facets:{genres:['animation']}}
+ ]);
+ const fanSeeds=Array.from(engine.selectSeeds({
+   sources:fan,category:'movies',limit:4,rotation:0
+ }));
+ assert.equal(fanSeeds.filter(x=>x.startsWith('Animation')||x==='Another cartoon').length,4);
+});
+
+test('Home broadens discovery using logged-title genre evidence and expires old shelves',()=>{
+ const home=read('discover.html');
+ assert.match(home,/await Promise\.race\(\[tasteFeaturesPromise/);
+ assert.match(home,/const sourceFeatureMap=new Map\(\)/);
+ assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
+ assert.match(home,/category,limit:4,rotation:/);
+ assert.match(home,/algorithm:"balanced-home-shelves-v2-broad-candidate-seeds"/);
+ assert.match(home,/recommendation-engine\.js\?v=11/);
+});
+
 test('Strong, well-evidenced animation preference is allowed to dominate five selections',()=>{
  const entries=Array.from({length:8},(_,i)=>({
    key:'animated-'+i,title:'Animated '+i,category:'movies',score:100-i,
@@ -104,7 +173,7 @@ test('Home applies balanced shelf selection after personal filtering and invalid
  assert.ok(home.indexOf('const varied=window.AfterlogueRecommendationEngine.balanceShelves(',
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
- assert.match(home,/algorithm:"balanced-home-shelves-v1"/);
+ assert.match(home,/algorithm:"balanced-home-shelves-v2-broad-candidate-seeds"/);
  assert.match(home,/recommendation-engine\.js\?v=10/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
