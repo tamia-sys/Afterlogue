@@ -313,67 +313,153 @@ let trailerLoading=null;
 if(!resolvedTrailerId&&window.AfterlogueFilmArtwork?.resolveTrailer){
  trailerLoading=window.AfterlogueFilmArtwork.resolveTrailer(item.title,item.year,isTV).then(id=>{
   resolvedTrailerId=/^[a-zA-Z0-9_-]{11}$/.test(id||'')?id:null;
+  if(resolvedTrailerId)prepareMutedTrailer();
   return resolvedTrailerId;
  }).catch(()=>null);
 }
 let trailerPreviousFocus=null;
+let trailerTimer=null;
+let trailerPlayerReady=false;
+let trailerPlayerId=null;
+let trailerWantPlayback=false;
+let trailerConfirmedPlaying=false;
 const trailerAutoplayTasks=[];
 function clearTrailerAutoplayTasks(){
  while(trailerAutoplayTasks.length)clearTimeout(trailerAutoplayTasks.pop());
 }
-function nudgeMutedTrailerPlayback(){
- if(trailerModal.hidden||!trailerPlayer.getAttribute('src'))return;
- // Autoplay query is first choice. These YouTube API commands are a fallback
- // if the iframe loaded but the video failed to begin playing muted.
+function trailerEmbedURL(id,autoplay){
+ const embed=new URL('https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id));
+ // Inline muted autoplay is permitted on many mobile browsers, but never
+ // guaranteed. An explicit Watch trailer click remains the primary gesture.
+ for(const [name,value] of Object.entries({
+  autoplay:autoplay?'1':'0',mute:'1',rel:'0',playsinline:'1',
+  enablejsapi:'1',origin:location.origin,controls:'1'
+ }))embed.searchParams.set(name,value);
+ return embed.href;
+}
+function trailerCommand(func){
+ const iframe=trailerPlayer.contentWindow;
+ if(!iframe||!trailerPlayer.getAttribute('src'))return;
  try{
-  const player=trailerPlayer.contentWindow;
-  if(!player)return;
-  for(const command of ['mute','playVideo']){
-   player.postMessage(JSON.stringify({event:'command',func:command,args:[]}),
-     'https://www.youtube-nocookie.com');
-  }
+  iframe.postMessage(JSON.stringify({event:'command',func,args:[]}),
+   'https://www.youtube-nocookie.com');
  }catch(_){}
+}
+function nudgeMutedTrailerPlayback(){
+ if(trailerModal.hidden||!trailerWantPlayback||trailerConfirmedPlaying)return;
+ // If the iframe has already initialized before the visitor clicks, these
+ // commands are issued within that click handler, not after another load.
+ trailerCommand('mute');
+ trailerCommand('playVideo');
+}
+function requestTrailerEvents(){
+ const iframe=trailerPlayer.contentWindow;
+ if(!iframe||!trailerPlayer.getAttribute('src'))return;
+ try{
+  iframe.postMessage(JSON.stringify({event:'listening',id:'film-trailer-player'}),
+   'https://www.youtube-nocookie.com');
+ }catch(_){}
+}
+function scheduleTrailerStarts(){
+ clearTrailerAutoplayTasks();
+ for(const delay of [250,850,1700]){
+  trailerAutoplayTasks.push(setTimeout(nudgeMutedTrailerPlayback,delay));
+ }
+}
+function prepareMutedTrailer(){
+ // Load ONE paused, muted trailer while the user reads film details. When
+ // they press Watch trailer, a ready player can start in that same gesture.
+ if(!resolvedTrailerId||trailerPlayerId===resolvedTrailerId||!trailerModal.hidden)return;
+ trailerPlayerId=resolvedTrailerId;
+ trailerPlayerReady=false;
+ trailerWantPlayback=false;
+ trailerConfirmedPlaying=false;
+ trailerPlayer.src=trailerEmbedURL(resolvedTrailerId,false);
 }
 function closeTrailer(){
  if(trailerModal.hidden)return;
  trailerModal.hidden=true;
+ trailerWantPlayback=false;
+ trailerConfirmedPlaying=false;
  clearTrailerAutoplayTasks();
  if(trailerTimer){clearTimeout(trailerTimer);trailerTimer=null;}
- trailerPlayer.removeAttribute('src'); // Stop video and sound on close.
+ trailerPlayer.removeAttribute('src'); // Stops playback and sound immediately.
+ trailerPlayerId=null;
+ trailerPlayerReady=false;
  document.body.classList.remove('film-trailer-open');
  trailerPreviousFocus?.focus?.();
 }
-let trailerTimer=null;
-trailerPlayer.addEventListener("load",()=>{
- if(trailerModal.hidden)return;
+function trailerPlaybackConfirmed(){
+ trailerConfirmedPlaying=true;
  if(trailerTimer){clearTimeout(trailerTimer);trailerTimer=null;}
- trailerStatus.textContent="The trailer should start muted. If your browser blocks autoplay, tap Play inside the video or open it on YouTube.";
  clearTrailerAutoplayTasks();
- nudgeMutedTrailerPlayback();
- for(const delay of [350,1100])trailerAutoplayTasks.push(setTimeout(nudgeMutedTrailerPlayback,delay));
+ trailerStatus.textContent='Playing muted. Unmute with the player controls if you want sound.';
+}
+window.addEventListener('message',event=>{
+ if(event.source!==trailerPlayer.contentWindow||
+   !['https://www.youtube-nocookie.com','https://www.youtube.com'].includes(event.origin))return;
+ let message;
+ try{message=typeof event.data==='string'?JSON.parse(event.data):event.data;}catch(_){return;}
+ if(!message||typeof message!=='object')return;
+ if(message.event==='onReady'){
+  trailerPlayerReady=true;
+  trailerCommand('mute');
+  if(trailerWantPlayback){
+   nudgeMutedTrailerPlayback();
+   scheduleTrailerStarts();
+  }
+ }
+ if(message.event==='onStateChange'&&Number(message.info)===1||
+    message.event==='infoDelivery'&&Number(message.info?.playerState)===1){
+  if(trailerWantPlayback&&!trailerModal.hidden)trailerPlaybackConfirmed();
+ }
+ if(message.event==='onAutoplayBlocked'&&trailerWantPlayback&&!trailerModal.hidden){
+  clearTrailerAutoplayTasks();
+  if(trailerTimer){clearTimeout(trailerTimer);trailerTimer=null;}
+  trailerStatus.textContent='Your browser blocked automatic playback. Tap Play on the video or watch on YouTube below.';
+ }
+ if(message.event==='onError'&&trailerWantPlayback&&!trailerModal.hidden){
+  clearTrailerAutoplayTasks();
+  if(trailerTimer){clearTimeout(trailerTimer);trailerTimer=null;}
+  trailerStatus.textContent='This trailer cannot play in the embedded player. Open it on YouTube below.';
+ }
+});
+trailerPlayer.addEventListener('load',()=>{
+ if(!trailerPlayerId)return;
+ // iframe load is NOT the same as YouTube's player-ready event. Register
+ // for onReady and onStateChange instead of assuming it has begun playing.
+ requestTrailerEvents();
+ if(trailerWantPlayback&&!trailerModal.hidden){
+  nudgeMutedTrailerPlayback();
+  scheduleTrailerStarts();
+ }
 });
 function playTrailer(id){
  if(trailerModal.hidden)return;
- const url='https://www.youtube.com/watch?v='+encodeURIComponent(id);
- trailerExternal.href=url;
+ trailerExternal.href='https://www.youtube.com/watch?v='+encodeURIComponent(id);
  trailerExternal.textContent='Watch on YouTube ↗';
- trailerStatus.textContent='Loading the player… The YouTube link below is ready now.';
+ trailerStatus.textContent='Starting the trailer…';
+ trailerWantPlayback=true;
+ trailerConfirmedPlaying=false;
  if(trailerTimer)clearTimeout(trailerTimer);
  trailerTimer=setTimeout(()=>{
-  if(!trailerModal.hidden){
-   trailerStatus.textContent='The embedded player is taking too long. Open the trailer on YouTube instead.';
+  if(trailerWantPlayback&&!trailerConfirmedPlaying&&!trailerModal.hidden){
+   trailerStatus.textContent='If the trailer has not started, tap Play in the video or open it on YouTube below.';
   }
- },6500);
- // Watch trailer is a user gesture; browsers generally permit muted inline
- // playback, and the JS API retries after iframe load. Browser restrictions
- // and videos that disallow embedding still require manual play or YouTube.
- clearTrailerAutoplayTasks();
- const embed=new URL('https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id));
- for(const [name,value] of Object.entries({
-  autoplay:'1',mute:'1',rel:'0',playsinline:'1',
-  enablejsapi:'1',origin:location.origin,controls:'1'
- }))embed.searchParams.set(name,value);
- trailerPlayer.src=embed.href;
+ },5000);
+ // Use the preloaded player immediately when it's ready. Otherwise create
+ // a fresh autoplay-enabled iframe and retry after YouTube signals readiness.
+ if(trailerPlayerId!==id||!trailerPlayerReady){
+  // A warmed iframe is only useful once YouTube actually reports ready.
+  // If iOS postponed loading it in the hidden dialog, fall back to a fresh
+  // muted autoplay URL rather than relying on early ignored play commands.
+  trailerPlayerId=id;
+  trailerPlayerReady=false;
+  trailerPlayer.src=trailerEmbedURL(id,true);
+ }else{
+  nudgeMutedTrailerPlayback();
+  scheduleTrailerStarts();
+ }
 }
 trailerLink.href='#film-trailer-modal';
 trailerLink.removeAttribute('target');
@@ -387,8 +473,8 @@ trailerLink.addEventListener('click',async event=>{
  $('film-trailer-heading').textContent=item.title+' — Trailer.';
  trailerExternal.href=resolvedTrailerId?'https://www.youtube.com/watch?v='+resolvedTrailerId:youtubeSearch;
  trailerExternal.textContent=resolvedTrailerId?'Watch on YouTube ↗':'Browse trailers on YouTube ↗';
+ if(resolvedTrailerId){playTrailer(resolvedTrailerId);$('film-trailer-close').focus();return;}
  $('film-trailer-close').focus();
- if(resolvedTrailerId){playTrailer(resolvedTrailerId);return;}
  trailerStatus.textContent='Finding a trailer for this story…';
  if(trailerLoading)await trailerLoading;
  if(trailerModal.hidden)return;
@@ -399,6 +485,8 @@ trailerLink.addEventListener('click',async event=>{
 });
 $('film-trailer-close').addEventListener('click',closeTrailer);
 trailerModal.addEventListener('click',event=>{if(event.target===trailerModal)closeTrailer();});
+// Prewarm only a paused, muted video; clicking Watch trailer starts it.
+prepareMutedTrailer();
 document.addEventListener('keydown',event=>{
  if(trailerModal.hidden)return;
  if(event.key==='Escape'){event.preventDefault();closeTrailer();}
