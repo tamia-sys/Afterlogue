@@ -287,6 +287,93 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
    return {...entry,why,personalized:Boolean(strongest&&why.startsWith("Because you "))};
  });
 }
+// Presentation-level diversity for each five-card shelf. It only reorders
+// already eligible, taste-matched candidates; it never invents a title,
+// overrides a country/language filter, or turns an archive fallback into a
+// personalized match. When the Log strongly favors one form or genre, trust it.
+function storyLane(item){
+ const genres=(item?.facets?.genres||[]).map(value=>String(value).toLowerCase());
+ const has=value=>genres.includes(value);
+ if(has("animation"))return "animation";
+ if(has("documentary"))return "documentary";
+ if(has("horror"))return "horror";
+ if(has("comedy"))return "comedy";
+ if(has("thriller")||has("mystery")||has("crime"))return "suspense";
+ if(has("romance"))return "romance";
+ if(has("science fiction")||has("sci-fi & fantasy")||has("fantasy"))return "speculative";
+ if(has("action")||has("adventure")||has("action & adventure"))return "adventure";
+ if(has("drama"))return "drama";
+ if(has("family"))return "family";
+ return null; // Unknown genre is NOT evidence of a different type of film.
+}
+function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[],
+  category="movies",size=5}={}){
+ const eligible=Array.isArray(entries)?entries:[];
+ const width=Math.max(1,Math.min(10,Math.floor(Number(size)||5)));
+ if(eligible.length<=1)return [...eligible];
+ const sources=new Map();
+ for(const item of profileEntries){
+   if(item?.category!==category||!item.key)continue;
+   sources.set(item.key,item);
+   sources.set(slug(item.title),item);
+ }
+ const positive=new Set();
+ for(const [rawKey,value] of toMap(impressions)){
+   const rating=typeof value==="string"?value:value?.rating;
+   if(rating==="Loved"||rating==="Liked")positive.add(String(rawKey).replace(/^afterlogue-/,""));
+ }
+ for(const item of favorites){
+   const key=String(typeof item==="string"?item:item?.title_key||"").replace(/^afterlogue-/,"");
+   const rating=toMap(impressions).get("afterlogue-"+key)||toMap(impressions).get(key);
+   if(rating!=="Not for me"&&rating!=="Okay")positive.add(key);
+ }
+ const counts=new Map();
+ let known=0;
+ for(const key of positive){
+   const source=sources.get(key)||sources.get(slug(key));
+   if(!source)continue;
+   const lane=storyLane(source);
+   if(!lane)continue;
+   known++;
+   counts.set(lane,(counts.get(lane)||0)+1);
+ }
+ const dominant=known>=5?[...counts].filter(([,count])=>count/known>=.65)
+   .map(([lane])=>lane):[];
+ const remaining=[...eligible],result=[];
+ while(remaining.length){
+   const shelf=[];
+   while(shelf.length<width&&remaining.length){
+     const leader=remaining[0];
+     const laneCounts=new Map();
+     for(const chosen of shelf){
+       const lane=storyLane(chosen);
+       if(lane)laneCounts.set(lane,(laneCounts.get(lane)||0)+1);
+     }
+     const mainLane=storyLane(leader);
+     const cap=dominant.includes(mainLane)?width:2;
+     let nextIndex=0;
+     if(mainLane&&(laneCounts.get(mainLane)||0)>=cap){
+       const minimum=Number.isFinite(leader.score)&&leader.score>0
+         ?Math.max(1,leader.score*.38):0;
+       // Only comparable, qualified suggestions may break a run of one style.
+       // Do not sacrifice relevance merely to fill a diversity quota.
+       const alternative=remaining.findIndex((candidate,index)=>{
+         if(!index||index>65)return false;
+         if(Boolean(candidate.starter)!==Boolean(leader.starter))return false;
+         const lane=storyLane(candidate);
+         if(!lane||lane===mainLane||(
+           (laneCounts.get(lane)||0)>=(dominant.includes(lane)?width:2)))return false;
+         if(minimum&&(!Number.isFinite(candidate.score)||candidate.score<minimum))return false;
+         return true;
+       });
+       if(alternative>=0)nextIndex=alternative;
+     }
+     shelf.push(remaining.splice(nextIndex,1)[0]);
+   }
+   result.push(...shelf);
+ }
+ return result;
+}
 // Keep recent, strongly positive Log titles in the anchor seats, while giving
 // every older positive title a turn as the Log grows. This selects names only:
 // it never fabricates titles, downloads metadata or changes TMDB eligibility.
@@ -309,5 +396,5 @@ function selectSeeds({sources=[],limit=4,rotation=0}={}){
  const rotated=[...remaining.slice(shift),...remaining.slice(0,shift)];
  return [...anchors,...rotated.slice(0,cap-anchors.length)].map(source=>source.title);
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"2.0",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,facets:tags});
+root.AfterlogueRecommendationEngine=Object.freeze({version:"2.1",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
