@@ -155,8 +155,8 @@ test('Explore returns one complete mood selection with no repeated Search furthe
  assert.match(html,/paintMoodPicks\(picks\)/);
  assert.match(html,/Finding stories for your mood/);
  assert.doesNotMatch(html,/Search further ↗/);
- assert.match(backend,/while\(queue\.length&&verified\.length<12\)/);
- assert.match(backend,/const queue=selected\.slice\(0,90\)/);
+ assert.match(backend,/while\(queue\.length&&verified\.length<\(mood==="winding"\?20:12\)\)/);
+ assert.match(backend,/const queue=selected\.slice\(0,mood==="winding"\?55:90\)/);
 });
 test('All Films collects up to 70 actual filtered matches using cursor pagination',()=>{
  const client=read('catalog-browser.js');
