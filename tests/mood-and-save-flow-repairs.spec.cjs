@@ -86,6 +86,9 @@ test('Mobile First Impressions returns to the top when moving to TV',async({page
 });
 
 test('Guest catalog has a save intent helper ready for eventual authenticated save',async({page})=>{
+ await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
+  status:200,contentType:'application/javascript',body:fakeSupabase
+ }));
  await page.goto('explore.html?guest=1');
  const intent=await page.evaluate(()=>{
   const api=window.AfterloguePendingWatchlist;
