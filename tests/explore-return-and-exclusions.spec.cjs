@@ -44,7 +44,7 @@ test('Returning from Log preserves the exact five picks and pace automatically',
 
 test('Already-rated, Watched and Watchlist films are excluded before rendering',async({page})=>{
  const requests=[];
- const fake='window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:"test-user"}}},error:null}),getUser:async()=>({data:{user:{id:"test-user",email:"test@example.com"}},error:null}),signOut:async()=>({error:null})},from:table=>({select:()=>({eq:async()=>({data:table==="watchlist"?[{title_key:"tmdb-movie-8101"}]:table==="impressions"?[{title_key:"tmdb-movie-8102",rating:"Loved"}]:table==="seen_entries"?[{title_key:"tmdb-movie-8103"}]:table==="favorites"?[{title_key:"tmdb-movie-8104"}]:[],error:null})}),insert:async()=>({error:null})})})};';
+ const fake='window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:"test-user"}}},error:null}),getUser:async()=>({data:{user:{id:"test-user",email:"test@example.com"}},error:null}),signOut:async()=>({error:null})},from:table=>({select:()=>({eq:async()=>({data:table==="watchlist"?[{title_key:"tmdb-movie-8101"}]:table==="impressions"?[{title_key:"tmdb-movie-8102",rating:"Loved"}]:table==="seen_entries"?[{title_key:"tmdb-movie-8103"}]:table==="log_entries"?[{title_key:"tmdb-movie-8104"}]:[],error:null})}),insert:async()=>({error:null})})})};';
  await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({
   status:200,contentType:'application/javascript',body:fake
  }));
