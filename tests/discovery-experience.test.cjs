@@ -59,7 +59,7 @@ test('Mood results have independent Watchlist save with existing title metadata'
  assert.match(html,/actions\.append\(save,note\)/);
  assert.match(html,/el\.append\(link,actions,title,year,why\)/);
  assert.doesNotMatch(html,/detail\.textContent="View details";detail\.className="explore-global-detail";actions\.append\(detail\)/);
- assert.match(html,/for\(let attempt=0;attempt<2&&picks\.length<desired;attempt\+\+\)/);
+ assert.match(html,/for\(let attempt=0;attempt<4&&picks\.length<desired;attempt\+\+\)/);
  assert.match(html,/if\(hasPrevious\)\{/);
  assert.doesNotMatch(html,/Try adjusting your filters or mood\./);
 });
