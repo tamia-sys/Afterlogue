@@ -31,7 +31,7 @@ function translateNode(node){
  }
  const replacement=locale==='en'?record.original:translate(record.original);
  if(replacement!==null){
-  const front=record.original.match(/^\\s*/)?.[0]||'';
+  const front=record.original.match(/^\s*/)?.[0]||'';
   const back=record.original.match(/\s*$/)?.[0]||'';
   const output=front+replacement+back;
   if(node.nodeValue!==output)node.nodeValue=output;
