@@ -118,14 +118,20 @@ async function showThree(){
   next.hidden=true;
   return;
  }
- status.textContent='Finding a few stories you saved…';
- await Promise.allSettled(chosen.map(recoverPoster));
- if(current!==version||panel.hidden)return;
+ // Show titles as soon as the Watchlist DB returns. Missing posters can
+ // improve independently; don't block rendering on optional TMDB lookups.
  grid.replaceChildren(...chosen.map(createCard));
  status.textContent=stories.length<3
   ?'Your '+stories.length+' saved '+(stories.length===1?'story':'stories')+', ready when you are.'
   :'Three stories from your Watchlist, picked for a second look.';
  next.hidden=stories.length<=3;
+ chosen.forEach(async (story,index)=>{
+  if(story.poster&&story.title!=='Saved film'&&story.title!=='Saved TV series')return;
+  await recoverPoster(story);
+  if(current!==version||panel.hidden)return;
+  const existing=grid.children[index];
+  if(existing)existing.replaceWith(createCard(story));
+ });
 }
 async function loadWatchlist(){
  clear();
