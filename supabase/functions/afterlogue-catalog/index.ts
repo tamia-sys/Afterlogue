@@ -223,6 +223,29 @@ function narrativeMoodEvidence(mood:string,details:Record<string,unknown>,tag:st
  * Never claim scene-level facts that do not appear in available evidence.
  */
 type MoodAssessment={score:number;reason:string;lane:string;energy:string;fitVersion:string};
+// A Winding Down mood can be playful OR contemplative; "Take your time"
+// specifically asks for the latter. TMDB similarity alone is not pace evidence.
+// Avoid hardcoding a blacklist of particular films and preserve serious/bleak
+// contemplative editorials (e.g. Dogville and A Ghost Story).
+function slowWindingFilmEvidence(
+ film:Record<string,unknown>,tagNames:string[],genreIds:number[],
+ editorialLane:string|null,editorialPace:string|null
+):boolean{
+ if(editorialLane)return editorialLane==="contemplative"&&editorialPace==="slow";
+ // An action, horror, thriller or crime genre is a poor default for patient
+ // observation unless a human-reviewed reference establishes the exception.
+ if(genreIds.some(id=>[27,28,53,80].includes(id)))return false;
+ const drama=genreIds.some(id=>[18,99,36].includes(id));
+ const comedy=genreIds.includes(35);
+ if(comedy&&!drama)return false; // broad party/sex comedies are not "slow cinema"
+ const synopsis=String(film.overview||"");
+ const introspective=/\b(contemplat\w*|meditat\w*|introspect\w*|philosoph\w*|poetic\w*|lyrical|solitude|lonelin\w*|life and death|mortality|grief|mourning|memories|reminisc\w*|passage of time|passing of time|over the years|search for meaning|self.discovery|personal growth|quiet\w*|unhurried|subtle|observ\w*|ordinary life|everyday life|daily life|daily routine|rural life|small moments|coming.of.age|growing up|family life|small.town life|human connection)\b/i;
+ const topic=/\b(slow cinema|meditation|contemplation|slice of life|philosophy|everyday life|human condition|self.discovery|rural life|family life|poetry|character study)\b/i;
+ // Neither a broad genre nor a single "friends" keyword establishes pace.
+ return (drama||genreIds.includes(10749)||genreIds.includes(16))&&
+  (introspective.test(synopsis)||tagNames.some(t=>topic.test(t)));
+}
+
 function moodExperience(
  mood:string,film:Record<string,unknown>,tagNames:string[],
  pace:string,editorialReason:string|null,editorialPace:string|null=null,editorialLane:string|null=null
@@ -1510,6 +1533,13 @@ Deno.serve(async (req:Request) => {
           if(pace==="slow"&&media==="movie"&&windingRef.lane==="contemplative")
             experience.score+=5;
         }
+        // Winding Down's slow choice means patiently observed human moments,
+        // not every comedy/horror vaguely tagged reflective or everyday.
+        // This guard also rejects pleasant-but-brisk editorial references when
+        // the viewer explicitly asks for contemplation.
+        if(mood==="winding"&&media==="movie"&&pace==="slow"&&
+          !slowWindingFilmEvidence(details,tags,detailGenreIds,
+            windingRef?.lane||null,windingRef?.pace||null))return;
         // Reject superficial keyword matches when the experience conflicts:
         // The Ice Storm is not a playful Friday night just because of a party.
         if(experience.score<5)return;
