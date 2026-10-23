@@ -128,6 +128,14 @@ function buildTasteProfile({entries=[],impressions={},favorites=[],timestamps={}
    else liked.set(key,{rating:null,favorite:true});
  }
  const buckets={themes:new Map(),tones:new Map(),genres:new Map(),pace:new Map()};
+ const franchiseCounts=new Map();
+ for(const [key,signal] of liked){
+   if(!["Loved","Liked"].includes(signal.rating))continue;
+   const group=franchiseKey(byKey.get(key));
+   if(group?.startsWith("series:")||group?.startsWith("numbered:")||
+      group?.startsWith("tmdb-collection:"))
+     franchiseCounts.set(group,(franchiseCounts.get(group)||0)+1);
+ }
  const significance={"Loved":2.4,"Liked":1.1,"Okay":0,"Not for me":-2.0};
  let covered=0;
  for(const [key,signal] of liked){
@@ -148,7 +156,9 @@ function buildTasteProfile({entries=[],impressions={},favorites=[],timestamps={}
      if(!values.length)continue;
      supported=true;
      const measure=buckets[dimension];
-     const perTitle=strength*recency/Math.sqrt(values.length);
+     const group=franchiseKey(entry);
+   const franchiseVolume=strength>0?(franchiseCounts.get(group)||1):1;
+   const perTitle=strength*recency/Math.sqrt(values.length*franchiseVolume);
      for(const tag of values){
        const old=measure.get(tag)||{tag,sum:0,positive:0,negative:0,support:0};
        measure.set(tag,{tag,sum:old.sum+perTitle,positive:old.positive+(strength>0?1:0),
@@ -318,6 +328,49 @@ function storyLane(item){
  if(has("drama"))return "drama";
  if(has("family"))return "family";
  return null; // Unknown genre is NOT evidence of a different type of film.
+}
+// A sequel collection is one narrative interest, not eight independent
+// endorsements of an entire genre. Prefer TMDB collection IDs when available;
+// known title stems also cover public recommendation search results that only
+// contain the list-item fields (without expensive per-title detail lookups).
+const familiarFranchises=[
+ "monster high","halloweentown","harry potter","descendants","twilight",
+ "the hunger games","star wars","star trek","the hobbit","the lord of the rings",
+ "the maze runner","maze runner","the divergent series","divergent",
+ "the chronicles of narnia","pirates of the caribbean","toy story",
+ "shrek","kung fu panda","how to train your dragon","home alone",
+ "jurassic park","jurassic world","the conjuring","scream",
+ "final destination","mission impossible","fast and furious","john wick",
+ "the mummy","transformers","ice age","the land before time",
+ "high school musical","camp rock","the princess diaries","step up",
+ "bring it on","american pie","the karate kid"
+];
+function franchiseKey(item){
+ const id=Number(item?.collectionId||item?.collection_id);
+ if(Number.isInteger(id)&&id>0)return "tmdb-collection:"+id;
+ const title=String(typeof item==="string"?item:item?.title||"")
+   .toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+ if(!title)return null;
+ const match=familiarFranchises.find(base=>title===base||title.startsWith(base+" "));
+ if(match)return "series:"+match;
+ const numbered=/^(.{4,}?)\s+(?:part|chapter|volume|episode)?\s*(?:ii|iii|iv|v|vi|vii|[2-9])(?:\s|$)/.exec(title);
+ if(numbered)return "numbered:"+slug(numbered[1]);
+ return "film:"+slug(title);
+}
+function familyAudience(item){
+ const names=(item?.facets?.genres||item?.genres||[])
+   .map(value=>String(value).toLowerCase());
+ return names.includes("family")&&
+  names.some(value=>["family","animation","fantasy","adventure",
+    "comedy","action & adventure"].includes(value));
+}
+function obviousFollowup(item){
+ const title=String(typeof item==="string"?item:item?.title||"")
+   .toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+ if(!title)return false;
+ const known=familiarFranchises.find(base=>title===base||title.startsWith(base+" "));
+ if(known)return title!==known;
+ return /^.{4,}\s+(?:(?:part|chapter|volume|episode)\s*)?(?:ii|iii|iv|v|vi|vii|[2-9])(?:\s|$)/.test(title);
 }
 function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[],
   category="movies",size=5}={}){
