@@ -14,12 +14,14 @@ globalThis.fetch=async urlString=>{
  if(url.pathname==='/3/movie/12')return new Response(JSON.stringify({
   id:12,title:'Gentle Story',adult:false,
   genres:[{name:'Drama'},{name:'Romance'}],
-  keywords:{keywords:[{name:'first love'},{name:'grief'},{name:'independent film'}]}
+  keywords:{keywords:[{name:'first love'},{name:'grief'},{name:'independent film'}]},
+  belongs_to_collection:{id:2048},credits:{crew:[{id:70,job:'Director'},{id:80,job:'Screenplay'}]}
  }));
  if(url.pathname==='/3/tv/20')return new Response(JSON.stringify({
   id:20,name:'Comedic Story',adult:false,
   genres:[{name:'Comedy'}],
-  keywords:{results:[{name:'female friendship'},{name:'dark comedy'}]}
+  keywords:{results:[{name:'female friendship'},{name:'dark comedy'}]},
+  credits:{crew:[{id:90,job:'Director'}]}
  }));
  return new Response(JSON.stringify({status_message:'Not found'}),{status:404});
 };
@@ -44,6 +46,11 @@ test('Public identifiers produce verified genres and keyword-derived, not invent
  assert.deepEqual(series.themes,['friendship']);
  assert.deepEqual(series.tones,['satirical']);
  assert.equal(film.title,'Gentle Story');
+ assert.deepEqual(film.directors,['tmdb-person-70']);
+ assert.deepEqual(film.writers,['tmdb-person-80']);
+ assert.equal(film.collectionId,2048);
+ assert.deepEqual(series.directors,['tmdb-person-90']);
+ assert.equal(series.collectionId,null);
  assert.ok(!JSON.stringify(items).includes('independent film'),
   'Unmapped keywords must not be used to invent an emotional quality');
  assert.deepEqual(requests.sort(),['/3/movie/12','/3/tv/20'].sort());
