@@ -444,7 +444,8 @@ function obviousFollowup(item){
  const known=familiarFranchises.find(base=>title===base||title.startsWith(base+" "));
  if(known)return title!==known;
  return /^.{4,}\s+(?:part|chapter|volume|episode)\s*(?:ii|iii|iv|v|vi|vii|[2-9])(?:\s|$)/.test(title)
-   || /^.{5,}\s+[2-9]$/.test(title); // Catches numbered sequels without a franchise-name list
+   || (/^.{5,}\s+[2-9]$/.test(title)&&
+     (familyAudience(item)||spectacleAdventure(item))); // Genre-supported sequel, not any numbered title
 }
 function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[],
   category="movies",size=5}={}){
