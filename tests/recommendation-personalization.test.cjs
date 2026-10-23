@@ -125,13 +125,13 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  assert.match(home,/const sourceFeatureMap=new Map\(\)/);
  assert.match(home,/const firstMovieSources=movieSourceKeys\.slice\(0,2\)/);
  assert.match(home,/firstMovieSources\.push\(restMovies\[at\]\)/);
- assert.match(home,/if\(category==="movies"&&grouped\.movies\.length>=7\)/);
+ assert.match(home,/if\(category==="movies"&&grouped\.movies\.length>=7&&historical\.length<2\)/);
  assert.match(home,/kind:"direct-breadth"/);
  assert.match(home,/sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
- assert.match(home,/category,limit:4,rotation:/);
- assert.match(home,/algorithm:"watchlist-aware-home-v5"/);
- assert.match(home,/recommendation-engine\.js\?v=14/);
+ assert.match(home,/category,limit:grouped\[category\]\.length>=24\?8:4,/);
+ assert.match(home,/algorithm:"whole-log-discovery-v6"/);
+ assert.match(home,/recommendation-engine\.js\?v=15/);
 });
 
 test('Strong, well-evidenced animation preference is allowed to dominate five selections',()=>{
@@ -178,8 +178,8 @@ test('Home applies balanced shelf selection after personal filtering and invalid
  assert.ok(home.indexOf('const varied=window.AfterlogueRecommendationEngine.balanceShelves(',
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
- assert.match(home,/algorithm:"watchlist-aware-home-v5"/);
- assert.match(home,/recommendation-engine\.js\?v=14/);
+ assert.match(home,/algorithm:"whole-log-discovery-v6"/);
+ assert.match(home,/recommendation-engine\.js\?v=15/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
 
@@ -892,8 +892,8 @@ test('Strong long-term animation enthusiasts remain eligible for animated shelve
 test('Home uses dated Log sources without storing additional private fields',()=>{
  const page=read('discover.html'),logic=read('recommendation-engine.js');
  assert.match(page,/timestamp:impressionDates\[x\.key\]\|\|null/);
- assert.match(page,/algorithm:"watchlist-aware-home-v5"/);
- assert.match(logic,/const historic=dated\.slice\(Math\.floor\(dated\.length\/2\)\)/);
+ assert.match(page,/algorithm:"whole-log-discovery-v6"/);
+ assert.match(logic,/const fractions=\[0,\.5,\.25,\.75,\.125,\.625,\.375,\.875\]/);
  assert.match(logic,/const byLane=new Map\(\),byFranchise=new Set\(\),strong=\[\]/);
 });
 
@@ -985,8 +985,8 @@ test('Home uses shared franchise grouping before ranking and stores known-series
  assert.match(home,/const discoveryFranchise=item=>/);
  assert.match(home,/discoverySeriesHistory\.movies\.has\(discoverySeriesKey\(item\)\)/);
  assert.match(home,/seriesHistory:\{movies:\[/);
- assert.match(home,/watchlist-aware-home-v5/);
- assert.match(home,/recommendation-engine\.js\?v=14/);
+ assert.match(home,/whole-log-discovery-v6/);
+ assert.match(home,/recommendation-engine\.js\?v=15/);
  assert.match(engineSource,/const group=franchiseKey\(byKey\.get\(key\)\)/);
 });
 
@@ -1063,8 +1063,8 @@ test('Home loads saved title metadata and retrieves candidates from Watchlist an
  assert.match(home,/const watchlistSources=/);
  assert.match(home,/kind:"watchlist"/);
  assert.match(home,/match\.signal\.watchlist/);
- assert.match(home,/watchlist-aware-home-v5/);
- assert.match(home,/recommendation-engine\.js\?v=14/);
+ assert.match(home,/whole-log-discovery-v6/);
+ assert.match(home,/recommendation-engine\.js\?v=15/);
 });
 
 test('Two saved sequels do not count as two independent established preferences',()=>{
@@ -1081,4 +1081,76 @@ test('Two saved sequels do not count as two independent established preferences'
  assert.ok(p.interestDimensions.genres.find(x=>x.tag==='fantasy').affinity>0);
  assert.equal(engine.tasteMatch(p,{genres:['fantasy']}).score,0);
  assert.ok(engine.tasteMatch(p,{genres:['drama']}).score>0);
+});
+
+
+test('117 films rated within days still draw from distinct historical sections, not latest fantasy',()=>{
+ const now=Date.UTC(2026,9,22);
+ const liked=[];
+ for(let i=0;i<117;i++){
+   const recentFamily=i<20;
+   const genre=recentFamily?['family','fantasy','adventure']:
+     i<53?['drama']:i<82?['comedy']:['documentary'];
+   liked.push({
+     title:recentFamily?'Harry Potter and the Story '+(i+1):'Independent title '+i,
+     rating:i<35?'Loved':'Liked',facets:{genres:genre},
+     timestamp:new Date(now-Math.floor(i/20)*86400000).toISOString()
+   });
+ }
+ const cohort=Array.from(engine.selectSeeds({sources:liked,limit:8,rotation:4,category:'movies'}));
+ assert.equal(cohort.length,8);
+ assert.equal(new Set(cohort).size,8);
+ assert.ok(cohort.slice(0,4).some(x=>x.startsWith('Independent title ')),
+   'First source request must cover independent historical titles');
+ assert.ok(cohort.slice(4).some(x=>x.startsWith('Independent title ')),
+   'Second source request must cover independent historical titles');
+ assert.ok(cohort.filter(x=>x.startsWith('Harry Potter')).length<=1,
+   'A twenty-film series is one independent source, not twenty');
+ const historical=cohort.filter(x=>x.startsWith('Independent title '));
+ assert.ok(historical.length>=6, 'A long varied Log should not retrieve mostly fantasy');
+});
+
+test('Screenshot reproduction: fantasy, monsters and sequels cannot fill five mixed-taste cards',()=>{
+ const candidate=(key,title,genres,score)=>({key,title,category:'movies',score,
+   facets:{genres,themes:[],tones:[],pace:null},personalized:true,matchMethod:'tmdb_related'});
+ const pool=[
+  candidate('hobbit','The Hobbit: The Desolation of Smaug',['fantasy','adventure'],110),
+  candidate('ghostbusters','Ghostbusters: Frozen Empire',['fantasy','comedy'],108),
+  candidate('love-and-monsters','Love and Monsters',['adventure','science fiction','action'],106),
+  candidate('black-cauldron','The Black Cauldron',['fantasy','family','animation'],104),
+  candidate('monster-family','Monster Family 2',['fantasy','family','animation'],102),
+  candidate('indie-1','Quiet Character Study',['drama'],90),
+  candidate('indie-2','Contemplative Love Story',['romance','drama'],87),
+  candidate('indie-3','Intimate Documentary',['documentary'],84),
+  candidate('indie-4','Human Comedy',['comedy'],81)
+ ];
+ const profile=[
+  ...Array.from({length:10},(_,i)=>candidate('recent-'+i,
+    'Harry Potter and Story '+i,['family','fantasy','adventure'],0)),
+  ...Array.from({length:35},(_,i)=>candidate('older-'+i,
+    'Independent Drama '+i,['drama'],0)),
+  ...Array.from({length:20},(_,i)=>candidate('more-'+i,
+    'International Documentary '+i,['documentary'],0))
+ ];
+ const result=Array.from(engine.balanceShelves({
+   entries:pool,profileEntries:profile,
+   impressions:Object.fromEntries(profile.map(x=>[x.key,'Loved']))
+ })).slice(0,5);
+ assert.equal(result.length,5);
+ assert.ok(result.filter(engine.spectacleAdventure).length<=2,
+   'Hobbit + Ghostbusters + Monsters is one repeated experience on a mixed-taste shelf');
+ assert.ok(result.filter(x=>x.key.startsWith('indie-')).length>=2,
+   'The first shelf must include genuinely different but positively scored stories');
+ assert.equal(engine.obviousFollowup({title:'Monster Family 2',facets:{genres:['family','fantasy']}}),true,
+   'Numbered sequels cannot slip through because the franchise was not hand-listed');
+});
+
+test('All 117 recent Log entries create two four-title TMDB retrieval cohorts',()=>{
+ const page=read('discover.html');
+ assert.match(page,/grouped\[category\]\.length>=24\?8:4/);
+ assert.match(page,/const own=allOwn\.slice\(0,4\),historical=allOwn\.slice\(4,8\)/);
+ assert.match(page,/kind:"direct-history"/);
+ assert.match(page,/historical\.length<2/);
+ assert.match(page,/algorithm:"whole-log-discovery-v6"/);
+ assert.match(page,/recommendation-engine\.js\?v=15/);
 });
