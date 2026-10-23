@@ -1294,3 +1294,18 @@ test('Step 2 opt-in diagnostic does not change recommendations or member data',(
  assert.match(home,/console\.info\("Afterlogue source metadata coverage \(aggregate\)"/);
  assert.match(home,/recommendation-engine\.js\?v=17/);
 });
+
+
+test('Step 3 maps only explicit TMDB keywords to richer thematic evidence',()=>{
+ const fn=read('supabase/functions/afterlogue-catalog/index.ts');
+ assert.match(fn,/"slice of life":"everyday-life"/);
+ assert.match(fn,/"introspection":"self-reflection"/);
+ assert.match(fn,/"deadpan humor":"dry-humor"/);
+ assert.match(fn,/"contemplative":"contemplative"/);
+ assert.match(fn,/"family conflict":"family"/);
+ assert.match(fn,/const themeLookup=\{\.\.\.themeKeywords,\.\.\.extraThemeKeywords\}/);
+ assert.match(fn,/const toneLookup=\{\.\.\.toneKeywords,\.\.\.extraToneKeywords\}/);
+ assert.match(fn,/names\.map\(\(name:string\)=>themeLookup\[name\]\)/);
+ assert.match(fn,/names\.map\(\(name:string\)=>toneLookup\[name\]\)/);
+ assert.doesNotMatch(fn,/genres\.map\([^)]*=>toneLookup/);
+});
