@@ -131,7 +131,7 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/category,limit:4,rotation:/);
  assert.match(home,/algorithm:"franchise-fair-home-v4"/);
- assert.match(home,/recommendation-engine\.js\?v=12/);
+ assert.match(home,/recommendation-engine\.js\?v=13/);
 });
 
 test('Strong, well-evidenced animation preference is allowed to dominate five selections',()=>{
@@ -179,7 +179,7 @@ test('Home applies balanced shelf selection after personal filtering and invalid
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
  assert.match(home,/algorithm:"franchise-fair-home-v4"/);
- assert.match(home,/recommendation-engine\.js\?v=12/);
+ assert.match(home,/recommendation-engine\.js\?v=13/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
 
