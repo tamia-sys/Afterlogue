@@ -133,7 +133,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=16"></script>
+<script src="recommendation-engine.js?v=17"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -1074,7 +1074,7 @@ discoverAgainButton.addEventListener("click", () => {
 // explicitly tagged story themes. The request contains public title IDs only,
 // never private ratings, identities or Log notes. No AI services are called.
 // Data is kept in this page's short-lived, account-bound Home snapshot.
-async function loadTasteFeatures(keys,onBatch=null){
+async function loadTasteFeatures(keys,onBatch=null,onStats=null){
  const unique=[...new Set(keys.filter(key=>/^tmdb-(movie|tv)-[1-9][0-9]{0,9}$/.test(key)))];
  const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
  const batches=[];
@@ -1085,11 +1085,13 @@ async function loadTasteFeatures(keys,onBatch=null){
  if(bounded.length)batches.push(bounded.slice(0,10));
  for(let i=10;i<bounded.length;i+=18)batches.push(bounded.slice(i,i+18));
  const records=[];
- let next=0;
- const deadline=Date.now()+16000;
+ let next=0,attempted=0,successfulBatches=0,failedBatches=0;
+ const started=Date.now();
+ const deadline=started+16000;
  await Promise.all(Array.from({length:Math.min(3,batches.length)},async()=>{
    while(next<batches.length&&Date.now()<deadline){
      const keys=batches[next++];
+     attempted+=keys.length;
      const controller=new AbortController();
      const timeout=setTimeout(()=>controller.abort(),Math.max(1,deadline-Date.now()));
      try{
@@ -1102,12 +1104,106 @@ async function loadTasteFeatures(keys,onBatch=null){
        const data=await response.json();
        const returned=Array.isArray(data.items)?data.items:[];
        records.push(...returned);
+       successfulBatches++;
        if(typeof onBatch==="function")onBatch(returned);
-     }catch(error){console.warn("Taste profile metadata unavailable",error);}
+     }catch(error){
+       failedBatches++;
+       console.warn("Taste profile metadata unavailable",error);
+     }
      finally{clearTimeout(timeout);}
    }
  }));
+ if(typeof onStats==="function")onStats({
+   queued:bounded.length,attempted,successfulBatches,failedBatches,
+   notAttempted:bounded.length-attempted,elapsedMs:Date.now()-started
+ });
  return records;
+}
+// Optional, private-to-the-browser diagnostic. Only appears when the signed-
+// in member explicitly opens Home with ?taste-audit=1. No database writes,
+// analytics tracking, account identifiers, or private notes are involved.
+const tasteAuditRequested=new URLSearchParams(location.search).get("taste-audit")==="1";
+let tasteAuditStarted=false;
+function showTasteAudit(lines){
+ if(!tasteAuditRequested)return;
+ let section=document.getElementById("afterlogue-taste-audit");
+ if(!section){
+   section=document.createElement("section");
+   section.id="afterlogue-taste-audit";
+   section.setAttribute("role","status");
+   section.setAttribute("aria-live","polite");
+   section.style.cssText="margin:20px auto;padding:18px;max-width:800px;"
+     +"border:1px solid #a78c65;border-radius:12px;"
+     +"background:#201f1e;color:#e8d7bb;font:13px/1.65 system-ui,sans-serif;"
+     +"white-space:pre-wrap;overflow-wrap:anywhere";
+   document.querySelector(".discovery-section-header")?.before(section);
+ }
+ section.textContent=lines.join("\n");
+}
+async function runTasteMetadataAudit(){
+ if(!tasteAuditRequested||tasteAuditStarted||isGuestMode)return;
+ tasteAuditStarted=true;
+ showTasteAudit(["AFTERLOGUE / STEP 2 — LOG METADATA AUDIT",
+   "Checking actual TMDB metadata responses from your rated Log...",
+   "This changes no ratings, Watchlist entries, or recommendations."]);
+ const engine=window.AfterlogueRecommendationEngine;
+ if(!engine?.tasteFeatureCoverage||!engine?.planTasteFeatureKeys){
+   showTasteAudit(["Taste audit unavailable. Refresh Home to load the latest version."]);
+   return;
+ }
+ const ratings=Object.entries(savedImpressions).map(([key,rating])=>({
+   key:key.replace(/^afterlogue-/,""),rating
+ }));
+ const positive=ratings.filter(x=>x.rating==="Loved"||x.rating==="Liked");
+ const byMedia=(rows,media)=>rows.map(x=>x.key)
+   .filter(key=>key.startsWith("tmdb-"+media+"-"));
+ const keys=engine.planTasteFeatureKeys({
+   firstMovieKeys:byMedia(positive.slice(0,12),"movie"),
+   firstTvKeys:byMedia(positive.slice(0,12),"tv"),
+   positiveMovieKeys:byMedia(positive,"movie"),
+   positiveTvKeys:byMedia(positive,"tv"),
+   ratedKeys:ratings.map(x=>x.key),
+   favoriteKeys:discoveryFavorites.map(x=>x.title_key),
+   watchlistKeys:discoveryWatchlist.map(x=>x.title_key)
+ });
+ try{
+   let stats={};
+   const records=await loadTasteFeatures(keys,null,results=>{stats=results;});
+   const audit=engine.tasteFeatureCoverage({keys,records,
+     impressions:savedImpressions,watchlist:discoveryWatchlist,
+     requestStats:stats});
+   const row=(label,item)=>label+": "+item.returned+"/"+item.planned
+     +" returned | "+item.genres+" genres | "+item.storyTags
+     +" with themes/tones | "+item.missing+" missing";
+   showTasteAudit([
+     "AFTERLOGUE / STEP 2 — LOG METADATA AUDIT",
+     row("Rated movies",audit.ratedMovies),
+     row("Rated TV",audit.ratedTV),
+     row("Loved or Liked",audit.positive),
+     row("Okay or Not for me",audit.neutralOrNegative),
+     row("Unrated Watchlist",audit.watchlistOnly),
+     "",
+     "All TMDB titles: "+audit.all.returned+"/"+audit.all.planned
+       +" returned; "+audit.all.genreOnly+" genre-only; "
+       +audit.all.storyTags+" with themes/tones.",
+     "Requests: "+audit.requestStats.attempted+"/"+audit.requestStats.queued
+       +" IDs attempted; "+audit.requestStats.successfulBatches
+       +" successful batches; "+audit.requestStats.failedBatches
+       +" failed; "+audit.requestStats.notAttempted+" not attempted.",
+     "Editorial/onboarding ratings: "+audit.editorialRated
+       +" (use separate local catalog metadata).",
+     "",
+     "These are actual responses, not merely queued IDs. Missing metadata "
+       +"may reflect API errors, omitted titles, or the request time budget.",
+     "Count-only report on your screen; no private Log data is uploaded."
+   ]);
+   // Only aggregated counts appear in the dev console. No user IDs or titles.
+   console.info("Afterlogue taste coverage (aggregate)",audit);
+ }catch(error){
+   console.warn("Taste audit unavailable",error);
+   showTasteAudit(["AFTERLOGUE / STEP 2 — LOG METADATA AUDIT",
+     "Metadata audit could not finish. Refresh to try again."]);
+ }
 }
 async function populateExpandedRecommendations(userId){
  discoveryCatalogState.movies="loading";discoveryCatalogState.tv="loading";
@@ -1193,6 +1289,15 @@ async function populateExpandedRecommendations(userId){
  const sourceFeatureMap=new Map();
  const tasteFeaturesPromise=loadTasteFeatures(featureKeys,items=>{
    for(const item of items)sourceFeatureMap.set(item.key,item);
+ },stats=>{
+   // Count verified responses after the request loop; never report queued
+   // titles as successful enrichment or expose a member's private Log.
+   const summary=window.AfterlogueRecommendationEngine.tasteFeatureCoverage({
+     keys:featureKeys,records:[...sourceFeatureMap.values()],
+     impressions:savedImpressions,watchlist:discoveryWatchlist,
+     requestStats:stats
+   });
+   console.info("Afterlogue source metadata coverage (aggregate)",summary);
  });
  // Source metadata is already being fetched for the taste profile. Give
  // its first fast batch a short chance to complete before choosing seeds;
@@ -1551,6 +1656,7 @@ async function loadAccountImpressions() {
 
     // Do not keep the entire Home shelf blank while catalog requests run.
     discoveryReady=true;
+    if(tasteAuditRequested)void runTasteMetadataAudit();
     if(restoreDiscovery(userData.user.id)){
       displayDiscoveryRecommendations(selectedCategory,discoveryPages[selectedCategory]);
       // Preserve the visible five, but refresh any missing media catalog.
