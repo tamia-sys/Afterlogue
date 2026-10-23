@@ -237,7 +237,7 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
    if(strength<=0)continue;
    // Several titles in the same familiar genre do not overwhelm richer theme connections.
    const contribution=signal.weight*Math.min(strength,9);
-   contributions.push({value:contribution,lane:storyLane(source)});
+   contributions.push({value:contribution,lane:storyLane(source),franchise:franchiseKey(source)});
    if(signal.weight>0&&signal.weight>=1.5)matched.push({source,signal,similarity:sim,strength,contribution});
   }
   // Without prior feedback, respect the existing curated ordering.
@@ -248,10 +248,16 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
   // animations because Home displayed animations, 6 similar items must not
   // drown out a long-standing love of live-action / contemplative cinema.
   // Unknown source genres remain independent (never inferred).
-  const byLane=new Map(),strong=[];
+  const byLane=new Map(),byFranchise=new Set(),strong=[];
   for(const item of contributions.filter(x=>x.value>0).sort((a,b)=>b.value-a.value)){
     const key=item.lane||Symbol("unclassified");
     if((byLane.get(key)||0)>=2)continue;
+    const group=item.franchise;
+    if(group&&group.startsWith("series:")&&byFranchise.has(group))continue;
+    if(group&&group.startsWith("tmdb-collection:")&&byFranchise.has(group))continue;
+    if(group&&group.startsWith("numbered:")&&byFranchise.has(group))continue;
+    if(group&&(group.startsWith("series:")||group.startsWith("tmdb-collection:")||
+      group.startsWith("numbered:")))byFranchise.add(group);
     byLane.set(key,(byLane.get(key)||0)+1);
     strong.push(item.value);
     if(strong.length>=6)break;
@@ -317,6 +323,7 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
 function storyLane(item){
  const genres=(item?.facets?.genres||[]).map(value=>String(value).toLowerCase());
  const has=value=>genres.includes(value);
+ if(has("family"))return "family";
  if(has("animation"))return "animation";
  if(has("documentary"))return "documentary";
  if(has("horror"))return "horror";
@@ -405,6 +412,13 @@ function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[
  }
  const dominant=known>=7?[...counts].filter(([,count])=>count/Math.max(known,positive.size)>=.78)
    .map(([lane])=>lane):[];
+ const knownFamily=[...positive].filter(key=>{
+   const source=sources.get(key)||sources.get(slug(key));
+   return source&&familyAudience(source);
+ }).length;
+ const familyDominant=known>=7&&knownFamily/Math.max(known,positive.size)>=.78;
+ const familyCap=familyDominant?width:2;
+ const sequelCap=familyDominant?width:1;
  const remaining=[...eligible],result=[];
  while(remaining.length){
    const shelf=[];
@@ -417,8 +431,15 @@ function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[
      }
      const mainLane=storyLane(leader);
      const cap=dominant.includes(mainLane)?width:2;
+     const familyCount=shelf.filter(familyAudience).length;
+     const sequelCount=shelf.filter(obviousFollowup).length;
+     const franchiseUsed=new Set(shelf.map(franchiseKey));
+     const tooManyFamily=familyAudience(leader)&&familyCount>=familyCap;
+     const tooManySequels=obviousFollowup(leader)&&sequelCount>=sequelCap;
+     const repeatedFranchise=franchiseUsed.has(franchiseKey(leader));
      let nextIndex=0;
-     if(mainLane&&(laneCounts.get(mainLane)||0)>=cap){
+     if(tooManyFamily||tooManySequels||repeatedFranchise||
+       (mainLane&&(laneCounts.get(mainLane)||0)>=cap)){
        // Ranker scores can be highly concentrated even when multiple
        // genuinely related, positively scored genres remain available.
        // Requiring 38% of an animation's score hid most live-action films.
@@ -429,9 +450,13 @@ function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[
        const alternative=remaining.findIndex((candidate,index)=>{
          if(!index||index>220)return false; // Extra source pool can exceed 70 titles.
          if(Boolean(candidate.starter)!==Boolean(leader.starter))return false;
+         if(franchiseUsed.has(franchiseKey(candidate)))return false;
+         if(familyAudience(candidate)&&familyCount>=familyCap)return false;
+         if(obviousFollowup(candidate)&&sequelCount>=sequelCap)return false;
          const lane=storyLane(candidate);
-         if(!lane||lane===mainLane||(
-           (laneCounts.get(lane)||0)>=(dominant.includes(lane)?width:2)))return false;
+         if(!lane)return false;
+         if((laneCounts.get(lane)||0)>=(dominant.includes(lane)?width:2))return false;
+         if(lane===mainLane&&!tooManyFamily&&!tooManySequels&&!repeatedFranchise)return false;
          if(minimum&&(!Number.isFinite(candidate.score)||candidate.score<minimum))return false;
          return true;
        });
@@ -536,5 +561,5 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
  }
  return chosen.map(x=>x.title);
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"2.3",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,facets:tags});
+root.AfterlogueRecommendationEngine=Object.freeze({version:"2.4",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,franchiseKey,familyAudience,obviousFollowup,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
