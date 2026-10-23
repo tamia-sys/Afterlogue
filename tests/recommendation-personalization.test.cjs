@@ -131,7 +131,7 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/category,limit:grouped\[category\]\.length>=24\?8:4,/);
  assert.match(home,/algorithm:"log-first-metadata-v7"/);
- assert.match(home,/recommendation-engine\.js\?v=16/);
+ assert.match(home,/recommendation-engine\.js\?v=17/);
 });
 
 test('Strong, well-evidenced animation preference is allowed to dominate five selections',()=>{
@@ -179,7 +179,7 @@ test('Home applies balanced shelf selection after personal filtering and invalid
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
  assert.match(home,/algorithm:"log-first-metadata-v7"/);
- assert.match(home,/recommendation-engine\.js\?v=16/);
+ assert.match(home,/recommendation-engine\.js\?v=17/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
 
@@ -986,7 +986,7 @@ test('Home uses shared franchise grouping before ranking and stores known-series
  assert.match(home,/discoverySeriesHistory\.movies\.has\(discoverySeriesKey\(item\)\)/);
  assert.match(home,/seriesHistory:\{movies:\[/);
  assert.match(home,/log-first-metadata-v7/);
- assert.match(home,/recommendation-engine\.js\?v=16/);
+ assert.match(home,/recommendation-engine\.js\?v=17/);
  assert.match(engineSource,/const group=franchiseKey\(byKey\.get\(key\)\)/);
 });
 
@@ -1064,7 +1064,7 @@ test('Home loads saved title metadata and retrieves candidates from Watchlist an
  assert.match(home,/kind:"watchlist"/);
  assert.match(home,/match\.signal\.watchlist/);
  assert.match(home,/log-first-metadata-v7/);
- assert.match(home,/recommendation-engine\.js\?v=16/);
+ assert.match(home,/recommendation-engine\.js\?v=17/);
 });
 
 test('Two saved sequels do not count as two independent established preferences',()=>{
@@ -1152,7 +1152,7 @@ test('All 117 recent Log entries create two four-title TMDB retrieval cohorts',(
  assert.match(page,/kind:"direct-history"/);
  assert.match(page,/historical\.length<2/);
  assert.match(page,/algorithm:"log-first-metadata-v7"/);
- assert.match(page,/recommendation-engine\.js\?v=16/);
+ assert.match(page,/recommendation-engine\.js\?v=17/);
 });
 
 
@@ -1220,6 +1220,77 @@ test('Home prioritizes the full rated Log before Watchlist within bounded public
  assert.match(home,/const deadline=Date\.now\(\)\+16000/);
  assert.match(home,/Math\.min\(3,batches\.length\)/);
  assert.match(home,/algorithm:"log-first-metadata-v7"/);
- assert.match(home,/recommendation-engine\.js\?v=16/);
+ assert.match(home,/recommendation-engine\.js\?v=17/);
  assert.doesNotMatch(home,/unique\.slice\(0,108\)/);
+});
+
+
+test('Step 2 counts returned metadata, meaningful tags, and missing coverage honestly',()=>{
+ const keys=['tmdb-movie-100','tmdb-movie-101','tmdb-tv-102',
+   'tmdb-movie-103','tmdb-tv-104','tmdb-movie-105'];
+ const data=[
+  {key:'tmdb-movie-100',genres:['drama'],themes:['family'],tones:[]},
+  {key:'tmdb-movie-101',genres:['fantasy'],themes:[],tones:[]},
+  {key:'tmdb-tv-102',genres:['comedy'],themes:[],tones:['satirical']},
+  {key:'tmdb-movie-103',genres:[],themes:[],tones:[]},
+  {key:'tmdb-movie-105',genres:['romance'],themes:[],tones:[]}
+ ];
+ const audit=engine.tasteFeatureCoverage({keys,records:data,
+   impressions:{
+    'afterlogue-tmdb-movie-100':'Loved',
+    'afterlogue-tmdb-movie-101':'Liked',
+    'afterlogue-tmdb-tv-102':'Okay',
+    'afterlogue-tmdb-movie-103':'Not for me',
+    'afterlogue-before-sunrise':'Loved'
+   },
+   watchlist:[{title_key:'tmdb-tv-104'},{title_key:'tmdb-movie-105'},
+     {title_key:'tmdb-movie-100'}],
+   requestStats:{queued:6,attempted:5,successfulBatches:1,failedBatches:1,
+     notAttempted:1,elapsedMs:14000}
+ });
+ assert.deepEqual(audit.all,{planned:6,returned:5,genres:4,themes:1,
+   tones:1,storyTags:2,genreOnly:2,empty:1,missing:1});
+ assert.equal(audit.ratedMovies.planned,3);
+ assert.equal(audit.ratedMovies.returned,3);
+ assert.equal(audit.ratedTV.storyTags,1);
+ assert.equal(audit.positive.storyTags,1);
+ assert.equal(audit.neutralOrNegative.empty,1);
+ assert.equal(audit.watchlistOnly.planned,2);
+ assert.equal(audit.watchlistOnly.returned,1);
+ assert.equal(audit.editorialRated,1);
+ assert.deepEqual(audit.requestStats,{queued:6,attempted:5,
+   successfulBatches:1,failedBatches:1,notAttempted:1,elapsedMs:14000});
+});
+
+test('Step 2 does not count queued keys as metadata successfully received',()=>{
+ const keys=Array.from({length:136},(_,i)=>
+   'tmdb-'+(i<106?'movie':'tv')+'-'+(50000+i));
+ const rows=keys.slice(0,38).map(key=>({key,genres:['drama'],
+   themes:[],tones:[]}));
+ const report=engine.tasteFeatureCoverage({keys,records:rows,
+   impressions:Object.fromEntries(keys.map(key=>['afterlogue-'+key,'Loved'])),
+   requestStats:{queued:136,attempted:90,successfulBatches:5,
+     failedBatches:1,notAttempted:46}});
+ assert.equal(report.all.planned,136);
+ assert.equal(report.all.returned,38);
+ assert.equal(report.all.missing,98);
+ assert.equal(report.all.storyTags,0);
+ assert.equal(report.all.genreOnly,38);
+ assert.equal(report.ratedMovies.returned,38);
+ assert.equal(report.ratedTV.returned,0);
+ assert.equal(report.requestStats.notAttempted,46);
+});
+
+test('Step 2 opt-in diagnostic does not change recommendations or member data',()=>{
+ const home=read('discover.html');
+ assert.match(home,/tasteAuditRequested=new URLSearchParams\(location\.search\)/);
+ assert.match(home,/tasteFeatureCoverage\(\{keys,records,/);
+ assert.match(home,/if\(tasteAuditRequested\)void runTasteMetadataAudit\(\)/);
+ assert.match(home,/function showTasteAudit\(lines\)/);
+ assert.match(home,/onStats\(\{/);
+ assert.match(home,/notAttempted:bounded\.length-attempted/);
+ assert.match(home,/successfulBatches\+\+/);
+ assert.match(home,/failedBatches\+\+/);
+ assert.match(home,/console\.info\("Afterlogue source metadata coverage \(aggregate\)"/);
+ assert.match(home,/recommendation-engine\.js\?v=17/);
 });
