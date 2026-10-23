@@ -113,7 +113,9 @@ test('Known franchise parts do not dominate a mixed five-card shelf',()=>{
    collectionId:43210,position:i})),
   film('another-drama',{genres:['drama'],themes:['family'],tones:['intimate'],position:7}),
   film('another-comedy',{genres:['comedy'],themes:['friendship'],tones:['funny'],position:8}),
-  film('second-scifi',{genres:['science fiction'],themes:['identity'],tones:['reflective'],position:9})
+  film('second-scifi',{genres:['science fiction'],themes:['identity'],tones:['reflective'],position:9}),
+  film('third-drama',{genres:['drama'],themes:['family'],tones:['intimate'],position:10}),
+  film('third-comedy',{genres:['comedy'],themes:['friendship'],tones:['funny'],position:11})
  ];
  const {shelf}=evaluate({sources,choices,ratings:{
   'sci-fi-loved':'Loved','drama-loved':'Loved','comedy-loved':'Loved'}});
