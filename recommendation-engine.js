@@ -746,5 +746,61 @@ function planTasteFeatureKeys({
  include(watchlistKeys);
  return output;
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"2.7",normalizeEntries,planTasteFeatureKeys,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,franchiseKey,familyAudience,spectacleAdventure,obviousFollowup,facets:tags});
+// Diagnose *returned* public metadata, never merely IDs placed into a queue.
+// Counts only: no member ID, ratings, private notes, or movie lists leave the
+// client through this helper. Editorial titles are measured separately.
+function tasteFeatureCoverage({keys=[],records=[],impressions={},watchlist=[],
+  requestStats={}}={}){
+ const isTmdb=key=>/^tmdb-(movie|tv)-[1-9][0-9]{0,9}$/.test(key);
+ const clean=key=>String(key||"").replace(/^afterlogue-/,"");
+ const scheduled=[...new Set(keys.map(clean).filter(isTmdb))];
+ const available=new Map((records||[]).filter(x=>x&&isTmdb(x.key))
+   .map(x=>[x.key,x]));
+ const ratings=new Map(toMap(impressions));
+ const rated=new Map([...ratings].map(([key,value])=>[
+   clean(key),typeof value==="string"?value:value?.rating
+ ]).filter(([,rating])=>["Loved","Liked","Okay","Not for me"].includes(rating)));
+ const saved=new Set((watchlist||[]).map(value=>
+   clean(typeof value==="string"?value:value?.title_key||value?.key)));
+ const summarize=filter=>{
+   const group=scheduled.filter(filter);
+   const report={planned:group.length,returned:0,genres:0,themes:0,tones:0,
+     storyTags:0,genreOnly:0,empty:0,missing:0};
+   for(const key of group){
+     const row=available.get(key);
+     if(!row){report.missing++;continue;}
+     report.returned++;
+     const genres=Array.isArray(row.genres)&&row.genres.some(Boolean);
+     const themes=Array.isArray(row.themes)&&row.themes.some(Boolean);
+     const tones=Array.isArray(row.tones)&&row.tones.some(Boolean);
+     if(genres)report.genres++;
+     if(themes)report.themes++;
+     if(tones)report.tones++;
+     if(themes||tones)report.storyTags++;
+     if(genres&&!themes&&!tones)report.genreOnly++;
+     if(!genres&&!themes&&!tones)report.empty++;
+   }
+   return report;
+ };
+ const positive=new Set([...rated].filter(([,v])=>v==="Loved"||v==="Liked").map(([k])=>k));
+ const otherRated=new Set([...rated].filter(([,v])=>v==="Okay"||v==="Not for me").map(([k])=>k));
+ return {
+   all:summarize(()=>true),
+   ratedMovies:summarize(key=>key.startsWith("tmdb-movie-")&&rated.has(key)),
+   ratedTV:summarize(key=>key.startsWith("tmdb-tv-")&&rated.has(key)),
+   positive:summarize(key=>positive.has(key)),
+   neutralOrNegative:summarize(key=>otherRated.has(key)),
+   watchlistOnly:summarize(key=>saved.has(key)&&!rated.has(key)),
+   editorialRated:[...rated.keys()].filter(key=>!isTmdb(key)).length,
+   requestStats:{
+     queued:Number(requestStats.queued)||scheduled.length,
+     attempted:Number(requestStats.attempted)||0,
+     successfulBatches:Number(requestStats.successfulBatches)||0,
+     failedBatches:Number(requestStats.failedBatches)||0,
+     notAttempted:Number(requestStats.notAttempted)||0,
+     elapsedMs:Number(requestStats.elapsedMs)||0
+   }
+ };
+}
+root.AfterlogueRecommendationEngine=Object.freeze({version:"2.8",normalizeEntries,planTasteFeatureKeys,tasteFeatureCoverage,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,franchiseKey,familyAudience,spectacleAdventure,obviousFollowup,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
