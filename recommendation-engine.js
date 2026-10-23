@@ -135,7 +135,7 @@ function buildTasteProfile({entries=[],impressions={},favorites=[],timestamps={}
    const date=Date.parse(timestamps[key]||timestamps["afterlogue-"+key]||"");
    const age=Number.isFinite(date)?Math.max(0,(now-date)/86400000):0;
    // Older tastes remain part of the profile but recent choices weigh more.
-   const recency=Number.isFinite(date)?.7+.3*Math.exp(-age/730):1;
+   const recency=Number.isFinite(date)?.85+.15*Math.exp(-age/730):1;
    let strength=(significance[signal.rating]||0);
    if(signal.favorite&&strength>=0)strength+=.75;
    if(!strength)continue;
@@ -163,7 +163,7 @@ function buildTasteProfile({entries=[],impressions={},favorites=[],timestamps={}
      ...item,
      // Diminishing returns prevent 25 broad dramas from drowning out an
      // equally meaningful but smaller preference for contemplative films.
-     affinity:Math.max(-3,Math.min(3,item.sum/Math.sqrt(1+item.support)))
+     affinity:Math.max(-2.6,Math.min(2.6,item.sum/(1+item.support)))
    })).sort((a,b)=>Math.abs(b.affinity)-Math.abs(a.affinity));
  }
  return {version:2,logSignals:liked.size,covered,dimensions};
@@ -227,16 +227,29 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
    if(strength<=0)continue;
    // Several titles in the same familiar genre do not overwhelm richer theme connections.
    const contribution=signal.weight*Math.min(strength,9);
-   contributions.push(contribution);
+   contributions.push({value:contribution,lane:storyLane(source)});
    if(signal.weight>0&&signal.weight>=1.5)matched.push({source,signal,similarity:sim,strength,contribution});
   }
   // Without prior feedback, respect the existing curated ordering.
   const coldStart=signals.size===0?Math.max(0,4-entry.position*.08):0;
   // Cap individual-title influence; use the whole Log's dimensions for
   // coherent long-term taste without popularity/volume takeover.
-  const strong=contributions.filter(x=>x>0).sort((a,b)=>b-a).slice(0,6);
-  const adverse=contributions.filter(x=>x<0).sort((a,b)=>a-b).slice(0,3);
-  const directScore=[...strong,...adverse].reduce((sum,value)=>sum+value,0);
+  // Cap correlated evidence from the same category. If someone logs 12
+  // animations because Home displayed animations, 6 similar items must not
+  // drown out a long-standing love of live-action / contemplative cinema.
+  // Unknown source genres remain independent (never inferred).
+  const byLane=new Map(),strong=[];
+  for(const item of contributions.filter(x=>x.value>0).sort((a,b)=>b.value-a.value)){
+    const key=item.lane||Symbol("unclassified");
+    if((byLane.get(key)||0)>=2)continue;
+    byLane.set(key,(byLane.get(key)||0)+1);
+    strong.push(item.value);
+    if(strong.length>=6)break;
+  }
+  const adverse=contributions.filter(x=>x.value<0)
+    .sort((a,b)=>a.value-b.value).slice(0,3);
+  const directScore=strong.reduce((sum,value)=>sum+value,0)+
+    adverse.reduce((sum,item)=>sum+item.value,0);
   const preference=tasteMatch(profile,entry.facets);
   const score=directScore+preference.score*2;
   return {...entry,score:score+coldStart,preference,
@@ -390,10 +403,56 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
    if(!id||unique.has(id))return [];
    unique.add(id);
    const strength=source.rating==="Loved"?3:source.rating==="Liked"?2:1;
-   return [{title,strength,index,facets:source.facets||{}}];
+   const timestamp=Date.parse(String(source.timestamp||source.updatedAt||""));
+   return [{title,strength,index,facets:source.facets||{},
+     timestamp:Number.isFinite(timestamp)?timestamp:null}];
  }).sort((a,b)=>b.strength-a.strength||a.index-b.index);
  if(ranked.length<=cap)return ranked.map(source=>source.title);
  const shift=Math.abs(Math.floor(Number(rotation)||0))%ranked.length;
+ // With actual dated Log evidence, use both recent and historical viewing.
+ // The recent two Loved titles should not permanently occupy half of the
+ // TMDB retrieval seeds when the older half describes a different taste.
+ const dated=ranked.filter(source=>source.timestamp!==null)
+   .sort((a,b)=>b.timestamp-a.timestamp);
+ if(dated.length>=6&&dated[0].timestamp-dated.at(-1).timestamp>=14*86400000){
+   const newest=dated.slice(0,Math.max(1,Math.ceil(dated.length/3)));
+   const historic=dated.slice(Math.floor(dated.length/2));
+   const middle=dated.slice(Math.ceil(dated.length/3),Math.floor(dated.length/2));
+   const chosen=[];
+   const choose=pool=>{
+     const remaining=pool.filter(item=>!chosen.includes(item));
+     if(!remaining.length)return;
+     const rotated=[...remaining.slice(shift%remaining.length),
+       ...remaining.slice(0,shift%remaining.length)];
+     const laneCounts=new Map();
+     chosen.forEach(item=>{
+       const lane=storyLane(item);
+       if(lane)laneCounts.set(lane,(laneCounts.get(lane)||0)+1);
+     });
+     const available=rotated.filter(item=>{
+       const lane=storyLane(item);
+       return !lane||(laneCounts.get(lane)||0)<2;
+     });
+     // Prefer a different evidenced film form, without declaring unknown
+     // metadata to be proof of diversity or discarding an eligible title.
+     const poolToUse=available.length?available:rotated;
+     const distinct=poolToUse.find(item=>{
+       const lane=storyLane(item);
+       return lane&&!(laneCounts.get(lane)||0);
+     });
+     chosen.push(distinct||poolToUse[0]);
+   };
+   choose(newest);choose(historic);choose(middle);
+   // The remaining slot rotates throughout the *entire* positive Log.
+   const byRotation=[...ranked.slice(shift),...ranked.slice(0,shift)];
+   while(chosen.length<cap){
+     const before=chosen.length;
+     choose(byRotation);
+     if(chosen.length===before)break;
+   }
+   return chosen.map(item=>item.title);
+ }
+
  const pickPool=ranked.slice(0,Math.min(2,cap));
  const remaining=ranked.slice(pickPool.length);
  const turn=remaining.length?shift%remaining.length:0;
@@ -424,5 +483,5 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
  }
  return chosen.map(x=>x.title);
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"2.2",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,facets:tags});
+root.AfterlogueRecommendationEngine=Object.freeze({version:"2.3",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
