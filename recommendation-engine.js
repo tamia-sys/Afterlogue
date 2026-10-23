@@ -360,7 +360,10 @@ function franchiseKey(item){
  if(!title)return null;
  const match=familiarFranchises.find(base=>title===base||title.startsWith(base+" "));
  if(match)return "series:"+match;
- const numbered=/^(.{4,}?)\s+(?:part|chapter|volume|episode)?\s*(?:ii|iii|iv|v|vi|vii|[2-9])(?:\s|$)/.exec(title);
+ // Never infer a franchise from a bare trailing number. Titles such as
+ // "Story 2" may be independent, and guessing caused unrelated films to
+ // collapse. Explicit "Part II" is a meaningful sequel marker.
+ const numbered=/^(.{4,}?)\s+(?:part|chapter|volume|episode)\s*(?:ii|iii|iv|v|vi|vii|[2-9])(?:\s|$)/.exec(title);
  if(numbered)return "numbered:"+slug(numbered[1]);
  return "film:"+slug(title);
 }
@@ -377,7 +380,7 @@ function obviousFollowup(item){
  if(!title)return false;
  const known=familiarFranchises.find(base=>title===base||title.startsWith(base+" "));
  if(known)return title!==known;
- return /^.{4,}\s+(?:(?:part|chapter|volume|episode)\s*)?(?:ii|iii|iv|v|vi|vii|[2-9])(?:\s|$)/.test(title);
+ return /^.{4,}\s+(?:part|chapter|volume|episode)\s*(?:ii|iii|iv|v|vi|vii|[2-9])(?:\s|$)/.test(title);
 }
 function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[],
   category="movies",size=5}={}){
