@@ -133,7 +133,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=17"></script>
+<script src="recommendation-engine.js?v=18"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -938,7 +938,7 @@ function discoveryFingerprint(){
   seen:[...discoverySeen].sort(),
   // A growing Log should not be permanently restricted to its first few seeds.
   seedDay:Math.floor(Date.now()/86400000),
-  algorithm:"log-first-metadata-v7",
+  algorithm:"verified-cinematic-v8",
   country:discoveryPreferences.country||"",
   language:discoveryPreferences.originalLanguage||""
  });
@@ -1497,7 +1497,8 @@ async function populateExpandedRecommendations(userId){
      if(!data)return entry;
      return {...entry,collectionId:data.collectionId||null,facets:{
        genres:data.genres||entry.facets.genres||[],
-       themes:data.themes||[],tones:data.tones||[],pace:null
+       themes:data.themes||[],tones:data.tones||[],pace:null,
+       directors:data.directors||[],writers:data.writers||[]
      }};
    });
    const byKey=new Map(features.map(item=>[item.key,item]));
@@ -1507,7 +1508,8 @@ async function populateExpandedRecommendations(userId){
      if(!details)return item;
      return {...item,collectionId:details.collectionId||null,facets:{
        themes:details.themes||[],tones:details.tones||[],
-       genres:details.genres||[],pace:null
+       genres:details.genres||[],pace:null,
+       directors:details.directors||[],writers:details.writers||[]
      }};
    });
    // Legacy Log titles may have ratings but no user_catalog_titles row.
