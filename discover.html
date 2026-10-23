@@ -133,7 +133,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=12"></script>
+<script src="recommendation-engine.js?v=13"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -483,18 +483,18 @@ const discoveryEntries=window.AfterlogueRecommendationEngine?.normalizeEntries(
   window.AfterlogueFilmDetails||{},
   window.AfterlogueFilmBasics||{}
 )||[];
-// Five distinct stories, not a five-part franchise shelf.
-const discoverySeriesPrefixes=[
- "the hunger games","harry potter","star wars","the lord of the rings",
- "the hobbit","twilight","toy story","home alone","scream","the conjuring",
- "fast and furious","mission impossible","jurassic park","jurassic world",
- "pirates of the caribbean","maze runner","divergent","john wick",
- "kung fu panda","the chronicles of narnia"
-];
-function discoveryFranchise(title){
- const normalized=String(title||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
- return discoverySeriesPrefixes.find(prefix=>normalized.startsWith(prefix))||"single:"+normalized;
-}
+// Use provider collection IDs when available, and conservative public-title
+// series stems otherwise. The recommendation engine owns this classification
+// for both candidate retrieval and five-card diversity.
+const discoveryFranchise=item=>
+ window.AfterlogueRecommendationEngine?.franchiseKey(item)||null;
+const discoverySeriesKey=item=>{
+ const key=discoveryFranchise(item);
+ return key&&!key.startsWith("film:")?key:null;
+};
+// Only named franchises persist across five-card shelves. Independent films
+// remain eligible when another legitimately different title is recommended.
+const discoverySeriesHistory={movies:new Set(),tv:new Set()};
 function isSeasonalDiscovery(item){
  const text=String(item?.title||"")+" "+String(item?.synopsis||"");
  return /\b(christmas|xmas|santa|north pole|reindeer|holiday season|christmas eve|yule|noelle)\b/i.test(text);
@@ -505,7 +505,7 @@ function diversifyDiscoverResults(entries,category){
    (rating==="Loved"||rating==="Liked")&&isSeasonalDiscovery({title:key.replace(/-/g," ")}));
  let holidayCount=0;
  for(const entry of entries){
-   const franchise=category==="movies"?discoveryFranchise(entry.title):"tv:"+entry.title.toLowerCase();
+   const franchise=category==="movies"?discoveryFranchise(entry):"tv:"+entry.title.toLowerCase();
    if(franchises.has(franchise))continue;
    if(picked.length%5===0)holidayCount=0;
    const holiday=isSeasonalDiscovery(entry);
@@ -516,7 +516,12 @@ function diversifyDiscoverResults(entries,category){
  return picked;
 }
 function getDiscoveryRecommendations(category, page = 0, omit = null) {
- const eligible=item=>!discoveryDismissed.has(discoveryItemKey(item))&&!(omit?.has(discoveryItemKey(item)));
+ const eligible=item=>!discoveryDismissed.has(discoveryItemKey(item))&&
+   !(omit?.has(discoveryItemKey(item)))&&
+   // A user already shown Monster High should not receive Monster High 2
+   // on the next shelf even though the TMDB movie IDs are different.
+   !(category==="movies"&&discoverySeriesKey(item)&&
+     discoverySeriesHistory.movies.has(discoverySeriesKey(item)));
   if(!window.AfterlogueRecommendationEngine)return [];
   // No one gets curated filler just to make a row contain five titles.
   const hasPositive=Object.values(savedImpressions).some(v=>v==="Loved"||v==="Liked")
@@ -610,7 +615,11 @@ function displayDiscoveryRecommendations(category, page = 0, chosen = null) {
     .filter(item=>!discoveryDismissed.has(discoveryItemKey(item)));
   if(selected.length&&discoveryCatalogState[category]!=="loading"){
    discoveryCurrent[category]=selected;
-   selected.forEach(item=>discoveryHistory[category].add(discoveryItemKey(item)));
+   selected.forEach(item=>{
+     discoveryHistory[category].add(discoveryItemKey(item));
+     const group=discoverySeriesKey(item);
+     if(category==="movies"&&group)discoverySeriesHistory.movies.add(group);
+   });
   }
   if(selected.length===5)rememberDiscoveryReturn();
   const priorCards=container.querySelectorAll(".discovery-card").length;
@@ -856,7 +865,9 @@ function rememberDiscoveryReturn(){
   fingerprint:discoveryFingerprint(),category:selectedCategory,
   pages:{...discoveryPages},shelves,
   history:{movies:[...discoveryHistory.movies].slice(-400),
-    tv:[...discoveryHistory.tv].slice(-400)}
+    tv:[...discoveryHistory.tv].slice(-400)},
+  seriesHistory:{movies:[...discoverySeriesHistory.movies].slice(-250),
+    tv:[...discoverySeriesHistory.tv].slice(-250)}
  };
  try{sessionStorage.setItem(discoveryReturnKey(discoveryCacheOwner),JSON.stringify(record));}
  catch(error){console.warn("Home return snapshot unavailable",error);}
@@ -877,10 +888,20 @@ function restoreDiscoveryReturn(owner){
  // History survives *taste changes*, even when the current five no longer
  // qualify. Otherwise a Watchlist addition would replay the previous pages.
  for(const record of records){
-  for(const media of ["movies","tv"])
+  for(const media of ["movies","tv"]){
    for(const key of record.history?.[media]||[]){
     if(typeof key==="string"&&key.length<160)discoveryHistory[media].add(key);
    }
+   for(const group of record.seriesHistory?.[media]||[]){
+    if(typeof group==="string"&&group.length<160&&
+       !group.startsWith("film:"))discoverySeriesHistory[media].add(group);
+   }
+   // Migrate known franchises from older current five-card records.
+   for(const item of record.shelves?.[media]||[]){
+    const group=discoverySeriesKey(item);
+    if(group)discoverySeriesHistory[media].add(group);
+   }
+  }
  }
  const matching=records.find(record=>
    Date.now()-record.savedAt<discoveryReturnLifetime&&
@@ -917,7 +938,7 @@ function discoveryFingerprint(){
   seen:[...discoverySeen].sort(),
   // A growing Log should not be permanently restricted to its first few seeds.
   seedDay:Math.floor(Date.now()/86400000),
-  algorithm:"whole-log-balanced-v3-era-stratified",
+  algorithm:"franchise-fair-home-v4",
   country:discoveryPreferences.country||"",
   language:discoveryPreferences.originalLanguage||""
  });
@@ -932,6 +953,8 @@ function rememberDiscovery(){
    sources:discoverySourceEntries,pages:discoveryPages,category:selectedCategory,
    shelves:discoveryCurrent,history:{
      movies:[...discoveryHistory.movies],tv:[...discoveryHistory.tv]
+   },seriesHistory:{
+     movies:[...discoverySeriesHistory.movies],tv:[...discoverySeriesHistory.tv]
    }
   }));
  }catch(error){console.warn("Discovery snapshot unavailable",error);}
@@ -955,6 +978,12 @@ function restoreDiscovery(owner){
    discoveryHistory[media]=new Set([...discoveryHistory[media],
      ...(Array.isArray(snapshot.history?.[media])
        ?snapshot.history[media].filter(k=>typeof k==="string"):[])]);
+  }
+  for(const media of ["movies","tv"]){
+   for(const group of snapshot.seriesHistory?.[media]||[]){
+     if(typeof group==="string"&&group.length<160&&
+       !group.startsWith("film:"))discoverySeriesHistory[media].add(group);
+   }
   }
   for(const media of ["movies","tv"]){
    discoveryCatalogState[media]="ready";
@@ -1326,7 +1355,7 @@ async function populateExpandedRecommendations(userId){
    entries=entries.map(entry=>{
      const data=candidateFacets.get(entry.key);
      if(!data)return entry;
-     return {...entry,facets:{
+     return {...entry,collectionId:data.collectionId||null,facets:{
        genres:data.genres||entry.facets.genres||[],
        themes:data.themes||[],tones:data.tones||[],pace:null
      }};
@@ -1336,7 +1365,7 @@ async function populateExpandedRecommendations(userId){
    discoverySourceEntries=discoverySourceEntries.map(item=>{
      const details=byKey.get(item.key);
      if(!details)return item;
-     return {...item,facets:{
+     return {...item,collectionId:details.collectionId||null,facets:{
        themes:details.themes||[],tones:details.tones||[],
        genres:details.genres||[],pace:null
      }};
@@ -1347,6 +1376,7 @@ async function populateExpandedRecommendations(userId){
      if(recorded.has(item.key))continue;
      discoverySourceEntries.push({
        key:item.key,title:item.title,category:item.category,
+       collectionId:item.collectionId||null,
        position:300+discoverySourceEntries.length,year:null,poster:null,
        directMatches:[],reason:null,synopsis:null,
        facets:{themes:item.themes||[],tones:item.tones||[],
