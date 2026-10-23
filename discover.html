@@ -133,7 +133,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=14"></script>
+<script src="recommendation-engine.js?v=15"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -938,7 +938,7 @@ function discoveryFingerprint(){
   seen:[...discoverySeen].sort(),
   // A growing Log should not be permanently restricted to its first few seeds.
   seedDay:Math.floor(Date.now()/86400000),
-  algorithm:"watchlist-aware-home-v5",
+  algorithm:"whole-log-discovery-v6",
   country:discoveryPreferences.country||"",
   language:discoveryPreferences.originalLanguage||""
  });
@@ -1208,11 +1208,11 @@ async function populateExpandedRecommendations(userId){
      const known=named.get(key)||sourceFeatureMap.get(key);
      return known?.title?{key,title:known.title,category:known.category}:null;
    }).filter(Boolean);
+ // Preserve Log chronology for historical sampling. Within a recently
+ // imported library, all entries may have nearly identical timestamps.
  const grouped={
-  movies:sources.filter(x=>named.get(x.key)?.category==="movies")
-   .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved")),
+  movies:sources.filter(x=>named.get(x.key)?.category==="movies"),
   tv:sources.filter(x=>named.get(x.key)?.category==="tv")
-   .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved"))
  };
  const pickNames=category=>window.AfterlogueRecommendationEngine.selectSeeds({
    sources:grouped[category].map(x=>({
@@ -1220,7 +1220,8 @@ async function populateExpandedRecommendations(userId){
      timestamp:impressionDates[x.key]||null,
      facets:sourceFeatureMap.get(x.key)||editorialSourceByKey.get(x.key)?.facets||{}
    })),
-   category,limit:4,rotation:Math.floor(Date.now()/86400000)
+   category,limit:grouped[category].length>=24?8:4,
+   rotation:Math.floor(Date.now()/86400000)
  });
  const request=async body=>{
    const controller=new AbortController();
@@ -1238,13 +1239,20 @@ async function populateExpandedRecommendations(userId){
  const requests=["movies","tv"].map(async category=>{
    const media=category==="tv"?"tv":"movie";
    const otherCategory=category==="tv"?"movies":"tv";
-   const own=pickNames(category),other=pickNames(otherCategory);
+   const allOwn=pickNames(category);
+   const own=allOwn.slice(0,4),historical=allOwn.slice(4,8);
+   const other=pickNames(otherCategory).slice(0,4);
    const filters={
      country:discoveryPreferences.country||"",
      originalLanguage:discoveryPreferences.originalLanguage||""
    };
    const plans=[];
    if(own.length)plans.push({kind:"direct",body:{mode:"recommend",media,titles:own,...filters}});
+   // Four additional non-overlapping Log anchors cover older interests even
+   // when 117 films were rated on the same day. Balance the candidate pool
+   // BEFORE ranking it, rather than shuffling one fantasy-heavy TMDB response.
+   if(historical.length>=2)plans.push({kind:"direct-history",
+     body:{mode:"recommend",media,titles:historical,...filters}});
    // A bounded independent retrieval lane for films the member wants to
    // watch. Its matches receive weaker weight than rated positive titles.
    const watchTitles=[...new Set(watchlistSources.filter(x=>x.category===category)
@@ -1263,7 +1271,7 @@ async function populateExpandedRecommendations(userId){
    // wider candidate pool. Reordering five cartoons cannot create a drama.
    // Make one additional bounded TMDB recommendation request only when the
    // member's *verified positive* film genres demonstrate mixed interests.
-   if(category==="movies"&&grouped.movies.length>=7){
+   if(category==="movies"&&grouped.movies.length>=7&&historical.length<2){
      const getFacets=source=>sourceFeatureMap.get(source.key)
        ||editorialSourceByKey.get(source.key)?.facets||{};
      const evidence=grouped.movies.map(source=>({
