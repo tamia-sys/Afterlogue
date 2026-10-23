@@ -471,6 +471,42 @@ function balanceShelves({entries=[],profileEntries=[],impressions={},favorites=[
 // Keep recent, strongly positive Log titles in the anchor seats, while giving
 // every older positive title a turn as the Log grows. This selects names only:
 // it never fabricates titles, downloads metadata or changes TMDB eligibility.
+// Balance the TMDB retrieval sources, not merely the displayed five.
+// Similar sequels in a Log are evidence of one series, not permission to
+// abandon the person's independent cinema and other distinct preferences.
+function balanceRetrievalSeeds(selected,all,cap,shift){
+ if(!selected.length||all.length<=cap)return selected.slice(0,cap);
+ const recognized=all.filter(x=>storyLane(x)!==null);
+ const unrelated=recognized.filter(x=>!familyAudience(x));
+ const familyHeavy=recognized.length>=7&&
+   recognized.filter(familyAudience).length/recognized.length>=.78;
+ const familyCap=unrelated.length>=3&&!familyHeavy?2:cap;
+ const ordered=[...selected,...all.slice(shift),...all.slice(0,shift)];
+ const chosen=[],included=new Set(),groups=new Set();
+ function add(item,enforce){
+   if(!item||included.has(item.title))return false;
+   const group=franchiseKey(item);
+   if(enforce&&groups.has(group)&&group&&
+      !group.startsWith("film:"))return false;
+   if(enforce&&familyAudience(item)&&chosen.filter(familyAudience).length>=familyCap)return false;
+   chosen.push(item);included.add(item.title);
+   if(group)groups.add(group);
+   return true;
+ }
+ // First preserve the dated/rotated anchors that fit the mixed Log, then
+ // replace repetitions from the unused Log. Relax constraints only when the
+ // user genuinely has no alternative positive titles to draw from.
+ for(const item of selected)add(item,true);
+ for(const item of ordered){
+   if(chosen.length>=cap)break;
+   add(item,true);
+ }
+ for(const item of ordered){
+   if(chosen.length>=cap)break;
+   add(item,false);
+ }
+ return chosen.slice(0,cap);
+}
 function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
  const cap=Math.max(0,Math.min(8,Math.floor(Number(limit)||0)));
  if(!cap)return [];
@@ -528,7 +564,7 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
      choose(byRotation);
      if(chosen.length===before)break;
    }
-   return chosen.map(item=>item.title);
+   return balanceRetrievalSeeds(chosen,ranked,cap,shift).map(item=>item.title);
  }
 
  const pickPool=ranked.slice(0,Math.min(2,cap));
@@ -542,7 +578,7 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
  const animationShare=known.filter(source=>storyLane(source)==="animation").length/Math.max(1,ranked.length);
  const animationDominates=known.length>=7&&animationShare>=.78;
  const varied=known.length>=3&&!animationDominates;
- if(!varied)return [...pickPool,...rotated.slice(0,cap-pickPool.length)].map(x=>x.title);
+ if(!varied)return balanceRetrievalSeeds([...pickPool,...rotated.slice(0,cap-pickPool.length)],ranked,cap,shift).map(x=>x.title);
  const chosen=[],remainingAll=[...pickPool,...rotated];
  while(chosen.length<cap&&remainingAll.length){
    const counts=new Map();
@@ -559,7 +595,7 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
    const at=choice>=0?choice:0;
    chosen.push(remainingAll.splice(at,1)[0]);
  }
- return chosen.map(x=>x.title);
+ return balanceRetrievalSeeds(chosen,ranked,cap,shift).map(x=>x.title);
 }
 root.AfterlogueRecommendationEngine=Object.freeze({version:"2.4",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,franchiseKey,familyAudience,obviousFollowup,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
