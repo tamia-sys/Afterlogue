@@ -107,7 +107,7 @@ const toMap=value=>{
 // Deterministic, privacy-preserving taste profile. A single unpopular film
 // cannot ban its genre; multiple independent signals build confidence.
 // Unsupported emotional tags are intentionally omitted rather than guessed.
-function buildTasteProfile({entries=[],impressions={},favorites=[],timestamps={},now=Date.now()}={}){
+function buildTasteProfile({entries=[],impressions={},favorites=[],watchlist=[],timestamps={},now=Date.now()}={}){
  const byKey=new Map(entries.map(item=>[item.key,item]));
  const aliases=new Map(entries.flatMap(item=>[[item.key,item.key],[slug(item.title),item.key]]));
  const resolve=value=>aliases.get(slug(String(value||"").replace(/^afterlogue-/,"")))
@@ -176,7 +176,50 @@ function buildTasteProfile({entries=[],impressions={},favorites=[],timestamps={}
      affinity:Math.max(-2.6,Math.min(2.6,item.sum/(1+item.support)))
    })).sort((a,b)=>Math.abs(b.affinity)-Math.abs(a.affinity));
  }
- return {version:2,logSignals:liked.size,covered,dimensions};
+ // Watchlist saves suggest curiosity, not proof the member enjoyed a film.
+ // Keep their influence separate from established tastes and negative ratings.
+ const interestBuckets={themes:new Map(),tones:new Map(),genres:new Map(),pace:new Map()};
+ const interested=new Set();
+ for(const record of watchlist||[]){
+   const key=resolve(typeof record==="string"?record:record?.title_key||record?.key);
+   if(byKey.has(key)&&!liked.has(key))interested.add(key);
+ }
+ const interestFranchises=new Map();
+ for(const key of interested){
+   const group=franchiseKey(byKey.get(key));
+   if(group&&!group.startsWith("film:"))
+     interestFranchises.set(group,(interestFranchises.get(group)||0)+1);
+ }
+ let interestCovered=0;
+ for(const key of interested){
+   const item=byKey.get(key),facets=item.facets||{};
+   const group=franchiseKey(item);
+   const franchiseVolume=interestFranchises.get(group)||1;
+   let supported=false;
+   for(const dimension of Object.keys(interestBuckets)){
+     const raw=dimension==="pace"?(facets.pace?[facets.pace]:[]):facets[dimension];
+     const values=[...new Set((Array.isArray(raw)?raw:[]).map(value=>
+       String(value||"").toLowerCase().trim()).filter(Boolean))];
+     if(!values.length)continue;
+     supported=true;
+     const weight=.75/Math.sqrt(values.length*franchiseVolume);
+     const bucket=interestBuckets[dimension];
+     for(const tag of values){
+       const prior=bucket.get(tag)||{tag,sum:0,positive:0,negative:0,support:0};
+       bucket.set(tag,{tag,sum:prior.sum+weight,positive:prior.positive+1,
+         negative:0,support:prior.support+1});
+     }
+   }
+   if(supported)interestCovered++;
+ }
+ const interestDimensions={};
+ for(const [dimension,bucket] of Object.entries(interestBuckets)){
+   interestDimensions[dimension]=[...bucket.values()].map(item=>({
+     ...item,affinity:Math.min(1,item.sum/(1+item.support))
+   })).sort((a,b)=>b.affinity-a.affinity);
+ }
+ return {version:3,logSignals:liked.size,covered,dimensions,
+   interestSignals:interested.size,interestCovered,interestDimensions};
 }
 function tasteMatch(profile,facets={}){
  const dimensions=profile?.dimensions||{};
@@ -220,11 +263,17 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
   }else signals.set(key,{key,rating:null,weight:2.5,favorite:true});
  }
  const watch=new Set((watchlist||[]).map(v=>canonical(typeof v==="string"?v:v?.title_key)));
+ // Watchlist titles can guide matching, but have less influence than Loved.
+ // Existing ratings and favorites always take precedence.
+ for(const key of watch){
+   if(!signals.has(key)&&byKey.has(key))
+     signals.set(key,{key,rating:null,weight:.85,favorite:false,watchlist:true});
+ }
  const known=new Set([...signals.keys(),...(seen||[]).map(v=>canonical(typeof v==="string"?v:v?.title_key))]);
  const positives=[...signals.values()].filter(s=>s.weight>=1.5);
  const negatives=[...signals.values()].filter(s=>s.weight<0);
  const candidates=all.filter(entry=>entry.category===category&&!known.has(entry.key)&&!watch.has(entry.key));
- const profile=buildTasteProfile({entries:all,impressions,favorites,timestamps});
+ const profile=buildTasteProfile({entries:all,impressions,favorites,watchlist,timestamps});
  const scored=candidates.map(entry=>{
   const matched=[];
   const contributions=[];
@@ -238,7 +287,7 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
    // Several titles in the same familiar genre do not overwhelm richer theme connections.
    const contribution=signal.weight*Math.min(strength,9);
    contributions.push({value:contribution,lane:storyLane(source),franchise:franchiseKey(source)});
-   if(signal.weight>0&&signal.weight>=1.5)matched.push({source,signal,similarity:sim,strength,contribution});
+   if(signal.weight>0&&(signal.weight>=1.5||signal.watchlist))matched.push({source,signal,similarity:sim,strength,contribution});
   }
   // Without prior feedback, respect the existing curated ordering.
   const coldStart=signals.size===0?Math.max(0,4-entry.position*.08):0;
@@ -267,8 +316,12 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
   const directScore=strong.reduce((sum,value)=>sum+value,0)+
     adverse.reduce((sum,item)=>sum+item.value,0);
   const preference=tasteMatch(profile,entry.facets);
-  const score=directScore+preference.score*2;
-  return {...entry,score:score+coldStart,preference,
+  // A small bounded boost for emerging interests; keep long-term ratings
+  // substantially stronger than provisional Watchlist metadata.
+  const interest=tasteMatch({dimensions:profile.interestDimensions},entry.facets);
+  const interestBoost=Math.min(2.4,Math.max(0,interest.score*1.15));
+  const score=directScore+preference.score*2+interestBoost;
+  return {...entry,score:score+coldStart,preference,interest,
     matched:matched.sort((a,b)=>b.contribution-a.contribution)};
  });
  scored.sort((a,b)=>b.score-a.score||a.position-b.position||a.title.localeCompare(b.title));
@@ -301,7 +354,8 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
    if(strongest){
     const {source,signal,similarity}=strongest;
     const verb=signal.favorite&&!signal.rating?"saved":signal.rating==="Loved"?"loved":"liked";
-    const intro="Because you "+verb+" "+source.title+", ";
+    const intro=signal.watchlist?"Because you saved "+source.title+" to your Watchlist, ":
+      "Because you "+verb+" "+source.title+", ";
     const theme=similarity.sharedThemes.slice(0,2).map(x=>x.replace(/-/g," "));
     if(theme.length)why=intro+"this story also explores "+(theme.length===2?theme.join(" and "):theme[0])+".";
     else if(similarity.sharedTones.length)why=intro+"this shares a "+similarity.sharedTones[0]+" tone.";
@@ -600,5 +654,5 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
  }
  return balanceRetrievalSeeds(chosen,ranked,cap,shift).map(x=>x.title);
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"2.4",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,franchiseKey,familyAudience,obviousFollowup,facets:tags});
+root.AfterlogueRecommendationEngine=Object.freeze({version:"2.5",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,franchiseKey,familyAudience,obviousFollowup,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
