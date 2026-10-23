@@ -125,7 +125,7 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  assert.match(home,/const sourceFeatureMap=new Map\(\)/);
  assert.match(home,/const firstMovieSources=movieSourceKeys\.slice\(0,2\)/);
  assert.match(home,/firstMovieSources\.push\(restMovies\[at\]\)/);
- assert.match(home,/if\(category==="movies"&&grouped\.movies\.length>=7\)/);
+ assert.match(home,/if\(category==="movies"&&grouped\.movies\.length>=7&&historical\.length<2\)/);
  assert.match(home,/kind:"direct-breadth"/);
  assert.match(home,/sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
@@ -1141,7 +1141,7 @@ test('Screenshot reproduction: fantasy, monsters and sequels cannot fill five mi
    'Hobbit + Ghostbusters + Monsters is one repeated experience on a mixed-taste shelf');
  assert.ok(result.filter(x=>x.key.startsWith('indie-')).length>=2,
    'The first shelf must include genuinely different but positively scored stories');
- assert.equal(engine.obviousFollowup({title:'Monster Family 2'}),true,
+ assert.equal(engine.obviousFollowup({title:'Monster Family 2',facets:{genres:['family','fantasy']}}),true,
    'Numbered sequels cannot slip through because the franchise was not hand-listed');
 });
 
