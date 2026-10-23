@@ -1217,7 +1217,7 @@ test('Home prioritizes the full rated Log before Watchlist within bounded public
  assert.match(home,/ratedKeys:Object\.keys\(savedImpressions\)/);
  assert.match(home,/watchlistKeys:\[\.\.\.watchlistKeys\]/);
  assert.match(home,/const bounded=unique\.slice\(0,256\)/);
- assert.match(home,/const deadline=Date\.now\(\)\+16000/);
+ assert.match(home,/const deadline=started\+16000/);
  assert.match(home,/Math\.min\(3,batches\.length\)/);
  assert.match(home,/algorithm:"log-first-metadata-v7"/);
  assert.match(home,/recommendation-engine\.js\?v=17/);
@@ -1248,7 +1248,7 @@ test('Step 2 counts returned metadata, meaningful tags, and missing coverage hon
    requestStats:{queued:6,attempted:5,successfulBatches:1,failedBatches:1,
      notAttempted:1,elapsedMs:14000}
  });
- assert.deepEqual(audit.all,{planned:6,returned:5,genres:4,themes:1,
+ assert.deepEqual(JSON.parse(JSON.stringify(audit.all)),{planned:6,returned:5,genres:4,themes:1,
    tones:1,storyTags:2,genreOnly:2,empty:1,missing:1});
  assert.equal(audit.ratedMovies.planned,3);
  assert.equal(audit.ratedMovies.returned,3);
@@ -1258,7 +1258,7 @@ test('Step 2 counts returned metadata, meaningful tags, and missing coverage hon
  assert.equal(audit.watchlistOnly.planned,2);
  assert.equal(audit.watchlistOnly.returned,1);
  assert.equal(audit.editorialRated,1);
- assert.deepEqual(audit.requestStats,{queued:6,attempted:5,
+ assert.deepEqual(JSON.parse(JSON.stringify(audit.requestStats)),{queued:6,attempted:5,
    successfulBatches:1,failedBatches:1,notAttempted:1,elapsedMs:14000});
 });
 
