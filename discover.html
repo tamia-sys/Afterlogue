@@ -133,7 +133,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=15"></script>
+<script src="recommendation-engine.js?v=16"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -938,7 +938,7 @@ function discoveryFingerprint(){
   seen:[...discoverySeen].sort(),
   // A growing Log should not be permanently restricted to its first few seeds.
   seedDay:Math.floor(Date.now()/86400000),
-  algorithm:"whole-log-discovery-v6",
+  algorithm:"log-first-metadata-v7",
   country:discoveryPreferences.country||"",
   language:discoveryPreferences.originalLanguage||""
  });
@@ -1078,17 +1078,16 @@ async function loadTasteFeatures(keys,onBatch=null){
  const unique=[...new Set(keys.filter(key=>/^tmdb-(movie|tv)-[1-9][0-9]{0,9}$/.test(key)))];
  const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
  const batches=[];
- // Limit burst fanout. Editorial titles already have their own facets;
- // 108 dynamic titles cover substantially larger Logs than initial onboarding.
- const bounded=unique.slice(0,108);
- // A smaller first request supplies source genres quickly enough to
- // diversify candidate retrieval; background batches still enrich the Log.
+ // Include the entire rated Log before optional Watchlist interests.
+ // Requests still use small bounded TMDB-only batches and a total time budget.
+ const bounded=unique.slice(0,256);
+ // Resolve a representative movie sample promptly for initial seed choices.
  if(bounded.length)batches.push(bounded.slice(0,10));
  for(let i=10;i<bounded.length;i+=18)batches.push(bounded.slice(i,i+18));
  const records=[];
  let next=0;
- const deadline=Date.now()+8500; // A richer profile must not stall Home indefinitely.
- await Promise.all(Array.from({length:Math.min(2,batches.length)},async()=>{
+ const deadline=Date.now()+16000;
+ await Promise.all(Array.from({length:Math.min(3,batches.length)},async()=>{
    while(next<batches.length&&Date.now()<deadline){
      const keys=batches[next++];
      const controller=new AbortController();
@@ -1178,16 +1177,19 @@ async function populateExpandedRecommendations(userId){
    const at=restMovies.length<=8?i:Math.floor(i*(restMovies.length-1)/7);
    firstMovieSources.push(restMovies[at]);
  }
- const featureKeys=[
-   ...firstMovieSources,
-   // A large Log must not push newer Watchlist metadata outside the
-   // bounded taste-feature request window.
-   ...watchlistKeys,
-   ...movieSourceKeys,
-   ...tvSourceKeys,
-   ...Object.keys(savedImpressions).map(key=>key.replace(/^afterlogue-/,"")),
-   ...discoveryFavorites.map(x=>x.title_key)
- ];
+ // First listen to films and shows the member actually rated.
+ // Saving a film for later is curiosity, so Watchlist-only titles come LAST.
+ // Keeping all rated IDs before the optional queue avoids silently dropping
+ // long-standing positive cinema preferences after 100+ Log entries.
+ const featureKeys=window.AfterlogueRecommendationEngine.planTasteFeatureKeys({
+   firstMovieKeys:firstMovieSources,
+   firstTvKeys:tvSourceKeys.slice(0,4),
+   positiveMovieKeys:movieSourceKeys,
+   positiveTvKeys:tvSourceKeys,
+   ratedKeys:Object.keys(savedImpressions).map(key=>key.replace(/^afterlogue-/,"")),
+   favoriteKeys:discoveryFavorites.map(x=>x.title_key),
+   watchlistKeys:[...watchlistKeys]
+ });
  const sourceFeatureMap=new Map();
  const tasteFeaturesPromise=loadTasteFeatures(featureKeys,items=>{
    for(const item of items)sourceFeatureMap.set(item.key,item);
