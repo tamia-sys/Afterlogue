@@ -133,7 +133,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=11"></script>
+<script src="recommendation-engine.js?v=12"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -917,7 +917,7 @@ function discoveryFingerprint(){
   seen:[...discoverySeen].sort(),
   // A growing Log should not be permanently restricted to its first few seeds.
   seedDay:Math.floor(Date.now()/86400000),
-  algorithm:"balanced-home-shelves-v2-broad-candidate-seeds",
+  algorithm:"whole-log-balanced-v3-era-stratified",
   country:discoveryPreferences.country||"",
   language:discoveryPreferences.originalLanguage||""
  });
@@ -1177,6 +1177,7 @@ async function populateExpandedRecommendations(userId){
  const pickNames=category=>window.AfterlogueRecommendationEngine.selectSeeds({
    sources:grouped[category].map(x=>({
      title:named.get(x.key).title,rating:x.rating,
+     timestamp:impressionDates[x.key]||null,
      facets:sourceFeatureMap.get(x.key)||editorialSourceByKey.get(x.key)?.facets||{}
    })),
    category,limit:4,rotation:Math.floor(Date.now()/86400000)

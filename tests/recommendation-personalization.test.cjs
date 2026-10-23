@@ -130,8 +130,8 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  assert.match(home,/sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/category,limit:4,rotation:/);
- assert.match(home,/algorithm:"balanced-home-shelves-v2-broad-candidate-seeds"/);
- assert.match(home,/recommendation-engine\.js\?v=11/);
+ assert.match(home,/algorithm:"whole-log-balanced-v3-era-stratified"/);
+ assert.match(home,/recommendation-engine\.js\?v=12/);
 });
 
 test('Strong, well-evidenced animation preference is allowed to dominate five selections',()=>{
@@ -178,8 +178,8 @@ test('Home applies balanced shelf selection after personal filtering and invalid
  assert.ok(home.indexOf('const varied=window.AfterlogueRecommendationEngine.balanceShelves(',
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
- assert.match(home,/algorithm:"balanced-home-shelves-v2-broad-candidate-seeds"/);
- assert.match(home,/recommendation-engine\.js\?v=11/);
+ assert.match(home,/algorithm:"whole-log-balanced-v3-era-stratified"/);
+ assert.match(home,/recommendation-engine\.js\?v=12/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
 
@@ -819,4 +819,80 @@ test('Legacy Yearning TV recommendations refresh without deleting unrelated mood
  assert.match(page,/snap\.moodAlgorithm!=="global-yearning-tv-2"/);
  assert.match(page,/items:five\.slice\(0,5\),savedAt:Date\.now\(\)/);
  assert.match(page,/const moodHistoryKey="afterlogue\.explore\.seen-mood-titles\.v3"/);
+});
+
+
+test('Many newly logged animations do not erase earlier observational and indie cinema',()=>{
+ const now=Date.UTC(2026,9,22);
+ const older=Array.from({length:6},(_,i)=>({
+   key:'indie-'+i,title:'Observational cinema '+i,category:'movies',
+   facets:{genres:['drama'],themes:['everyday-life'],tones:['reflective'],pace:'slow'},
+   directMatches:[],position:i
+ }));
+ const newer=Array.from({length:13},(_,i)=>({
+   key:'animation-'+i,title:'Animated discovery '+i,category:'movies',
+   facets:{genres:['animation','family'],themes:['friendship'],tones:['playful'],pace:'medium'},
+   directMatches:[],position:100+i
+ }));
+ const sources=[...older,...newer];
+ const timestamps=Object.fromEntries(sources.map((item,i)=>[
+  item.key,new Date(now-(i<older.length?240+i*22:2+i-older.length)*86400000).toISOString()
+ ]));
+ const impressions=Object.fromEntries(sources.map(item=>[item.key,'Loved']));
+ const profile=engine.buildTasteProfile({entries:sources,impressions,timestamps,now});
+ const genre=name=>profile.dimensions.genres.find(x=>x.tag===name)?.affinity||0;
+ assert.ok(genre('drama')>genre('animation')*.6,
+   'An older long-standing drama preference must remain meaningful');
+ const seeds=engine.selectSeeds({sources:[...newer,...older].map(item=>({
+  title:item.title,rating:'Loved',timestamp:timestamps[item.key],facets:item.facets
+ })),limit:4,rotation:5,category:'movies'});
+ assert.equal(seeds.length,4);
+ assert.ok(seeds.some(name=>name.startsWith('Observational cinema')),
+   'A dated Log must retrieve candidates related to earlier tastes');
+ assert.ok(seeds.some(name=>name.startsWith('Animated discovery')),
+   'A dated Log must still acknowledge recent tastes');
+ assert.ok(seeds.filter(name=>name.startsWith('Animated discovery')).length<=2,
+   'Four retrieval sources must not all be animated when the wider Log is mixed');
+ const choices=[
+  ...Array.from({length:8},(_,i)=>({
+   key:'next-cartoon-'+i,title:'Another animated pick '+i,category:'movies',
+   facets:{genres:['animation','family'],themes:['friendship'],tones:['playful'],pace:'medium'},
+   directMatches:[],position:800+i,tmdb:{id:2000+i,media:'movie'}
+  })),
+  ...Array.from({length:5},(_,i)=>({
+   key:'next-indie-'+i,title:'Another contemplative discovery '+i,category:'movies',
+   facets:{genres:['drama'],themes:['everyday-life'],tones:['reflective'],pace:'slow'},
+   directMatches:[],position:900+i,tmdb:{id:3000+i,media:'movie'}
+  }))
+ ];
+ const ranked=engine.rank({entries:[...sources,...choices],category:'movies',
+   impressions,timestamps});
+ const pool=ranked.filter(item=>item.key.startsWith('next-')&&item.score>0);
+ const shown=engine.balanceShelves({entries:pool,profileEntries:sources,
+   impressions,category:'movies'}).slice(0,5);
+ assert.equal(shown.length,5);
+ assert.ok(shown.filter(item=>item.key.startsWith('next-indie-')).length>=2,
+   'Mixed Logs should still surface earlier reflective tastes');
+ assert.ok(shown.filter(item=>item.key.startsWith('next-cartoon-')).length<=2,
+   'Recent algorithm-suggested animations must not monopolize the next five');
+});
+
+test('Strong long-term animation enthusiasts remain eligible for animated shelves',()=>{
+ const now=Date.UTC(2026,9,22);
+ const sources=Array.from({length:12},(_,i)=>({
+  title:'Loved animation '+i,rating:'Loved',timestamp:new Date(now-i*60*86400000).toISOString(),
+  facets:{genres:['animation'],themes:['friendship']}
+ }));
+ const picks=engine.selectSeeds({sources,limit:4,category:'movies',rotation:4});
+ assert.equal(picks.length,4);
+ assert.ok(picks.every(name=>name.startsWith('Loved animation ')),
+   'Balancing decades must not ban animation for animation enthusiasts');
+});
+
+test('Home uses dated Log sources without storing additional private fields',()=>{
+ const page=read('discover.html'),logic=read('recommendation-engine.js');
+ assert.match(page,/timestamp:impressionDates\[x\.key\]\|\|null/);
+ assert.match(page,/algorithm:"whole-log-balanced-v3-era-stratified"/);
+ assert.match(logic,/const historic=dated\.slice\(Math\.floor\(dated\.length\/2\)\)/);
+ assert.match(logic,/const byLane=new Map\(\),strong=\[\]/);
 });
