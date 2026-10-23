@@ -896,3 +896,96 @@ test('Home uses dated Log sources without storing additional private fields',()=
  assert.match(logic,/const historic=dated\.slice\(Math\.floor\(dated\.length\/2\)\)/);
  assert.match(logic,/const byLane=new Map\(\),strong=\[\]/);
 });
+
+test('Screenshot regression: Monster High and Halloweentown sequels do not monopolize Home',()=>{
+ const item=(key,title,genres,score)=>({
+  key,title,score,category:'movies',facets:{genres,themes:[],tones:[],pace:null},
+  personalized:true,matchMethod:'tmdb_related'
+ });
+ const pool=[
+  item('mh-fright','Monster High: Fright On!',['animation','family','fantasy'],86),
+  item('mh-haunted','Monster High: Haunted',['animation','family','fantasy'],85),
+  item('cauldron','The Black Cauldron',['animation','family','fantasy'],83),
+  item('canterville','The Canterville Ghost',['family','fantasy','comedy'],82),
+  item('halloweentown-ii','Halloweentown II: Kalabar\'s Revenge',['family','fantasy'],81),
+  item('halloweentown-high','Halloweentown High',['family','fantasy'],80),
+  item('descendants','Descendants: The Rise of Red',['family','fantasy','music'],79),
+  item('charlies-angels','Charlie\'s Angels',['action','comedy'],75),
+  item('king','The Kid Who Would Be King',['family','fantasy','adventure'],74),
+  item('indie-one','An Observational Drama',['drama'],70),
+  item('indie-two','An Independent Character Study',['drama'],65),
+  item('indie-three','A Quiet Relationship Film',['romance','drama'],63),
+  item('indie-four','An Intimate Documentary',['documentary'],59)
+ ];
+ const diary=[
+  ...Array.from({length:7},(_,i)=>item('hp-'+i,
+    'Harry Potter and chapter '+(i+1),['family','fantasy','adventure'],0)),
+  ...Array.from({length:6},(_,i)=>item('realist-'+i,
+    'Earlier Observational Film '+i,['drama'],0))
+ ];
+ const impressions=Object.fromEntries(diary.map(x=>[x.key,'Loved']));
+ const varied=engine.balanceShelves({entries:pool,profileEntries:diary,impressions});
+ const first=varied.slice(0,5);
+ assert.equal(first.length,5);
+ assert.ok(first.filter(engine.familyAudience).length<=2,
+   'A member with a broad Log must not receive four family-fantasy films');
+ assert.ok(first.some(x=>x.key.startsWith('indie-')),
+   'A strong independent cinema fit should survive theatrical franchise overload');
+ assert.ok(first.filter(x=>engine.obviousFollowup(x)).length<=1,
+   'Do not suggest multiple sequels to a mixed-taste member in the same five');
+ const groups=first.map(engine.franchiseKey);
+ assert.equal(groups.length,new Set(groups).size,
+   'Each of the five should represent a distinct story / franchise');
+ assert.equal(engine.franchiseKey(pool[0]),engine.franchiseKey(pool[1]));
+ assert.equal(engine.franchiseKey(pool[4]),engine.franchiseKey(pool[5]));
+});
+
+test('Harry Potter ratings are one franchise signal for mixed indie-cinema discovery seeds',()=>{
+ const now=Date.UTC(2026,9,22);
+ const source=(title,genres,i)=>({title,rating:'Loved',facets:{genres},
+   timestamp:new Date(now-(i<7?i:110+i)*86400000).toISOString()});
+ const entries=[
+   ...Array.from({length:7},(_,i)=>source('Harry Potter and the story '+i,
+     ['family','fantasy','adventure'],i)),
+   ...Array.from({length:6},(_,i)=>source('Independent film '+i,['drama'],7+i))
+ ];
+ const picks=engine.selectSeeds({sources:entries,category:'movies',limit:4,rotation:4});
+ assert.equal(picks.length,4);
+ assert.ok(picks.filter(title=>title.startsWith('Harry Potter')).length<=1,
+   'A seven-movie franchise should not consume the majority of retrieval seeds');
+ assert.ok(picks.filter(title=>title.startsWith('Independent film')).length>=2,
+   'Earlier independent films should contribute sources to fresh discovery');
+ const profileItems=entries.map((v,i)=>({
+   ...v,key:'source-'+i,category:'movies',facets:{...v.facets,themes:[],tones:[],pace:null}
+ }));
+ const impressions=Object.fromEntries(profileItems.map(v=>[v.key,'Loved']));
+ const profile=engine.buildTasteProfile({entries:profileItems,impressions,
+   timestamps:Object.fromEntries(profileItems.map(v=>[v.key,v.timestamp])),now});
+ const drama=profile.dimensions.genres.find(g=>g.tag==='drama').affinity;
+ const fantasy=profile.dimensions.genres.find(g=>g.tag==='fantasy').affinity;
+ assert.ok(drama>fantasy*.65,
+   'Repeated entries in the same franchise should not erase a separate taste');
+});
+
+test('Legitimate animation/family fans remain free to receive multiple films they love',()=>{
+ const source=Array.from({length:9},(_,i)=>({
+   key:'kids-'+i,title:'Loved kids film '+i,category:'movies',
+   facets:{genres:['family','animation']},score:90-i
+ }));
+ const picks=engine.balanceShelves({
+   entries:Array.from({length:8},(_,i)=>({...source[i],key:'candidate-'+i})),
+   profileEntries:source,impressions:Object.fromEntries(source.map(x=>[x.key,'Loved']))
+ });
+ assert.equal(picks.slice(0,5).filter(engine.familyAudience).length,5,
+   'Family-film enthusiasts should not have their preferences overridden');
+});
+
+test('Home uses shared franchise grouping before ranking and stores known-series history',()=>{
+ const home=read('discover.html'),engineSource=read('recommendation-engine.js');
+ assert.match(home,/const discoveryFranchise=item=>/);
+ assert.match(home,/discoverySeriesHistory\.movies\.has\(discoverySeriesKey\(item\)\)/);
+ assert.match(home,/seriesHistory:\{movies:\[/);
+ assert.match(home,/franchise-fair-home-v4/);
+ assert.match(home,/recommendation-engine\.js\?v=13/);
+ assert.match(engineSource,/const group=franchiseKey\(byKey\.get\(key\)\)/);
+});
