@@ -130,7 +130,7 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  assert.match(home,/sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/category,limit:4,rotation:/);
- assert.match(home,/algorithm:"whole-log-balanced-v3-era-stratified"/);
+ assert.match(home,/algorithm:"franchise-fair-home-v4"/);
  assert.match(home,/recommendation-engine\.js\?v=12/);
 });
 
@@ -178,7 +178,7 @@ test('Home applies balanced shelf selection after personal filtering and invalid
  assert.ok(home.indexOf('const varied=window.AfterlogueRecommendationEngine.balanceShelves(',
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
- assert.match(home,/algorithm:"whole-log-balanced-v3-era-stratified"/);
+ assert.match(home,/algorithm:"franchise-fair-home-v4"/);
  assert.match(home,/recommendation-engine\.js\?v=12/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
@@ -892,7 +892,7 @@ test('Strong long-term animation enthusiasts remain eligible for animated shelve
 test('Home uses dated Log sources without storing additional private fields',()=>{
  const page=read('discover.html'),logic=read('recommendation-engine.js');
  assert.match(page,/timestamp:impressionDates\[x\.key\]\|\|null/);
- assert.match(page,/algorithm:"whole-log-balanced-v3-era-stratified"/);
+ assert.match(page,/algorithm:"franchise-fair-home-v4"/);
  assert.match(logic,/const historic=dated\.slice\(Math\.floor\(dated\.length\/2\)\)/);
  assert.match(logic,/const byLane=new Map\(\),strong=\[\]/);
 });
