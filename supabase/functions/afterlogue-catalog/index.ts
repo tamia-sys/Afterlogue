@@ -807,6 +807,52 @@ Deno.serve(async (req:Request) => {
         "heartwarming":"warm","whimsical":"playful",
         "psychological thriller":"suspenseful"
       };
+      // Normalize *documented TMDB keyword phrases* into a restrained set of
+      // story qualities. No genre-to-tone guessing or fabricated plot analysis.
+      const extraThemeKeywords:Record<string,string>={
+        "alienation":"solitude","isolation":"solitude",
+        "estrangement":"connection","emotional distance":"connection",
+        "long distance relationship":"connection",
+        "unrequited romance":"love","romantic longing":"connection",
+        "bittersweet":"loss","nostalgia":"memory",
+        "nostalgic":"memory","reminiscence":"memory",
+        "mourning":"loss","death of a loved one":"loss",
+        "parent child relationship":"family","sibling relationship":"family",
+        "dysfunctional family":"family","family conflict":"family",
+        "identity crisis":"identity","search for identity":"identity",
+        "existentialism":"identity","existential crisis":"identity",
+        "finding oneself":"identity","self discovery":"identity",
+        "class conflict":"class","wealth disparity":"class",
+        "social inequality":"class","economic inequality":"class",
+        "female protagonist":"identity","outsider":"belonging",
+        "outsiders":"belonging","sense of belonging":"belonging",
+        "slice of life":"everyday-life","everyday life":"everyday-life",
+        "daily life":"everyday-life","ordinary life":"everyday-life",
+        "human relationship":"connection","human relationships":"connection",
+        "personal growth":"growing-up","adolescence":"growing-up",
+        "coming-of-age":"growing-up","introspection":"self-reflection",
+        "self reflection":"self-reflection","introspective":"self-reflection",
+        "redemption":"redemption","forgiveness":"forgiveness",
+        "trauma":"trauma","childhood trauma":"trauma",
+        "migration":"displacement","immigration":"displacement",
+        "displacement":"displacement","homesickness":"displacement"
+      };
+      const extraToneKeywords:Record<string,string>={
+        "deadpan humor":"dry-humor","deadpan comedy":"dry-humor",
+        "dry humor":"dry-humor","dry comedy":"dry-humor",
+        "black comedy":"satirical","dark humor":"satirical",
+        "tragicomedy":"bittersweet","bittersweet":"bittersweet",
+        "poignant":"bittersweet","somber":"melancholic",
+        "somber mood":"melancholic","wistful":"melancholic",
+        "quiet":"quiet","contemplative":"contemplative",
+        "meditative":"contemplative","reflective":"contemplative",
+        "atmospheric":"atmospheric","dreamlike":"dreamlike",
+        "surrealism":"surreal","surreal":"surreal",
+        "absurdist comedy":"absurdist","absurdism":"absurdist",
+        "feel good":"warm","feel-good":"warm"
+      };
+      const themeLookup={...themeKeywords,...extraThemeKeywords};
+      const toneLookup={...toneKeywords,...extraToneKeywords};
       const output:Array<Record<string,unknown>>=[];
       let cursor=0;
       await Promise.all(Array.from({length:Math.min(5,keys.length)},async()=>{
@@ -830,8 +876,8 @@ Deno.serve(async (req:Request) => {
             if(!title)continue;
             output.push({key,title,category:contentMedia==="tv"?"tv":"movies",
               genres,
-              themes:[...new Set(names.map((name:string)=>themeKeywords[name]).filter(Boolean))].slice(0,8),
-              tones:[...new Set(names.map((name:string)=>toneKeywords[name]).filter(Boolean))].slice(0,5)});
+              themes:[...new Set(names.map((name:string)=>themeLookup[name]).filter(Boolean))].slice(0,8),
+              tones:[...new Set(names.map((name:string)=>toneLookup[name]).filter(Boolean))].slice(0,5)});
           }catch(_){/* Missing details reduce confidence; never fabricate facets. */}
         }
       }));
