@@ -716,5 +716,35 @@ function selectSeeds({sources=[],limit=4,rotation=0,category="movies"}={}){
  }
  return balanceRetrievalSeeds(chosen,ranked,cap,shift).map(x=>x.title);
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"2.6",normalizeEntries,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,franchiseKey,familyAudience,spectacleAdventure,obviousFollowup,facets:tags});
+// Plan public TMDB metadata requests from the MEMBER'S RATED LOG FIRST.
+// Editorial catalog films are already enriched locally and have non-TMDB keys.
+// Separate later Watchlist curiosity from watched/reviewed preferences.
+// This only uses public title IDs; neither ratings nor private notes are sent
+// to the metadata service.
+function planTasteFeatureKeys({
+ firstMovieKeys=[],firstTvKeys=[],positiveMovieKeys=[],positiveTvKeys=[],
+ ratedKeys=[],favoriteKeys=[],watchlistKeys=[],limit=256
+}={}){
+ const output=[],seen=new Set();
+ const max=Math.max(0,Math.min(256,Math.floor(Number(limit)||0)));
+ const include=keys=>{
+  for(const key of keys||[]){
+   if(output.length>=max)return;
+   if(typeof key!=="string"||!/^tmdb-(movie|tv)-[1-9][0-9]{0,9}$/.test(key)
+     ||seen.has(key))continue;
+   seen.add(key);output.push(key);
+  }
+ };
+ // A fast first batch supports mixed movie/TV retrieval. Then ALL rated
+ // film/TV evidence comes before any unwatched Watchlist-only title.
+ include(firstMovieKeys);
+ include(firstTvKeys);
+ include(positiveMovieKeys);
+ include(positiveTvKeys);
+ include(ratedKeys);
+ include(favoriteKeys);
+ include(watchlistKeys);
+ return output;
+}
+root.AfterlogueRecommendationEngine=Object.freeze({version:"2.7",normalizeEntries,planTasteFeatureKeys,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,franchiseKey,familyAudience,spectacleAdventure,obviousFollowup,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);
