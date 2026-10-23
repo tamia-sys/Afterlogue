@@ -133,7 +133,7 @@
 <script src="explore-data.js?v=2"></script>
 <script src="film-details-data.js?v=2"></script>
 <script src="film-details-basics.js?v=2"></script>
-<script src="recommendation-engine.js?v=13"></script>
+<script src="recommendation-engine.js?v=14"></script>
 <link rel="stylesheet" href="seen-impression.css?v=2">
 <script src="catalog-metadata.js?v=1"></script>
 <script src="seen-impression.js?v=5"></script>
@@ -525,7 +525,7 @@ function getDiscoveryRecommendations(category, page = 0, omit = null) {
   if(!window.AfterlogueRecommendationEngine)return [];
   // No one gets curated filler just to make a row contain five titles.
   const hasPositive=Object.values(savedImpressions).some(v=>v==="Loved"||v==="Liked")
-    ||discoveryFavorites.length>0;
+    ||discoveryFavorites.length>0||discoveryWatchlist.length>0;
   // Without positive impressions, show an explicitly labeled starting
   // selection, never pretend an unpersonalized list is taste-matched.
   if(!hasPositive){
@@ -554,7 +554,7 @@ function getDiscoveryRecommendations(category, page = 0, omit = null) {
     if(!entry.tmdb||!entry.personalized||entry.score<=0||!entry.matched?.length)return false;
     const key=normalizeTitle(entry.title);
     if(editorialTitles.has(key)||chosen.has(key))return false;
-    const directlyLinked=entry.matched.some(match=>match.signal.weight>=1.5
+    const directlyLinked=entry.matched.some(match=>(match.signal.weight>=1.5||match.signal.watchlist)
       &&(entry.directMatches||[]).some(value=>
         value===normalizeTitle(match.source.title)||value===match.source.key));
     if(!directlyLinked&&entry.matchMethod!=="shared_genre")return false;
@@ -635,7 +635,7 @@ function displayDiscoveryRecommendations(category, page = 0, chosen = null) {
     message.className = "discovery-empty";
     const state=discoveryCatalogState[category];
     const hasPositive=Object.values(savedImpressions).some(r=>r==="Loved"||r==="Liked")
-      ||discoveryFavorites.length>0;
+      ||discoveryFavorites.length>0||discoveryWatchlist.length>0;
     message.textContent=state==="loading"&&hasPositive
       ? "Looking through the wider film library for stories connected to your taste…"
       : state==="error"&&hasPositive
@@ -938,7 +938,7 @@ function discoveryFingerprint(){
   seen:[...discoverySeen].sort(),
   // A growing Log should not be permanently restricted to its first few seeds.
   seedDay:Math.floor(Date.now()/86400000),
-  algorithm:"franchise-fair-home-v4",
+  algorithm:"watchlist-aware-home-v5",
   country:discoveryPreferences.country||"",
   language:discoveryPreferences.originalLanguage||""
  });
@@ -1148,8 +1148,10 @@ async function populateExpandedRecommendations(userId){
  const ratedKeys=new Set(Object.keys(savedImpressions)
    .filter(k=>["Loved","Liked","Okay","Not for me"].includes(savedImpressions[k]))
    .map(k=>k.replace(/^afterlogue-/,"")));
+ const watchlistKeys=new Set(discoveryWatchlist.map(item=>item.title_key).filter(Boolean));
  discoverySourceEntries=dynamic
-   .filter(x=>ratedKeys.has(x.title_key)&&!discoveryFeaturedKeys.has(x.title_key))
+   .filter(x=>(ratedKeys.has(x.title_key)||watchlistKeys.has(x.title_key))
+     &&!discoveryFeaturedKeys.has(x.title_key))
    .map((x,index)=>({
      key:x.title_key,title:x.title,category:x.category==="tv"?"tv":"movies",
      position:200+index,year:x.year||null,poster:x.poster||null,
@@ -1178,6 +1180,9 @@ async function populateExpandedRecommendations(userId){
  }
  const featureKeys=[
    ...firstMovieSources,
+   // A large Log must not push newer Watchlist metadata outside the
+   // bounded taste-feature request window.
+   ...watchlistKeys,
    ...movieSourceKeys,
    ...tvSourceKeys,
    ...Object.keys(savedImpressions).map(key=>key.replace(/^afterlogue-/,"")),
@@ -1197,6 +1202,12 @@ async function populateExpandedRecommendations(userId){
  const endpoint="https://lerrhzrabrqgogfnlsbd.supabase.co/functions/v1/afterlogue-catalog";
  const excluded=new Set([...sources.map(x=>x.key),...discoverySeen,
    ...discoveryWatchlist.map(x=>x.title_key)]);
+ const watchlistSources=[...watchlistKeys].filter(key=>
+   !ratedKeys.has(key)&&!discoverySeen.includes(key))
+   .map(key=>{
+     const known=named.get(key)||sourceFeatureMap.get(key);
+     return known?.title?{key,title:known.title,category:known.category}:null;
+   }).filter(Boolean);
  const grouped={
   movies:sources.filter(x=>named.get(x.key)?.category==="movies")
    .sort((a,b)=>Number(b.rating==="Loved")-Number(a.rating==="Loved")),
@@ -1234,6 +1245,20 @@ async function populateExpandedRecommendations(userId){
    };
    const plans=[];
    if(own.length)plans.push({kind:"direct",body:{mode:"recommend",media,titles:own,...filters}});
+   // A bounded independent retrieval lane for films the member wants to
+   // watch. Its matches receive weaker weight than rated positive titles.
+   const watchTitles=[...new Set(watchlistSources.filter(x=>x.category===category)
+     .map(x=>x.title))].sort((a,b)=>a.localeCompare(b));
+   if(watchTitles.length){
+     const turn=Math.floor(Date.now()/86400000)%watchTitles.length;
+     const rotated=[...watchTitles.slice(turn),...watchTitles.slice(0,turn)];
+     const watchAnchors=window.AfterlogueRecommendationEngine.selectSeeds({
+       sources:rotated.map(title=>({title,rating:"Watchlist"})),
+       category,limit:2,rotation:turn
+     });
+     if(watchAnchors.length)plans.push({kind:"watchlist",body:{
+       mode:"recommend",media,titles:watchAnchors,...filters}});
+   }
    // A different, positively rated group of source films unlocks a genuinely
    // wider candidate pool. Reordering five cartoons cannot create a drama.
    // Make one additional bounded TMDB recommendation request only when the

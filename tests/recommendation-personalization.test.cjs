@@ -130,8 +130,8 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  assert.match(home,/sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/category,limit:4,rotation:/);
- assert.match(home,/algorithm:"franchise-fair-home-v4"/);
- assert.match(home,/recommendation-engine\.js\?v=13/);
+ assert.match(home,/algorithm:"watchlist-aware-home-v5"/);
+ assert.match(home,/recommendation-engine\.js\?v=14/);
 });
 
 test('Strong, well-evidenced animation preference is allowed to dominate five selections',()=>{
@@ -178,8 +178,8 @@ test('Home applies balanced shelf selection after personal filtering and invalid
  assert.ok(home.indexOf('const varied=window.AfterlogueRecommendationEngine.balanceShelves(',
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
- assert.match(home,/algorithm:"franchise-fair-home-v4"/);
- assert.match(home,/recommendation-engine\.js\?v=13/);
+ assert.match(home,/algorithm:"watchlist-aware-home-v5"/);
+ assert.match(home,/recommendation-engine\.js\?v=14/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
 
@@ -892,7 +892,7 @@ test('Strong long-term animation enthusiasts remain eligible for animated shelve
 test('Home uses dated Log sources without storing additional private fields',()=>{
  const page=read('discover.html'),logic=read('recommendation-engine.js');
  assert.match(page,/timestamp:impressionDates\[x\.key\]\|\|null/);
- assert.match(page,/algorithm:"franchise-fair-home-v4"/);
+ assert.match(page,/algorithm:"watchlist-aware-home-v5"/);
  assert.match(logic,/const historic=dated\.slice\(Math\.floor\(dated\.length\/2\)\)/);
  assert.match(logic,/const byLane=new Map\(\),byFranchise=new Set\(\),strong=\[\]/);
 });
@@ -985,7 +985,100 @@ test('Home uses shared franchise grouping before ranking and stores known-series
  assert.match(home,/const discoveryFranchise=item=>/);
  assert.match(home,/discoverySeriesHistory\.movies\.has\(discoverySeriesKey\(item\)\)/);
  assert.match(home,/seriesHistory:\{movies:\[/);
- assert.match(home,/franchise-fair-home-v4/);
- assert.match(home,/recommendation-engine\.js\?v=13/);
+ assert.match(home,/watchlist-aware-home-v5/);
+ assert.match(home,/recommendation-engine\.js\?v=14/);
  assert.match(engineSource,/const group=franchiseKey\(byKey\.get\(key\)\)/);
+});
+
+
+test('Watchlist curiosity stays weaker than watched-and-loved evidence',()=>{
+ const record=(key,genres,themes=[])=>({
+   key,title:key,category:'movies',facets:{genres,themes,tones:[],pace:null},
+   position:0,directMatches:[]
+ });
+ const titles=[
+   record('watched-dramatic',['drama'],['connection']),
+   record('future-fantasy',['fantasy'],['adventure']),
+   record('drama-match',['drama'],['connection']),
+   record('fantasy-match',['fantasy'],['adventure'])
+ ];
+ const impressions={'watched-dramatic':'Loved'};
+ const withInterest=engine.buildTasteProfile({entries:titles,impressions,
+   watchlist:[{title_key:'future-fantasy'}]});
+ const without=engine.buildTasteProfile({entries:titles,impressions});
+ assert.equal(withInterest.logSignals,1);
+ assert.equal(withInterest.interestSignals,1);
+ assert.equal(withInterest.interestCovered,1);
+ assert.equal(without.interestSignals,0);
+ assert.ok(engine.tasteMatch(withInterest,{genres:['drama']}).score>0);
+ assert.equal(engine.tasteMatch(withInterest,{genres:['fantasy']}).score,0,
+   'Watchlist curiosity must not rewrite established taste');
+ const ranked=Array.from(engine.rank({entries:titles,category:'movies',
+   impressions,watchlist:[{title_key:'future-fantasy'}]}));
+ assert.equal(ranked.some(x=>x.key==='future-fantasy'),false);
+ assert.equal(ranked[0].key,'drama-match',
+   'A Loved reference remains stronger than a weak Watchlist association');
+ assert.ok(ranked.find(x=>x.key==='fantasy-match').score>0,
+   'Watchlist interest should still lift genuinely related films');
+});
+
+test('Watchlist-only similarity has a truthful reason and skips seen titles',()=>{
+ const known={key:'tmdb-movie-10',title:'A Film Saved for Later',category:'movies',
+   facets:{genres:['drama'],themes:['connection'],tones:[],pace:null},
+   directMatches:[],position:0};
+ const related={key:'tmdb-movie-20',title:'An Interesting Discovery',category:'movies',
+   facets:{genres:['drama'],themes:['connection'],tones:[],pace:null},
+   directMatches:['a-film-saved-for-later'],position:1};
+ const excluded={...related,key:'tmdb-movie-30',title:'Already Watched',position:2};
+ const ranked=Array.from(engine.rank({entries:[known,related,excluded],category:'movies',
+   watchlist:[{title_key:'tmdb-movie-10'}],seen:['tmdb-movie-30']}));
+ assert.equal(ranked.length,1);
+ assert.equal(ranked[0].key,'tmdb-movie-20');
+ assert.equal(ranked[0].personalized,true);
+ assert.match(ranked[0].why,/^Because you saved A Film Saved for Later to your Watchlist,/);
+ assert.doesNotMatch(ranked[0].why,/because you liked/i);
+});
+
+test('Watchlisted negative impression never becomes positive taste evidence',()=>{
+ const titles=[
+  {key:'bad',title:'Bad Experience',category:'movies',
+   facets:{genres:['horror'],themes:[],tones:[],pace:null},position:1,directMatches:[]},
+  {key:'more',title:'More Horror',category:'movies',
+   facets:{genres:['horror'],themes:[],tones:[],pace:null},position:2,directMatches:[]}
+ ];
+ const p=engine.buildTasteProfile({entries:titles,impressions:{bad:'Not for me'},
+   watchlist:[{title_key:'bad'}]});
+ assert.equal(p.interestSignals,0);
+ assert.ok(engine.tasteMatch(p,{genres:['horror']}).score<0);
+ const results=Array.from(engine.rank({entries:titles,category:'movies',
+   impressions:{bad:'Not for me'},watchlist:[{title_key:'bad'}]}));
+ assert.equal(results.length,1);
+ assert.ok(results[0].score<0);
+});
+
+test('Home loads saved title metadata and retrieves candidates from Watchlist anchors',()=>{
+ const home=read('discover.html');
+ assert.match(home,/watchlistKeys=new Set\(discoveryWatchlist/);
+ assert.match(home,/\.\.\.watchlistKeys,/);
+ assert.match(home,/const watchlistSources=/);
+ assert.match(home,/kind:"watchlist"/);
+ assert.match(home,/match\.signal\.watchlist/);
+ assert.match(home,/watchlist-aware-home-v5/);
+ assert.match(home,/recommendation-engine\.js\?v=14/);
+});
+
+test('Two saved sequels do not count as two independent established preferences',()=>{
+ const mk=(key,title,genre)=>({key,title,category:'movies',
+   facets:{genres:[genre],themes:[],tones:[],pace:null},directMatches:[]});
+ const entries=[
+  mk('p1','Harry Potter and the Chamber of Secrets','fantasy'),
+  mk('p2','Harry Potter and the Goblet of Fire','fantasy'),
+  mk('indie','Quiet Independent Film','drama')
+ ];
+ const p=engine.buildTasteProfile({entries,impressions:{indie:'Loved'},
+   watchlist:[{title_key:'p1'},{title_key:'p2'}]});
+ assert.equal(p.interestSignals,2);
+ assert.ok(p.interestDimensions.genres.find(x=>x.tag==='fantasy').affinity>0);
+ assert.equal(engine.tasteMatch(p,{genres:['fantasy']}).score,0);
+ assert.ok(engine.tasteMatch(p,{genres:['drama']}).score>0);
 });
