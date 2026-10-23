@@ -131,7 +131,7 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/category,limit:grouped\[category\]\.length>=24\?8:4,/);
  assert.match(home,/algorithm:"verified-cinematic-v8"/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
 });
 
 test('Strong, well-evidenced animation preference is allowed to dominate five selections',()=>{
@@ -179,7 +179,7 @@ test('Home applies balanced shelf selection after personal filtering and invalid
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
  assert.match(home,/algorithm:"verified-cinematic-v8"/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
 
@@ -986,7 +986,7 @@ test('Home uses shared franchise grouping before ranking and stores known-series
  assert.match(home,/discoverySeriesHistory\.movies\.has\(discoverySeriesKey\(item\)\)/);
  assert.match(home,/seriesHistory:\{movies:\[/);
  assert.match(home,/verified-cinematic-v8/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
  assert.match(engineSource,/const group=franchiseKey\(byKey\.get\(key\)\)/);
 });
 
@@ -1064,7 +1064,7 @@ test('Home loads saved title metadata and retrieves candidates from Watchlist an
  assert.match(home,/kind:"watchlist"/);
  assert.match(home,/match\.signal\.watchlist/);
  assert.match(home,/verified-cinematic-v8/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
 });
 
 test('Two saved sequels do not count as two independent established preferences',()=>{
@@ -1152,7 +1152,7 @@ test('All 117 recent Log entries create two four-title TMDB retrieval cohorts',(
  assert.match(page,/kind:"direct-history"/);
  assert.match(page,/historical\.length<2/);
  assert.match(page,/algorithm:"verified-cinematic-v8"/);
- assert.match(page,/recommendation-engine\.js\?v=17/);
+ assert.match(page,/recommendation-engine\.js\?v=18/);
 });
 
 
@@ -1220,7 +1220,7 @@ test('Home prioritizes the full rated Log before Watchlist within bounded public
  assert.match(home,/const deadline=started\+16000/);
  assert.match(home,/Math\.min\(3,batches\.length\)/);
  assert.match(home,/algorithm:"verified-cinematic-v8"/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
  assert.doesNotMatch(home,/unique\.slice\(0,108\)/);
 });
 
@@ -1292,7 +1292,7 @@ test('Step 2 opt-in diagnostic does not change recommendations or member data',(
  assert.match(home,/successfulBatches\+\+/);
  assert.match(home,/failedBatches\+\+/);
  assert.match(home,/console\.info\("Afterlogue source metadata coverage \(aggregate\)"/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
 });
 
 test('Verified filmmaker overlap helps a compatible film, but never outweighs strong taste evidence',()=>{
