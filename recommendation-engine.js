@@ -73,6 +73,8 @@ const common=(a,b)=>{
  const sharedTones=overlap(a.tones,b.tones);
  const sharedGenre=overlap(a.genres,b.genres);
  const sharedPace=a.pace&&b.pace&&a.pace===b.pace;
+ const sharedDirectors=overlap(a.directors||[],b.directors||[]);
+ const sharedWriters=overlap(a.writers||[],b.writers||[]);
  // Broad concepts like identity, control, and family appear across very
  // different films. Require a richer connection before they dominate ranking.
  const broad=new Set(["identity","family","control","belonging","survival","love","friendship","loss"]);
@@ -80,7 +82,10 @@ const common=(a,b)=>{
  const toneScore=sharedTones.length*1.25;
  const genreScore=Math.min(sharedGenre.length,2)*1.1;
  return {sharedThemes,sharedTones,sharedGenre,sharedPace,
-  strength:themeScore+toneScore+genreScore+(sharedPace?.35:0)};
+  sharedDirectors,sharedWriters,
+  // Verified creative connections help, but never override emotional taste.
+  strength:themeScore+toneScore+genreScore+(sharedPace?.35:0)+
+    Math.min(sharedDirectors.length,1)*1.3+Math.min(sharedWriters.length,1)*.45};
 };
 function normalizeEntries(catalog={},explore=[],editorial={},basics={}){
  const fromExplore=new Map(explore.map(item=>[slug(item.title),item]));
@@ -127,7 +132,7 @@ function buildTasteProfile({entries=[],impressions={},favorites=[],watchlist=[],
    if(existing)existing.favorite=true;
    else liked.set(key,{rating:null,favorite:true});
  }
- const buckets={themes:new Map(),tones:new Map(),genres:new Map(),pace:new Map()};
+ const buckets={themes:new Map(),tones:new Map(),genres:new Map(),pace:new Map(),directors:new Map()};
  const franchiseCounts=new Map();
  for(const [key,signal] of liked){
    if(!["Loved","Liked"].includes(signal.rating))continue;
@@ -178,7 +183,7 @@ function buildTasteProfile({entries=[],impressions={},favorites=[],watchlist=[],
  }
  // Watchlist saves suggest curiosity, not proof the member enjoyed a film.
  // Keep their influence separate from established tastes and negative ratings.
- const interestBuckets={themes:new Map(),tones:new Map(),genres:new Map(),pace:new Map()};
+ const interestBuckets={themes:new Map(),tones:new Map(),genres:new Map(),pace:new Map(),directors:new Map()};
  const interested=new Set();
  for(const record of watchlist||[]){
    const key=resolve(typeof record==="string"?record:record?.title_key||record?.key);
@@ -223,7 +228,7 @@ function buildTasteProfile({entries=[],impressions={},favorites=[],watchlist=[],
 }
 function tasteMatch(profile,facets={}){
  const dimensions=profile?.dimensions||{};
- const scales={themes:1.7,tones:1.5,genres:.8,pace:.3};
+ const scales={themes:1.7,tones:1.5,genres:.8,pace:.3,directors:1.15};
  let strength=0;
  const evidence=[];
  for(const [dimension,scale] of Object.entries(scales)){
@@ -359,6 +364,7 @@ function rank({entries,category,impressions={},favorites=[],watchlist=[],seen=[]
     const theme=similarity.sharedThemes.slice(0,2).map(x=>x.replace(/-/g," "));
     if(theme.length)why=intro+"this story also explores "+(theme.length===2?theme.join(" and "):theme[0])+".";
     else if(similarity.sharedTones.length)why=intro+"this shares a "+similarity.sharedTones[0]+" tone.";
+    else if(similarity.sharedDirectors.length)why=intro+"both stories share a director.";
     else if(similarity.sharedGenre.length)why=intro+"it offers another perspective on "+similarity.sharedGenre[0]+".";
     else if(directlyLinked)why=intro+"this title appears among stories recommended alongside it in the wider catalog.";
    }
@@ -802,5 +808,5 @@ function tasteFeatureCoverage({keys=[],records=[],impressions={},watchlist=[],
    }
  };
 }
-root.AfterlogueRecommendationEngine=Object.freeze({version:"2.8",normalizeEntries,planTasteFeatureKeys,tasteFeatureCoverage,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,franchiseKey,familyAudience,spectacleAdventure,obviousFollowup,facets:tags});
+root.AfterlogueRecommendationEngine=Object.freeze({version:"2.9",normalizeEntries,planTasteFeatureKeys,tasteFeatureCoverage,rank,buildTasteProfile,tasteMatch,selectSeeds,balanceShelves,storyLane,franchiseKey,familyAudience,spectacleAdventure,obviousFollowup,facets:tags});
 })(typeof window!=="undefined"?window:globalThis);

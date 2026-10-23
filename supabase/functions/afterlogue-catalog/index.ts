@@ -817,7 +817,7 @@ Deno.serve(async (req:Request) => {
           const contentMedia=found[1] as Media;
           try {
             const data=await tmdb("/"+contentMedia+"/"+found[2],
-              new URLSearchParams({language:"en-US",append_to_response:"keywords"}),token);
+              new URLSearchParams({language:"en-US",append_to_response:"keywords,credits"}),token);
             if(data.adult===true||!data.id)continue;
             const terms=contentMedia==="movie"?data.keywords?.keywords:data.keywords?.results;
             const names=(Array.isArray(terms)?terms:[]).map((word:Record<string,unknown>)=>
@@ -825,13 +825,24 @@ Deno.serve(async (req:Request) => {
             const genres=(Array.isArray(data.genres)?data.genres:[])
               .map((genre:Record<string,unknown>)=>String(genre.name||"").toLowerCase().trim())
               .filter(Boolean).slice(0,6);
+            const crew=Array.isArray(data.credits?.crew)?data.credits.crew:[];
+            // Only verified TMDB crew IDs. No guessed style labels.
+            const people=(roles:string[])=>[...new Set(crew
+              .filter((person:Record<string,unknown>)=>roles.includes(String(person.job||""))&&
+                Number.isInteger(Number(person.id))&&Number(person.id)>0)
+              .map((person:Record<string,unknown>)=>"tmdb-person-"+Number(person.id)))].slice(0,8);
+            const directors=people(["Director"]);
+            const writers=people(["Writer","Screenplay","Story","Teleplay"]);
             const rawTitle=contentMedia==="tv"?data.name:data.title;
             const title=typeof rawTitle==="string"?rawTitle.trim().slice(0,180):"";
             if(!title)continue;
             output.push({key,title,category:contentMedia==="tv"?"tv":"movies",
               genres,
               themes:[...new Set(names.map((name:string)=>themeKeywords[name]).filter(Boolean))].slice(0,8),
-              tones:[...new Set(names.map((name:string)=>toneKeywords[name]).filter(Boolean))].slice(0,5)});
+              tones:[...new Set(names.map((name:string)=>toneKeywords[name]).filter(Boolean))].slice(0,5),
+              directors,writers,
+              collectionId:Number(data.belongs_to_collection?.id)>0
+                ?Number(data.belongs_to_collection.id):null});
           }catch(_){/* Missing details reduce confidence; never fabricate facets. */}
         }
       }));

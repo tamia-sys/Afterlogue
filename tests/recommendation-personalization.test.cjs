@@ -130,8 +130,8 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  assert.match(home,/sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/category,limit:grouped\[category\]\.length>=24\?8:4,/);
- assert.match(home,/algorithm:"log-first-metadata-v7"/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/algorithm:"verified-cinematic-v8"/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
 });
 
 test('Strong, well-evidenced animation preference is allowed to dominate five selections',()=>{
@@ -178,8 +178,8 @@ test('Home applies balanced shelf selection after personal filtering and invalid
  assert.ok(home.indexOf('const varied=window.AfterlogueRecommendationEngine.balanceShelves(',
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
- assert.match(home,/algorithm:"log-first-metadata-v7"/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/algorithm:"verified-cinematic-v8"/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
 
@@ -892,7 +892,7 @@ test('Strong long-term animation enthusiasts remain eligible for animated shelve
 test('Home uses dated Log sources without storing additional private fields',()=>{
  const page=read('discover.html'),logic=read('recommendation-engine.js');
  assert.match(page,/timestamp:impressionDates\[x\.key\]\|\|null/);
- assert.match(page,/algorithm:"log-first-metadata-v7"/);
+ assert.match(page,/algorithm:"verified-cinematic-v8"/);
  assert.match(logic,/const fractions=\[0,\.5,\.25,\.75,\.125,\.625,\.375,\.875\]/);
  assert.match(logic,/const byLane=new Map\(\),byFranchise=new Set\(\),strong=\[\]/);
 });
@@ -985,8 +985,8 @@ test('Home uses shared franchise grouping before ranking and stores known-series
  assert.match(home,/const discoveryFranchise=item=>/);
  assert.match(home,/discoverySeriesHistory\.movies\.has\(discoverySeriesKey\(item\)\)/);
  assert.match(home,/seriesHistory:\{movies:\[/);
- assert.match(home,/log-first-metadata-v7/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/verified-cinematic-v8/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
  assert.match(engineSource,/const group=franchiseKey\(byKey\.get\(key\)\)/);
 });
 
@@ -1063,8 +1063,8 @@ test('Home loads saved title metadata and retrieves candidates from Watchlist an
  assert.match(home,/const watchlistSources=/);
  assert.match(home,/kind:"watchlist"/);
  assert.match(home,/match\.signal\.watchlist/);
- assert.match(home,/log-first-metadata-v7/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/verified-cinematic-v8/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
 });
 
 test('Two saved sequels do not count as two independent established preferences',()=>{
@@ -1151,8 +1151,8 @@ test('All 117 recent Log entries create two four-title TMDB retrieval cohorts',(
  assert.match(page,/const own=allOwn\.slice\(0,4\),historical=allOwn\.slice\(4,8\)/);
  assert.match(page,/kind:"direct-history"/);
  assert.match(page,/historical\.length<2/);
- assert.match(page,/algorithm:"log-first-metadata-v7"/);
- assert.match(page,/recommendation-engine\.js\?v=17/);
+ assert.match(page,/algorithm:"verified-cinematic-v8"/);
+ assert.match(page,/recommendation-engine\.js\?v=18/);
 });
 
 
@@ -1219,8 +1219,8 @@ test('Home prioritizes the full rated Log before Watchlist within bounded public
  assert.match(home,/const bounded=unique\.slice\(0,256\)/);
  assert.match(home,/const deadline=started\+16000/);
  assert.match(home,/Math\.min\(3,batches\.length\)/);
- assert.match(home,/algorithm:"log-first-metadata-v7"/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/algorithm:"verified-cinematic-v8"/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
  assert.doesNotMatch(home,/unique\.slice\(0,108\)/);
 });
 
@@ -1292,5 +1292,34 @@ test('Step 2 opt-in diagnostic does not change recommendations or member data',(
  assert.match(home,/successfulBatches\+\+/);
  assert.match(home,/failedBatches\+\+/);
  assert.match(home,/console\.info\("Afterlogue source metadata coverage \(aggregate\)"/);
- assert.match(home,/recommendation-engine\.js\?v=17/);
+ assert.match(home,/recommendation-engine\.js\?v=18/);
+});
+
+test('Verified filmmaker overlap helps a compatible film, but never outweighs strong taste evidence',()=>{
+ const films=[
+  {key:'favorite',title:'Favorite',category:'movies',position:0,directMatches:[],
+   facets:{genres:['drama'],themes:['solitude'],tones:['reflective'],directors:['tmdb-person-11']}},
+  {key:'filmmaker',title:'Another Film',category:'movies',position:2,directMatches:[],
+   facets:{genres:['drama'],themes:['solitude'],tones:['reflective'],directors:['tmdb-person-11']}},
+  {key:'same-genre',title:'Genre Film',category:'movies',position:1,directMatches:[],
+   facets:{genres:['drama'],themes:['solitude'],tones:['reflective'],directors:['tmdb-person-22']}},
+  {key:'other',title:'Unrelated Film',category:'movies',position:3,directMatches:[],
+   facets:{genres:['action'],themes:['revenge'],tones:['intense'],directors:['tmdb-person-11']}}
+ ];
+ const picks=engine.rank({entries:films,category:'movies',impressions:{favorite:'Loved'}});
+ assert.equal(picks[0].key,'filmmaker');
+ assert.ok(picks.find(x=>x.key==='other').score<picks.find(x=>x.key==='same-genre').score);
+ assert.ok(picks[0].why.includes('solitude'));
+});
+test('A filmmaker connection alone does not invent shared themes or tones',()=>{
+ const entries=[
+  {key:'liked',title:'Liked Film',category:'movies',position:0,directMatches:[],
+   facets:{genres:['drama'],themes:['memory'],tones:['quiet'],directors:['tmdb-person-11']}},
+  {key:'other',title:'Other Film',category:'movies',position:1,directMatches:[],
+   facets:{genres:['horror'],themes:['survival'],tones:['intense'],directors:['tmdb-person-11']}}
+ ];
+ const picks=engine.rank({entries,category:'movies',impressions:{liked:'Loved'}});
+ assert.equal(picks.length,1);
+ assert.ok(picks[0].why.includes('share a director'));
+ assert.ok(!picks[0].why.includes('memory'));
 });
