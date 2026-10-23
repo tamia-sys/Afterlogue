@@ -711,8 +711,8 @@ test('OAuth buttons actually initiate sign-in and support verified callback rout
 });
 test('Discover does not cycle back to the first five or let sequels and holiday titles dominate',()=>{
  const code=read('discover.html');
- assert.match(code,/discoverySeriesPrefixes/);
- assert.match(code,/the hunger games/);
+ assert.match(code,/const discoveryFranchise=item=>/);
+ assert.match(read('recommendation-engine.js'),/"the hunger games"/);
  assert.match(code,/franchises\.has\(franchise\)/);
  assert.match(code,/isSeasonalDiscovery/);
  assert.match(code,/holidayCount>=1/);
@@ -894,7 +894,7 @@ test('Home uses dated Log sources without storing additional private fields',()=
  assert.match(page,/timestamp:impressionDates\[x\.key\]\|\|null/);
  assert.match(page,/algorithm:"franchise-fair-home-v4"/);
  assert.match(logic,/const historic=dated\.slice\(Math\.floor\(dated\.length\/2\)\)/);
- assert.match(logic,/const byLane=new Map\(\),strong=\[\]/);
+ assert.match(logic,/const byLane=new Map\(\),byFranchise=new Set\(\),strong=\[\]/);
 });
 
 test('Screenshot regression: Monster High and Halloweentown sequels do not monopolize Home',()=>{
