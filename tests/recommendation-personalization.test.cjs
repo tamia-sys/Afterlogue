@@ -130,8 +130,8 @@ test('Home broadens discovery using logged-title genre evidence and expires old 
  assert.match(home,/sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/facets:sourceFeatureMap\.get\(x\.key\)/);
  assert.match(home,/category,limit:grouped\[category\]\.length>=24\?8:4,/);
- assert.match(home,/algorithm:"whole-log-discovery-v6"/);
- assert.match(home,/recommendation-engine\.js\?v=15/);
+ assert.match(home,/algorithm:"log-first-metadata-v7"/);
+ assert.match(home,/recommendation-engine\.js\?v=16/);
 });
 
 test('Strong, well-evidenced animation preference is allowed to dominate five selections',()=>{
@@ -178,8 +178,8 @@ test('Home applies balanced shelf selection after personal filtering and invalid
  assert.ok(home.indexOf('const varied=window.AfterlogueRecommendationEngine.balanceShelves(',
    home.indexOf('const qualified=diversifyDiscoverResults'))>
    home.indexOf('const expanded=selected.filter(entry=>'));
- assert.match(home,/algorithm:"whole-log-discovery-v6"/);
- assert.match(home,/recommendation-engine\.js\?v=15/);
+ assert.match(home,/algorithm:"log-first-metadata-v7"/);
+ assert.match(home,/recommendation-engine\.js\?v=16/);
  assert.match(home,/genres:\(item\.genres\|\|\[\]\)\.map\(g=>g\.toLowerCase\(\)\)/);
 });
 
@@ -892,7 +892,7 @@ test('Strong long-term animation enthusiasts remain eligible for animated shelve
 test('Home uses dated Log sources without storing additional private fields',()=>{
  const page=read('discover.html'),logic=read('recommendation-engine.js');
  assert.match(page,/timestamp:impressionDates\[x\.key\]\|\|null/);
- assert.match(page,/algorithm:"whole-log-discovery-v6"/);
+ assert.match(page,/algorithm:"log-first-metadata-v7"/);
  assert.match(logic,/const fractions=\[0,\.5,\.25,\.75,\.125,\.625,\.375,\.875\]/);
  assert.match(logic,/const byLane=new Map\(\),byFranchise=new Set\(\),strong=\[\]/);
 });
@@ -985,8 +985,8 @@ test('Home uses shared franchise grouping before ranking and stores known-series
  assert.match(home,/const discoveryFranchise=item=>/);
  assert.match(home,/discoverySeriesHistory\.movies\.has\(discoverySeriesKey\(item\)\)/);
  assert.match(home,/seriesHistory:\{movies:\[/);
- assert.match(home,/whole-log-discovery-v6/);
- assert.match(home,/recommendation-engine\.js\?v=15/);
+ assert.match(home,/log-first-metadata-v7/);
+ assert.match(home,/recommendation-engine\.js\?v=16/);
  assert.match(engineSource,/const group=franchiseKey\(byKey\.get\(key\)\)/);
 });
 
@@ -1059,12 +1059,12 @@ test('Watchlisted negative impression never becomes positive taste evidence',()=
 test('Home loads saved title metadata and retrieves candidates from Watchlist anchors',()=>{
  const home=read('discover.html');
  assert.match(home,/watchlistKeys=new Set\(discoveryWatchlist/);
- assert.match(home,/\.\.\.watchlistKeys,/);
+ assert.match(home,/watchlistKeys:\[\.\.\.watchlistKeys\]/);
  assert.match(home,/const watchlistSources=/);
  assert.match(home,/kind:"watchlist"/);
  assert.match(home,/match\.signal\.watchlist/);
- assert.match(home,/whole-log-discovery-v6/);
- assert.match(home,/recommendation-engine\.js\?v=15/);
+ assert.match(home,/log-first-metadata-v7/);
+ assert.match(home,/recommendation-engine\.js\?v=16/);
 });
 
 test('Two saved sequels do not count as two independent established preferences',()=>{
@@ -1151,6 +1151,75 @@ test('All 117 recent Log entries create two four-title TMDB retrieval cohorts',(
  assert.match(page,/const own=allOwn\.slice\(0,4\),historical=allOwn\.slice\(4,8\)/);
  assert.match(page,/kind:"direct-history"/);
  assert.match(page,/historical\.length<2/);
- assert.match(page,/algorithm:"whole-log-discovery-v6"/);
- assert.match(page,/recommendation-engine\.js\?v=15/);
+ assert.match(page,/algorithm:"log-first-metadata-v7"/);
+ assert.match(page,/recommendation-engine\.js\?v=16/);
+});
+
+
+test('117-film / 39-show audit: every TMDB-rated story precedes unwatched Watchlist interests',()=>{
+ // Actual audit proportions, with synthetic IDs to protect member privacy:
+ // 136 dynamic rated titles (106 movies + 30 TV), 20 editorial-rated titles,
+ // 82 dynamic Watchlist titles (five also rated).
+ const movieIds=Array.from({length:106},(_,i)=>'tmdb-movie-'+(110000+i));
+ const tvIds=Array.from({length:30},(_,i)=>'tmdb-tv-'+(220000+i));
+ const likedMovies=movieIds.slice(0,77),likedTv=tvIds.slice(0,20);
+ const watchlist=[...movieIds.slice(0,5),
+   ...Array.from({length:70},(_,i)=>'tmdb-movie-'+(330000+i)),
+   ...Array.from({length:7},(_,i)=>'tmdb-tv-'+(440000+i))];
+ const rated=[...movieIds,...tvIds,
+   ...Array.from({length:20},(_,i)=>'editorial-title-'+i)];
+ const planned=Array.from(engine.planTasteFeatureKeys({
+   firstMovieKeys:[likedMovies[0],likedMovies[40],likedMovies.at(-1)],
+   firstTvKeys:[likedTv[0],likedTv.at(-1)],
+   positiveMovieKeys:likedMovies,positiveTvKeys:likedTv,
+   ratedKeys:rated,watchlistKeys:watchlist
+ }));
+ assert.equal(planned.length,213, 'All rated TMDB IDs and all new Watchlist IDs should be eligible');
+ assert.equal(new Set(planned).size,planned.length, 'No duplicate film IDs');
+ assert.equal(movieIds.every(key=>planned.includes(key)),true);
+ assert.equal(tvIds.every(key=>planned.includes(key)),true);
+ const firstWatchOnly=Math.min(...watchlist
+   .filter(key=>!rated.includes(key)).map(key=>planned.indexOf(key)));
+ assert.equal(firstWatchOnly,136, 'Unwatched saves must follow all 136 rated TMDB titles');
+ assert.ok(planned.indexOf(likedMovies.at(-1))<firstWatchOnly,
+   'Old movie tastes cannot be lost behind recent Watchlist additions');
+ assert.ok(planned.indexOf(likedTv.at(-1))<firstWatchOnly,
+   'Rated TV shows also outrank saved but unrated films');
+ assert.ok(!planned.some(key=>key.startsWith('editorial-title-')),
+   'Editorial titles have separate metadata and are not sent to TMDB');
+});
+
+test('A very large rated Log never allows Watchlist titles to displace rated metadata',()=>{
+ const movies=Array.from({length:295},(_,i)=>'tmdb-movie-'+(500000+i));
+ const watch=Array.from({length:200},(_,i)=>'tmdb-movie-'+(800000+i));
+ const planned=Array.from(engine.planTasteFeatureKeys({
+   positiveMovieKeys:movies.slice(0,120),
+   ratedKeys:movies,watchlistKeys:watch
+ }));
+ assert.equal(planned.length,256,'Keep network requests bounded');
+ assert.ok(planned.every(key=>movies.includes(key)),
+   'Do not evict rated cinema to process a Watchlist-first queue');
+ const limited=Array.from(engine.planTasteFeatureKeys({
+   firstMovieKeys:['tmdb-movie-501','tmdb-movie-501'],
+   ratedKeys:['tmdb-movie-502','invalid','tmdb-movie-503'],
+   watchlistKeys:['tmdb-tv-600'],
+   limit:3
+ }));
+ assert.deepEqual(limited,['tmdb-movie-501','tmdb-movie-502','tmdb-movie-503']);
+});
+
+test('Home prioritizes the full rated Log before Watchlist within bounded public metadata batches',()=>{
+ const home=read('discover.html');
+ assert.match(home,/planTasteFeatureKeys\(\{/);
+ assert.match(home,/firstTvKeys:tvSourceKeys\.slice\(0,4\)/);
+ assert.match(home,/positiveMovieKeys:movieSourceKeys/);
+ assert.match(home,/positiveTvKeys:tvSourceKeys/);
+ assert.match(home,/ratedKeys:Object\.keys\(savedImpressions\)/);
+ assert.match(home,/watchlistKeys:\[\.\.\.watchlistKeys\]/);
+ assert.match(home,/const bounded=unique\.slice\(0,256\)/);
+ assert.match(home,/const deadline=Date\.now\(\)\+16000/);
+ assert.match(home,/Math\.min\(3,batches\.length\)/);
+ assert.match(home,/algorithm:"log-first-metadata-v7"/);
+ assert.match(home,/recommendation-engine\.js\?v=16/);
+ assert.doesNotMatch(home,/unique\.slice\(0,108\)/);
 });
