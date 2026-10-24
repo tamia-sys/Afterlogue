@@ -160,7 +160,10 @@
    console.warn("Afterlogue quality history unavailable",err?.code||"unavailable");
    return false;
   }finally{
-   if(context?.key===key)next.disabled=false;
+   if(context?.key===key&&dialog.open&&stage===1) {
+    // Never let a failed history fetch overwrite an earlier contribution.
+    next.disabled=feedback.textContent.includes("couldn't be loaded");
+   }
   }
  }
  next.addEventListener("click",()=>{
