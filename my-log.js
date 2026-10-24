@@ -57,6 +57,7 @@
   };
 
   const validRatings = ['Loved', 'Liked', 'Okay', 'Not for me'];
+  const filmQualities = window.AfterlogueFilmQualities;
   const tvKeys = new Set(Object.keys(catalogue)
     .filter(function (key) { return catalogue[key].category === 'tv'; }));
 
@@ -221,6 +222,16 @@
     // Keep the private impression / note editor available independently.
     controls.appendChild(action('✎ Edit entry', 'Edit impression or private note for ' + record.title,
       function () { openDetails(record); }));
+    // Only in Watched Log, not on film-details pages.
+    if (state.currentTab === 'watched' && record.category === 'movies' &&
+        state.seen.some(function(item){return item.title_key===record.key;}) &&
+        filmQualities?.available) {
+      controls.appendChild(action('✧ Film qualities',
+        'Share what you noticed about ' + record.title,
+        function () { filmQualities.open({
+          client:client,user:state.user,key:record.key,title:record.title
+        }); }));
+    }
     controls.appendChild(action('♧ Share', 'Share ' + record.title,
       function () { shareTitle(record); }));
     controls.appendChild(action('Discuss', 'Start a discussion about ' + record.title,
@@ -466,6 +477,12 @@
       dialog.close();
       render();
       showMessage('Your Log has been updated.');
+      // A brand-new watched impression offers a brief optional reflection.
+      // Skipping never affects the saved rating, notes, or recommendations.
+      if (!oldRating && wantedRating && latest.category === 'movies' &&
+          filmQualities?.available) {
+        filmQualities.open({client:client,user:state.user,key:key,title:latest.title});
+      }
     } catch (error) {
       console.error('Afterlogue Log save failed', error);
       dialogError.textContent = 'Could not save your changes. Please try again.';
