@@ -97,6 +97,12 @@
   const byKey=new Map(rows.map(x=>[x.tag_key,x]));
   const known=rows.filter(x=>typeof x.people==="number"&&x.people>=3)
     .sort((a,b)=>b.people-a.people);
+  // Don't imply that other viewers agreed if this film has very few
+  // independent contributors so far.
+  if(!known.length){
+   question.textContent="Your perspective is part of the story.";
+   description.textContent="You're among the first to contribute. Once more viewers weigh in, we'll show what they noticed too.";
+  }
   const selected=currentSelected();
   const order=[...selected,...known.map(x=>x.tag_key).filter(x=>!observed.has(x)).slice(0,3)];
   for(const key of order){
