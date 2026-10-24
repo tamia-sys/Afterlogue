@@ -1,0 +1,26 @@
+name: Film quality contribution QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - my-log.html
+      - my-log.js
+      - film-qualities.js
+      - film-qualities.css
+      - sql/film-quality-observations.sql
+      - tests/film-qualities.test.cjs
+      - .github/workflows/film-qualities-qa.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  quality-tags:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check blind film quality contribution and database authorization
+        run: node --test tests/film-qualities.test.cjs
